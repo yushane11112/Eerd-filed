@@ -10,6 +10,7 @@ HTMLCanvasElement.prototype.getContext = (() => ({
   globalCompositeOperation: 'source-over',
   fillRect: () => undefined,
   drawImage: () => undefined,
+  measureText: (text: string) => ({ width: text.length * 7 }),
   getImageData: () => ({ data: new Uint8ClampedArray([0, 0, 0, 0]) }),
 })) as typeof HTMLCanvasElement.prototype.getContext
 
@@ -178,6 +179,12 @@ describe('DynamicScene', () => {
         statusReason: 'no-workers',
         origin: { x: 6, y: 1 },
       }),
+      blockedLogistics: createBuilding({
+        id: 'blockedLogistics',
+        status: 'blocked',
+        statusReason: 'logistics-failed:food:no-route',
+        origin: { x: 7, y: 1 },
+      }),
     }
     snapshot.agents = {}
     snapshot.worldDrops = []
@@ -193,10 +200,13 @@ describe('DynamicScene', () => {
         layerLabel: statusLayer?.label,
         statusChildCount: statusLayer?.children.length,
         statusChildLabels: statusLayer ? childLabels(statusLayer) : [],
+        hintLayer: statusLayer?.children.find((child) => (
+          typeof child.label === 'string' && child.label.startsWith('building-status-hint:')
+        )),
       }
     })
 
-    expect(layers).toHaveLength(6)
+    expect(layers).toHaveLength(7)
     expect(layers.map((layer) => layer.layerLabel)).toEqual(expect.arrayContaining([
       'building-status-layer:working',
       'building-status-layer:serving',
@@ -204,26 +214,36 @@ describe('DynamicScene', () => {
       'building-status-layer:blocked:missing-input',
       'building-status-layer:blocked:storage-full',
       'building-status-layer:blocked:no-workers',
+      'building-status-layer:blocked:logistics-failed',
+    ]))
+    expect(layers.map((layer) => layer.hintLayer?.label)).toEqual(expect.arrayContaining([
+      'building-status-hint:blocked:missing-input:缺料',
+      'building-status-hint:blocked:storage-full:仓满',
+      'building-status-hint:blocked:no-workers:缺工',
+      'building-status-hint:blocked:logistics-failed:物流失败',
     ]))
     for (const layer of layers) {
       expect(layer.displayChildCount).toBe(2)
-      expect(layer.statusChildCount).toBe(3)
+      expect(layer.statusChildCount).toBe(4)
       expect(layer.statusChildLabels).toEqual(expect.arrayContaining([
         expect.stringMatching(/^building-status-mask:/),
         expect.stringMatching(/^building-status-symbol:/),
         expect.stringMatching(/^building-status-motion:/),
+        expect.stringMatching(/^building-status-hint:/),
       ]))
     }
 
     const beforeChildCounts = scene.layers.buildings.children.map((buildingDisplay) => [
       buildingDisplay.children.length,
       buildingDisplay.children[1]?.children.length,
+      buildingDisplay.children[1]?.children.at(-1)?.children.length,
     ])
     snapshot.tick += 1
     scene.sync(snapshot, camera)
     const afterChildCounts = scene.layers.buildings.children.map((buildingDisplay) => [
       buildingDisplay.children.length,
       buildingDisplay.children[1]?.children.length,
+      buildingDisplay.children[1]?.children.at(-1)?.children.length,
     ])
 
     expect(afterChildCounts).toEqual(beforeChildCounts)
@@ -262,6 +282,39 @@ describe('DynamicScene', () => {
       typeof child.label === 'string' && child.label.startsWith('prefab-placeholder:')
     ))
     expect(prefabLayer?.label).toBe('prefab-placeholder:main-pier:L4:storage_full:storage-full')
+    expect(childLabels(prefabLayer ?? { children: [] })).toEqual([
+      'prefab-placeholder-shell',
+      'prefab-placeholder-outline',
+      'prefab-placeholder-info-bar',
+      'prefab-placeholder-status-bar',
+      'prefab-placeholder-level-marks',
+      'prefab-placeholder-label:main-pier:L4',
+    ])
+
+    snapshot.tick += 1
+    snapshot.buildings.pier = createBuilding({
+      id: 'pier',
+      type: 'main-pier',
+      level: 8,
+      status: 'working',
+      productionProgress: 0.75,
+    })
+    scene.sync(snapshot, camera)
+
+    const updatedPrefabLayer = scene.layers.buildings.children[0]?.children.find((child) => (
+      typeof child.label === 'string' && child.label.startsWith('prefab-placeholder:')
+    ))
+    expect(updatedPrefabLayer?.label).toBe(
+      'prefab-placeholder:main-pier:L8:working:staff-entry+input-receive+production-primary+production-secondary+output-ready',
+    )
+    expect(childLabels(updatedPrefabLayer ?? { children: [] })).toEqual([
+      'prefab-placeholder-shell',
+      'prefab-placeholder-outline',
+      'prefab-placeholder-info-bar',
+      'prefab-placeholder-status-bar',
+      'prefab-placeholder-level-marks',
+      'prefab-placeholder-label:main-pier:L8',
+    ])
   })
 
   it('resolves prefab placeholders through building type to asset id mapping', async () => {
@@ -320,5 +373,38 @@ describe('DynamicScene', () => {
     ))
     expect(prefabLayer?.label).toBe('prefab-placeholder:unknown-building:unmapped')
     expect(prefabLayer?.visible).toBe(false)
+  })
+
+  it('keeps mapped but unregistered prefab assets on the gray-box fallback', async () => {
+    const { DynamicScene } = await import('./DynamicScene')
+    const { PrefabRuntimeRegistry } = await import('./prefab')
+    const scene = new DynamicScene(undefined, { prefabRegistry: new PrefabRuntimeRegistry() })
+    const snapshot = createSnapshot()
+    snapshot.buildings = {
+      pier: createBuilding({
+        id: 'pier',
+        type: 'main-pier',
+        level: 4,
+        status: 'working',
+      }),
+    }
+    snapshot.agents = {}
+    snapshot.worldDrops = []
+
+    scene.sync(snapshot, camera)
+
+    const prefabLayer = scene.layers.buildings.children[0]?.children.find((child) => (
+      typeof child.label === 'string' && child.label.startsWith('prefab-placeholder:')
+    ))
+    expect(prefabLayer?.label).toBe('prefab-placeholder:main-pier:missing')
+    expect(prefabLayer?.visible).toBe(false)
+    expect(childLabels(prefabLayer ?? { children: [] })).toEqual([
+      'prefab-placeholder-shell',
+      'prefab-placeholder-outline',
+      'prefab-placeholder-info-bar',
+      'prefab-placeholder-status-bar',
+      'prefab-placeholder-level-marks',
+      'prefab-placeholder-label',
+    ])
   })
 })

@@ -1,4 +1,4 @@
-import { Container, Graphics } from 'pixi.js'
+import { Container, Graphics, Text } from 'pixi.js'
 import type {
   AgentEntity,
   BuildingEntity,
@@ -11,7 +11,7 @@ import { resolvePrefabAssetIdForBuildingType } from './prefab'
 import type { PrefabRuntimeRegistry, ResolvedPrefabBuilding } from './prefab'
 import type { EntityVisual, IsoMetrics, RenderEntityKind } from './types'
 
-type BlockedReasonKind = 'missing-input' | 'no-workers' | 'storage-full' | 'generic'
+type BlockedReasonKind = 'missing-input' | 'no-workers' | 'logistics-failed' | 'storage-full' | 'generic'
 type BuildingStatusPresentation =
   | BuildingEntity['status']
   | `blocked:${BlockedReasonKind}`
@@ -36,6 +36,7 @@ const STATUS_ACCENT_COLOR: Record<BuildingStatusPresentation, number> = {
   'blocked:generic': 0xf1d0c8,
   'blocked:missing-input': 0xf0c15d,
   'blocked:no-workers': 0xe4e0d4,
+  'blocked:logistics-failed': 0x8ec7e8,
   'blocked:storage-full': 0xc9b58a,
   upgrading: 0xf0d982,
 }
@@ -60,11 +61,26 @@ function animationPhase(snapshot: Readonly<SimulationSnapshot>, id: EntityId): n
 function blockedReasonKind(reason: string | undefined): BlockedReasonKind {
   if (!reason) return 'generic'
   if (reason === 'no-workers') return 'no-workers'
+  if (reason.startsWith('logistics-failed:')) return 'logistics-failed'
   if (reason === 'output-full' || reason === 'storage-full') return 'storage-full'
   if (reason.startsWith('missing-input:') || reason.startsWith('missing-service-resource:')) {
     return 'missing-input'
   }
   return 'generic'
+}
+
+function statusHintText(presentation: BuildingStatusPresentation): string {
+  if (presentation === 'blocked:missing-input') return '缺料'
+  if (presentation === 'blocked:no-workers') return '缺工'
+  if (presentation === 'blocked:logistics-failed') return '物流失败'
+  if (presentation === 'blocked:storage-full') return '仓满'
+  if (presentation === 'blocked' || presentation === 'blocked:generic') return '阻塞'
+  if (presentation === 'constructing') return '施工'
+  if (presentation === 'upgrading') return '升级'
+  if (presentation === 'working') return '生产'
+  if (presentation === 'delivering') return '配送'
+  if (presentation === 'serving') return '服务'
+  return ''
 }
 
 function statusPresentation(building: Readonly<BuildingEntity>): BuildingStatusPresentation {
@@ -106,10 +122,28 @@ export class BuildingVisual extends BaseVisual {
   private readonly body = new Graphics()
   private readonly prefabPlaceholder: Container | null
   private readonly prefabShell: Graphics | null
+  private readonly prefabOutline: Graphics | null
+  private readonly prefabInfoBar: Graphics | null
+  private readonly prefabStatusBar: Graphics | null
+  private readonly prefabLevelMarks: Graphics | null
+  private readonly prefabLabel: Text | null
   private readonly statusLayer = new Container({ label: 'building-status-layer' })
   private readonly statusSymbol = new Graphics({ label: 'building-status-symbol' })
   private readonly statusMotion = new Graphics({ label: 'building-status-motion' })
   private readonly statusMask = new Graphics({ label: 'building-status-mask' })
+  private readonly statusHint = new Container({ label: 'building-status-hint' })
+  private readonly statusHintBadge = new Graphics({ label: 'building-status-hint-badge' })
+  private readonly statusHintText = new Text({
+    text: '',
+    style: {
+      fill: 0x2c2b28,
+      fontFamily: 'monospace',
+      fontSize: 8,
+      fontWeight: '700',
+      letterSpacing: 0.2,
+    },
+    label: 'building-status-hint-text',
+  })
 
   constructor(
     metrics: Readonly<IsoMetrics>,
@@ -117,15 +151,43 @@ export class BuildingVisual extends BaseVisual {
   ) {
     super(metrics)
     this.body.label = 'building-body'
-    this.statusLayer.addChild(this.statusMask, this.statusSymbol, this.statusMotion)
+    this.statusHint.addChild(this.statusHintBadge, this.statusHintText)
+    this.statusLayer.addChild(this.statusMask, this.statusSymbol, this.statusMotion, this.statusHint)
     if (this.prefabRegistry) {
       this.prefabPlaceholder = new Container({ label: 'prefab-placeholder:unresolved' })
       this.prefabShell = new Graphics({ label: 'prefab-placeholder-shell' })
-      this.prefabPlaceholder.addChild(this.prefabShell)
+      this.prefabOutline = new Graphics({ label: 'prefab-placeholder-outline' })
+      this.prefabInfoBar = new Graphics({ label: 'prefab-placeholder-info-bar' })
+      this.prefabStatusBar = new Graphics({ label: 'prefab-placeholder-status-bar' })
+      this.prefabLevelMarks = new Graphics({ label: 'prefab-placeholder-level-marks' })
+      this.prefabLabel = new Text({
+        text: '',
+        style: {
+          fill: 0x283643,
+          fontFamily: 'monospace',
+          fontSize: 7,
+          fontWeight: '600',
+          letterSpacing: 0.2,
+        },
+        label: 'prefab-placeholder-label',
+      })
+      this.prefabPlaceholder.addChild(
+        this.prefabShell,
+        this.prefabOutline,
+        this.prefabInfoBar,
+        this.prefabStatusBar,
+        this.prefabLevelMarks,
+        this.prefabLabel,
+      )
       this.display.addChild(this.body, this.prefabPlaceholder, this.statusLayer)
     } else {
       this.prefabPlaceholder = null
       this.prefabShell = null
+      this.prefabOutline = null
+      this.prefabInfoBar = null
+      this.prefabStatusBar = null
+      this.prefabLevelMarks = null
+      this.prefabLabel = null
       this.display.addChild(this.body, this.statusLayer)
     }
   }
@@ -160,10 +222,21 @@ export class BuildingVisual extends BaseVisual {
     fallbackWidth: number,
     fallbackHeight: number,
   ): void {
-    if (!this.prefabRegistry || !this.prefabPlaceholder || !this.prefabShell) return
+    if (
+      !this.prefabRegistry
+      || !this.prefabPlaceholder
+      || !this.prefabShell
+      || !this.prefabOutline
+      || !this.prefabInfoBar
+      || !this.prefabStatusBar
+      || !this.prefabLevelMarks
+      || !this.prefabLabel
+    ) {
+      return
+    }
 
     const assetId = resolvePrefabAssetIdForBuildingType(building.type)
-    this.prefabShell.clear()
+    this.clearPrefabPlaceholder()
     if (!assetId) {
       this.prefabPlaceholder.label = `prefab-placeholder:${building.type}:unmapped`
       this.prefabPlaceholder.visible = false
@@ -189,11 +262,67 @@ export class BuildingVisual extends BaseVisual {
     const bounds = resolved.descriptor.bounds.localPx
     const width = Math.max(fallbackWidth * 1.3, bounds.right - bounds.left)
     const height = Math.max(fallbackHeight, bounds.bottom - bounds.top)
+    const left = -width / 2
+    const top = -height
+    const stateColor = prefabStateColor(resolved.state)
+    const authoredLevelRatio = Math.max(0, Math.min(1, resolved.level.numericLevel / 8))
+    const progressRatio = Math.max(0.08, Math.min(1, building.productionProgress || 0))
+
     this.prefabShell
-      .rect(-width / 2, -height, width, height)
-      .stroke({ color: 0x283643, alpha: 0.28, width: 1.4 })
-      .circle(0, -height * 0.5, 3)
-      .fill({ color: prefabStateColor(resolved.state), alpha: 0.55 })
+      .rect(left, top, width, height)
+      .fill({ color: 0xe8e0ce, alpha: 0.18 })
+      .rect(left + 3, top + 14, width - 6, height - 20)
+      .fill({ color: stateColor, alpha: 0.08 })
+
+    this.prefabOutline
+      .rect(left, top, width, height)
+      .stroke({ color: 0x283643, alpha: 0.52, width: 1.4 })
+      .moveTo(left, top + 13)
+      .lineTo(left + width, top + 13)
+      .moveTo(left + 7, top)
+      .lineTo(left + 7, top + height)
+      .moveTo(left + width - 7, top)
+      .lineTo(left + width - 7, top + height)
+      .stroke({ color: 0x283643, alpha: 0.25, width: 1 })
+
+    this.prefabInfoBar
+      .roundRect(left + 3, top + 3, width - 6, 8, 2)
+      .fill({ color: 0xf4ecd7, alpha: 0.78 })
+      .rect(left + 5, top + 5, Math.max(4, (width - 10) * authoredLevelRatio), 4)
+      .fill({ color: 0x5f7693, alpha: 0.42 })
+
+    this.prefabStatusBar
+      .rect(left + 3, -5, width - 6, 3)
+      .fill({ color: 0x283643, alpha: 0.18 })
+      .rect(left + 3, -5, (width - 6) * progressRatio, 3)
+      .fill({ color: stateColor, alpha: 0.75 })
+      .circle(0, top + height * 0.56, 3)
+      .fill({ color: stateColor, alpha: 0.68 })
+
+    for (let level = 0; level <= 8; level += 1) {
+      const x = left + 5 + ((width - 10) * level) / 8
+      const tickHeight = level === resolved.level.numericLevel ? 7 : 4
+      this.prefabLevelMarks
+        .moveTo(x, top + 12)
+        .lineTo(x, top + 12 - tickHeight)
+    }
+    this.prefabLevelMarks.stroke({ color: 0x283643, alpha: 0.42, width: 1 })
+
+    this.prefabLabel.text = `${resolved.assetId} · ${resolved.levelKey}`
+    this.prefabLabel.label = `prefab-placeholder-label:${resolved.assetId}:${resolved.levelKey}`
+    this.prefabLabel.position.set(left + 6, top + 3)
+  }
+
+  private clearPrefabPlaceholder(): void {
+    this.prefabShell?.clear()
+    this.prefabOutline?.clear()
+    this.prefabInfoBar?.clear()
+    this.prefabStatusBar?.clear()
+    this.prefabLevelMarks?.clear()
+    if (this.prefabLabel) {
+      this.prefabLabel.text = ''
+      this.prefabLabel.label = 'prefab-placeholder-label'
+    }
   }
 
   private drawStatusPresentation(
@@ -211,6 +340,7 @@ export class BuildingVisual extends BaseVisual {
     this.statusSymbol.label = `building-status-symbol:${presentation}`
     this.statusMotion.label = `building-status-motion:${presentation}`
     this.statusMask.label = `building-status-mask:${presentation}`
+    this.drawStatusHint(presentation, width, height, accent)
     this.statusSymbol.clear()
     this.statusMotion.clear()
     this.statusMask.clear()
@@ -287,6 +417,37 @@ export class BuildingVisual extends BaseVisual {
     this.drawBlockedPresentation(presentation, y, accent, phase)
   }
 
+  private drawStatusHint(
+    presentation: BuildingStatusPresentation,
+    width: number,
+    height: number,
+    accent: number,
+  ): void {
+    const text = statusHintText(presentation)
+    this.statusHint.visible = text.length > 0
+    this.statusHint.label = text
+      ? `building-status-hint:${presentation}:${text}`
+      : `building-status-hint:${presentation}`
+    this.statusHintBadge.label = `building-status-hint-badge:${presentation}`
+    this.statusHintText.label = `building-status-hint-text:${presentation}:${text}`
+    this.statusHintText.text = text
+    this.statusHintText.position.set(-width * 0.42 + 5, -height - 27)
+    this.statusHintBadge.clear()
+
+    if (!text) return
+
+    const badgeWidth = Math.max(24, text.length * 10 + 10)
+    this.statusHintBadge
+      .roundRect(-width * 0.42, -height - 29, badgeWidth, 13, 3)
+      .fill({ color: 0xf4ecd7, alpha: 0.86 })
+      .roundRect(-width * 0.42, -height - 29, 4, 13, 2)
+      .fill({ color: accent, alpha: 0.9 })
+      .moveTo(-width * 0.42 + badgeWidth * 0.5, -height - 16)
+      .lineTo(-width * 0.42 + badgeWidth * 0.5 + 4, -height - 10)
+      .lineTo(-width * 0.42 + badgeWidth * 0.5 + 8, -height - 16)
+      .fill({ color: 0xf4ecd7, alpha: 0.86 })
+  }
+
   private drawBlockedPresentation(
     presentation: BuildingStatusPresentation,
     y: number,
@@ -347,6 +508,30 @@ export class BuildingVisual extends BaseVisual {
         .moveTo(-14, y + 13)
         .lineTo(14, y + 13)
         .stroke({ color: accent, alpha: 0.9, width: 2.2 })
+      return
+    }
+
+    if (presentation === 'blocked:logistics-failed') {
+      const drift = Math.sin(phase) * 2
+      this.statusSymbol
+        .moveTo(-13 + drift, y - 6)
+        .lineTo(6 + drift, y - 6)
+        .lineTo(12 + drift, y)
+        .lineTo(6 + drift, y + 6)
+        .lineTo(-13 + drift, y + 6)
+        .closePath()
+        .stroke({ color: accent, alpha: 0.9, width: 2 })
+        .circle(-6 + drift, y + 9, 2.2)
+        .circle(7 + drift, y + 9, 2.2)
+        .fill({ color: accent, alpha: 0.82 })
+      this.statusMotion
+        .moveTo(-15 - drift, y - 13)
+        .lineTo(-8 - drift, y - 13)
+        .moveTo(-17 - drift, y - 9)
+        .lineTo(-11 - drift, y - 9)
+        .moveTo(14, y - 12)
+        .lineTo(14, y + 12)
+        .stroke({ color: accent, alpha: 0.72, width: 1.6 })
       return
     }
 

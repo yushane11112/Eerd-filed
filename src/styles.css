@@ -239,10 +239,22 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
 .bottleneck-card,
 .bottleneck-empty {
   display: block;
+  width: 100%;
   padding: 9px 10px;
   border: 1px solid #e2dfca;
   border-radius: 12px;
   background: rgba(255,249,222,.66);
+  text-align: left;
+  font: inherit;
+}
+.bottleneck-card {
+  cursor: pointer;
+}
+.bottleneck-card:hover,
+.bottleneck-card:focus-visible {
+  border-color: #bca66b;
+  box-shadow: 0 0 0 2px rgba(188,166,107,.18);
+  outline: none;
 }
 .bottleneck-card + .bottleneck-card { margin-top: 6px; }
 .bottleneck-card strong {
@@ -312,6 +324,16 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   background: rgba(255,249,222,.7);
   box-shadow: 0 8px 18px rgba(39,74,67,.08);
   animation: notice-in .22s ease;
+  pointer-events: auto;
+}
+.city-notice.is-focusable {
+  cursor: pointer;
+}
+.city-notice.is-focusable:hover,
+.city-notice.is-focusable:focus-visible {
+  border-color: #bca66b;
+  box-shadow: 0 0 0 2px rgba(188,166,107,.18), 0 8px 18px rgba(39,74,67,.08);
+  outline: none;
 }
 .city-notice + .city-notice { margin-top: 6px; }
 .city-notice::before {

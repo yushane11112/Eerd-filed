@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import sampleAnimationManifest from '../../../docs/project/gold-slice/sample-manifests/main-pier/animation-manifest.json'
+import sampleBuildingManifest from '../../../docs/project/gold-slice/sample-manifests/main-pier/building-manifest.json'
 import validAnimationManifest from '../../../tools/asset-validator/fixtures/valid-animation-manifest.json'
 import validBuildingManifest from '../../../tools/asset-validator/fixtures/valid-building-manifest.json'
 import invalidAnimationManifest from '../../../tools/asset-validator/fixtures/invalid-animation-manifest.json'
@@ -6,19 +8,21 @@ import invalidBuildingManifest from '../../../tools/asset-validator/fixtures/inv
 import { parseRuntimePrefabDescriptor, resolvePrefabAnimationState } from './parser'
 
 describe('prefab manifest runtime parser', () => {
-  it('builds a descriptor from valid gold-slice fixtures without loading textures', () => {
-    const result = parseRuntimePrefabDescriptor(validBuildingManifest, validAnimationManifest)
+  it('builds a descriptor from the main-pier gold-slice sample manifests without loading textures', () => {
+    const result = parseRuntimePrefabDescriptor(sampleBuildingManifest, sampleAnimationManifest)
 
     expect(result.ok).toBe(true)
     if (!result.ok) throw new Error(result.errors.join('\n'))
 
     expect(result.descriptor.assetId).toBe('main-pier')
+    expect(result.descriptor.version).toBe('0.2.0-gold-sample')
+    expect(Object.keys(result.descriptor.levels)).toEqual(['L0', 'L1', 'L4', 'L8'])
     expect(result.descriptor.levels.L0.layers[0]).toMatchObject({
       id: 'shadow',
       atlas: 'main-pier-L0',
       frame: 'shadow',
     })
-    expect(result.descriptor.anchors.berth_01.localPx).toEqual({ x: -96, y: 60 })
+    expect(result.descriptor.anchors.berth_01.localPx).toEqual({ x: -172, y: 112 })
     expect(result.descriptor.stateSlots.working.map((slot) => slot.id)).toEqual([
       'staff-entry',
       'input-receive',
@@ -29,9 +33,17 @@ describe('prefab manifest runtime parser', () => {
     expect(result.descriptor.stateSlots.storage_full).toHaveLength(1)
     expect(result.descriptor.stateSlots.storage_full[0]).toMatchObject({
       id: 'storage-full',
-      clip: 'main-pier-storage-full-cargo-stacks',
+      clip: 'main-pier-storage-full-cargo-zones',
       technique: 'sprite-sequence',
     })
+  })
+
+  it('keeps legacy valid fixtures parseable while the runtime sample is wired in', () => {
+    const result = parseRuntimePrefabDescriptor(validBuildingManifest, validAnimationManifest)
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) throw new Error(result.errors.join('\n'))
+    expect(result.descriptor.assetId).toBe('main-pier')
   })
 
   it('returns explicit errors for missing cross references and invalid state mapping', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { BuildingEntity, SimulationSnapshot } from '../simulation/contracts'
+import type { BuildingEntity, LogisticsOrder, SimulationSnapshot } from '../simulation/contracts'
 import { CityNoticeTracker, deriveCityNotices } from './cityNotices'
 
 describe('city notice derivation', () => {
@@ -47,6 +47,40 @@ describe('city notice derivation', () => {
     expect(recovered.map((notice) => notice.id)).not.toContain('resident-unhappy')
     expect(recovered.map((notice) => notice.id)).not.toContain('logistics-blocked')
   })
+
+  it('attaches a relevant building target to food shortage notices', () => {
+    const notices = deriveCityNotices(makeSnapshot({
+      metrics: { population: 20 },
+      buildings: {
+        'granary-1': building('granary-1', 'granary', { food: 2 }),
+        'riceField-1': building('riceField-1', 'riceField'),
+      },
+    }))
+
+    expect(notices.find((notice) => notice.id === 'food-shortage')?.target).toEqual({
+      kind: 'building',
+      buildingId: 'granary-1',
+    })
+  })
+
+  it('targets the destination of a waiting logistics order', () => {
+    const notices = deriveCityNotices(makeSnapshot({
+      logisticsOrders: {
+        'order-1': order('order-1', 'granary-1', 'market-1'),
+        'order-2': order('order-2', 'granary-1', 'market-1'),
+        'order-3': order('order-3', 'granary-1', 'market-1'),
+      },
+      buildings: {
+        'granary-1': building('granary-1', 'granary', { food: 20 }),
+        'market-1': building('market-1', 'market'),
+      },
+    }))
+
+    expect(notices.find((notice) => notice.id === 'logistics-blocked')?.target).toEqual({
+      kind: 'building',
+      buildingId: 'market-1',
+    })
+  })
 })
 
 const metricDefaults = {
@@ -63,6 +97,7 @@ function makeSnapshot(overrides: {
   tick?: number
   metrics?: Partial<SimulationSnapshot['metrics']>
   buildings?: Record<string, BuildingEntity>
+  logisticsOrders?: Record<string, LogisticsOrder>
 } = {}): SimulationSnapshot {
   return {
     version: 6,
@@ -73,7 +108,7 @@ function makeSnapshot(overrides: {
     buildings: overrides.buildings ?? {},
     households: {},
     agents: {},
-    logisticsOrders: {},
+    logisticsOrders: overrides.logisticsOrders ?? {},
     economy: {
       treasury: 1000,
       taxRate: 0.1,
@@ -108,5 +143,21 @@ function building(
     workers: [],
     inventory,
     productionProgress: 0,
+  }
+}
+
+function order(
+  id: string,
+  sourceBuildingId: string,
+  destinationBuildingId: string,
+): LogisticsOrder {
+  return {
+    id,
+    resource: 'food',
+    amount: 4,
+    sourceBuildingId,
+    destinationBuildingId,
+    priority: 10,
+    state: 'waiting',
   }
 }

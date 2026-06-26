@@ -25,6 +25,7 @@ import {
   GameRuntime,
   type BuildTool,
 } from './integration/GameRuntime'
+import type { CityNoticeTarget } from './integration/cityNotices'
 import {
   createBrowserFullscreenAdapter,
   FullscreenController,
@@ -88,6 +89,7 @@ export default function App() {
         title: notice.title,
         message: notice.message,
         tick: notice.tick,
+        target: notice.target,
       }))
       const incomingIds = new Set(incoming.map((notice) => notice.noticeId))
       return [
@@ -131,6 +133,28 @@ export default function App() {
     } else {
       setToast(`本次未获得稀缺材料，保底进度 ${result.misses}/5。`)
     }
+  }
+
+  const focusCityTarget = (target: CityFocusTarget | undefined, fallbackTitle: string) => {
+    if (!target) {
+      setToast(`${fallbackTitle}：暂无可定位建筑，先观察道路、库存和居民区。`)
+      return
+    }
+
+    if (target.kind === 'building') {
+      const building = snapshot.buildings[target.buildingId]
+      if (!building) {
+        setToast(`${fallbackTitle}：关联建筑已变化，稍后会刷新提示。`)
+        return
+      }
+      setTool({ kind: 'inspect' })
+      setSelectedBuildingId(target.buildingId)
+      const name = BUILDING_DEFINITIONS[building.type]?.name ?? building.type
+      setToast(`已定位到「${name}」。当前版本先选中建筑，不自动移动镜头。`)
+      return
+    }
+
+    setToast(`${fallbackTitle}：目标在 ${target.label}（${target.point.x}, ${target.point.y}）附近，当前版本暂不自动移动镜头。`)
   }
 
   return (
@@ -236,11 +260,16 @@ export default function App() {
               <div className="bottleneck-empty">暂无明显瓶颈，继续扩建前留意物流和居民需求。</div>
             ) : (
               bottlenecks.map((item) => (
-                <article key={item.id} className={`bottleneck-card severity-${item.severity}`}>
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`bottleneck-card severity-${item.severity} ${item.target ? 'is-focusable' : ''}`}
+                  onClick={() => focusCityTarget(item.target, item.title)}
+                >
                   <strong>{item.title}</strong>
                   <span>{item.detail}</span>
                   <em>{item.action}</em>
-                </article>
+                </button>
               ))
             )}
           </div>
@@ -256,7 +285,16 @@ export default function App() {
           {cityNoticeStream.map((notice) => (
             <article
               key={notice.id}
-              className={`city-notice city-notice-${notice.severity} ${activeCityNoticeIds.has(notice.noticeId) ? 'active' : 'settled'}`}
+              className={`city-notice city-notice-${notice.severity} ${activeCityNoticeIds.has(notice.noticeId) ? 'active' : 'settled'} ${notice.target ? 'is-focusable' : ''}`}
+              role="button"
+              tabIndex={0}
+              onClick={() => focusCityTarget(notice.target, notice.title)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  focusCityTarget(notice.target, notice.title)
+                }
+              }}
             >
               <strong>{notice.title}</strong>
               <span>{notice.message}</span>
@@ -339,7 +377,10 @@ interface CityBottleneck {
   action: string
   score: number
   severity: BottleneckSeverity
+  target?: CityFocusTarget
 }
+
+type CityFocusTarget = CityNoticeTarget
 
 interface CityNoticeStreamItem {
   id: string
@@ -348,6 +389,7 @@ interface CityNoticeStreamItem {
   title: string
   message: string
   tick: number
+  target?: CityFocusTarget
 }
 
 function getCityBottlenecks(snapshot: ReturnType<GameRuntime['getSnapshot']>) {
@@ -360,6 +402,7 @@ function getCityBottlenecks(snapshot: ReturnType<GameRuntime['getSnapshot']>) {
   }, new Map<string, number>())
 
   for (const [reason, count] of reasonCounts) {
+    const target = buildings.find((building) => building.statusReason === reason)
     const missingResource = reason.startsWith('missing-input:')
       ? reason.slice('missing-input:'.length)
       : reason.startsWith('missing-service-resource:')
@@ -392,7 +435,12 @@ function getCityBottlenecks(snapshot: ReturnType<GameRuntime['getSnapshot']>) {
               action: '点选建筑查看入口、库存与岗位。',
               score: 60 + count,
             }
-    bottlenecks.push({ id: `reason-${reason}`, severity: severityFromScore(entry.score), ...entry })
+    bottlenecks.push({
+      id: `reason-${reason}`,
+      severity: severityFromScore(entry.score),
+      target: target ? { kind: 'building', buildingId: target.id } : undefined,
+      ...entry,
+    })
   }
 
   const households = Object.values(snapshot.households)
@@ -415,6 +463,7 @@ function getCityBottlenecks(snapshot: ReturnType<GameRuntime['getSnapshot']>) {
           : '优先补服务建筑与服务库存。',
         score,
         severity: severityFromScore(score),
+        target: weakestHouseholdHome(snapshot),
       })
     }
   }
@@ -430,12 +479,39 @@ function getCityBottlenecks(snapshot: ReturnType<GameRuntime['getSnapshot']>) {
       action: '补道路连通，避免产地和仓库距离过远。',
       score,
       severity: severityFromScore(score),
+      target: logisticsBottleneckTarget(snapshot),
     })
   }
 
   return bottlenecks
     .sort((a, b) => b.score - a.score)
     .slice(0, 3)
+}
+
+function weakestHouseholdHome(snapshot: ReturnType<GameRuntime['getSnapshot']>): CityFocusTarget | undefined {
+  const homeBuildingId = Object.values(snapshot.households)
+    .filter((household) => snapshot.buildings[household.homeBuildingId])
+    .sort((left, right) => left.satisfaction - right.satisfaction || left.id.localeCompare(right.id))[0]
+    ?.homeBuildingId
+  if (homeBuildingId) return { kind: 'building', buildingId: homeBuildingId }
+
+  const home = Object.values(snapshot.buildings).find((building) => building.type === 'house')
+  return home ? { kind: 'building', buildingId: home.id } : undefined
+}
+
+function logisticsBottleneckTarget(snapshot: ReturnType<GameRuntime['getSnapshot']>): CityFocusTarget | undefined {
+  const waitingOrder = Object.values(snapshot.logisticsOrders)
+    .filter((order) => order.state === 'waiting' || order.state === 'assigned')
+    .sort((left, right) => right.priority - left.priority || left.id.localeCompare(right.id))[0]
+  const buildingId = waitingOrder?.destinationBuildingId ?? waitingOrder?.sourceBuildingId
+  if (buildingId && snapshot.buildings[buildingId]) return { kind: 'building', buildingId }
+
+  const blocked = Object.values(snapshot.buildings).find((building) => building.status === 'blocked')
+  if (blocked) return { kind: 'building', buildingId: blocked.id }
+
+  const centralRoad = snapshot.cells.find((cell) => cell.road && cell.point.x === 13)
+    ?? snapshot.cells.find((cell) => cell.road)
+  return centralRoad ? { kind: 'point', point: centralRoad.point, label: '道路网络' } : undefined
 }
 
 function severityFromScore(score: number): BottleneckSeverity {

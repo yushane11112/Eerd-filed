@@ -16,6 +16,7 @@ import {
 } from './inventory'
 import { LogisticsSystem, RoadRoutePlanner } from './logistics'
 import { ProductionSystem } from './production'
+import { ServiceSystem } from './service'
 
 const definitions: Record<string, BuildingDefinition> = {
   farm: {
@@ -57,6 +58,26 @@ const definitions: Record<string, BuildingDefinition> = {
     maxLevel: 8,
     jobs: 1,
     capacity: 100,
+  },
+  market: {
+    type: 'market',
+    name: '集市',
+    category: 'market',
+    footprint: [{ x: 0, y: 0 }],
+    entrance: { x: 0, y: 0 },
+    maxLevel: 8,
+    jobs: 2,
+    capacity: 30,
+  },
+  house: {
+    type: 'house',
+    name: '民居',
+    category: 'housing',
+    footprint: [{ x: 0, y: 0 }],
+    entrance: { x: 0, y: 0 },
+    maxLevel: 8,
+    jobs: 0,
+    capacity: 8,
   },
 }
 
@@ -277,6 +298,40 @@ describe('road logistics', () => {
     expect(orderedFood).toBe(5)
     expect(source.inventory.food).toBe(5)
   })
+
+  it('creates replenishment orders for service buildings such as markets', () => {
+    const source = building('granary-1', 'granary', { x: 0, y: 0 }, { food: 20 })
+    const market = building('market-1', 'market', { x: 4, y: 0 })
+    market.workers = ['worker-1']
+    const state = snapshot({
+      buildings: { [source.id]: source, [market.id]: market },
+      agents: { cart: carrier('cart', { x: 0, y: 0 }) },
+    })
+    const system = new LogisticsSystem({
+      definitions,
+      serviceRules: {
+        market: {
+          need: 'food',
+          resource: 'food',
+          amountPerHousehold: 1,
+          restoreAmount: 16,
+          maxHouseholdsPerTick: 3,
+        },
+      },
+      idFactory: () => 'market-food',
+    })
+
+    const events = system.update(state)
+
+    expect(events).toContainEqual({ type: 'logistics-order-created', orderId: 'market-food' })
+    expect(state.logisticsOrders['market-food']).toMatchObject({
+      resource: 'food',
+      sourceBuildingId: source.id,
+      destinationBuildingId: market.id,
+      state: 'in_transit',
+    })
+    expect(source.inventory.food).toBe(11)
+  })
 })
 
 describe('fiscal system', () => {
@@ -313,6 +368,97 @@ describe('fiscal system', () => {
   })
 })
 
+describe('service system', () => {
+  it('serves reachable households from staffed stocked markets', () => {
+    const market = building('market-1', 'market', { x: 0, y: 0 }, { food: 3 })
+    market.workers = ['worker-1']
+    const home = building('house-1', 'house', { x: 3, y: 0 })
+    const state = snapshot({
+      buildings: { [market.id]: market, [home.id]: home },
+      households: {
+        household: {
+          id: 'household',
+          homeBuildingId: home.id,
+          members: 3,
+          workerIds: [],
+          income: 0,
+          satisfaction: 50,
+          needs: { food: 20, goods: 70, health: 70, education: 70, entertainment: 70 },
+        },
+      },
+    })
+
+    const events = new ServiceSystem({ definitions }).update(state)
+
+    expect(events).toContainEqual({
+      type: 'service-delivered',
+      buildingId: market.id,
+      householdId: 'household',
+      need: 'food',
+    })
+    expect(state.households.household.needs.food).toBe(36)
+    expect(market.inventory.food).toBe(2)
+    expect(market.status).toBe('serving')
+  })
+
+  it('does not serve households across disconnected roads', () => {
+    const market = building('market-1', 'market', { x: 0, y: 0 }, { food: 3 })
+    market.workers = ['worker-1']
+    const home = building('house-1', 'house', { x: 4, y: 0 })
+    const state = snapshot({
+      cells: road(0, 1),
+      buildings: { [market.id]: market, [home.id]: home },
+      households: {
+        household: {
+          id: 'household',
+          homeBuildingId: home.id,
+          members: 3,
+          workerIds: [],
+          income: 0,
+          satisfaction: 50,
+          needs: { food: 20, goods: 70, health: 70, education: 70, entertainment: 70 },
+        },
+      },
+    })
+
+    const events = new ServiceSystem({ definitions }).update(state)
+
+    expect(events).toHaveLength(0)
+    expect(state.households.household.needs.food).toBe(20)
+    expect(market.inventory.food).toBe(3)
+    expect(market.statusReason).toBe('no-service-demand')
+  })
+
+  it('blocks service buildings without workers or service stock', () => {
+    const noWorkers = building('market-1', 'market', { x: 0, y: 0 }, { food: 3 })
+    noWorkers.workers = []
+    const noStock = building('market-2', 'market', { x: 2, y: 0 })
+    noStock.workers = ['worker-1']
+    const home = building('house-1', 'house', { x: 4, y: 0 })
+    const state = snapshot({
+      buildings: { [noWorkers.id]: noWorkers, [noStock.id]: noStock, [home.id]: home },
+      households: {
+        household: {
+          id: 'household',
+          homeBuildingId: home.id,
+          members: 3,
+          workerIds: [],
+          income: 0,
+          satisfaction: 50,
+          needs: { food: 20, goods: 70, health: 70, education: 70, entertainment: 70 },
+        },
+      },
+    })
+
+    const events = new ServiceSystem({ definitions }).update(state)
+
+    expect(events).toHaveLength(0)
+    expect(noWorkers.statusReason).toBe('no-workers')
+    expect(noStock.statusReason).toBe('missing-service-resource:food')
+    expect(state.households.household.needs.food).toBe(20)
+  })
+})
+
 describe('integrated economy order', () => {
   it('runs production before logistics and fiscal settlement deterministically', () => {
     const farm = building('farm', 'farm', { x: 0, y: 0 })
@@ -338,5 +484,49 @@ describe('integrated economy order', () => {
     expect(state.logisticsOrders['food-order'].state).toBe('in_transit')
     expect(eatery.inventory.food).toBeUndefined()
     expect(state.economy.lastMaintenanceCost).toBe(2)
+  })
+
+  it('links stock logistics and market service into a visible resident need loop', () => {
+    const granary = building('granary', 'granary', { x: 0, y: 0 }, { food: 20 })
+    const market = building('market', 'market', { x: 2, y: 0 })
+    market.workers = ['market-worker']
+    const home = building('home', 'house', { x: 4, y: 0 })
+    const cartEntity = carrier('cart', { x: 0, y: 0 })
+    const state = snapshot({
+      buildings: { granary, market, home },
+      agents: { cart: cartEntity },
+      households: {
+        family: {
+          id: 'family',
+          homeBuildingId: home.id,
+          members: 3,
+          workerIds: [],
+          income: 0,
+          satisfaction: 40,
+          needs: { food: 10, goods: 60, health: 60, education: 60, entertainment: 60 },
+        },
+      },
+    })
+    let orderSequence = 0
+    const system = new EconomySystem({
+      definitions,
+      idFactory: () => `market-food-${++orderSequence}`,
+    })
+
+    const allEvents = []
+    for (let index = 0; index < 6; index += 1) {
+      allEvents.push(...system.update(state))
+    }
+
+    expect(Object.values(state.logisticsOrders).some((order) => order.state === 'delivered')).toBe(true)
+    expect(allEvents).toContainEqual({
+      type: 'service-delivered',
+      buildingId: market.id,
+      householdId: 'family',
+      need: 'food',
+    })
+    expect(state.households.family.needs.food).toBeGreaterThan(26)
+    expect(state.households.family.needs.food).toBeLessThanOrEqual(100)
+    expect(market.status).toBe('serving')
   })
 })

@@ -157,6 +157,7 @@ export type SimulationEvent =
   | { type: 'road-network-changed' }
   | { type: 'building-state-changed'; buildingId: EntityId }
   | { type: 'production-completed'; buildingId: EntityId }
+  | { type: 'service-delivered'; buildingId: EntityId; householdId: EntityId; need: keyof HouseholdState['needs'] }
   | { type: 'logistics-order-created'; orderId: EntityId }
   | { type: 'household-migrated'; householdId: EntityId; direction: 'in' | 'out' }
   | { type: 'world-drop-spawned'; dropId: EntityId }

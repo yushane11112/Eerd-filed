@@ -11,6 +11,7 @@ import type {
   SimulationSystem,
   WorldCell,
 } from '../contracts'
+import type { ServiceRule } from './service'
 import {
   addInventory,
   inventoryAmount,
@@ -27,6 +28,8 @@ export interface LogisticsSystemOptions {
   routePlanner?: RoutePlanner
   maxShipment?: number
   inputTargetBatches?: number
+  serviceRules?: Readonly<Record<string, ServiceRule>>
+  serviceTargetBatches?: number
   idFactory?: () => EntityId
 }
 
@@ -103,6 +106,8 @@ export class LogisticsSystem implements SimulationSystem {
   private readonly routePlanner: RoutePlanner
   private readonly maxShipment: number
   private readonly inputTargetBatches: number
+  private readonly serviceRules: Readonly<Record<string, ServiceRule>>
+  private readonly serviceTargetBatches: number
   private readonly idFactory: () => EntityId
   private sequence = 0
 
@@ -111,6 +116,8 @@ export class LogisticsSystem implements SimulationSystem {
     this.routePlanner = options.routePlanner ?? new RoadRoutePlanner()
     this.maxShipment = options.maxShipment ?? 10
     this.inputTargetBatches = options.inputTargetBatches ?? 2
+    this.serviceRules = options.serviceRules ?? {}
+    this.serviceTargetBatches = options.serviceTargetBatches ?? 3
     this.idFactory = options.idFactory ?? (() => `logistics-${++this.sequence}`)
   }
 
@@ -129,54 +136,88 @@ export class LogisticsSystem implements SimulationSystem {
 
     for (const destination of buildings) {
       const recipe = this.definitions[destination.type]?.production
-      if (!recipe) continue
-
-      for (const [resource, perBatch] of resourceEntries(recipe.inputs)) {
-        const orders = Object.values(snapshot.logisticsOrders)
-        const alreadyInbound = orders
-          .filter((order) => isActive(order)
-            && order.destinationBuildingId === destination.id
-            && order.resource === resource)
-          .reduce((total, order) => total + order.amount, 0)
-        const target = perBatch * this.inputTargetBatches
-        const missing = Math.max(0, target - inventoryAmount(destination, resource) - alreadyInbound)
-        if (missing === 0) continue
-
-        const sourceMatch = this.findSource(snapshot, destination, resource, requestedAvailable => (
-          Math.min(missing, this.maxShipment, requestedAvailable) > 0
-        ))
-        if (!sourceMatch) continue
-
-        const inboundCapacityReserved = orders
-          .filter((order) => isActive(order) && order.destinationBuildingId === destination.id)
-          .reduce((total, order) => total + order.amount, 0)
-        const amount = Math.min(
-          missing,
-          this.maxShipment,
-          sourceMatch.available,
-          Math.max(
-            0,
-            inventoryFreeCapacity(destination, this.definitions[destination.type])
-              - inboundCapacityReserved,
-          ),
-        )
-        if (amount <= 0) continue
-
-        const id = this.idFactory()
-        snapshot.logisticsOrders[id] = {
-          id,
-          resource,
-          amount,
-          sourceBuildingId: sourceMatch.building.id,
-          destinationBuildingId: destination.id,
-          priority: destination.statusReason === `missing-input:${resource}` ? 100 : 50,
-          state: 'waiting',
+      if (recipe) {
+        for (const [resource, perBatch] of resourceEntries(recipe.inputs)) {
+          const order = this.createStockOrder(
+            snapshot,
+            destination,
+            resource,
+            perBatch * this.inputTargetBatches,
+            destination.statusReason === `missing-input:${resource}` ? 100 : 50,
+          )
+          if (order) events.push(order)
         }
-        events.push({ type: 'logistics-order-created', orderId: id })
+      }
+
+      const serviceRule = this.serviceRules[destination.type]
+      if (serviceRule?.resource) {
+        const target = Math.max(
+          serviceRule.amountPerHousehold ?? 1,
+          (serviceRule.amountPerHousehold ?? 1)
+            * serviceRule.maxHouseholdsPerTick
+            * this.serviceTargetBatches,
+        )
+        const order = this.createStockOrder(
+          snapshot,
+          destination,
+          serviceRule.resource,
+          target,
+          destination.statusReason === `missing-service-resource:${serviceRule.resource}` ? 90 : 45,
+        )
+        if (order) events.push(order)
       }
     }
 
     return events
+  }
+
+  private createStockOrder(
+    snapshot: SimulationSnapshot,
+    destination: BuildingEntity,
+    resource: ResourceKind,
+    target: number,
+    priority: number,
+  ): SimulationEvent | undefined {
+    const orders = Object.values(snapshot.logisticsOrders)
+    const alreadyInbound = orders
+      .filter((order) => isActive(order)
+        && order.destinationBuildingId === destination.id
+        && order.resource === resource)
+      .reduce((total, order) => total + order.amount, 0)
+    const missing = Math.max(0, target - inventoryAmount(destination, resource) - alreadyInbound)
+    if (missing === 0) return undefined
+
+    const sourceMatch = this.findSource(snapshot, destination, resource, requestedAvailable => (
+      Math.min(missing, this.maxShipment, requestedAvailable) > 0
+    ))
+    if (!sourceMatch) return undefined
+
+    const inboundCapacityReserved = orders
+      .filter((order) => isActive(order) && order.destinationBuildingId === destination.id)
+      .reduce((total, order) => total + order.amount, 0)
+    const amount = Math.min(
+      missing,
+      this.maxShipment,
+      sourceMatch.available,
+      Math.max(
+        0,
+        inventoryFreeCapacity(destination, this.definitions[destination.type])
+          - inboundCapacityReserved,
+      ),
+    )
+    if (amount <= 0) return undefined
+
+    const id = this.idFactory()
+    snapshot.logisticsOrders[id] = {
+      id,
+      resource,
+      amount,
+      sourceBuildingId: sourceMatch.building.id,
+      destinationBuildingId: destination.id,
+      priority,
+      state: 'waiting',
+    }
+    return { type: 'logistics-order-created', orderId: id }
   }
 
   private findSource(
@@ -327,7 +368,7 @@ export class LogisticsSystem implements SimulationSystem {
     const orders = Object.values(snapshot.logisticsOrders)
     const resolved = orders.filter((order) => order.state === 'delivered' || order.state === 'cancelled')
     snapshot.metrics.logisticsEfficiency = resolved.length === 0
-      ? 1
-      : resolved.filter((order) => order.state === 'delivered').length / resolved.length
+      ? 100
+      : (resolved.filter((order) => order.state === 'delivered').length / resolved.length) * 100
   }
 }

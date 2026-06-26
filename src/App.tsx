@@ -4,6 +4,7 @@ import {
   Expand,
   FastForward,
   Hammer,
+  HeartPulse,
   House,
   Music2,
   Pause,
@@ -80,6 +81,7 @@ export default function App() {
     : undefined
   const rareTotal = Object.values(snapshot.rareRewards.inventory)
     .reduce((sum, value) => sum + (value ?? 0), 0)
+  const needScore = averageNeeds(snapshot)
 
   const chooseTool = (next: BuildTool) => {
     setTool(next)
@@ -130,6 +132,7 @@ export default function App() {
       <section className="metrics-bar glass-panel" aria-label="城市指标">
         <Metric icon={<Users />} label="人口" value={`${snapshot.metrics.population}/${snapshot.metrics.housingCapacity}`} />
         <Metric icon={<Hammer />} label="就业" value={`${snapshot.metrics.employedWorkers}/${snapshot.metrics.employedWorkers + snapshot.metrics.availableJobs}`} />
+        <Metric icon={<HeartPulse />} label="民需" value={`${Math.round(needScore)}%`} />
         <Metric icon={<Coins />} label="财政" value={Math.round(snapshot.economy.treasury).toLocaleString()} />
         <Metric icon={<Route />} label="物流" value={`${Math.round(snapshot.metrics.logisticsEfficiency)}%`} />
         <Metric icon={<Music2 />} label="珍材" value={String(rareTotal)} accent />
@@ -243,10 +246,22 @@ function statusName(status: string) {
 function reasonName(reason: string) {
   if (reason === 'no-workers') return '缺少工人'
   if (reason === 'output-full') return '仓储已满'
+  if (reason === 'no-service-demand') return '暂无服务需求'
   if (reason.startsWith('missing-input:')) return `缺少${reason.slice(14)}`
+  if (reason.startsWith('missing-service-resource:')) return `缺少服务库存：${reason.slice(25)}`
   return reason
 }
 
 function rareName(resource: string) {
   return ({ jade: '玉石', silk: '云锦', porcelain: '名瓷', blueprint: '营造图' } as Record<string, string>)[resource] ?? resource
+}
+
+function averageNeeds(snapshot: ReturnType<GameRuntime['getSnapshot']>) {
+  const households = Object.values(snapshot.households)
+  if (households.length === 0) return 100
+  const total = households.reduce((sum, household) => {
+    const needs = Object.values(household.needs)
+    return sum + needs.reduce((inner, value) => inner + value, 0) / needs.length
+  }, 0)
+  return total / households.length
 }

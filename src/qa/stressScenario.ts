@@ -100,7 +100,7 @@ export function createStressScenario(
       availableJobs: size.buildings * 8,
       housingCapacity: size.households * 5,
       satisfaction: 68,
-      logisticsEfficiency: .82,
+      logisticsEfficiency: 82,
     },
     worldDrops: [],
     rareRewards: {
@@ -118,4 +118,3 @@ export function samplePerformance<T>(label: string, operation: () => T) {
   const result = operation()
   return { label, durationMs: performance.now() - start, result }
 }
-

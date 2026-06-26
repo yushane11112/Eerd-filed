@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "gold-animation.v1",
+  "assetId": "main-pier",
+  "statePriority": ["constructing", "working", "blocked", "storage_full", "serving", "idle", "ambient"],
+  "slots": {
+    "base": {
+      "domain": "building",
+      "requiredState": "idle",
+      "clip": "base",
+      "technique": "none",
+      "loop": true,
+      "playbackRateSource": "fixed",
+      "anchors": ["origin"],
+      "parts": [],
+      "lodPolicy": { "LOD0": "static" }
+    },
+    "production-primary": {
+      "domain": "logistics",
+      "requiredState": "working",
+      "clip": "working",
+      "technique": "part-transform",
+      "loop": true,
+      "playbackRateSource": "sceneTime",
+      "anchors": ["missing_anchor"],
+      "parts": ["missing_part"],
+      "lodPolicy": { "LOD0": "full" }
+    },
+    "blocked": {
+      "domain": "feedback",
+      "requiredState": "blocked",
+      "clip": "blocked",
+      "technique": "tint-light",
+      "loop": true,
+      "playbackRateSource": "fixed",
+      "anchors": ["origin"],
+      "parts": [],
+      "lodPolicy": { "LOD0": "full" }
+    },
+    "storage-full": {
+      "domain": "feedback",
+      "requiredState": "blocked",
+      "clip": "blocked",
+      "technique": "none",
+      "loop": true,
+      "playbackRateSource": "fixed",
+      "anchors": ["origin"],
+      "parts": [],
+      "lodPolicy": { "LOD0": "full" }
+    }
+  },
+  "transitions": [],
+  "blockedVariants": {}
+}

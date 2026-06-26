@@ -69,6 +69,36 @@ const definitions: Record<string, BuildingDefinition> = {
     jobs: 2,
     capacity: 30,
   },
+  pharmacy: {
+    type: 'pharmacy',
+    name: '药铺',
+    category: 'service',
+    footprint: [{ x: 0, y: 0 }],
+    entrance: { x: 0, y: 0 },
+    maxLevel: 8,
+    jobs: 1,
+    capacity: 20,
+  },
+  academy: {
+    type: 'academy',
+    name: '书院',
+    category: 'service',
+    footprint: [{ x: 0, y: 0 }],
+    entrance: { x: 0, y: 0 },
+    maxLevel: 8,
+    jobs: 2,
+    capacity: 16,
+  },
+  theatre: {
+    type: 'theatre',
+    name: '戏台',
+    category: 'service',
+    footprint: [{ x: 0, y: 0 }],
+    entrance: { x: 0, y: 0 },
+    maxLevel: 8,
+    jobs: 2,
+    capacity: 16,
+  },
   house: {
     type: 'house',
     name: '民居',
@@ -118,6 +148,22 @@ function carrier(id: string, position: GridPoint): AgentEntity {
     path: [],
     pathIndex: 0,
     activity: 'idle',
+  }
+}
+
+function household(
+  id: string,
+  homeBuildingId: string,
+  needs: SimulationSnapshot['households'][string]['needs'],
+): SimulationSnapshot['households'][string] {
+  return {
+    id,
+    homeBuildingId,
+    members: 3,
+    workerIds: [],
+    income: 0,
+    satisfaction: 50,
+    needs,
   }
 }
 
@@ -401,6 +447,133 @@ describe('service system', () => {
     expect(market.status).toBe('serving')
   })
 
+  it('serves medicine-backed health needs from staffed reachable pharmacies', () => {
+    const pharmacy = building('pharmacy-1', 'pharmacy', { x: 0, y: 0 }, { medicine: 2 })
+    pharmacy.workers = ['healer-1']
+    const home = building('house-1', 'house', { x: 3, y: 0 })
+    const state = snapshot({
+      buildings: { [pharmacy.id]: pharmacy, [home.id]: home },
+      households: {
+        household: household('household', home.id, {
+          food: 70,
+          goods: 70,
+          health: 30,
+          education: 70,
+          entertainment: 70,
+        }),
+      },
+    })
+
+    const events = new ServiceSystem({ definitions }).update(state)
+
+    expect(events).toContainEqual({
+      type: 'service-delivered',
+      buildingId: pharmacy.id,
+      householdId: 'household',
+      need: 'health',
+    })
+    expect(state.households.household.needs.health).toBe(44)
+    expect(pharmacy.inventory.medicine).toBe(1)
+    expect(pharmacy.status).toBe('serving')
+  })
+
+  it('serves education and entertainment without consumable stock but still requires workers and roads', () => {
+    const academy = building('academy-1', 'academy', { x: 0, y: 0 })
+    academy.workers = ['teacher-1']
+    const theatre = building('theatre-1', 'theatre', { x: 1, y: 0 })
+    theatre.workers = ['actor-1']
+    const home = building('house-1', 'house', { x: 4, y: 0 })
+    const state = snapshot({
+      buildings: { [academy.id]: academy, [theatre.id]: theatre, [home.id]: home },
+      households: {
+        household: household('household', home.id, {
+          food: 70,
+          goods: 70,
+          health: 70,
+          education: 25,
+          entertainment: 35,
+        }),
+      },
+    })
+
+    const events = new ServiceSystem({ definitions }).update(state)
+
+    expect(events).toEqual(expect.arrayContaining([
+      {
+        type: 'service-delivered',
+        buildingId: academy.id,
+        householdId: 'household',
+        need: 'education',
+      },
+      {
+        type: 'service-delivered',
+        buildingId: theatre.id,
+        householdId: 'household',
+        need: 'entertainment',
+      },
+    ]))
+    expect(state.households.household.needs.education).toBe(35)
+    expect(state.households.household.needs.entertainment).toBe(47)
+    expect(academy.status).toBe('serving')
+    expect(theatre.status).toBe('serving')
+  })
+
+  it('does not fill needs unconditionally and respects per-tick service capacity', () => {
+    const market = building('market-1', 'market', { x: 0, y: 0 }, { food: 10 })
+    market.workers = ['worker-1']
+    const homes = [
+      building('house-1', 'house', { x: 2, y: 0 }),
+      building('house-2', 'house', { x: 3, y: 0 }),
+      building('house-3', 'house', { x: 4, y: 0 }),
+      building('house-4', 'house', { x: 5, y: 0 }),
+    ]
+    const state = snapshot({
+      buildings: {
+        [market.id]: market,
+        ...Object.fromEntries(homes.map((home) => [home.id, home])),
+      },
+      households: {
+        first: household('first', homes[0].id, {
+          food: 10,
+          goods: 70,
+          health: 70,
+          education: 70,
+          entertainment: 70,
+        }),
+        second: household('second', homes[1].id, {
+          food: 20,
+          goods: 70,
+          health: 70,
+          education: 70,
+          entertainment: 70,
+        }),
+        third: household('third', homes[2].id, {
+          food: 30,
+          goods: 70,
+          health: 70,
+          education: 70,
+          entertainment: 70,
+        }),
+        fourth: household('fourth', homes[3].id, {
+          food: 40,
+          goods: 70,
+          health: 70,
+          education: 70,
+          entertainment: 70,
+        }),
+      },
+    })
+
+    const events = new ServiceSystem({ definitions }).update(state)
+
+    expect(events).toHaveLength(3)
+    expect(state.households.first.needs.food).toBe(26)
+    expect(state.households.second.needs.food).toBe(36)
+    expect(state.households.third.needs.food).toBe(46)
+    expect(state.households.fourth.needs.food).toBe(40)
+    expect(market.inventory.food).toBe(7)
+  })
+
   it('does not serve households across disconnected roads', () => {
     const market = building('market-1', 'market', { x: 0, y: 0 }, { food: 3 })
     market.workers = ['worker-1']
@@ -456,6 +629,31 @@ describe('service system', () => {
     expect(noWorkers.statusReason).toBe('no-workers')
     expect(noStock.statusReason).toBe('missing-service-resource:food')
     expect(state.households.household.needs.food).toBe(20)
+  })
+
+  it('does not provide pharmacy service without required medicine stock', () => {
+    const pharmacy = building('pharmacy-1', 'pharmacy', { x: 0, y: 0 })
+    pharmacy.workers = ['healer-1']
+    const home = building('house-1', 'house', { x: 2, y: 0 })
+    const state = snapshot({
+      buildings: { [pharmacy.id]: pharmacy, [home.id]: home },
+      households: {
+        household: household('household', home.id, {
+          food: 70,
+          goods: 70,
+          health: 15,
+          education: 70,
+          entertainment: 70,
+        }),
+      },
+    })
+
+    const events = new ServiceSystem({ definitions }).update(state)
+
+    expect(events).toHaveLength(0)
+    expect(state.households.household.needs.health).toBe(15)
+    expect(pharmacy.status).toBe('blocked')
+    expect(pharmacy.statusReason).toBe('missing-service-resource:medicine')
   })
 })
 

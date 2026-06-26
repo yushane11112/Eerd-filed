@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "gold-building.v1",
+  "assetId": "main-pier",
+  "displayName": "Invalid Pier",
+  "version": "0.0.0-invalid",
+  "sourceBlend": "art-source/blender/buildings/main-pier/main-pier.blend",
+  "buildBatch": "gold-slice",
+  "footprint": [{ "x": 0, "y": 0 }],
+  "origin": { "x": 0, "y": 0, "z": 0 },
+  "levels": {
+    "L0": {
+      "required": true,
+      "dccCollections": ["COL_L00"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-pier-L0", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["winch_wheel"],
+      "anchors": ["origin", "missing_anchor"],
+      "collisionProfile": "",
+      "occlusionProfile": "",
+      "constructionReveal": [],
+      "lod": {
+        "LOD0": { "atlas": "main-pier-L0-lod0", "maxDrawCalls": 99, "maxTextureMB": 99 }
+      }
+    },
+    "L1": { "required": false, "dccCollections": [], "spriteLayers": [], "animatedParts": [], "anchors": [], "lod": {} }
+  },
+  "anchors": {
+    "origin": { "type": "origin", "localMeters": { "x": 0, "y": 0, "z": 0 }, "localPx": { "x": 0, "y": 0 }, "facing": 0 }
+  },
+  "collision": {
+    "footprint": [],
+    "obstacles": [],
+    "occluders": [],
+    "clickHull": []
+  },
+  "validation": {
+    "triangleBudgetLOD0": 200000,
+    "maxLayers": 12,
+    "maxEmitters": 8
+  }
+}

@@ -9,6 +9,11 @@ import type {
 import { gridToScreen, interpolateGridPoint, isoDepth } from './isometric'
 import type { EntityVisual, IsoMetrics, RenderEntityKind } from './types'
 
+type BlockedReasonKind = 'missing-input' | 'no-workers' | 'storage-full' | 'generic'
+type BuildingStatusPresentation =
+  | BuildingEntity['status']
+  | `blocked:${BlockedReasonKind}`
+
 const BUILDING_STATUS_COLOR: Record<BuildingEntity['status'], number> = {
   constructing: 0xc9a66b,
   idle: 0xb9aa8b,
@@ -17,6 +22,20 @@ const BUILDING_STATUS_COLOR: Record<BuildingEntity['status'], number> = {
   serving: 0xd69a72,
   blocked: 0xb85c4c,
   upgrading: 0xd7b75b,
+}
+
+const STATUS_ACCENT_COLOR: Record<BuildingStatusPresentation, number> = {
+  constructing: 0x7f6a4d,
+  idle: 0x6d6a62,
+  working: 0xf2d77c,
+  delivering: 0xb9e0f2,
+  serving: 0xf0b09a,
+  blocked: 0xf1d0c8,
+  'blocked:generic': 0xf1d0c8,
+  'blocked:missing-input': 0xf0c15d,
+  'blocked:no-workers': 0xe4e0d4,
+  'blocked:storage-full': 0xc9b58a,
+  upgrading: 0xf0d982,
 }
 
 const ROLE_COLOR: Record<AgentEntity['role'], number> = {
@@ -34,6 +53,21 @@ function animationPhase(snapshot: Readonly<SimulationSnapshot>, id: EntityId): n
     hash = (hash * 31 + id.charCodeAt(index)) >>> 0
   }
   return (snapshot.tick * 0.12 + (hash % 100) / 100) % (Math.PI * 2)
+}
+
+function blockedReasonKind(reason: string | undefined): BlockedReasonKind {
+  if (!reason) return 'generic'
+  if (reason === 'no-workers') return 'no-workers'
+  if (reason === 'output-full' || reason === 'storage-full') return 'storage-full'
+  if (reason.startsWith('missing-input:') || reason.startsWith('missing-service-resource:')) {
+    return 'missing-input'
+  }
+  return 'generic'
+}
+
+function statusPresentation(building: Readonly<BuildingEntity>): BuildingStatusPresentation {
+  if (building.status !== 'blocked') return building.status
+  return `blocked:${blockedReasonKind(building.statusReason)}`
 }
 
 abstract class BaseVisual implements EntityVisual {
@@ -68,11 +102,16 @@ abstract class BaseVisual implements EntityVisual {
 export class BuildingVisual extends BaseVisual {
   kind = 'building' as const
   private readonly body = new Graphics()
-  private readonly activity = new Graphics()
+  private readonly statusLayer = new Container({ label: 'building-status-layer' })
+  private readonly statusSymbol = new Graphics({ label: 'building-status-symbol' })
+  private readonly statusMotion = new Graphics({ label: 'building-status-motion' })
+  private readonly statusMask = new Graphics({ label: 'building-status-mask' })
 
   constructor(metrics: Readonly<IsoMetrics>) {
     super(metrics)
-    this.display.addChild(this.body, this.activity)
+    this.body.label = 'building-body'
+    this.statusLayer.addChild(this.statusMask, this.statusSymbol, this.statusMotion)
+    this.display.addChild(this.body, this.statusLayer)
   }
 
   update(snapshot: Readonly<SimulationSnapshot>, _alpha: number): void {
@@ -85,9 +124,7 @@ export class BuildingVisual extends BaseVisual {
     const width = 30 + level * 3
     const height = 24 + level * 4
     const phase = animationPhase(snapshot, building.id)
-    const working = building.status === 'working'
-      || building.status === 'delivering'
-      || building.status === 'serving'
+    const presentation = statusPresentation(building)
 
     this.body.clear()
       .poly([-width, 0, 0, width * 0.48, width, 0, 0, -width * 0.48])
@@ -97,12 +134,170 @@ export class BuildingVisual extends BaseVisual {
       .poly([-width * 0.9, -height, 0, -height - width * 0.42, width * 0.9, -height, 0, -height + width * 0.2])
       .fill({ color: level === 0 ? 0x82796b : 0x4f6e62 })
 
-    this.activity.clear()
-    if (working) {
-      this.activity.circle(0, -height - 12 - Math.sin(phase) * 2, 3 + Math.sin(phase) * 0.5)
-        .fill({ color: 0xf2d77c, alpha: 0.85 })
-    }
+    this.drawStatusPresentation(presentation, width, height, phase, building.productionProgress)
     this.display.alpha = building.status === 'blocked' ? 0.72 : 1
+  }
+
+  private drawStatusPresentation(
+    presentation: BuildingStatusPresentation,
+    width: number,
+    height: number,
+    phase: number,
+    progress: number,
+  ): void {
+    const accent = STATUS_ACCENT_COLOR[presentation]
+    const y = -height - 13
+    this.statusLayer.position.set(0, 0)
+    this.statusLayer.visible = presentation !== 'idle'
+    this.statusLayer.label = `building-status-layer:${presentation}`
+    this.statusSymbol.label = `building-status-symbol:${presentation}`
+    this.statusMotion.label = `building-status-motion:${presentation}`
+    this.statusMask.label = `building-status-mask:${presentation}`
+    this.statusSymbol.clear()
+    this.statusMotion.clear()
+    this.statusMask.clear()
+
+    if (presentation === 'idle') return
+
+    this.statusMask
+      .roundRect(-width * 0.54, -height + 4, width * 1.08, Math.max(5, height * 0.18), 2)
+      .fill({ color: 0x2c2b28, alpha: 0.12 })
+
+    if (presentation === 'working') {
+      const sweep = Math.max(0.08, Math.min(1, progress || 0))
+      this.statusSymbol
+        .circle(0, y, 8)
+        .stroke({ color: accent, alpha: 0.9, width: 2 })
+        .circle(0, y, 2.5)
+        .fill({ color: accent, alpha: 0.85 })
+      for (let index = 0; index < 6; index += 1) {
+        const angle = phase + index * (Math.PI / 3)
+        this.statusMotion
+          .moveTo(Math.cos(angle) * 6, y + Math.sin(angle) * 6)
+          .lineTo(Math.cos(angle) * 10, y + Math.sin(angle) * 10)
+      }
+      this.statusMotion.stroke({ color: accent, alpha: 0.85, width: 1.6 })
+      this.statusMask
+        .rect(-width * 0.54, -height + 4, width * 1.08 * sweep, Math.max(5, height * 0.18))
+        .fill({ color: accent, alpha: 0.25 })
+      return
+    }
+
+    if (presentation === 'delivering') {
+      const offset = Math.sin(phase) * 2
+      this.statusSymbol
+        .moveTo(-12 + offset, y)
+        .lineTo(8 + offset, y)
+        .lineTo(2 + offset, y - 6)
+        .moveTo(8 + offset, y)
+        .lineTo(2 + offset, y + 6)
+        .stroke({ color: accent, alpha: 0.95, width: 2.2 })
+      this.statusMotion
+        .rect(-14 - offset, y + 7, 6, 3)
+        .rect(-5 - offset, y + 7, 6, 3)
+        .fill({ color: accent, alpha: 0.65 })
+      return
+    }
+
+    if (presentation === 'serving') {
+      const pulse = 1 + Math.sin(phase) * 0.08
+      this.statusSymbol
+        .roundRect(-3 * pulse, y - 11 * pulse, 6 * pulse, 22 * pulse, 2)
+        .roundRect(-11 * pulse, y - 3 * pulse, 22 * pulse, 6 * pulse, 2)
+        .fill({ color: accent, alpha: 0.9 })
+      this.statusMotion
+        .circle(0, y, 13 + Math.sin(phase) * 1.5)
+        .stroke({ color: accent, alpha: 0.35, width: 1.4 })
+      return
+    }
+
+    if (presentation === 'constructing' || presentation === 'upgrading') {
+      const lift = Math.abs(Math.sin(phase)) * 3
+      this.statusSymbol
+        .moveTo(-10, y + 8)
+        .lineTo(0, y - 9)
+        .lineTo(10, y + 8)
+        .moveTo(-5, y)
+        .lineTo(5, y)
+        .stroke({ color: accent, alpha: 0.9, width: 2 })
+      this.statusMotion
+        .rect(-9, y + 10 - lift, 18, 3)
+        .fill({ color: accent, alpha: 0.7 })
+      return
+    }
+
+    this.drawBlockedPresentation(presentation, y, accent, phase)
+  }
+
+  private drawBlockedPresentation(
+    presentation: BuildingStatusPresentation,
+    y: number,
+    accent: number,
+    phase: number,
+  ): void {
+    this.statusMask
+      .moveTo(-16, y - 10)
+      .lineTo(16, y + 10)
+      .moveTo(16, y - 10)
+      .lineTo(-16, y + 10)
+      .stroke({ color: 0x46251f, alpha: 0.62, width: 2.3 })
+
+    if (presentation === 'blocked:missing-input') {
+      this.statusSymbol
+        .moveTo(-12, y - 8)
+        .lineTo(12, y - 8)
+        .lineTo(4, y + 2)
+        .lineTo(4, y + 10)
+        .lineTo(-4, y + 10)
+        .lineTo(-4, y + 2)
+        .closePath()
+        .stroke({ color: accent, alpha: 0.9, width: 2 })
+      this.statusMotion
+        .moveTo(-5, y - 16 + Math.sin(phase) * 2)
+        .lineTo(0, y - 10 + Math.sin(phase) * 2)
+        .lineTo(5, y - 16 + Math.sin(phase) * 2)
+        .stroke({ color: accent, alpha: 0.75, width: 1.6 })
+      return
+    }
+
+    if (presentation === 'blocked:no-workers') {
+      this.statusSymbol
+        .circle(0, y - 7, 4)
+        .stroke({ color: accent, alpha: 0.9, width: 2 })
+        .moveTo(0, y - 2)
+        .lineTo(0, y + 10)
+        .moveTo(-7, y + 3)
+        .lineTo(7, y + 3)
+        .moveTo(-6, y + 18)
+        .lineTo(0, y + 10)
+        .lineTo(6, y + 18)
+        .stroke({ color: accent, alpha: 0.9, width: 2 })
+      this.statusMotion
+        .moveTo(-12, y + 13)
+        .lineTo(12, y - 13)
+        .stroke({ color: 0x46251f, alpha: 0.72, width: 2 })
+      return
+    }
+
+    if (presentation === 'blocked:storage-full') {
+      this.statusSymbol
+        .rect(-13, y - 10, 10, 8)
+        .rect(-1, y - 10, 10, 8)
+        .rect(-7, y, 10, 8)
+        .fill({ color: accent, alpha: 0.85 })
+      this.statusMotion
+        .moveTo(-14, y + 13)
+        .lineTo(14, y + 13)
+        .stroke({ color: accent, alpha: 0.9, width: 2.2 })
+      return
+    }
+
+    this.statusSymbol
+      .moveTo(0, y - 12)
+      .lineTo(0, y + 4)
+      .stroke({ color: accent, alpha: 0.95, width: 3 })
+      .circle(0, y + 11, 2.4)
+      .fill({ color: accent, alpha: 0.95 })
   }
 }
 

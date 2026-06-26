@@ -1,0 +1,198 @@
+{
+  "schemaVersion": "gold-animation.v1",
+  "assetId": "main-pier",
+  "statePriority": ["constructing", "blocked", "storage_full", "working", "serving", "idle", "ambient"],
+  "slots": {
+    "base": {
+      "domain": "building",
+      "requiredState": "idle",
+      "clip": "main-pier-base",
+      "technique": "none",
+      "loop": true,
+      "playbackRateSource": "fixed",
+      "anchors": ["origin"],
+      "parts": [],
+      "lodPolicy": { "LOD0": "static", "LOD1": "static", "LOD2": "static", "LOD3": "static" }
+    },
+    "idle-detail": {
+      "domain": "ambient",
+      "requiredState": "idle",
+      "clip": "main-pier-idle-detail",
+      "technique": "sprite-sequence",
+      "fps": 4,
+      "loop": true,
+      "playbackRateSource": "sceneTime",
+      "anchors": ["water_route_01"],
+      "parts": [],
+      "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" }
+    },
+    "staff-entry": {
+      "domain": "building",
+      "requiredState": "working",
+      "clip": "main-pier-staff-entry",
+      "technique": "sprite-sequence",
+      "fps": 8,
+      "loop": false,
+      "playbackRateSource": "orderPhase",
+      "anchors": ["worker_01"],
+      "parts": [],
+      "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" }
+    },
+    "input-receive": {
+      "domain": "logistics",
+      "requiredState": "working",
+      "clip": "main-pier-input-receive",
+      "technique": "part-transform",
+      "fps": 8,
+      "loop": false,
+      "playbackRateSource": "productionProgress",
+      "anchors": ["input_dock_01", "gangplank_01"],
+      "parts": ["gangplank_a"],
+      "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" }
+    },
+    "production-primary": {
+      "domain": "logistics",
+      "requiredState": "working",
+      "clip": "main-pier-production-primary",
+      "technique": "part-transform",
+      "fps": 10,
+      "loop": true,
+      "progressRange": { "from": 20, "to": 75 },
+      "playbackRateSource": "productionProgress",
+      "anchors": ["winch_01", "cargo_lane_01"],
+      "parts": ["winch_wheel", "crane_arm_a", "cargo_hook"],
+      "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" }
+    },
+    "production-secondary": {
+      "domain": "logistics",
+      "requiredState": "working",
+      "clip": "main-pier-production-secondary",
+      "technique": "sprite-sequence",
+      "fps": 8,
+      "loop": true,
+      "progressRange": { "from": 75, "to": 95 },
+      "playbackRateSource": "productionProgress",
+      "anchors": ["output_cargo_01"],
+      "parts": [],
+      "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" }
+    },
+    "output-ready": {
+      "domain": "logistics",
+      "requiredState": "working",
+      "clip": "main-pier-output-ready",
+      "technique": "sprite-sequence",
+      "fps": 8,
+      "loop": false,
+      "progressRange": { "from": 95, "to": 100 },
+      "playbackRateSource": "productionProgress",
+      "anchors": ["output_cargo_01"],
+      "parts": [],
+      "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" }
+    },
+    "output-dispatch": {
+      "domain": "logistics",
+      "requiredState": "serving",
+      "clip": "main-pier-output-dispatch",
+      "technique": "part-transform",
+      "fps": 8,
+      "loop": false,
+      "playbackRateSource": "orderPhase",
+      "anchors": ["berth_01", "water_route_01"],
+      "parts": ["gangplank_a"],
+      "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" }
+    },
+    "service": {
+      "domain": "service",
+      "requiredState": "serving",
+      "clip": "main-pier-service",
+      "technique": "sprite-sequence",
+      "fps": 8,
+      "loop": true,
+      "playbackRateSource": "orderPhase",
+      "anchors": ["service_berth_01", "queue_land_01"],
+      "parts": [],
+      "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" }
+    },
+    "blocked": {
+      "domain": "feedback",
+      "requiredState": "blocked",
+      "allowedReasons": ["missing_worker", "missing_input", "route_blocked"],
+      "clip": "main-pier-blocked",
+      "technique": "tint-light",
+      "loop": true,
+      "playbackRateSource": "fixed",
+      "anchors": ["ui_status"],
+      "parts": [],
+      "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "static" }
+    },
+    "storage-full": {
+      "domain": "feedback",
+      "requiredState": "storage_full",
+      "clip": "main-pier-storage-full-cargo-stacks",
+      "technique": "sprite-sequence",
+      "fps": 4,
+      "loop": true,
+      "playbackRateSource": "fixed",
+      "anchors": ["output_cargo_01", "cargo_lane_01"],
+      "parts": [],
+      "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "static" }
+    },
+    "construction": {
+      "domain": "construction",
+      "requiredState": "constructing",
+      "clip": "main-pier-construction",
+      "technique": "sprite-sequence",
+      "fps": 10,
+      "loop": false,
+      "progressRange": { "from": 0, "to": 100 },
+      "playbackRateSource": "constructionProgress",
+      "anchors": ["construction_stage_01"],
+      "parts": ["pier_gate"],
+      "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" }
+    },
+    "night": {
+      "domain": "ambient",
+      "requiredState": "ambient",
+      "clip": "main-pier-night-lights",
+      "technique": "tint-light",
+      "loop": true,
+      "playbackRateSource": "sceneTime",
+      "anchors": ["ui_status"],
+      "parts": [],
+      "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" }
+    },
+    "weather": {
+      "domain": "weather",
+      "requiredState": "ambient",
+      "clip": "main-pier-weather",
+      "technique": "particle",
+      "fps": 8,
+      "loop": true,
+      "playbackRateSource": "sceneTime",
+      "anchors": ["water_route_01"],
+      "parts": [],
+      "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" }
+    },
+    "ui-feedback": {
+      "domain": "feedback",
+      "requiredState": "ambient",
+      "clip": "main-pier-ui-feedback",
+      "technique": "tint-light",
+      "loop": false,
+      "playbackRateSource": "fixed",
+      "anchors": ["ui_status", "ui_selection"],
+      "parts": [],
+      "lodPolicy": { "LOD0": "full", "LOD1": "full", "LOD2": "static", "LOD3": "static" }
+    }
+  },
+  "transitions": [
+    { "from": "idle", "to": "working", "blendMs": 120, "interruptible": true },
+    { "from": "working", "to": "storage_full", "blendMs": 80, "interruptible": true },
+    { "from": "blocked", "to": "idle", "blendMs": 120, "interruptible": true }
+  ],
+  "blockedVariants": {
+    "missing_worker": { "visualSlot": "blocked", "tooltipKey": "building.blocked.missing_worker" },
+    "missing_input": { "visualSlot": "blocked", "tooltipKey": "building.blocked.missing_input" },
+    "route_blocked": { "visualSlot": "blocked", "tooltipKey": "building.blocked.route_blocked" }
+  }
+}

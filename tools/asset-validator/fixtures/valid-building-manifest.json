@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "gold-building.v1",
+  "assetId": "main-pier",
+  "displayName": "旧码头",
+  "version": "0.1.0-fixture",
+  "sourceBlend": "art-source/blender/buildings/main-pier/main-pier.blend",
+  "buildBatch": "gold-slice",
+  "footprint": [
+    { "x": 0, "y": 0 },
+    { "x": 1, "y": 0 },
+    { "x": 0, "y": 1 }
+  ],
+  "footprintMeters": { "width": 5, "depth": 4 },
+  "origin": { "x": 0, "y": 0, "z": 0 },
+  "entranceDirection": "SE",
+  "bounds": {
+    "localPx": { "left": -180, "right": 180, "top": -220, "bottom": 80 },
+    "localMeters": { "width": 5, "depth": 4, "height": 3.5 }
+  },
+  "levels": {
+    "L0": {
+      "required": true,
+      "dccCollections": ["COL_L00", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-pier-L0", "frame": "shadow", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ground/foundation", "atlas": "main-pier-L0", "frame": "foundation", "zBand": "ground", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_back", "atlas": "main-pier-L0", "frame": "body_back", "zBand": "back", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_static", "atlas": "main-pier-L0", "frame": "static", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_dynamic", "atlas": "main-pier-L0", "frame": "dynamic", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "agent_interaction", "atlas": "main-pier-L0", "frame": "agent", "zBand": "agent", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_front/foreground_occluder", "atlas": "main-pier-L0", "frame": "front", "zBand": "front", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "night_lights", "atlas": "main-pier-L0", "frame": "lights", "zBand": "light", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "weather_overlay", "atlas": "main-pier-L0", "frame": "weather", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "vfx", "atlas": "main-pier-L0", "frame": "vfx", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ui_anchor", "atlas": "main-pier-L0", "frame": "ui", "zBand": "ui", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["pier_gate", "gangplank_a", "winch_wheel", "crane_arm_a", "cargo_hook"],
+      "anchors": ["origin", "entrance_main", "worker_01", "input_dock_01", "output_cargo_01", "service_berth_01", "queue_land_01", "ui_status", "ui_selection", "audio_harbor_01", "construction_stage_01", "occlusion_polygon", "collision_obstacle", "click_hull", "berth_01", "water_route_01", "gangplank_01", "winch_01", "cargo_lane_01"],
+      "collisionProfile": "main-pier-default",
+      "occlusionProfile": "main-pier-occluders",
+      "constructionReveal": [{ "progressFrom": 0, "progressTo": 100, "show": ["foundation"], "hide": [] }],
+      "lod": {
+        "LOD0": { "atlas": "main-pier-L0-lod0", "maxDrawCalls": 10, "maxTextureMB": 12 },
+        "LOD1": { "atlas": "main-pier-L0-lod1", "maxDrawCalls": 6, "maxTextureMB": 6 },
+        "LOD2": { "atlas": "main-pier-L0-lod2", "maxDrawCalls": 3, "maxTextureMB": 2 },
+        "LOD3": { "atlas": "main-pier-L0-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
+      }
+    },
+    "L1": {
+      "required": true,
+      "dccCollections": ["COL_L01", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-pier-L1", "frame": "shadow", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ground/foundation", "atlas": "main-pier-L1", "frame": "foundation", "zBand": "ground", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_back", "atlas": "main-pier-L1", "frame": "body_back", "zBand": "back", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_static", "atlas": "main-pier-L1", "frame": "static", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_dynamic", "atlas": "main-pier-L1", "frame": "dynamic", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "agent_interaction", "atlas": "main-pier-L1", "frame": "agent", "zBand": "agent", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_front/foreground_occluder", "atlas": "main-pier-L1", "frame": "front", "zBand": "front", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "night_lights", "atlas": "main-pier-L1", "frame": "lights", "zBand": "light", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "weather_overlay", "atlas": "main-pier-L1", "frame": "weather", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "vfx", "atlas": "main-pier-L1", "frame": "vfx", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ui_anchor", "atlas": "main-pier-L1", "frame": "ui", "zBand": "ui", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["pier_gate", "gangplank_a", "winch_wheel", "crane_arm_a", "cargo_hook"],
+      "anchors": ["origin", "entrance_main", "worker_01", "input_dock_01", "output_cargo_01", "service_berth_01", "queue_land_01", "ui_status", "ui_selection", "audio_harbor_01", "construction_stage_01", "occlusion_polygon", "collision_obstacle", "click_hull", "berth_01", "water_route_01", "gangplank_01", "winch_01", "cargo_lane_01"],
+      "collisionProfile": "main-pier-default",
+      "occlusionProfile": "main-pier-occluders",
+      "constructionReveal": [{ "progressFrom": 0, "progressTo": 100, "show": ["foundation"], "hide": [] }],
+      "lod": {
+        "LOD0": { "atlas": "main-pier-L1-lod0", "maxDrawCalls": 10, "maxTextureMB": 12 },
+        "LOD1": { "atlas": "main-pier-L1-lod1", "maxDrawCalls": 6, "maxTextureMB": 6 },
+        "LOD2": { "atlas": "main-pier-L1-lod2", "maxDrawCalls": 3, "maxTextureMB": 2 },
+        "LOD3": { "atlas": "main-pier-L1-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
+      }
+    },
+    "L4": {
+      "required": true,
+      "dccCollections": ["COL_L04", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-pier-L4", "frame": "shadow", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ground/foundation", "atlas": "main-pier-L4", "frame": "foundation", "zBand": "ground", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_back", "atlas": "main-pier-L4", "frame": "body_back", "zBand": "back", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_static", "atlas": "main-pier-L4", "frame": "static", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_dynamic", "atlas": "main-pier-L4", "frame": "dynamic", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "agent_interaction", "atlas": "main-pier-L4", "frame": "agent", "zBand": "agent", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_front/foreground_occluder", "atlas": "main-pier-L4", "frame": "front", "zBand": "front", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "night_lights", "atlas": "main-pier-L4", "frame": "lights", "zBand": "light", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "weather_overlay", "atlas": "main-pier-L4", "frame": "weather", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "vfx", "atlas": "main-pier-L4", "frame": "vfx", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ui_anchor", "atlas": "main-pier-L4", "frame": "ui", "zBand": "ui", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["pier_gate", "gangplank_a", "winch_wheel", "crane_arm_a", "cargo_hook"],
+      "anchors": ["origin", "entrance_main", "worker_01", "input_dock_01", "output_cargo_01", "service_berth_01", "queue_land_01", "ui_status", "ui_selection", "audio_harbor_01", "construction_stage_01", "occlusion_polygon", "collision_obstacle", "click_hull", "berth_01", "water_route_01", "gangplank_01", "winch_01", "cargo_lane_01"],
+      "collisionProfile": "main-pier-default",
+      "occlusionProfile": "main-pier-occluders",
+      "constructionReveal": [{ "progressFrom": 0, "progressTo": 100, "show": ["foundation"], "hide": [] }],
+      "lod": {
+        "LOD0": { "atlas": "main-pier-L4-lod0", "maxDrawCalls": 10, "maxTextureMB": 12 },
+        "LOD1": { "atlas": "main-pier-L4-lod1", "maxDrawCalls": 6, "maxTextureMB": 6 },
+        "LOD2": { "atlas": "main-pier-L4-lod2", "maxDrawCalls": 3, "maxTextureMB": 2 },
+        "LOD3": { "atlas": "main-pier-L4-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
+      }
+    },
+    "L8": {
+      "required": true,
+      "dccCollections": ["COL_L08", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-pier-L8", "frame": "shadow", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ground/foundation", "atlas": "main-pier-L8", "frame": "foundation", "zBand": "ground", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_back", "atlas": "main-pier-L8", "frame": "body_back", "zBand": "back", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_static", "atlas": "main-pier-L8", "frame": "static", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_dynamic", "atlas": "main-pier-L8", "frame": "dynamic", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "agent_interaction", "atlas": "main-pier-L8", "frame": "agent", "zBand": "agent", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_front/foreground_occluder", "atlas": "main-pier-L8", "frame": "front", "zBand": "front", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "night_lights", "atlas": "main-pier-L8", "frame": "lights", "zBand": "light", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "weather_overlay", "atlas": "main-pier-L8", "frame": "weather", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "vfx", "atlas": "main-pier-L8", "frame": "vfx", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ui_anchor", "atlas": "main-pier-L8", "frame": "ui", "zBand": "ui", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["pier_gate", "gangplank_a", "winch_wheel", "crane_arm_a", "cargo_hook"],
+      "anchors": ["origin", "entrance_main", "worker_01", "input_dock_01", "output_cargo_01", "service_berth_01", "queue_land_01", "ui_status", "ui_selection", "audio_harbor_01", "construction_stage_01", "occlusion_polygon", "collision_obstacle", "click_hull", "berth_01", "water_route_01", "gangplank_01", "winch_01", "cargo_lane_01"],
+      "collisionProfile": "main-pier-default",
+      "occlusionProfile": "main-pier-occluders",
+      "constructionReveal": [{ "progressFrom": 0, "progressTo": 100, "show": ["foundation"], "hide": [] }],
+      "lod": {
+        "LOD0": { "atlas": "main-pier-L8-lod0", "maxDrawCalls": 10, "maxTextureMB": 12 },
+        "LOD1": { "atlas": "main-pier-L8-lod1", "maxDrawCalls": 6, "maxTextureMB": 6 },
+        "LOD2": { "atlas": "main-pier-L8-lod2", "maxDrawCalls": 3, "maxTextureMB": 2 },
+        "LOD3": { "atlas": "main-pier-L8-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
+      }
+    }
+  },
+  "anchors": {
+    "origin": { "type": "origin", "localMeters": { "x": 0, "y": 0, "z": 0 }, "localPx": { "x": 0, "y": 0 }, "facing": 0 },
+    "entrance_main": { "type": "entrance", "localMeters": { "x": 1, "y": 0, "z": 0 }, "localPx": { "x": 32, "y": 8 }, "facing": 3 },
+    "worker_01": { "type": "worker", "localMeters": { "x": 1.2, "y": 0.5, "z": 0 }, "localPx": { "x": 48, "y": 24 }, "facing": 3 },
+    "input_dock_01": { "type": "input", "localMeters": { "x": -1, "y": 0, "z": 0 }, "localPx": { "x": -32, "y": 8 }, "facing": 5 },
+    "output_cargo_01": { "type": "output", "localMeters": { "x": -1.4, "y": 0.2, "z": 0 }, "localPx": { "x": -48, "y": 16 }, "facing": 5 },
+    "service_berth_01": { "type": "service", "localMeters": { "x": -2, "y": 1, "z": 0 }, "localPx": { "x": -72, "y": 48 }, "facing": 4 },
+    "queue_land_01": { "type": "queue", "localMeters": { "x": 1.6, "y": -0.4, "z": 0 }, "localPx": { "x": 64, "y": -12 }, "facing": 3 },
+    "ui_status": { "type": "ui", "localMeters": { "x": 0, "y": 0, "z": 3 }, "localPx": { "x": 0, "y": -180 }, "facing": 0 },
+    "ui_selection": { "type": "ui", "localMeters": { "x": 0, "y": 0, "z": 0 }, "localPx": { "x": 0, "y": 0 }, "facing": 0 },
+    "audio_harbor_01": { "type": "audio", "localMeters": { "x": -0.5, "y": 0.5, "z": 0 }, "localPx": { "x": -16, "y": 24 }, "facing": 4 },
+    "construction_stage_01": { "type": "construction", "localMeters": { "x": 0.2, "y": 0.2, "z": 0 }, "localPx": { "x": 8, "y": 8 }, "facing": 2 },
+    "occlusion_polygon": { "type": "ui", "localMeters": { "x": 0, "y": 0.4, "z": 0 }, "localPx": { "x": 0, "y": 18 }, "facing": 0 },
+    "collision_obstacle": { "type": "ui", "localMeters": { "x": 0, "y": 0, "z": 0 }, "localPx": { "x": 0, "y": 0 }, "facing": 0 },
+    "click_hull": { "type": "ui", "localMeters": { "x": 0, "y": 0, "z": 0 }, "localPx": { "x": 0, "y": 0 }, "facing": 0 },
+    "berth_01": { "type": "berth", "localMeters": { "x": -2.5, "y": 1.2, "z": 0 }, "localPx": { "x": -96, "y": 60 }, "facing": 4 },
+    "water_route_01": { "type": "water_route", "localMeters": { "x": -3, "y": 1.6, "z": 0 }, "localPx": { "x": -120, "y": 72 }, "facing": 4 },
+    "gangplank_01": { "type": "worker", "localMeters": { "x": -1.5, "y": 0.8, "z": 0 }, "localPx": { "x": -64, "y": 40 }, "facing": 4 },
+    "winch_01": { "type": "worker", "localMeters": { "x": -0.8, "y": 0.4, "z": 0.8 }, "localPx": { "x": -28, "y": 18 }, "facing": 4 },
+    "cargo_lane_01": { "type": "worker", "localMeters": { "x": 0.5, "y": 0.2, "z": 0 }, "localPx": { "x": 20, "y": 10 }, "facing": 3 }
+  },
+  "collision": {
+    "footprint": [{ "x": 0, "y": 0 }, { "x": 1, "y": 0 }, { "x": 0, "y": 1 }],
+    "obstacles": [[{ "x": 0, "y": 0 }, { "x": 1, "y": 0 }, { "x": 1, "y": 1 }]],
+    "occluders": [[{ "x": -1, "y": 0 }, { "x": 1, "y": 0 }, { "x": 1, "y": 1 }]],
+    "clickHull": [{ "x": -1, "y": -1 }, { "x": 1, "y": -1 }, { "x": 1, "y": 1 }, { "x": -1, "y": 1 }],
+    "waterHull": [{ "x": -3, "y": 1 }, { "x": -1, "y": 1 }, { "x": -1, "y": 2 }, { "x": -3, "y": 2 }]
+  },
+  "validation": {
+    "triangleBudgetLOD0": 110000,
+    "maxLayers": 10,
+    "maxEmitters": 4,
+    "blindRecognitionTarget": 0.8
+  }
+}

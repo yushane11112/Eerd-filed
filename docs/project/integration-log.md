@@ -1,5 +1,15 @@
 # 集成记录
 
+## 2026-06-27
+
+- 新增 `commercial-launch-master-plan.md`，明确《小耳岛》最终目标为架空明清江南水乡城市文明模拟游戏，完整覆盖 P0–P10 阶段、12 条生产线、自动执行机制和每轮产出记录机制。
+- 新增 `design/world-bible.md`，冻结统一年代设定：前工业时代水乡城市，禁止现代电力、汽车、铁路、现代工厂、蒸汽朋克和未来机械。
+- 新增 `design/building-taxonomy.md`，将建筑体系从固定 28 类改为可扩展分类，并补充荒村、村集、水乡镇、商贸镇、繁华府镇、盛世水都六阶段，以及商业街、夜市、码头仓区、官署街等街区型建筑。
+- 新增 `design/population-lifecycle.md`，明确外来人口入住前后的状态差异：抵达、找房、临时停留、正式入住、稳定生活和离城。
+- 新增 `design/art-production-roadmap.md`，补齐美术从 ART-P0 到 ART-P11 的全阶段生产计划、角色分工和 A0–A10 质量门禁。
+- 新增 `progress-dashboard.md` 与 `artifact-index.md`，让每轮完成后的阶段进度、真实产出、风险和下一轮任务可被项目内追踪。
+- 同步更新 `README.md`、`commercial-civilization-target.md`、`production-pipeline.md`、`gates.md` 和 `task-board.md`，将听歌材料、岛屿解锁、固定 28 类建筑从主线降级为历史原型或非核心入口。
+
 ## 2026-06-25
 
 - 初始化 Git 项目基线。

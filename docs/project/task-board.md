@@ -2,6 +2,18 @@
 
 | ID | 会话职责 | 写入范围 | 状态 | 集成条件 |
 | --- | --- | --- | --- | --- |
+| PM-LAUNCH-PLAN-01 | 商业级完整上线总计划 | `docs/project/commercial-launch-master-plan.md` | 已完成 | 明确最终上线目标、阶段产出、生产线、自动执行机制 |
+| PM-DASHBOARD-01 | 进度仪表盘 | `docs/project/progress-dashboard.md` | 已完成 | 阶段、完成度、风险、下一轮任务可检查 |
+| PM-ARTIFACT-INDEX-01 | 项目真实产物索引 | `docs/project/artifact-index.md` | 已完成 | 每轮实际新增/修改文件可追踪 |
+| WORLD-BIBLE-01 | 统一年代设定 | `docs/project/design/world-bible.md` | 已完成 | 架空明清江南水乡白/黑名单明确 |
+| BUILDING-TAXONOMY-01 | 可扩展建筑与街区体系 | `docs/project/design/building-taxonomy.md` | 已完成 | 不再限制 28 类，六阶段城市和街区繁荣明确 |
+| POP-LIFECYCLE-01 | 外来人口生命周期设计 | `docs/project/design/population-lifecycle.md` | 已完成 | 抵达、找房、临时停留、入住、生活、离城明确 |
+| ART-ROADMAP-01 | 美术全阶段生产计划 | `docs/project/design/art-production-roadmap.md` | 已完成 | ART-P0 到 ART-P11、角色分工和门禁明确 |
+| DOC-SYNC-20260627 | 旧规划方向同步 | `docs/project/README.md`, `docs/project/commercial-civilization-target.md`, `docs/project/production-pipeline.md`, `docs/project/gates.md` | 已完成 | 旧岛屿/听歌/28 类主线被降级，商业级城市模拟口径统一 |
+| POP-MIGRATION-ENGINE-01 | 外来人口状态机实现 | `src/simulation/core/**`, `src/simulation/contracts.ts` | 待开始 | 人口不再凭空入住，抵达/等待/入住/离城可测 |
+| CITY-ATTRACTION-01 | 城市吸引力评分 | `src/simulation/**`, `src/integration/**` | 待开始 | 空房、岗位、食物、水、税率、治安影响迁入 |
+| TAXONOMY-RUNTIME-01 | 可扩展建筑分类运行时 | `src/content/**`, `src/simulation/**` | 待开始 | 建筑类别从固定清单转为阶段/功能/年代一致分类 |
+| DISTRICT-PROSPERITY-01 | 街区繁荣系统 | `src/simulation/**`, `src/rendering/**` | 待开始 | 商业街、码头仓区等街区能驱动人流、灯火、装饰 |
 | CORE-01 | 模拟时钟、家庭、就业 | `src/simulation/core/**` | 已完成 | 9 项模块测试通过 |
 | WORLD-01 | 网格、道路、建造、寻路 | `src/simulation/world/**` | 已完成 | 10 项模块测试通过 |
 | LOG-01 | 生产、库存、订单、物流 | `src/simulation/economy/**` | 已完成 | 9 项模块测试通过 |

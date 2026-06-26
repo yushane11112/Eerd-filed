@@ -29,4 +29,25 @@ const invalidResult = validateGoldManifests({
 assert(!invalidResult.ok, 'invalid fixtures should fail');
 assert(invalidResult.errorCount >= 10, `invalid fixtures should expose multiple gates, got ${invalidResult.errorCount}`);
 
-console.log(`OK: self-test passed. valid errors=${validResult.errorCount}; invalid errors=${invalidResult.errorCount}.`);
+const strictMissingLevelsResult = validateGoldManifests(
+  {
+    building: await readFixture('valid-building-manifest.json'),
+    animation: await readFixture('valid-animation-manifest.json'),
+  },
+  { requireAllLevels: true },
+);
+
+assert(!strictMissingLevelsResult.ok, 'strict all-level mode should fail fixtures that only cover sample levels');
+assert(
+  strictMissingLevelsResult.issues.some(
+    (issue) =>
+      issue.code === 'level.missing_required_all_levels' &&
+      issue.path === 'building.levels.L2' &&
+      issue.message.includes('Missing required building level L2'),
+  ),
+  `strict all-level mode should report a clear missing L2 error:\n${JSON.stringify(strictMissingLevelsResult.issues, null, 2)}`,
+);
+
+console.log(
+  `OK: self-test passed. valid errors=${validResult.errorCount}; invalid errors=${invalidResult.errorCount}; strict missing-level errors=${strictMissingLevelsResult.errorCount}.`,
+);

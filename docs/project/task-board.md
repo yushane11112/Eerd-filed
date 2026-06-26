@@ -61,7 +61,7 @@
 | MATERIAL-PICKUP-FEEL-01 | 材料掉落与手动扫取手感 | `src/components/SimulationCanvas.tsx`, `src/App.tsx`, `src/styles.css` | 已完成 | 地图内材料节点可见、可点击/连续拾取且不破坏拖拽 |
 | SIM-CITY-OPERATIONS-01 | 城市运行后果闭环 | `src/simulation/**`, `src/qa/**` | 已完成 | 服务不足形成确定性居民需求/满意度后果并可测 |
 | GOLD-MANIFEST-BATCH-01 | 金标样例 manifest 批量化 | `docs/project/gold-slice/sample-manifests/**`, `tools/asset-validator/**`, `package.json` | 已完成 | 3 个样例可由批量脚本统一校验 |
-| CIV-MATRIX-01 | 商业级文明系统矩阵 | `docs/project/**` | 进行中 | 明确家庭、住宅、就业、道路、产业、仓储、市场、服务、财政、文明阶段等系统缺口 |
-| BUILD-UPGRADE-SYSTEM-01 | 正式建筑升级底层 | `src/simulation/**`, `src/integration/GameRuntime.ts` | 进行中 | 0–8 级升级具备成本、失败条件和可观察效果 |
-| FULL-LEVEL-ASSET-GATE-01 | L0–L8 完整资产严格门禁 | `tools/asset-validator/**`, `docs/project/gold-slice/sample-manifests/**`, `package.json` | 进行中 | 严格模式可检查九等级缺失并明确失败 |
-| LONG-RUN-CIV-QA-01 | 长时间文明模拟 QA | `src/qa/**`, `docs/project/qa.md` | 进行中 | 多天/大量 tick 后人口、满意度、物流和停工状态保持有界 |
+| CIV-MATRIX-01 | 商业级文明系统矩阵 | `docs/project/**` | 已完成 | 明确家庭、住宅、就业、道路、产业、仓储、市场、服务、财政、文明阶段等系统缺口 |
+| BUILD-UPGRADE-SYSTEM-01 | 正式建筑升级底层 | `src/simulation/**`, `src/integration/GameRuntime.ts` | 已完成 | 0–8 级升级具备成本、失败条件和可观察效果 |
+| FULL-LEVEL-ASSET-GATE-01 | L0–L8 完整资产严格门禁 | `tools/asset-validator/**`, `docs/project/gold-slice/sample-manifests/**`, `package.json` | 已完成 | 严格模式可检查九等级缺失并明确失败 |
+| LONG-RUN-CIV-QA-01 | 长时间文明模拟 QA | `src/qa/**`, `docs/project/qa.md` | 已完成 | 2400 tick 灰盒长稳测试覆盖人口、满意度、物流、停工、订单和库存边界 |

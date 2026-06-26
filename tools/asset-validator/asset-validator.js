@@ -21,6 +21,7 @@ export const GOLD_ASSET_IDS = [
 ];
 
 export const REQUIRED_LEVELS = ['L0', 'L1', 'L4', 'L8'];
+export const REQUIRED_ALL_LEVELS = ['L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8'];
 
 export const REQUIRED_DCC_COLLECTIONS = [
   'COL_ANIM',
@@ -198,14 +199,20 @@ function validateTopLevel(building, issues) {
   }
 }
 
-function validateLevels(building, issues) {
+function validateLevels(building, issues, options = {}) {
   const entries = normalizedLevelEntries(building.levels);
   const levelsByNormalizedKey = new Map(entries.map(([normalized, original, value]) => [normalized, { original, value }]));
 
-  for (const level of REQUIRED_LEVELS) {
+  const requiredLevels = options.requireAllLevels ? REQUIRED_ALL_LEVELS : REQUIRED_LEVELS;
+  const missingCode = options.requireAllLevels ? 'level.missing_required_all_levels' : 'level.missing_required';
+
+  for (const level of requiredLevels) {
     const entry = levelsByNormalizedKey.get(level);
     if (!entry) {
-      push(issues, 'level.missing_required', `Missing required gold level ${level}.`, `building.levels.${level}`);
+      const message = options.requireAllLevels
+        ? `Missing required building level ${level}; strict all-level mode requires L0-L8.`
+        : `Missing required gold level ${level}.`;
+      push(issues, missingCode, message, `building.levels.${level}`);
       continue;
     }
     if (entry.value?.required !== true) {
@@ -522,11 +529,11 @@ function isKnownAnimatedPart(part, building) {
   return levels.some((level) => asArray(level?.animatedParts).includes(part));
 }
 
-export function validateGoldManifests({ building, animation }) {
+export function validateGoldManifests({ building, animation }, options = {}) {
   const issues = [];
   validateTopLevel(building, issues);
   if (isObject(building)) {
-    validateLevels(building, issues);
+    validateLevels(building, issues, options);
     validateAnchors(building, issues);
     validateCollision(building, issues);
     validateBudgets(building, issues);
@@ -552,16 +559,19 @@ async function readJson(path) {
 }
 
 function printUsage() {
-  console.error('Usage: node tools/asset-validator/asset-validator.js --building <building-manifest.json> --animation <animation-manifest.json> [--json]');
+  console.error(
+    'Usage: node tools/asset-validator/asset-validator.js --building <building-manifest.json> --animation <animation-manifest.json> [--json] [--require-all-levels]',
+  );
 }
 
 function parseArgs(argv) {
-  const args = { json: false };
+  const args = { json: false, requireAllLevels: false };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === '--building') args.buildingPath = argv[++index];
     else if (arg === '--animation') args.animationPath = argv[++index];
     else if (arg === '--json') args.json = true;
+    else if (arg === '--require-all-levels') args.requireAllLevels = true;
     else if (arg === '--help' || arg === '-h') args.help = true;
     else throw new Error(`Unknown argument: ${arg}`);
   }
@@ -578,7 +588,7 @@ async function main() {
   const result = validateGoldManifests({
     building: await readJson(args.buildingPath),
     animation: await readJson(args.animationPath),
-  });
+  }, { requireAllLevels: args.requireAllLevels });
 
   if (args.json) {
     console.log(JSON.stringify(result, null, 2));

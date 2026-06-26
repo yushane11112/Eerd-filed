@@ -13,6 +13,20 @@ import { validateGoldManifests } from './asset-validator.js';
 
 const SAMPLE_ROOT = 'docs/project/gold-slice/sample-manifests';
 
+function parseArgs(argv) {
+  const args = { requireAllLevels: false };
+  for (const arg of argv) {
+    if (arg === '--require-all-levels') args.requireAllLevels = true;
+    else if (arg === '--help' || arg === '-h') args.help = true;
+    else throw new Error(`Unknown argument: ${arg}`);
+  }
+  return args;
+}
+
+function printUsage() {
+  console.error('Usage: node tools/asset-validator/validate-gold-samples.js [--require-all-levels]');
+}
+
 async function readJson(filePath) {
   return JSON.parse(await readFile(filePath, 'utf8'));
 }
@@ -42,6 +56,12 @@ async function findSamplePairs(root) {
 }
 
 async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  if (args.help) {
+    printUsage();
+    return;
+  }
+
   const { pairs, incomplete } = await findSamplePairs(SAMPLE_ROOT);
   if (pairs.length === 0) {
     console.error(`FAILED: no complete gold sample manifest pairs found under ${SAMPLE_ROOT}.`);
@@ -61,7 +81,7 @@ async function main() {
     const result = validateGoldManifests({
       building: await readJson(pair.buildingPath),
       animation: await readJson(pair.animationPath),
-    });
+    }, { requireAllLevels: args.requireAllLevels });
 
     if (result.ok) {
       console.log(`OK: ${pair.sampleDir} passed (${result.warningCount} warnings).`);

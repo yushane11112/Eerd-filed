@@ -19,6 +19,7 @@ import {
   inventoryFreeCapacity,
   removeInventory,
 } from './inventory'
+import { effectiveBuildingDefinition } from './upgrades'
 
 export interface RoutePlanner {
   findRoute(cells: readonly WorldCell[], from: GridPoint, to: GridPoint): GridPoint[] | undefined
@@ -213,7 +214,7 @@ export class LogisticsSystem implements SimulationSystem {
       sourceMatch.value.available,
       Math.max(
         0,
-        inventoryFreeCapacity(destination, this.definitions[destination.type])
+        inventoryFreeCapacity(destination, this.effectiveDefinition(destination))
           - inboundCapacityReserved,
       ),
     )
@@ -383,7 +384,7 @@ export class LogisticsSystem implements SimulationSystem {
 
     const route = this.routePlanner.findRoute(snapshot.cells, source.entrance, destination.entrance)
     if (!route) {
-      addInventory(source, this.definitions[source.type], order.resource, order.amount)
+      addInventory(source, this.effectiveDefinition(source), order.resource, order.amount)
       this.markFailure(destination, order.resource, 'no-route')
       this.cancel(order, carrier, 'no-route')
       return
@@ -407,7 +408,7 @@ export class LogisticsSystem implements SimulationSystem {
     }
     if (!addInventory(
         destination,
-        this.definitions[destination.type],
+        this.effectiveDefinition(destination),
         order.resource,
         order.amount,
       ).ok) {
@@ -457,6 +458,10 @@ export class LogisticsSystem implements SimulationSystem {
     reason: LogisticsFailureReason,
   ): void {
     building.statusReason = logisticsFailureReason(resource, reason)
+  }
+
+  private effectiveDefinition(building: BuildingEntity): BuildingDefinition {
+    return effectiveBuildingDefinition(this.definitions[building.type], building)
   }
 
   private clearFailure(building: BuildingEntity, resource: ResourceKind): void {

@@ -13,6 +13,7 @@ import {
   inventoryFreeCapacity,
   removeInventory,
 } from './inventory'
+import { effectiveBuildingDefinition } from './upgrades'
 
 export const PRODUCTION_STOP_REASONS = {
   NO_WORKERS: 'no-workers',
@@ -57,7 +58,10 @@ export class ProductionSystem implements SimulationSystem {
     const buildings = Object.values(snapshot.buildings).sort((a, b) => a.id.localeCompare(b.id))
 
     for (const building of buildings) {
-      const definition = this.definitions[building.type]
+      const baseDefinition = this.definitions[building.type]
+      const definition = baseDefinition
+        ? effectiveBuildingDefinition(baseDefinition, building)
+        : undefined
       const recipe = definition?.production
       if (!definition || !recipe || building.status === 'constructing' || building.status === 'upgrading') {
         continue
@@ -107,4 +111,3 @@ export class ProductionSystem implements SimulationSystem {
     building.statusReason = reason
   }
 }
-

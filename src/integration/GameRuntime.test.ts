@@ -33,4 +33,22 @@ describe('GameRuntime integration', () => {
     expect(rareCount).toBeGreaterThanOrEqual(1)
     expect(runtime.getSnapshot().worldDrops).toHaveLength(0)
   })
+
+  it('upgrades a building through the runtime API and refreshes observable capacity', () => {
+    const runtime = new GameRuntime()
+    const before = runtime.getSnapshot()
+
+    const result = runtime.upgradeBuilding('granary-1')
+    const after = runtime.getSnapshot()
+
+    expect(result.ok).toBe(true)
+    expect(result.upgrade).toEqual({
+      level: 2,
+      cost: { wood: 2, stone: 1 },
+      effect: { capacity: 115, jobs: 2 },
+    })
+    expect(after.buildings['granary-1'].level).toBe(before.buildings['granary-1'].level + 1)
+    expect(after.buildings['granary-1'].inventory.wood).toBe(12)
+    expect(after.buildings['granary-1'].inventory.stone).toBe(7)
+  })
 })

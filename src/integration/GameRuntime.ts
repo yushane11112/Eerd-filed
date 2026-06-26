@@ -8,7 +8,7 @@ import type {
   SimulationSnapshot,
 } from '../simulation/contracts'
 import { SimulationEngine, createInitialSimulationSnapshot } from '../simulation/core'
-import { EconomySystem, RoadRoutePlanner } from '../simulation/economy'
+import { EconomySystem, RoadRoutePlanner, upgradeBuildingImmediately } from '../simulation/economy'
 import {
   createDropSpawnState,
   flushPendingDrops,
@@ -29,6 +29,14 @@ export interface RuntimeActionResult {
   ok: boolean
   message: string
   buildingId?: string
+  upgrade?: {
+    level: number
+    cost: Partial<Record<ResourceKind, number>>
+    effect: {
+      capacity: number
+      jobs: number
+    }
+  }
 }
 
 const square = (width: number, height: number): GridPoint[] =>
@@ -182,6 +190,41 @@ export class GameRuntime {
     snapshot.cells = this.grid.toCells()
     this.rebuild(snapshot)
     return { ok: true, message: `${definition.name}已落成并接入城市模拟。`, buildingId: id }
+  }
+
+  upgradeBuilding(buildingId: string): RuntimeActionResult {
+    const snapshot = this.engine.snapshot
+    const building = snapshot.buildings[buildingId]
+    if (!building) return { ok: false, message: '未找到这座建筑' }
+    const definition = BUILDING_DEFINITIONS[building.type]
+    if (!definition) return { ok: false, message: '未知建筑类型', buildingId }
+
+    const result = upgradeBuildingImmediately(building, definition)
+    if (!result.ok) {
+      if (result.reason === 'max-level') {
+        return { ok: false, message: '这座建筑已达到最高等级', buildingId }
+      }
+      if (result.reason === 'insufficient-materials') {
+        return {
+          ok: false,
+          message: `升级材料不足：${formatResourceList(result.missing ?? {})}`,
+          buildingId,
+        }
+      }
+      return { ok: false, message: '建筑等级状态异常，无法升级', buildingId }
+    }
+
+    this.rebuild(snapshot)
+    return {
+      ok: true,
+      message: `${definition.name}升至 ${result.level} 级，容量 ${result.effect.capacity}，岗位 ${result.effect.jobs}。`,
+      buildingId,
+      upgrade: {
+        level: result.level,
+        cost: result.cost,
+        effect: result.effect,
+      },
+    }
   }
 
   buildingAt(point: GridPoint) {
@@ -342,4 +385,12 @@ function createBuilding(
 function localDayKey(timestamp: number) {
   const date = new Date(timestamp)
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
+function formatResourceList(resources: Partial<Record<ResourceKind, number>>): string {
+  const entries = Object.entries(resources).filter((entry): entry is [ResourceKind, number] => (
+    typeof entry[1] === 'number' && entry[1] > 0
+  ))
+  if (entries.length === 0) return '无'
+  return entries.map(([resource, amount]) => `${RESOURCE_NAMES[resource]}×${amount}`).join('、')
 }

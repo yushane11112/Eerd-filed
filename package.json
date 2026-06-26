@@ -12,7 +12,8 @@
     "asset:validate:self-test": "node tools/asset-validator/self-test.js",
     "asset:validate:gold-fixture": "node tools/asset-validator/asset-validator.js --building tools/asset-validator/fixtures/valid-building-manifest.json --animation tools/asset-validator/fixtures/valid-animation-manifest.json",
     "asset:validate:main-pier": "node tools/asset-validator/asset-validator.js --building docs/project/gold-slice/sample-manifests/main-pier/building-manifest.json --animation docs/project/gold-slice/sample-manifests/main-pier/animation-manifest.json",
-    "asset:validate:gold-samples": "node tools/asset-validator/validate-gold-samples.js"
+    "asset:validate:gold-samples": "node tools/asset-validator/validate-gold-samples.js",
+    "asset:validate:gold-samples:strict": "node tools/asset-validator/validate-gold-samples.js --require-all-levels"
   },
   "dependencies": {
     "@pixi/react": "^8.0.3",

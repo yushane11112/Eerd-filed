@@ -44,3 +44,4 @@
 - 完成第八轮并行生产：`main-homes`、`main-eatery`、`main-granary` 拥有 L0/L4/L8 程序化差异切片；材料节点新增地图 overlay 与按住扫取；服务/市场不足会确定性降低居民需求和满意度；新增 `main-homes`、`main-eatery` manifest 样例与 `asset:validate:gold-samples` 批量校验入口。
 - 明确项目最终目标升级为商业级城市/文明模拟游戏，新增 `commercial-civilization-target.md` 作为长期硬标准：完整文明系统、真实可观察后果、动态引擎、28 类建筑 0–8 级高精资产与音乐轻奖励关系。
 - 启动第九轮并行生产：CIV-MATRIX-01、BUILD-UPGRADE-SYSTEM-01、FULL-LEVEL-ASSET-GATE-01、LONG-RUN-CIV-QA-01，分别推进文明系统矩阵、正式建筑升级底层、L0–L8 资产严格门禁和长时间文明模拟 QA。
+- 完成第九轮并行生产：新增文明系统矩阵和商业级缺口清单；建筑升级底层支持 0–8 级成本、失败条件和容量/岗位效果；资产校验器新增 `--require-all-levels` 严格模式，明确当前样例缺 L2/L3/L5/L6/L7；长稳 QA 新增 2400 tick 灰盒文明稳定性测试并记录 7200 tick/30 日商业级长测尚未达成。

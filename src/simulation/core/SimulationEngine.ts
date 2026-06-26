@@ -9,6 +9,7 @@ import type {
   SimulationSystem,
 } from '../contracts'
 import { DeterministicRandom } from './random'
+import { effectiveBuildingDefinition } from '../economy/upgrades'
 
 export interface SimulationEngineOptions {
   buildingDefinitions?: Record<string, BuildingDefinition>
@@ -287,7 +288,8 @@ export class SimulationEngine {
           definition?.category === 'housing'
           && building.status !== 'constructing'
           && building.status !== 'upgrading'
-          && (occupancy.get(building.id) ?? 0) + requiredCapacity <= definition.capacity
+          && (occupancy.get(building.id) ?? 0) + requiredCapacity
+            <= effectiveBuildingDefinition(definition, building).capacity
         )
       })
       .sort(byId)[0]
@@ -297,7 +299,9 @@ export class SimulationEngine {
     if (building.status === 'constructing' || building.status === 'upgrading') {
       return 0
     }
-    return this.definitions[building.type]?.jobs ?? 0
+    const definition = this.definitions[building.type]
+    if (!definition) return 0
+    return effectiveBuildingDefinition(definition, building).jobs
   }
 
   private recalculateMetrics(): void {
@@ -313,7 +317,9 @@ export class SimulationEngine {
     const housingCapacity = Object.values(this.state.buildings).reduce(
       (total, building) => {
         const definition = this.definitions[building.type]
-        return total + (definition?.category === 'housing' ? definition.capacity : 0)
+        return total + (definition?.category === 'housing'
+          ? effectiveBuildingDefinition(definition, building).capacity
+          : 0)
       },
       0,
     )

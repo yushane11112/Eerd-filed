@@ -8,7 +8,7 @@ import type {
   SimulationSnapshot,
 } from '../simulation/contracts'
 import { SimulationEngine, createInitialSimulationSnapshot } from '../simulation/core'
-import { EconomySystem, RoadRoutePlanner, upgradeBuildingImmediately } from '../simulation/economy'
+import { EconomySystem, RoadRoutePlanner, upgradeBuildingFromCityStorage } from '../simulation/economy'
 import {
   createDropSpawnState,
   flushPendingDrops,
@@ -199,7 +199,12 @@ export class GameRuntime {
     const definition = BUILDING_DEFINITIONS[building.type]
     if (!definition) return { ok: false, message: '未知建筑类型', buildingId }
 
-    const result = upgradeBuildingImmediately(building, definition)
+    const result = upgradeBuildingFromCityStorage(
+      building,
+      definition,
+      snapshot.buildings,
+      BUILDING_DEFINITIONS,
+    )
     if (!result.ok) {
       if (result.reason === 'max-level') {
         return { ok: false, message: '这座建筑已达到最高等级', buildingId }

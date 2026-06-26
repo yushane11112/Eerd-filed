@@ -51,4 +51,23 @@ describe('GameRuntime integration', () => {
     expect(after.buildings['granary-1'].inventory.wood).toBe(12)
     expect(after.buildings['granary-1'].inventory.stone).toBe(7)
   })
+
+  it('upgrades a building through the runtime API using city storage materials first', () => {
+    const runtime = new GameRuntime()
+    const before = runtime.getSnapshot()
+
+    const result = runtime.upgradeBuilding('house-1')
+    const after = runtime.getSnapshot()
+
+    expect(result.ok).toBe(true)
+    expect(result.upgrade).toEqual({
+      level: 2,
+      cost: { wood: 2, stone: 1 },
+      effect: { capacity: 14, jobs: 0 },
+    })
+    expect(after.buildings['house-1'].level).toBe(before.buildings['house-1'].level + 1)
+    expect(after.buildings['house-1'].inventory).toEqual({})
+    expect(after.buildings['granary-1'].inventory.wood).toBe(12)
+    expect(after.buildings['granary-1'].inventory.stone).toBe(7)
+  })
 })

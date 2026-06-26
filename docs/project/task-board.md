@@ -65,3 +65,7 @@
 | BUILD-UPGRADE-SYSTEM-01 | 正式建筑升级底层 | `src/simulation/**`, `src/integration/GameRuntime.ts` | 已完成 | 0–8 级升级具备成本、失败条件和可观察效果 |
 | FULL-LEVEL-ASSET-GATE-01 | L0–L8 完整资产严格门禁 | `tools/asset-validator/**`, `docs/project/gold-slice/sample-manifests/**`, `package.json` | 已完成 | 严格模式可检查九等级缺失并明确失败 |
 | LONG-RUN-CIV-QA-01 | 长时间文明模拟 QA | `src/qa/**`, `docs/project/qa.md` | 已完成 | 2400 tick 灰盒长稳测试覆盖人口、满意度、物流、停工、订单和库存边界 |
+| MARKET-CONSUMPTION-01 | 市场真实消费闭环 | `src/simulation/economy/**`, `src/simulation/core/**` | 已完成 | 市场库存可被家庭消费扣除，并产生购买事件与税收 |
+| CITY-UPGRADE-SUPPLY-01 | 城市级升级材料调拨 | `src/simulation/economy/upgrades.ts`, `src/integration/GameRuntime.ts` | 已完成 | 升级优先从城市仓储确定性扣料，材料不足不改变库存 |
+| LONG-RUN-PERF-01 | 长稳模拟性能优化/定位 | `src/qa/**`, `src/simulation/**`, `docs/project/qa.md` | 已完成 | 不降低 tick/阈值的前提下定位物流订单索引热点并显著降低长稳耗时 |
+| FULL-LEVEL-GOLD-SAMPLE-01 | 首个 L0–L8 完整金标样例 | `docs/project/gold-slice/sample-manifests/**`, `tools/asset-validator/**`, `package.json` | 已完成 | `main-homes` 可通过 strict L0–L8 校验 |

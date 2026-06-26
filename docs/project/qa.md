@@ -44,7 +44,26 @@
 
 当前限制与风险：
 
-- 2400 tick 长稳测试本机耗时约 43 秒，已经明显重于普通单元测试；7200 tick 在本机超过 90 秒仍未结束，暂不适合作为默认 Vitest 基准。
+- 2026-06-27 性能审计前，2400 tick 长稳测试本机耗时约 45.64 秒（长稳用例 44.17 秒），已经明显重于普通单元测试；7200 tick 在本机超过 90 秒仍未结束，暂不适合作为默认 Vitest 基准。
 - 物流系统会保留 delivered/cancelled 历史订单，当前只能断言固定长跑窗口内不超过灰盒上限，尚不能证明无限时间有界。
 - 压力场景只有 150 个可见 agent，但 500 户家庭的就业/服务需求更大；该基准能暴露拥堵和服务覆盖问题，但还不是完整商业城市人口模型。
 - 当前允许较高停工建筑数和库存峰值，是为了让长稳测试先落地并持续暴露趋势；后续经济、物流和服务系统改进后应收紧阈值。
+
+## 2026-06-27 长稳性能审计
+
+`node --cpu-prof --cpu-prof-dir=src/qa ./node_modules/vitest/vitest.mjs run src/qa/stressScenario.test.ts` 的 worker profile 显示主要热点在物流下单阶段，而不是 Vitest 或路线规划本身：约 32k 个 CPU samples 中，`createStockOrder` 约 10.5k、`findSource` 约 7.3k、`isActive` 约 3.2k。根因是每个目的建筑/资源组合都会重复枚举 `snapshot.logisticsOrders`，并在 `findSource` 中对每个候选来源再次扫描订单；随着历史订单增长，这会把长稳测试推向重复全表扫描热点。
+
+已做的安全优化：
+
+- `LogisticsSystem.createOrders()` 每 tick 构建一次 active order 索引，并在本 tick 新建订单时增量更新索引。
+- 索引只缓存等价聚合值：目的地+资源 inbound 数量、目的地 inbound 总容量、来源+资源 reserved 数量；不改变订单创建顺序、优先级、容量阈值或活跃订单定义。
+
+优化后验证：
+
+- `npm test -- src/qa/stressScenario.test.ts`：总耗时 11.56 秒，长稳用例 9.57 秒。
+- `npm test -- src/simulation/economy/economy.test.ts`：24 个经济系统测试通过，总耗时 1.93 秒。
+
+仍需继续关注：
+
+- 历史订单仍保留在主快照中；本次优化减少 active 订单聚合的重复扫描，但没有解决 delivered/cancelled 长期归档问题。
+- `assignWaitingOrders()`、`advanceCarriers()`、`updateEfficiency()` 仍会枚举订单集合；当前 2400 tick 已可接受，但更长窗口或更大城市仍需要分层 benchmark。

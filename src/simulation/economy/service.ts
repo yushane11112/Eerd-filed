@@ -16,6 +16,7 @@ export interface ServiceRule {
   need: NeedKind
   resource?: ResourceKind
   amountPerHousehold?: number
+  saleValuePerHousehold?: number
   restoreAmount: number
   maxHouseholdsPerTick: number
   unmetNeedPenalty?: number
@@ -33,6 +34,7 @@ export const DEFAULT_SERVICE_RULES: Readonly<Record<string, ServiceRule>> = {
     need: 'food',
     resource: 'food',
     amountPerHousehold: 1,
+    saleValuePerHousehold: 5,
     restoreAmount: 16,
     maxHouseholdsPerTick: 3,
     unmetNeedPenalty: 4,
@@ -122,6 +124,20 @@ export class ServiceSystem implements SimulationSystem {
           const consume = rule.amountPerHousehold ?? 1
           const removed = removeInventory(serviceBuilding, rule.resource, consume)
           if (!removed.ok) break
+          if (definition.category === 'market') {
+            const saleValue = rule.saleValuePerHousehold ?? 0
+            const taxPaid = saleValue * snapshot.economy.taxRate
+            snapshot.economy.treasury += taxPaid
+            snapshot.economy.lastTaxIncome += taxPaid
+            events.push({
+              type: 'purchase-completed',
+              buildingId: serviceBuilding.id,
+              householdId: household.id,
+              resource: rule.resource,
+              amount: consume,
+              taxPaid,
+            })
+          }
         }
         household.needs[rule.need] = clamp(
           household.needs[rule.need] + rule.restoreAmount,

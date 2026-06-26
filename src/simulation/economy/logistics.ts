@@ -37,6 +37,9 @@ export interface LogisticsSystemOptions {
 
 const pointKey = (point: GridPoint): string => `${point.x},${point.y}`
 const samePoint = (left: GridPoint, right: GridPoint): boolean => left.x === right.x && left.y === right.y
+const resourceOrderKey = (buildingId: EntityId, resource: ResourceKind): string => (
+  `${buildingId}:${resource}`
+)
 
 export class RoadRoutePlanner implements RoutePlanner {
   findRoute(cells: readonly WorldCell[], from: GridPoint, to: GridPoint): GridPoint[] | undefined {
@@ -110,6 +113,16 @@ function isLogisticsFailure(reason: string | undefined): boolean {
   return Boolean(reason?.startsWith('logistics-failed:'))
 }
 
+function addToMap<K>(map: Map<K, number>, key: K, amount: number): void {
+  map.set(key, (map.get(key) ?? 0) + amount)
+}
+
+interface ActiveOrderIndexes {
+  destinationResourceInbound: Map<string, number>
+  destinationInboundCapacity: Map<EntityId, number>
+  sourceResourceReserved: Map<string, number>
+}
+
 export class LogisticsSystem implements SimulationSystem {
   readonly id = 'economy.logistics'
   private readonly definitions: Readonly<Record<string, BuildingDefinition>>
@@ -143,6 +156,7 @@ export class LogisticsSystem implements SimulationSystem {
   private createOrders(snapshot: SimulationSnapshot): SimulationEvent[] {
     const events: SimulationEvent[] = []
     const buildings = Object.values(snapshot.buildings).sort((a, b) => a.id.localeCompare(b.id))
+    const orderIndexes = this.indexActiveOrders(snapshot)
 
     for (const destination of buildings) {
       const recipe = this.definitions[destination.type]?.production
@@ -154,6 +168,7 @@ export class LogisticsSystem implements SimulationSystem {
             resource,
             perBatch * this.inputTargetBatches,
             destination.statusReason === `missing-input:${resource}` ? 100 : 50,
+            orderIndexes,
           )
           if (order) events.push(order)
         }
@@ -173,6 +188,7 @@ export class LogisticsSystem implements SimulationSystem {
           serviceRule.resource,
           target,
           destination.statusReason === `missing-service-resource:${serviceRule.resource}` ? 90 : 45,
+          orderIndexes,
         )
         if (order) events.push(order)
       }
@@ -187,27 +203,29 @@ export class LogisticsSystem implements SimulationSystem {
     resource: ResourceKind,
     target: number,
     priority: number,
+    orderIndexes: ActiveOrderIndexes,
   ): SimulationEvent | undefined {
-    const orders = Object.values(snapshot.logisticsOrders)
-    const alreadyInbound = orders
-      .filter((order) => isActive(order)
-        && order.destinationBuildingId === destination.id
-        && order.resource === resource)
-      .reduce((total, order) => total + order.amount, 0)
+    const alreadyInbound = orderIndexes.destinationResourceInbound.get(
+      resourceOrderKey(destination.id, resource),
+    ) ?? 0
     const missing = Math.max(0, target - inventoryAmount(destination, resource) - alreadyInbound)
     if (missing === 0) return undefined
 
-    const sourceMatch = this.findSource(snapshot, destination, resource, requestedAvailable => (
-      Math.min(missing, this.maxShipment, requestedAvailable) > 0
-    ))
+    const sourceMatch = this.findSource(
+      snapshot,
+      destination,
+      resource,
+      orderIndexes,
+      requestedAvailable => (
+        Math.min(missing, this.maxShipment, requestedAvailable) > 0
+      ),
+    )
     if (!sourceMatch.ok) {
       this.markFailure(destination, resource, sourceMatch.reason)
       return undefined
     }
 
-    const inboundCapacityReserved = orders
-      .filter((order) => isActive(order) && order.destinationBuildingId === destination.id)
-      .reduce((total, order) => total + order.amount, 0)
+    const inboundCapacityReserved = orderIndexes.destinationInboundCapacity.get(destination.id) ?? 0
     const amount = Math.min(
       missing,
       this.maxShipment,
@@ -233,6 +251,7 @@ export class LogisticsSystem implements SimulationSystem {
       priority,
       state: 'waiting',
     }
+    this.addOrderToIndexes(snapshot.logisticsOrders[id], orderIndexes)
     this.clearFailure(destination, resource)
     return { type: 'logistics-order-created', orderId: id }
   }
@@ -241,6 +260,7 @@ export class LogisticsSystem implements SimulationSystem {
     snapshot: SimulationSnapshot,
     destination: BuildingEntity,
     resource: ResourceKind,
+    orderIndexes: ActiveOrderIndexes,
     accepts: (available: number) => boolean,
   ): {
     ok: true
@@ -249,19 +269,16 @@ export class LogisticsSystem implements SimulationSystem {
     ok: false
     reason: LogisticsFailureReason
   } {
-    const orders = Object.values(snapshot.logisticsOrders)
     const candidates = Object.values(snapshot.buildings)
       .map((candidate) => {
-        const reserved = orders
-          .filter((order) => isActive(order)
-            && order.sourceBuildingId === candidate.id
-            && order.resource === resource
-            && order.state !== 'in_transit')
-          .reduce((total, order) => total + order.amount, 0)
+        const reserved = orderIndexes.sourceResourceReserved.get(
+          resourceOrderKey(candidate.id, resource),
+        ) ?? 0
+        const stock = inventoryAmount(candidate, resource)
         return {
           building: candidate,
-          stock: inventoryAmount(candidate, resource),
-          available: Math.max(0, inventoryAmount(candidate, resource) - reserved),
+          stock,
+          available: Math.max(0, stock - reserved),
         }
       })
       .filter(({ building: candidate }) => candidate.id !== destination.id)
@@ -288,6 +305,35 @@ export class LogisticsSystem implements SimulationSystem {
           return right.available - left.available
             || left.building.id.localeCompare(right.building.id)
         })[0],
+    }
+  }
+
+  private indexActiveOrders(snapshot: SimulationSnapshot): ActiveOrderIndexes {
+    const indexes: ActiveOrderIndexes = {
+      destinationResourceInbound: new Map(),
+      destinationInboundCapacity: new Map(),
+      sourceResourceReserved: new Map(),
+    }
+    for (const order of Object.values(snapshot.logisticsOrders)) {
+      this.addOrderToIndexes(order, indexes)
+    }
+    return indexes
+  }
+
+  private addOrderToIndexes(order: LogisticsOrder, indexes: ActiveOrderIndexes): void {
+    if (!isActive(order)) return
+    addToMap(
+      indexes.destinationResourceInbound,
+      resourceOrderKey(order.destinationBuildingId, order.resource),
+      order.amount,
+    )
+    addToMap(indexes.destinationInboundCapacity, order.destinationBuildingId, order.amount)
+    if (order.state !== 'in_transit') {
+      addToMap(
+        indexes.sourceResourceReserved,
+        resourceOrderKey(order.sourceBuildingId, order.resource),
+        order.amount,
+      )
     }
   }
 

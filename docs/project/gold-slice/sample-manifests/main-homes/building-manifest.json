@@ -73,6 +73,70 @@
         "LOD3": { "atlas": "main-homes-L1-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
       }
     },
+    "L2": {
+      "required": true,
+      "dccCollections": ["COL_L02", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-homes-L2", "frame": "shadow", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ground/foundation", "atlas": "main-homes-L2", "frame": "stone-step-and-shell-yard", "zBand": "ground", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_back", "atlas": "main-homes-L2", "frame": "lime-wall-with-repaired-thatch", "zBand": "back", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_static", "atlas": "main-homes-L2", "frame": "fish-baskets-and-water-jar", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_dynamic", "atlas": "main-homes-L2", "frame": "short-laundry-line-and-door-curtain", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "agent_interaction", "atlas": "main-homes-L2", "frame": "resident-helper-yard-slot", "zBand": "agent", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_front/foreground_occluder", "atlas": "main-homes-L2", "frame": "low-front-eave-occluder", "zBand": "front", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "night_lights", "atlas": "main-homes-L2", "frame": "window-and-door-slit-light", "zBand": "light", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "weather_overlay", "atlas": "main-homes-L2", "frame": "rain-drips-on-new-thatch", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "vfx", "atlas": "main-homes-L2", "frame": "thin-hearth-smoke", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ui_anchor", "atlas": "main-homes-L2", "frame": "ui-anchor-debug", "zBand": "ui", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["home_door_leaf", "window_shutter_a", "cooking_smoke_puff", "laundry_line"],
+      "anchors": ["origin", "entrance_main", "worker_01", "input_supplies_01", "output_resident_01", "service_home_01", "queue_front_01", "ui_status", "ui_selection", "audio_hearth_01", "construction_stage_01", "occlusion_polygon", "collision_obstacle", "click_hull", "home_door_01", "window_light_01", "cooking_smoke_01", "return_home_01"],
+      "collisionProfile": "main-homes-L2-repaired-single-family",
+      "occlusionProfile": "main-homes-L2-low-front-eave",
+      "constructionReveal": [
+        { "progressFrom": 0, "progressTo": 35, "show": ["stone-step-and-shell-yard"], "hide": ["window-and-door-slit-light"] },
+        { "progressFrom": 35, "progressTo": 75, "show": ["lime-wall-with-repaired-thatch", "low-front-eave-occluder"], "hide": [] },
+        { "progressFrom": 75, "progressTo": 100, "show": ["fish-baskets-and-water-jar", "short-laundry-line-and-door-curtain"], "hide": [] }
+      ],
+      "lod": {
+        "LOD0": { "atlas": "main-homes-L2-lod0", "maxDrawCalls": 8, "maxTextureMB": 9 },
+        "LOD1": { "atlas": "main-homes-L2-lod1", "maxDrawCalls": 5, "maxTextureMB": 5 },
+        "LOD2": { "atlas": "main-homes-L2-lod2", "maxDrawCalls": 2, "maxTextureMB": 2 },
+        "LOD3": { "atlas": "main-homes-L2-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
+      }
+    },
+    "L3": {
+      "required": true,
+      "dccCollections": ["COL_L03", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-homes-L3", "frame": "shadow", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ground/foundation", "atlas": "main-homes-L3", "frame": "tidy-courtyard-pavers", "zBand": "ground", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_back", "atlas": "main-homes-L3", "frame": "raised-room-and-side-lean-to", "zBand": "back", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_static", "atlas": "main-homes-L3", "frame": "storage-jars-bench-and-crab-pots", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_dynamic", "atlas": "main-homes-L3", "frame": "two-door-curtains-and-breeze-laundry", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "agent_interaction", "atlas": "main-homes-L3", "frame": "resident-and-neighbor-chore-slots", "zBand": "agent", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_front/foreground_occluder", "atlas": "main-homes-L3", "frame": "side-porch-eave-occluder", "zBand": "front", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "night_lights", "atlas": "main-homes-L3", "frame": "window-lamp-and-porch-glow", "zBand": "light", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "weather_overlay", "atlas": "main-homes-L3", "frame": "wet-pavers-and-roof-runoff", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "vfx", "atlas": "main-homes-L3", "frame": "hearth-smoke-and-lantern-motes", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ui_anchor", "atlas": "main-homes-L3", "frame": "ui-anchor-debug", "zBand": "ui", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["home_door_leaf", "window_shutter_a", "cooking_smoke_puff", "laundry_line"],
+      "anchors": ["origin", "entrance_main", "worker_01", "worker_02", "input_supplies_01", "output_resident_01", "service_home_01", "queue_front_01", "ui_status", "ui_selection", "audio_hearth_01", "construction_stage_01", "occlusion_polygon", "collision_obstacle", "click_hull", "home_door_01", "window_light_01", "window_light_02", "cooking_smoke_01", "return_home_01"],
+      "collisionProfile": "main-homes-L3-side-lean-to",
+      "occlusionProfile": "main-homes-L3-side-porch-eave",
+      "constructionReveal": [
+        { "progressFrom": 0, "progressTo": 45, "show": ["tidy-courtyard-pavers", "raised-room-and-side-lean-to"], "hide": ["window-lamp-and-porch-glow"] },
+        { "progressFrom": 45, "progressTo": 80, "show": ["side-porch-eave-occluder", "storage-jars-bench-and-crab-pots"], "hide": [] },
+        { "progressFrom": 80, "progressTo": 100, "show": ["two-door-curtains-and-breeze-laundry"], "hide": [] }
+      ],
+      "lod": {
+        "LOD0": { "atlas": "main-homes-L3-lod0", "maxDrawCalls": 9, "maxTextureMB": 10 },
+        "LOD1": { "atlas": "main-homes-L3-lod1", "maxDrawCalls": 5, "maxTextureMB": 5 },
+        "LOD2": { "atlas": "main-homes-L3-lod2", "maxDrawCalls": 2, "maxTextureMB": 2 },
+        "LOD3": { "atlas": "main-homes-L3-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
+      }
+    },
     "L4": {
       "required": true,
       "dccCollections": ["COL_L04", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
@@ -99,6 +163,102 @@
         "LOD1": { "atlas": "main-homes-L4-lod1", "maxDrawCalls": 6, "maxTextureMB": 6 },
         "LOD2": { "atlas": "main-homes-L4-lod2", "maxDrawCalls": 3, "maxTextureMB": 2 },
         "LOD3": { "atlas": "main-homes-L4-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
+      }
+    },
+    "L5": {
+      "required": true,
+      "dccCollections": ["COL_L05", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-homes-L5", "frame": "shadow", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ground/foundation", "atlas": "main-homes-L5", "frame": "expanded-courtyard-drainage", "zBand": "ground", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_back", "atlas": "main-homes-L5", "frame": "two-room-home-with-raised-storage", "zBand": "back", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_static", "atlas": "main-homes-L5", "frame": "covered-supplies-family-table-and-jars", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_dynamic", "atlas": "main-homes-L5", "frame": "busy-yard-laundry-door-and-shutters", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "agent_interaction", "atlas": "main-homes-L5", "frame": "family-and-visitor-path-slots", "zBand": "agent", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_front/foreground_occluder", "atlas": "main-homes-L5", "frame": "gate-awning-and-storage-occluder", "zBand": "front", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "night_lights", "atlas": "main-homes-L5", "frame": "three-window-family-light", "zBand": "light", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "weather_overlay", "atlas": "main-homes-L5", "frame": "drainage-ripples-and-awning-rain", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "vfx", "atlas": "main-homes-L5", "frame": "dual-hearth-smoke-soft-fireflies", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ui_anchor", "atlas": "main-homes-L5", "frame": "ui-anchor-debug", "zBand": "ui", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["home_door_leaf", "window_shutter_a", "cooking_smoke_puff", "laundry_line"],
+      "anchors": ["origin", "entrance_main", "worker_01", "worker_02", "input_supplies_01", "output_resident_01", "service_home_01", "queue_front_01", "ui_status", "ui_selection", "audio_hearth_01", "construction_stage_01", "occlusion_polygon", "collision_obstacle", "click_hull", "home_door_01", "home_door_02", "window_light_01", "window_light_02", "cooking_smoke_01", "return_home_01"],
+      "collisionProfile": "main-homes-L5-expanded-courtyard",
+      "occlusionProfile": "main-homes-L5-gate-awning",
+      "constructionReveal": [
+        { "progressFrom": 0, "progressTo": 30, "show": ["expanded-courtyard-drainage"], "hide": ["three-window-family-light"] },
+        { "progressFrom": 30, "progressTo": 70, "show": ["two-room-home-with-raised-storage", "gate-awning-and-storage-occluder"], "hide": [] },
+        { "progressFrom": 70, "progressTo": 100, "show": ["covered-supplies-family-table-and-jars", "busy-yard-laundry-door-and-shutters"], "hide": [] }
+      ],
+      "lod": {
+        "LOD0": { "atlas": "main-homes-L5-lod0", "maxDrawCalls": 9, "maxTextureMB": 10 },
+        "LOD1": { "atlas": "main-homes-L5-lod1", "maxDrawCalls": 6, "maxTextureMB": 6 },
+        "LOD2": { "atlas": "main-homes-L5-lod2", "maxDrawCalls": 3, "maxTextureMB": 2 },
+        "LOD3": { "atlas": "main-homes-L5-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
+      }
+    },
+    "L6": {
+      "required": true,
+      "dccCollections": ["COL_L06", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-homes-L6", "frame": "shadow", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ground/foundation", "atlas": "main-homes-L6", "frame": "family-compound-stone-yard", "zBand": "ground", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_back", "atlas": "main-homes-L6", "frame": "partial-second-storey-back-volume", "zBand": "back", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_static", "atlas": "main-homes-L6", "frame": "garden-planters-storage-and-workbench", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_dynamic", "atlas": "main-homes-L6", "frame": "balcony-cloth-shutters-and-yard-motion", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "agent_interaction", "atlas": "main-homes-L6", "frame": "two-family-workers-and-guest-slots", "zBand": "agent", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_front/foreground_occluder", "atlas": "main-homes-L6", "frame": "balcony-rail-and-front-gate-occluder", "zBand": "front", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "night_lights", "atlas": "main-homes-L6", "frame": "upper-and-lower-window-lights", "zBand": "light", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "weather_overlay", "atlas": "main-homes-L6", "frame": "balcony-rain-and-yard-puddles", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "vfx", "atlas": "main-homes-L6", "frame": "chimney-smoke-and-garden-motes", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ui_anchor", "atlas": "main-homes-L6", "frame": "ui-anchor-debug", "zBand": "ui", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["home_door_leaf", "window_shutter_a", "cooking_smoke_puff", "laundry_line"],
+      "anchors": ["origin", "entrance_main", "worker_01", "worker_02", "input_supplies_01", "output_resident_01", "service_home_01", "queue_front_01", "ui_status", "ui_selection", "audio_hearth_01", "construction_stage_01", "occlusion_polygon", "collision_obstacle", "click_hull", "home_door_01", "home_door_02", "window_light_01", "window_light_02", "cooking_smoke_01", "return_home_01"],
+      "collisionProfile": "main-homes-L6-partial-second-storey",
+      "occlusionProfile": "main-homes-L6-balcony-rail-gate",
+      "constructionReveal": [
+        { "progressFrom": 0, "progressTo": 25, "show": ["family-compound-stone-yard"], "hide": ["upper-and-lower-window-lights"] },
+        { "progressFrom": 25, "progressTo": 60, "show": ["partial-second-storey-back-volume", "balcony-rail-and-front-gate-occluder"], "hide": [] },
+        { "progressFrom": 60, "progressTo": 100, "show": ["garden-planters-storage-and-workbench", "balcony-cloth-shutters-and-yard-motion"], "hide": [] }
+      ],
+      "lod": {
+        "LOD0": { "atlas": "main-homes-L6-lod0", "maxDrawCalls": 10, "maxTextureMB": 11 },
+        "LOD1": { "atlas": "main-homes-L6-lod1", "maxDrawCalls": 6, "maxTextureMB": 6 },
+        "LOD2": { "atlas": "main-homes-L6-lod2", "maxDrawCalls": 3, "maxTextureMB": 2 },
+        "LOD3": { "atlas": "main-homes-L6-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
+      }
+    },
+    "L7": {
+      "required": true,
+      "dccCollections": ["COL_L07", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-homes-L7", "frame": "shadow", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ground/foundation", "atlas": "main-homes-L7", "frame": "finished-courtyard-with-garden-edge", "zBand": "ground", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_back", "atlas": "main-homes-L7", "frame": "near-complete-two-storey-family-home", "zBand": "back", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_static", "atlas": "main-homes-L7", "frame": "family-table-planters-and-orderly-storage", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_dynamic", "atlas": "main-homes-L7", "frame": "balcony-laundry-doors-shutters-and-smoke", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "agent_interaction", "atlas": "main-homes-L7", "frame": "full-family-yard-and-return-path-slots", "zBand": "agent", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_front/foreground_occluder", "atlas": "main-homes-L7", "frame": "deep-balcony-gate-and-garden-occluder", "zBand": "front", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "night_lights", "atlas": "main-homes-L7", "frame": "lantern-balcony-and-window-lights", "zBand": "light", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "weather_overlay", "atlas": "main-homes-L7", "frame": "storm-ready-roof-and-garden-rain", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "vfx", "atlas": "main-homes-L7", "frame": "settled-chimney-smoke-and-fireflies", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ui_anchor", "atlas": "main-homes-L7", "frame": "ui-anchor-debug", "zBand": "ui", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["home_door_leaf", "window_shutter_a", "cooking_smoke_puff", "laundry_line"],
+      "anchors": ["origin", "entrance_main", "worker_01", "worker_02", "input_supplies_01", "output_resident_01", "service_home_01", "queue_front_01", "ui_status", "ui_selection", "audio_hearth_01", "construction_stage_01", "occlusion_polygon", "collision_obstacle", "click_hull", "home_door_01", "home_door_02", "window_light_01", "window_light_02", "cooking_smoke_01", "return_home_01"],
+      "collisionProfile": "main-homes-L7-near-complete-family-home",
+      "occlusionProfile": "main-homes-L7-deep-balcony-garden",
+      "constructionReveal": [
+        { "progressFrom": 0, "progressTo": 20, "show": ["finished-courtyard-with-garden-edge"], "hide": ["lantern-balcony-and-window-lights"] },
+        { "progressFrom": 20, "progressTo": 55, "show": ["near-complete-two-storey-family-home", "deep-balcony-gate-and-garden-occluder"], "hide": [] },
+        { "progressFrom": 55, "progressTo": 100, "show": ["family-table-planters-and-orderly-storage", "balcony-laundry-doors-shutters-and-smoke"], "hide": [] }
+      ],
+      "lod": {
+        "LOD0": { "atlas": "main-homes-L7-lod0", "maxDrawCalls": 10, "maxTextureMB": 11 },
+        "LOD1": { "atlas": "main-homes-L7-lod1", "maxDrawCalls": 6, "maxTextureMB": 6 },
+        "LOD2": { "atlas": "main-homes-L7-lod2", "maxDrawCalls": 3, "maxTextureMB": 2 },
+        "LOD3": { "atlas": "main-homes-L7-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
       }
     },
     "L8": {

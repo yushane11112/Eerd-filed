@@ -103,6 +103,57 @@ export function upgradeBuildingImmediately(
   }
 }
 
+export function upgradeBuildingFromCityStorage(
+  building: BuildingEntity,
+  definition: BuildingDefinition,
+  buildings: Record<string, BuildingEntity>,
+  definitions: Record<string, BuildingDefinition>,
+): BuildingUpgradeResult {
+  if (!Number.isInteger(building.level) || building.level < MIN_BUILDING_LEVEL) {
+    return { ok: false, reason: 'invalid-level' }
+  }
+
+  const maxLevel = maxLevelFor(definition)
+  if (building.level >= maxLevel) {
+    return { ok: false, reason: 'max-level' }
+  }
+
+  const previousLevel = building.level
+  const cost = buildingUpgradeCost(building, definition)
+  const storageBuildings = cityStorageBuildings(buildings, definitions)
+  const missing = missingMaterialsFromCityStorage(storageBuildings, cost)
+  if (Object.keys(missing).length > 0) {
+    return { ok: false, reason: 'insufficient-materials', missing }
+  }
+
+  for (const [resource, amount] of costEntries(cost)) {
+    let remaining = amount
+    for (const store of storageBuildings) {
+      if (remaining <= 0) break
+      const available = inventoryAmount(store, resource)
+      const spent = Math.min(available, remaining)
+      if (spent > 0) {
+        removeInventory(store, resource, spent)
+        remaining -= spent
+      }
+    }
+  }
+
+  building.level = previousLevel + 1
+  const effect = effectiveBuildingDefinition(definition, building)
+
+  return {
+    ok: true,
+    previousLevel,
+    level: building.level,
+    cost,
+    effect: {
+      capacity: effect.capacity,
+      jobs: effect.jobs,
+    },
+  }
+}
+
 function maxLevelFor(definition: BuildingDefinition): number {
   return Math.min(MAX_BUILDING_LEVEL, definition.maxLevel)
 }
@@ -122,6 +173,38 @@ function missingMaterials(
     if (shortage > 0) missing[resource] = shortage
   }
   return missing
+}
+
+function missingMaterialsFromCityStorage(
+  storageBuildings: BuildingEntity[],
+  cost: Partial<Record<ResourceKind, number>>,
+): Partial<Record<ResourceKind, number>> {
+  const missing: Partial<Record<ResourceKind, number>> = {}
+  for (const [resource, amount] of costEntries(cost)) {
+    const available = storageBuildings.reduce(
+      (total, building) => total + inventoryAmount(building, resource),
+      0,
+    )
+    const shortage = amount - available
+    if (shortage > 0) missing[resource] = shortage
+  }
+  return missing
+}
+
+function cityStorageBuildings(
+  buildings: Record<string, BuildingEntity>,
+  definitions: Record<string, BuildingDefinition>,
+): BuildingEntity[] {
+  return Object.values(buildings)
+    .filter((building) => isCityStorageBuilding(building, definitions[building.type]))
+    .sort((a, b) => a.id.localeCompare(b.id))
+}
+
+function isCityStorageBuilding(
+  building: BuildingEntity,
+  definition: BuildingDefinition | undefined,
+): boolean {
+  return definition?.category === 'storage' || building.type === 'granary'
 }
 
 function compactCost(

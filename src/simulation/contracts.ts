@@ -167,6 +167,14 @@ export type SimulationEvent =
   | { type: 'building-state-changed'; buildingId: EntityId }
   | { type: 'production-completed'; buildingId: EntityId }
   | { type: 'service-delivered'; buildingId: EntityId; householdId: EntityId; need: keyof HouseholdState['needs'] }
+  | {
+    type: 'purchase-completed'
+    buildingId: EntityId
+    householdId: EntityId
+    resource: ResourceKind
+    amount: number
+    taxPaid: number
+  }
   | { type: 'logistics-order-created'; orderId: EntityId }
   | { type: 'household-migrated'; householdId: EntityId; direction: 'in' | 'out' }
   | { type: 'world-drop-spawned'; dropId: EntityId }

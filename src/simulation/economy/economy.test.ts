@@ -562,6 +562,14 @@ describe('service system', () => {
     const events = new ServiceSystem({ definitions }).update(state)
 
     expect(events).toContainEqual({
+      type: 'purchase-completed',
+      buildingId: market.id,
+      householdId: 'household',
+      resource: 'food',
+      amount: 1,
+      taxPaid: 0.5,
+    })
+    expect(events).toContainEqual({
       type: 'service-delivered',
       buildingId: market.id,
       householdId: 'household',
@@ -569,6 +577,8 @@ describe('service system', () => {
     })
     expect(state.households.household.needs.food).toBe(36)
     expect(market.inventory.food).toBe(2)
+    expect(state.economy.treasury).toBe(100.5)
+    expect(state.economy.lastTaxIncome).toBe(0.5)
     expect(market.status).toBe('serving')
   })
 
@@ -691,7 +701,8 @@ describe('service system', () => {
 
     const events = new ServiceSystem({ definitions }).update(state)
 
-    expect(events).toHaveLength(3)
+    expect(events).toHaveLength(6)
+    expect(events.filter((event) => event.type === 'purchase-completed')).toHaveLength(3)
     expect(state.households.first.needs.food).toBe(26)
     expect(state.households.second.needs.food).toBe(36)
     expect(state.households.third.needs.food).toBe(46)
@@ -722,6 +733,7 @@ describe('service system', () => {
     const events = new ServiceSystem({ definitions }).update(state)
 
     expect(events).toHaveLength(0)
+    expect(events.some((event) => event.type === 'purchase-completed')).toBe(false)
     expect(state.households.household.needs.food).toBe(16)
     expect(market.inventory.food).toBe(3)
     expect(market.statusReason).toBe('no-service-route')
@@ -751,6 +763,7 @@ describe('service system', () => {
     const events = new ServiceSystem({ definitions }).update(state)
 
     expect(events).toHaveLength(0)
+    expect(events.some((event) => event.type === 'purchase-completed')).toBe(false)
     expect(noWorkers.statusReason).toBe('no-workers')
     expect(noStock.statusReason).toBe('missing-service-resource:food')
     expect(state.households.household.needs.food).toBe(16)
@@ -842,6 +855,14 @@ describe('integrated economy order', () => {
     }
 
     expect(Object.values(state.logisticsOrders).some((order) => order.state === 'delivered')).toBe(true)
+    expect(allEvents).toContainEqual({
+      type: 'purchase-completed',
+      buildingId: market.id,
+      householdId: 'family',
+      resource: 'food',
+      amount: 1,
+      taxPaid: 0.5,
+    })
     expect(allEvents).toContainEqual({
       type: 'service-delivered',
       buildingId: market.id,

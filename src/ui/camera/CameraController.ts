@@ -1,7 +1,7 @@
 import type { CameraState } from '../../simulation/contracts'
 import { clampCamera, clampZoom, screenToWorld } from './math'
 import type {
-  CameraListener, CameraOptions, Point, Size, WorldBounds, ZoomRange,
+  CameraFocusOptions, CameraListener, CameraOptions, Point, Size, WorldBounds, ZoomRange,
 } from './types'
 
 export class CameraController {
@@ -51,6 +51,15 @@ export class CameraController {
 
   centerOn(point: Point): void {
     this.commit({ ...this.state, x: point.x, y: point.y })
+  }
+
+  focusOn(point: Point, options: CameraFocusOptions = {}): void {
+    this.commit({
+      ...this.state,
+      x: point.x,
+      y: point.y,
+      zoom: options.zoom ?? this.state.zoom,
+    })
   }
 
   panByScreenDelta(delta: Point): void {
@@ -104,4 +113,3 @@ export class CameraController {
     this.listeners.forEach((listener) => listener(this.state))
   }
 }
-

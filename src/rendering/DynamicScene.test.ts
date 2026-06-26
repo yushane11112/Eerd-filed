@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { BuildingEntity, SimulationSnapshot } from '../simulation/contracts'
+import sampleAnimationManifest from '../../docs/project/gold-slice/sample-manifests/main-pier/animation-manifest.json'
+import sampleBuildingManifest from '../../docs/project/gold-slice/sample-manifests/main-pier/building-manifest.json'
 import validAnimationManifest from '../../tools/asset-validator/fixtures/valid-animation-manifest.json'
 import validBuildingManifest from '../../tools/asset-validator/fixtures/valid-building-manifest.json'
 
@@ -106,6 +108,12 @@ function createBuilding(overrides: Partial<BuildingEntity> & Pick<BuildingEntity
 
 function childLabels(display: { children: readonly { label?: string }[] }): string[] {
   return display.children.map((child) => child.label ?? '')
+}
+
+function findPrefabLayer(display: { children: readonly { label?: string }[] }) {
+  return display.children.find((child) => (
+    typeof child.label === 'string' && child.label.startsWith('prefab-placeholder:')
+  ))
 }
 
 describe('DynamicScene', () => {
@@ -288,6 +296,7 @@ describe('DynamicScene', () => {
       'prefab-placeholder-info-bar',
       'prefab-placeholder-status-bar',
       'prefab-placeholder-level-marks',
+      'prefab-placeholder-main-pier-details:L4',
       'prefab-placeholder-label:main-pier:L4',
     ])
 
@@ -313,8 +322,85 @@ describe('DynamicScene', () => {
       'prefab-placeholder-info-bar',
       'prefab-placeholder-status-bar',
       'prefab-placeholder-level-marks',
+      'prefab-placeholder-main-pier-details:L8',
       'prefab-placeholder-label:main-pier:L8',
     ])
+  })
+
+  it('draws stable level-specific procedural main-pier placeholder detail layers', async () => {
+    const { DynamicScene } = await import('./DynamicScene')
+    const { parseRuntimePrefabDescriptor, PrefabRuntimeRegistry } = await import('./prefab')
+    const parsed = parseRuntimePrefabDescriptor(sampleBuildingManifest, sampleAnimationManifest)
+    if (!parsed.ok) throw new Error(parsed.errors.join('\n'))
+    const prefabRegistry = new PrefabRuntimeRegistry([parsed.descriptor])
+    const scene = new DynamicScene(undefined, { prefabRegistry })
+    const snapshot = createSnapshot()
+    snapshot.agents = {}
+    snapshot.worldDrops = []
+
+    const expectedByLevel = [
+      {
+        id: 'pier-l0',
+        level: 0,
+        label: 'prefab-placeholder:main-pier:L0:constructing:construction',
+        detailLayer: 'prefab-placeholder-main-pier-details:L0',
+        detailChildren: [
+          'main-pier-placeholder-water-edge:broken',
+          'main-pier-placeholder-deck:collapsed-single-berth',
+          'main-pier-placeholder-repair-clutter:L0',
+        ],
+      },
+      {
+        id: 'pier-l4',
+        level: 4,
+        label: 'prefab-placeholder:main-pier:L4:idle:base+idle-detail',
+        detailLayer: 'prefab-placeholder-main-pier-details:L4',
+        detailChildren: [
+          'main-pier-placeholder-warehouse:L4',
+          'main-pier-placeholder-berths:double',
+          'main-pier-placeholder-cargo-winch:L4',
+        ],
+      },
+      {
+        id: 'pier-l8',
+        level: 8,
+        label: 'prefab-placeholder:main-pier:L8:working:staff-entry+input-receive+production-primary+production-secondary+output-ready',
+        detailLayer: 'prefab-placeholder-main-pier-details:L8',
+        detailChildren: [
+          'main-pier-placeholder-warehouse-row:L8',
+          'main-pier-placeholder-berths:multi',
+          'main-pier-placeholder-heavy-lift-crane:L8',
+        ],
+      },
+    ] as const
+
+    for (const expected of expectedByLevel) {
+      snapshot.buildings = {
+        [expected.id]: createBuilding({
+          id: expected.id,
+          type: 'main-pier',
+          level: expected.level,
+          status: expected.level === 0 ? 'constructing' : expected.level === 8 ? 'working' : 'idle',
+          productionProgress: 0.65,
+        }),
+      }
+
+      scene.sync(snapshot, camera)
+      const prefabLayer = findPrefabLayer(scene.layers.buildings.children[0] ?? { children: [] })
+      expect(prefabLayer?.label).toBe(expected.label)
+      const detailLayer = prefabLayer?.children.find((child) => child.label === expected.detailLayer)
+      expect(detailLayer?.label).toBe(expected.detailLayer)
+      expect(childLabels(detailLayer ?? { children: [] })).toEqual(expected.detailChildren)
+
+      const beforeLabels = childLabels(prefabLayer ?? { children: [] })
+      const beforeDetailLabels = childLabels(detailLayer ?? { children: [] })
+      snapshot.tick += 1
+      scene.sync(snapshot, camera)
+      const stablePrefabLayer = findPrefabLayer(scene.layers.buildings.children[0] ?? { children: [] })
+      const stableDetailLayer = stablePrefabLayer?.children.find((child) => child.label === expected.detailLayer)
+      expect(childLabels(stablePrefabLayer ?? { children: [] })).toEqual(beforeLabels)
+      expect(childLabels(stableDetailLayer ?? { children: [] })).toEqual(beforeDetailLabels)
+    }
   })
 
   it('resolves prefab placeholders through building type to asset id mapping', async () => {
@@ -346,6 +432,14 @@ describe('DynamicScene', () => {
       typeof child.label === 'string' && child.label.startsWith('prefab-placeholder:')
     ))
     expect(prefabLayer?.label).toBe('prefab-placeholder:main-homes:L1:idle:base+idle-detail')
+    expect(childLabels(prefabLayer ?? { children: [] })).toEqual([
+      'prefab-placeholder-shell',
+      'prefab-placeholder-outline',
+      'prefab-placeholder-info-bar',
+      'prefab-placeholder-status-bar',
+      'prefab-placeholder-level-marks',
+      'prefab-placeholder-label:main-homes:L1',
+    ])
   })
 
   it('keeps unmapped building types on the gray-box fallback', async () => {

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { BuildingEntity, LogisticsOrder, SimulationSnapshot } from '../simulation/contracts'
-import { CityNoticeTracker, deriveCityNotices } from './cityNotices'
+import {
+  AmbientCityStoryTracker,
+  CityNoticeTracker,
+  deriveAmbientCityStories,
+  deriveCityNotices,
+} from './cityNotices'
 
 describe('city notice derivation', () => {
   it('does not emit repeated notices for the same unresolved state', () => {
@@ -80,6 +85,49 @@ describe('city notice derivation', () => {
       kind: 'building',
       buildingId: 'market-1',
     })
+  })
+
+  it('derives lightweight ambient stories from city notices', () => {
+    const stories = deriveAmbientCityStories(makeSnapshot({
+      metrics: { population: 20 },
+      buildings: {
+        'granary-1': building('granary-1', 'granary', { food: 2 }),
+      },
+    }))
+
+    expect(stories[0]).toMatchObject({
+      id: 'story-food-shortage',
+      title: '粮仓见底',
+      body: '粮食只剩约 2 份，撑不了太久。',
+      actionLabel: '看一眼',
+      target: { kind: 'building', buildingId: 'granary-1' },
+      resolved: false,
+    })
+  })
+
+  it('keeps an acknowledged ambient story quiet until the underlying notice resolves', () => {
+    const tracker = new AmbientCityStoryTracker()
+    const lowFood = makeSnapshot({
+      tick: 120,
+      metrics: { population: 20 },
+      buildings: {
+        'granary-1': building('granary-1', 'granary', { food: 2 }),
+      },
+    })
+    const recovered = makeSnapshot({
+      tick: 150,
+      metrics: { population: 20 },
+      buildings: {
+        'granary-1': building('granary-1', 'granary', { food: 50 }),
+      },
+    })
+
+    expect(tracker.update(lowFood).map((story) => story.id)).toContain('story-food-shortage')
+    tracker.resolve('story-food-shortage')
+
+    expect(tracker.update({ ...lowFood, tick: 130 })).toHaveLength(0)
+    expect(tracker.update(recovered).map((story) => story.id)).not.toContain('story-food-shortage')
+    expect(tracker.update({ ...lowFood, tick: 180 }).map((story) => story.id)).toContain('story-food-shortage')
   })
 })
 

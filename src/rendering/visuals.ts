@@ -126,6 +126,10 @@ export class BuildingVisual extends BaseVisual {
   private readonly prefabInfoBar: Graphics | null
   private readonly prefabStatusBar: Graphics | null
   private readonly prefabLevelMarks: Graphics | null
+  private readonly prefabMainPierDetails: Container | null
+  private readonly prefabMainPierFoundation: Graphics | null
+  private readonly prefabMainPierBerths: Graphics | null
+  private readonly prefabMainPierCargo: Graphics | null
   private readonly prefabLabel: Text | null
   private readonly statusLayer = new Container({ label: 'building-status-layer' })
   private readonly statusSymbol = new Graphics({ label: 'building-status-symbol' })
@@ -160,6 +164,15 @@ export class BuildingVisual extends BaseVisual {
       this.prefabInfoBar = new Graphics({ label: 'prefab-placeholder-info-bar' })
       this.prefabStatusBar = new Graphics({ label: 'prefab-placeholder-status-bar' })
       this.prefabLevelMarks = new Graphics({ label: 'prefab-placeholder-level-marks' })
+      this.prefabMainPierDetails = new Container({ label: 'prefab-placeholder-main-pier-details' })
+      this.prefabMainPierFoundation = new Graphics({ label: 'main-pier-placeholder-foundation' })
+      this.prefabMainPierBerths = new Graphics({ label: 'main-pier-placeholder-berths' })
+      this.prefabMainPierCargo = new Graphics({ label: 'main-pier-placeholder-cargo' })
+      this.prefabMainPierDetails.addChild(
+        this.prefabMainPierFoundation,
+        this.prefabMainPierBerths,
+        this.prefabMainPierCargo,
+      )
       this.prefabLabel = new Text({
         text: '',
         style: {
@@ -187,6 +200,10 @@ export class BuildingVisual extends BaseVisual {
       this.prefabInfoBar = null
       this.prefabStatusBar = null
       this.prefabLevelMarks = null
+      this.prefabMainPierDetails = null
+      this.prefabMainPierFoundation = null
+      this.prefabMainPierBerths = null
+      this.prefabMainPierCargo = null
       this.prefabLabel = null
       this.display.addChild(this.body, this.statusLayer)
     }
@@ -308,6 +325,8 @@ export class BuildingVisual extends BaseVisual {
     }
     this.prefabLevelMarks.stroke({ color: 0x283643, alpha: 0.42, width: 1 })
 
+    this.drawMainPierPlaceholderDetails(resolved, left, top, width, height, stateColor)
+
     this.prefabLabel.text = `${resolved.assetId} · ${resolved.levelKey}`
     this.prefabLabel.label = `prefab-placeholder-label:${resolved.assetId}:${resolved.levelKey}`
     this.prefabLabel.position.set(left + 6, top + 3)
@@ -319,9 +338,206 @@ export class BuildingVisual extends BaseVisual {
     this.prefabInfoBar?.clear()
     this.prefabStatusBar?.clear()
     this.prefabLevelMarks?.clear()
+    this.clearMainPierPlaceholderDetails()
     if (this.prefabLabel) {
       this.prefabLabel.text = ''
       this.prefabLabel.label = 'prefab-placeholder-label'
+    }
+  }
+
+  private drawMainPierPlaceholderDetails(
+    resolved: Readonly<ResolvedPrefabBuilding>,
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+    stateColor: number,
+  ): void {
+    if (
+      resolved.assetId !== 'main-pier'
+      || !this.prefabPlaceholder
+      || !this.prefabMainPierDetails
+      || !this.prefabMainPierFoundation
+      || !this.prefabMainPierBerths
+      || !this.prefabMainPierCargo
+      || !this.prefabLabel
+    ) {
+      return
+    }
+
+    if (resolved.levelKey !== 'L0' && resolved.levelKey !== 'L4' && resolved.levelKey !== 'L8') {
+      return
+    }
+
+    if (!this.prefabMainPierDetails.parent) {
+      const labelIndex = this.prefabPlaceholder.children.indexOf(this.prefabLabel)
+      this.prefabPlaceholder.addChildAt(
+        this.prefabMainPierDetails,
+        Math.max(0, labelIndex),
+      )
+    }
+
+    const waterY = -Math.max(7, height * 0.2)
+    const deckTop = top + Math.max(18, height * 0.42)
+    const deckHeight = Math.max(16, height * 0.34)
+    const deckLeft = left + width * 0.14
+    const deckWidth = width * 0.72
+    const pierColor = resolved.levelKey === 'L0' ? 0x8c806f : 0x9f8660
+    const stoneColor = resolved.levelKey === 'L8' ? 0x8c9a9a : 0x796f63
+
+    this.prefabMainPierDetails.label = `prefab-placeholder-main-pier-details:${resolved.levelKey}`
+
+    if (resolved.levelKey === 'L0') {
+      this.prefabMainPierFoundation.label = 'main-pier-placeholder-water-edge:broken'
+      this.prefabMainPierBerths.label = 'main-pier-placeholder-deck:collapsed-single-berth'
+      this.prefabMainPierCargo.label = 'main-pier-placeholder-repair-clutter:L0'
+
+      this.prefabMainPierFoundation
+        .rect(left + width * 0.08, waterY - 3, width * 0.84, 5)
+        .fill({ color: 0x477f9d, alpha: 0.2 })
+        .moveTo(left + width * 0.16, waterY + 4)
+        .lineTo(left + width * 0.28, waterY + 1)
+        .lineTo(left + width * 0.4, waterY + 5)
+        .lineTo(left + width * 0.52, waterY + 2)
+        .lineTo(left + width * 0.68, waterY + 5)
+        .stroke({ color: 0x477f9d, alpha: 0.38, width: 1.2 })
+
+      this.prefabMainPierBerths
+        .poly([
+          deckLeft,
+          deckTop + deckHeight,
+          deckLeft + deckWidth * 0.28,
+          deckTop + deckHeight * 0.48,
+          deckLeft + deckWidth * 0.5,
+          deckTop + deckHeight * 0.6,
+          deckLeft + deckWidth * 0.74,
+          deckTop + deckHeight * 0.36,
+          deckLeft + deckWidth,
+          deckTop + deckHeight,
+        ])
+        .fill({ color: pierColor, alpha: 0.46 })
+        .moveTo(deckLeft + deckWidth * 0.22, deckTop + deckHeight * 0.82)
+        .lineTo(deckLeft + deckWidth * 0.37, deckTop + deckHeight * 0.44)
+        .moveTo(deckLeft + deckWidth * 0.58, deckTop + deckHeight * 0.78)
+        .lineTo(deckLeft + deckWidth * 0.78, deckTop + deckHeight * 0.32)
+        .stroke({ color: 0x3f3a34, alpha: 0.5, width: 1.2 })
+
+      this.prefabMainPierCargo
+        .rect(left + width * 0.22, deckTop + deckHeight * 0.58, 9, 6)
+        .rect(left + width * 0.38, deckTop + deckHeight * 0.5, 12, 5)
+        .fill({ color: 0x9c7048, alpha: 0.52 })
+        .moveTo(left + width * 0.62, deckTop + deckHeight * 0.2)
+        .lineTo(left + width * 0.7, deckTop + deckHeight * 0.55)
+        .lineTo(left + width * 0.56, deckTop + deckHeight * 0.68)
+        .stroke({ color: stateColor, alpha: 0.56, width: 1.4 })
+      return
+    }
+
+    if (resolved.levelKey === 'L4') {
+      this.prefabMainPierFoundation.label = 'main-pier-placeholder-warehouse:L4'
+      this.prefabMainPierBerths.label = 'main-pier-placeholder-berths:double'
+      this.prefabMainPierCargo.label = 'main-pier-placeholder-cargo-winch:L4'
+
+      this.prefabMainPierFoundation
+        .rect(left + width * 0.24, top + height * 0.28, width * 0.34, height * 0.18)
+        .fill({ color: 0x7f6a4d, alpha: 0.48 })
+        .poly([
+          left + width * 0.22,
+          top + height * 0.28,
+          left + width * 0.42,
+          top + height * 0.16,
+          left + width * 0.6,
+          top + height * 0.28,
+        ])
+        .fill({ color: 0x4f6e62, alpha: 0.58 })
+        .rect(left + width * 0.31, top + height * 0.34, width * 0.08, height * 0.12)
+        .fill({ color: 0x283643, alpha: 0.28 })
+
+      for (let index = 0; index < 2; index += 1) {
+        const berthX = left + width * (0.18 + index * 0.42)
+        this.prefabMainPierBerths
+          .rect(berthX, deckTop, width * 0.25, deckHeight)
+          .fill({ color: pierColor, alpha: 0.42 })
+          .rect(berthX + width * 0.04, waterY - 2, width * 0.17, 4)
+          .fill({ color: 0x477f9d, alpha: 0.22 })
+      }
+      this.prefabMainPierBerths
+        .moveTo(left + width * 0.5, deckTop + 2)
+        .lineTo(left + width * 0.5, deckTop + deckHeight - 2)
+        .stroke({ color: 0x283643, alpha: 0.32, width: 1 })
+
+      this.prefabMainPierCargo
+        .rect(left + width * 0.62, top + height * 0.44, 11, 7)
+        .rect(left + width * 0.7, top + height * 0.38, 13, 6)
+        .rect(left + width * 0.67, top + height * 0.31, 9, 6)
+        .fill({ color: 0x9c7048, alpha: 0.58 })
+        .moveTo(left + width * 0.66, top + height * 0.26)
+        .lineTo(left + width * 0.76, top + height * 0.18)
+        .lineTo(left + width * 0.72, top + height * 0.48)
+        .stroke({ color: stateColor, alpha: 0.7, width: 1.4 })
+      return
+    }
+
+    this.prefabMainPierFoundation.label = 'main-pier-placeholder-warehouse-row:L8'
+    this.prefabMainPierBerths.label = 'main-pier-placeholder-berths:multi'
+    this.prefabMainPierCargo.label = 'main-pier-placeholder-heavy-lift-crane:L8'
+
+    for (let index = 0; index < 3; index += 1) {
+      const houseX = left + width * (0.18 + index * 0.2)
+      this.prefabMainPierFoundation
+        .rect(houseX, top + height * 0.24, width * 0.16, height * 0.17)
+        .fill({ color: 0x7f6a4d, alpha: 0.46 })
+        .poly([
+          houseX - 2,
+          top + height * 0.24,
+          houseX + width * 0.08,
+          top + height * 0.13,
+          houseX + width * 0.16 + 2,
+          top + height * 0.24,
+        ])
+        .fill({ color: 0x4f6e62, alpha: 0.62 })
+    }
+
+    for (let index = 0; index < 3; index += 1) {
+      const berthX = left + width * (0.12 + index * 0.27)
+      this.prefabMainPierBerths
+        .rect(berthX, deckTop, width * 0.19, deckHeight)
+        .fill({ color: stoneColor, alpha: 0.46 })
+        .rect(berthX + width * 0.025, waterY - 3, width * 0.14, 5)
+        .fill({ color: 0x477f9d, alpha: 0.24 })
+    }
+
+    this.prefabMainPierCargo
+      .moveTo(left + width * 0.68, top + height * 0.55)
+      .lineTo(left + width * 0.68, top + height * 0.12)
+      .lineTo(left + width * 0.88, top + height * 0.2)
+      .moveTo(left + width * 0.78, top + height * 0.16)
+      .lineTo(left + width * 0.78, top + height * 0.42)
+      .stroke({ color: 0x283643, alpha: 0.62, width: 2 })
+      .rect(left + width * 0.75, top + height * 0.43, 10, 8)
+      .rect(left + width * 0.47, top + height * 0.48, 13, 8)
+      .rect(left + width * 0.37, top + height * 0.56, 10, 7)
+      .fill({ color: 0x9c7048, alpha: 0.6 })
+      .circle(left + width * 0.78, top + height * 0.43, 2.4)
+      .fill({ color: stateColor, alpha: 0.82 })
+  }
+
+  private clearMainPierPlaceholderDetails(): void {
+    this.prefabMainPierFoundation?.clear()
+    this.prefabMainPierBerths?.clear()
+    this.prefabMainPierCargo?.clear()
+    if (this.prefabMainPierDetails) {
+      this.prefabMainPierDetails.label = 'prefab-placeholder-main-pier-details'
+      this.prefabMainPierDetails.removeFromParent()
+    }
+    if (this.prefabMainPierFoundation) {
+      this.prefabMainPierFoundation.label = 'main-pier-placeholder-foundation'
+    }
+    if (this.prefabMainPierBerths) {
+      this.prefabMainPierBerths.label = 'main-pier-placeholder-berths'
+    }
+    if (this.prefabMainPierCargo) {
+      this.prefabMainPierCargo.label = 'main-pier-placeholder-cargo'
     }
   }
 

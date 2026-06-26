@@ -358,6 +358,37 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   font-size: 8px;
   line-height: 1.45;
 }
+.city-story-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 7px;
+}
+.city-story button {
+  padding: 5px 9px;
+  border: 0;
+  border-radius: 999px;
+  color: #fff7df;
+  background: #6f8f80;
+  font-size: 8px;
+  font-weight: 900;
+  box-shadow: 0 5px 10px rgba(39,74,67,.12);
+}
+.city-story button:hover,
+.city-story button:focus-visible {
+  background: #58786b;
+  outline: none;
+}
+.city-story button.ghost {
+  color: #6a796f;
+  background: rgba(232,234,219,.76);
+  box-shadow: none;
+}
+.city-story button.ghost:hover,
+.city-story button.ghost:focus-visible {
+  color: #385f55;
+  background: #e0e5d1;
+}
 .city-notice-warning::before { background: #c79045; }
 .city-notice-critical {
   border-color: #d99a82;

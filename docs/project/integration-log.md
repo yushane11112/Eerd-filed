@@ -38,3 +38,5 @@
 - 第五轮验证通过：样例 manifest 校验、资产校验器自检、全量 130 项测试和生产构建均通过。
 - 启动第六轮并行生产：GOLD-SAMPLE-RUNTIME-01、GOLD-PLACEHOLDER-VISUAL-01、CITY-NOTICE-FOCUS-01、MAP-FEEDBACK-01，分别推进样例 manifest 进入 runtime 测试链路、金标占位可视化、小事定位和地图内故障提示。
 - 完成第六轮并行生产：`main-pier` 样例 manifest 进入 runtime parser/registry 测试链路；注册 prefab 在地图上显示 assetId、等级和状态占位；小事流/瓶颈可选中相关建筑或提示坐标；地图内增加缺工、缺料、物流失败和仓满的程序化轻提示。
+- 启动第七轮并行生产：CAMERA-FOCUS-01、GOLD-PIER-VISUAL-SLICE-01、CITY-NOTICE-STORY-01、GOLD-ASSET-CI-01，分别推进小事/瓶颈相机聚焦、旧码头 L0/L4/L8 程序化视觉切片、城市反馈转轻量岛上小事、main-pier 样例校验 npm 入口。
+- 完成第七轮并行生产：小事与瓶颈可触发平滑地图聚焦；`main-pier` 根据金标样例 manifest 呈现 L0 破损、L4 货棚双泊位、L8 多泊位吊装差异；城市反馈改为可忽略、无奖励、无阻塞的岛上小事；新增 `asset:validate:main-pier` 固定校验入口。

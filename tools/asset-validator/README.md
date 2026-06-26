@@ -27,6 +27,12 @@ Validate the committed gold fixture through the same CLI path used for real mani
 npm run asset:validate:gold-fixture
 ```
 
+Validate the production-template `main-pier` sample manifest:
+
+```sh
+npm run asset:validate:main-pier
+```
+
 Both npm scripts are offline-only and do not install packages, download schemas, or call external services.
 
 Validate a pair of manifests directly:

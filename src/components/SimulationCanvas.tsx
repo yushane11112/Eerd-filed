@@ -5,21 +5,36 @@ import type { GridPoint, SimulationSnapshot } from '../simulation/contracts'
 import { CameraController, DragController } from '../ui'
 import type { BuildTool, GameRuntime } from '../integration/GameRuntime'
 
+type CameraFocusTarget =
+  | { kind: 'building'; buildingId: string }
+  | { kind: 'point'; point: GridPoint }
+
+export interface CameraFocusRequest {
+  id: number
+  target: CameraFocusTarget
+  smooth?: boolean
+  zoom?: number
+}
+
 interface SimulationCanvasProps {
   runtime: GameRuntime
   snapshot: SimulationSnapshot
   tool: BuildTool
+  cameraFocusRequest?: CameraFocusRequest | null
   onToolChange(tool: BuildTool): void
   onToast(message: string): void
   onBuildingSelect(id: string | null): void
 }
 
 const WORLD_BOUNDS = { x: -1120, y: -180, width: 2400, height: 1440 }
+const FOCUS_ZOOM = 1.05
+const FOCUS_DURATION_MS = 420
 
 export function SimulationCanvas({
   runtime,
   snapshot,
   tool,
+  cameraFocusRequest,
   onToolChange,
   onToast,
   onBuildingSelect,
@@ -36,6 +51,7 @@ export function SimulationCanvas({
     initial: { x: 0, y: 520, zoom: 0.72 },
   }))
   const dragRef = useRef(new DragController(5))
+  const focusAnimationRef = useRef<number | null>(null)
 
   snapshotRef.current = snapshot
   toolRef.current = tool
@@ -92,6 +108,7 @@ export function SimulationCanvas({
       resize.disconnect()
       if (appRef.current === app) appRef.current = null
       if (sceneRef.current === scene) sceneRef.current = null
+      cancelFocusAnimation(focusAnimationRef)
       app.ticker.remove(syncScene)
       scene.destroy()
       app.destroy(true)
@@ -102,6 +119,19 @@ export function SimulationCanvas({
     const terrain = terrainRef.current
     if (terrain) drawTerrain(terrain, snapshot)
   }, [snapshot.cells])
+
+  useEffect(() => {
+    if (!cameraFocusRequest) return
+    const focusPoint = resolveFocusPoint(cameraFocusRequest.target, snapshotRef.current)
+    if (!focusPoint) return
+    moveCameraToFocus(
+      cameraRef.current,
+      focusAnimationRef,
+      focusPoint,
+      cameraFocusRequest.zoom ?? FOCUS_ZOOM,
+      cameraFocusRequest.smooth ?? true,
+    )
+  }, [cameraFocusRequest])
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
@@ -136,6 +166,7 @@ export function SimulationCanvas({
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (event.button === 2) return
+    cancelFocusAnimation(focusAnimationRef)
     const point = localPoint(event)
     dragRef.current.start(event.pointerId, point)
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -170,6 +201,7 @@ export function SimulationCanvas({
 
   const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
     event.preventDefault()
+    cancelFocusAnimation(focusAnimationRef)
     const rect = event.currentTarget.getBoundingClientRect()
     cameraRef.current.zoomBy(
       { x: event.clientX - rect.left, y: event.clientY - rect.top },
@@ -227,4 +259,82 @@ function drawTerrain(graphics: Graphics, snapshot: SimulationSnapshot) {
         .stroke({ color: 0x887f70, width: 1, alpha: 0.7 })
     }
   }
+}
+
+function resolveFocusPoint(
+  target: CameraFocusTarget,
+  snapshot: SimulationSnapshot,
+): { x: number; y: number } | null {
+  if (target.kind === 'point') return gridToScreen(target.point)
+
+  const occupiedCells = snapshot.cells
+    .filter((cell) => cell.buildingId === target.buildingId)
+  if (occupiedCells.length > 0) {
+    const center = occupiedCells.reduce(
+      (sum, cell) => ({
+        x: sum.x + cell.point.x,
+        y: sum.y + cell.point.y,
+        elevation: sum.elevation + cell.elevation,
+      }),
+      { x: 0, y: 0, elevation: 0 },
+    )
+    return gridToScreen(
+      {
+        x: center.x / occupiedCells.length,
+        y: center.y / occupiedCells.length,
+      },
+      center.elevation / occupiedCells.length,
+    )
+  }
+
+  const building = snapshot.buildings[target.buildingId]
+  return building ? gridToScreen(building.entrance) : null
+}
+
+function moveCameraToFocus(
+  camera: CameraController,
+  animationRef: React.MutableRefObject<number | null>,
+  point: { x: number; y: number },
+  zoom: number,
+  smooth: boolean,
+) {
+  cancelFocusAnimation(animationRef)
+  const from = camera.getState()
+  if (!smooth || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    camera.focusOn(point, { zoom })
+    return
+  }
+
+  let startedAt: number | null = null
+  const step = (now: number) => {
+    startedAt ??= now
+    const progress = Math.min(1, (now - startedAt) / FOCUS_DURATION_MS)
+    const eased = easeOutCubic(progress)
+    camera.focusOn({
+      x: lerp(from.x, point.x, eased),
+      y: lerp(from.y, point.y, eased),
+    }, {
+      zoom: lerp(from.zoom, zoom, eased),
+    })
+    if (progress < 1) {
+      animationRef.current = window.requestAnimationFrame(step)
+    } else {
+      animationRef.current = null
+    }
+  }
+  animationRef.current = window.requestAnimationFrame(step)
+}
+
+function cancelFocusAnimation(animationRef: React.MutableRefObject<number | null>) {
+  if (animationRef.current === null) return
+  window.cancelAnimationFrame(animationRef.current)
+  animationRef.current = null
+}
+
+function lerp(from: number, to: number, progress: number) {
+  return from + (to - from) * progress
+}
+
+function easeOutCubic(progress: number) {
+  return 1 - (1 - progress) ** 3
 }

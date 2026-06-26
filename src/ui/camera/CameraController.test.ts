@@ -33,6 +33,17 @@ describe('CameraController', () => {
     expect(camera.getState()).toMatchObject({ x: 200, y: 700 })
   })
 
+  it('focuses a world point and clamps requested zoom in one update', () => {
+    const camera = createCamera()
+    const listener = vi.fn()
+    camera.subscribe(listener)
+
+    camera.focusOn({ x: 750, y: 650 }, { zoom: 10 })
+
+    expect(camera.getState()).toMatchObject({ x: 750, y: 650, zoom: 4 })
+    expect(listener).toHaveBeenCalledTimes(1)
+  })
+
   it('centers worlds smaller than the viewport', () => {
     const camera = new CameraController({
       bounds: { x: 10, y: 20, width: 100, height: 80 },
@@ -63,4 +74,3 @@ describe('CameraController', () => {
     expect(screenToWorld(state, worldToScreen(state, point))).toEqual(point)
   })
 })
-

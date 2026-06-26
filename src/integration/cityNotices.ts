@@ -14,6 +14,15 @@ export interface CityNotice {
   target?: CityNoticeTarget
 }
 
+export interface AmbientCityStory {
+  id: string
+  title: string
+  body: string
+  actionLabel: string
+  target?: CityNoticeTarget
+  resolved?: boolean
+}
+
 const MAX_CITY_NOTICES = 4
 
 export type CityNoticeTarget =
@@ -100,6 +109,10 @@ export function deriveCityNotices(snapshot: SimulationSnapshot): CityNotice[] {
     .slice(0, MAX_CITY_NOTICES)
 }
 
+export function deriveAmbientCityStories(snapshot: SimulationSnapshot): AmbientCityStory[] {
+  return deriveCityNotices(snapshot).map(cityNoticeToStory)
+}
+
 export class CityNoticeTracker {
   private activeNoticeIds = new Set<string>()
 
@@ -113,6 +126,38 @@ export class CityNoticeTracker {
 
   clear() {
     this.activeNoticeIds.clear()
+  }
+}
+
+export class AmbientCityStoryTracker {
+  private resolvedStoryIds = new Set<string>()
+
+  update(snapshot: SimulationSnapshot): AmbientCityStory[] {
+    const stories = deriveAmbientCityStories(snapshot)
+    const activeStoryIds = new Set(stories.map((story) => story.id))
+    for (const storyId of this.resolvedStoryIds) {
+      if (!activeStoryIds.has(storyId)) this.resolvedStoryIds.delete(storyId)
+    }
+    return stories.filter((story) => !this.resolvedStoryIds.has(story.id))
+  }
+
+  resolve(storyId: string) {
+    this.resolvedStoryIds.add(storyId)
+  }
+
+  clear() {
+    this.resolvedStoryIds.clear()
+  }
+}
+
+function cityNoticeToStory(notice: CityNotice): AmbientCityStory {
+  return {
+    id: `story-${notice.id}`,
+    title: notice.title,
+    body: notice.message,
+    actionLabel: notice.target ? '看一眼' : '知道了',
+    target: notice.target,
+    resolved: false,
   }
 }
 

@@ -50,9 +50,10 @@
 | LOGISTICS-CANCEL-REASON-01 | 物流订单失败原因 | `src/simulation/contracts.ts`, `src/simulation/economy/**` | 已完成 | 订单本身记录取消/失败原因，供诊断使用 |
 | GOLD-SAMPLE-MANIFEST-01 | 金标样例 manifest | `docs/project/gold-slice/sample-manifests/**` | 已完成 | 首个可通过校验器的生产模板 manifest |
 | GOLD-SAMPLE-RUNTIME-01 | 金标样例 manifest 接入 prefab registry | `src/rendering/prefab/**`, `docs/project/gold-slice/sample-manifests/**` | 已完成 | main-pier 样例可被 runtime parser/registry 使用 |
-| CITY-NOTICE-STORY-01 | 城市反馈转岛上小事 | `src/integration/**`, `src/App.tsx` | 待开始 | notice 可演化为一两次点击完成的小事，不阻塞建设 |
+| CITY-NOTICE-STORY-01 | 城市反馈转岛上小事 | `src/integration/**`, `src/App.tsx`, `src/styles.css` | 已完成 | notice 已演化为一两次点击完成的小事，不阻塞建设 |
 | GOLD-PLACEHOLDER-VISUAL-01 | 金标 prefab 占位可视化 | `src/rendering/**` | 已完成 | 已注册 prefab 在地图上显示 assetId/level/status 占位 |
 | CITY-NOTICE-FOCUS-01 | 小事流定位建筑/区域 | `src/App.tsx`, `src/styles.css`, `src/integration/**` | 已完成 | 点击小事可选中相关建筑或提示定位 |
 | MAP-FEEDBACK-01 | 地图内故障提示 | `src/rendering/**` | 已完成 | 缺工/缺料/物流失败/仓满在地图上有轻提示 |
-| CAMERA-FOCUS-01 | 地图相机定位接口 | `src/components/SimulationCanvas.tsx`, `src/ui/**`, `src/App.tsx` | 待开始 | 小事/瓶颈点击后可平滑定位到建筑或地块 |
-| GOLD-PIER-VISUAL-SLICE-01 | 旧码头首个可视切片 | `src/rendering/**`, `docs/project/gold-slice/sample-manifests/**` | 待开始 | main-pier 样例驱动更完整的 L0/L4/L8 占位表现 |
+| CAMERA-FOCUS-01 | 地图相机定位接口 | `src/components/SimulationCanvas.tsx`, `src/ui/**`, `src/App.tsx` | 已完成 | 小事/瓶颈点击后可平滑定位到建筑或地块 |
+| GOLD-PIER-VISUAL-SLICE-01 | 旧码头首个可视切片 | `src/rendering/**`, `docs/project/gold-slice/sample-manifests/**` | 已完成 | main-pier 样例驱动更完整的 L0/L4/L8 占位表现 |
+| GOLD-ASSET-CI-01 | main-pier 资产校验入口 | `package.json`, `tools/asset-validator/**`, `docs/project/gold-slice/sample-manifests/main-pier/**` | 已完成 | `npm run asset:validate:main-pier` 可直接校验样例 manifest |

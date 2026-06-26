@@ -11,6 +11,20 @@
 
 ## 使用方式
 
+本样例已接入 npm 资产校验入口，未来 CI 或生产导出流程应优先调用该脚本，而不是复制一段散落的 node 命令：
+
+```bash
+npm run asset:validate:main-pier
+```
+
+生产接入建议：
+
+- CI：在 gold-slice 资产变更检查中执行 `npm run asset:validate:self-test`、`npm run asset:validate:gold-fixture` 和 `npm run asset:validate:main-pier`，确保校验器自身、通用 fixture、真实样例三条路径都未退化。
+- 生产导出：Blender/Pixi 资产导出完成后，将导出的 `building-manifest.json` 与 `animation-manifest.json` 交给 `tools/asset-validator/asset-validator.js`；`main-pier` npm 脚本作为路径模板和回归样例保留。
+- 离线要求：该入口只读取仓库内 JSON，不安装包、不下载 schema、不访问外部服务，适合放进本地 preflight、CI job 或生产发布前 gate。
+
+等价的底层命令如下，主要用于调试或迁移到其他资产路径：
+
 ```bash
 node tools/asset-validator/asset-validator.js \
   --building docs/project/gold-slice/sample-manifests/main-pier/building-manifest.json \

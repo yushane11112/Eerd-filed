@@ -19,13 +19,18 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { SimulationCanvas } from './components/SimulationCanvas'
+import type { CameraFocusRequest } from './components/SimulationCanvas'
 import {
   BUILDING_DEFINITIONS,
   BUILDING_MENU,
   GameRuntime,
   type BuildTool,
 } from './integration/GameRuntime'
-import type { CityNoticeTarget } from './integration/cityNotices'
+import {
+  AmbientCityStoryTracker,
+  type AmbientCityStory,
+  type CityNoticeTarget,
+} from './integration/cityNotices'
 import {
   createBrowserFullscreenAdapter,
   FullscreenController,
@@ -45,12 +50,15 @@ export default function App() {
   const snapshot = useSyncExternalStore(runtime.subscribe, runtime.getSnapshot)
   const [tool, setTool] = useState<BuildTool>({ kind: 'inspect' })
   const [toast, setToast] = useState('欢迎回到小耳镇：铺路、建房，让居民真正生活起来。')
-  const [cityNoticeStream, setCityNoticeStream] = useState<CityNoticeStreamItem[]>([])
+  const [ambientStories, setAmbientStories] = useState<AmbientCityStoryItem[]>([])
   const [fullscreen, setFullscreen] = useState(INITIAL_FULLSCREEN)
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null)
   const [bottleneckOpen, setBottleneckOpen] = useState(false)
+  const [cameraFocusRequest, setCameraFocusRequest] = useState<CameraFocusRequest | null>(null)
   const shellRef = useRef<HTMLElement>(null)
   const fullscreenRef = useRef<FullscreenController | null>(null)
+  const cameraFocusIdRef = useRef(0)
+  const ambientStoryTrackerRef = useRef(new AmbientCityStoryTracker())
 
   useEffect(() => {
     const timer = window.setInterval(() => runtime.advance(100), 100)
@@ -78,26 +86,8 @@ export default function App() {
   }, [toast])
 
   useEffect(() => {
-    const events = runtime.consumeCityNoticeEvents()
-    if (events.length === 0) return
-
-    setCityNoticeStream((current) => {
-      const incoming = events.map((notice) => ({
-        id: `${notice.id}-${notice.tick}`,
-        noticeId: notice.id,
-        severity: notice.severity,
-        title: notice.title,
-        message: notice.message,
-        tick: notice.tick,
-        target: notice.target,
-      }))
-      const incomingIds = new Set(incoming.map((notice) => notice.noticeId))
-      return [
-        ...incoming,
-        ...current.filter((notice) => !incomingIds.has(notice.noticeId)),
-      ].slice(0, 3)
-    })
-  }, [runtime, snapshot.tick])
+    setAmbientStories(ambientStoryTrackerRef.current.update(snapshot).slice(0, 3))
+  }, [snapshot])
 
   const selectedBuilding = selectedBuildingId
     ? snapshot.buildings[selectedBuildingId]
@@ -109,11 +99,6 @@ export default function App() {
     .reduce((sum, value) => sum + (value ?? 0), 0)
   const needScore = averageNeeds(snapshot)
   const bottlenecks = useMemo(() => getCityBottlenecks(snapshot), [snapshot])
-  const activeCityNoticeIds = useMemo(
-    () => new Set(runtime.getCityNotices().map((notice) => notice.id)),
-    [runtime, snapshot.tick],
-  )
-
   const chooseTool = (next: BuildTool) => {
     setTool(next)
     setSelectedBuildingId(null)
@@ -149,12 +134,34 @@ export default function App() {
       }
       setTool({ kind: 'inspect' })
       setSelectedBuildingId(target.buildingId)
+      setCameraFocusRequest({
+        id: ++cameraFocusIdRef.current,
+        target,
+        smooth: true,
+      })
       const name = BUILDING_DEFINITIONS[building.type]?.name ?? building.type
-      setToast(`已定位到「${name}」。当前版本先选中建筑，不自动移动镜头。`)
+      setToast(`已定位到「${name}」。`)
       return
     }
 
-    setToast(`${fallbackTitle}：目标在 ${target.label}（${target.point.x}, ${target.point.y}）附近，当前版本暂不自动移动镜头。`)
+    setTool({ kind: 'inspect' })
+    setSelectedBuildingId(null)
+    setCameraFocusRequest({
+      id: ++cameraFocusIdRef.current,
+      target: { kind: 'point', point: target.point },
+      smooth: true,
+    })
+    setToast(`${fallbackTitle}：已定位到 ${target.label}（${target.point.x}, ${target.point.y}）附近。`)
+  }
+
+  const resolveAmbientStory = (story: AmbientCityStoryItem, shouldFocus = true) => {
+    if (story.target && shouldFocus) {
+      focusCityTarget(story.target, story.title)
+    } else {
+      setToast(`${story.title}：已记下，不影响继续建设。`)
+    }
+    ambientStoryTrackerRef.current.resolve(story.id)
+    setAmbientStories((current) => current.filter((item) => item.id !== story.id))
   }
 
   return (
@@ -169,6 +176,7 @@ export default function App() {
         runtime={runtime}
         snapshot={snapshot}
         tool={tool}
+        cameraFocusRequest={cameraFocusRequest}
         onToolChange={setTool}
         onToast={setToast}
         onBuildingSelect={setSelectedBuildingId}
@@ -276,28 +284,29 @@ export default function App() {
         )}
       </aside>
 
-      {cityNoticeStream.length > 0 && (
+      {ambientStories.length > 0 && (
         <aside className="city-notice-stream glass-panel" aria-label="城市小事流">
           <div className="city-notice-title">
-            <span>小事流</span>
-            <small>只提示新近变化</small>
+            <span>岛上小事</span>
+            <small>看完就散</small>
           </div>
-          {cityNoticeStream.map((notice) => (
+          {ambientStories.map((story) => (
             <article
-              key={notice.id}
-              className={`city-notice city-notice-${notice.severity} ${activeCityNoticeIds.has(notice.noticeId) ? 'active' : 'settled'} ${notice.target ? 'is-focusable' : ''}`}
-              role="button"
-              tabIndex={0}
-              onClick={() => focusCityTarget(notice.target, notice.title)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault()
-                  focusCityTarget(notice.target, notice.title)
-                }
-              }}
+              key={story.id}
+              className={`city-notice city-story ${story.resolved ? 'settled' : 'active'}`}
             >
-              <strong>{notice.title}</strong>
-              <span>{notice.message}</span>
+              <strong>{story.title}</strong>
+              <span>{story.body}</span>
+              <div className="city-story-actions">
+                <button type="button" onClick={() => resolveAmbientStory(story)}>
+                  {story.actionLabel}
+                </button>
+                {story.target && (
+                  <button type="button" className="ghost" onClick={() => resolveAmbientStory(story, false)}>
+                    知道了
+                  </button>
+                )}
+              </div>
             </article>
           ))}
         </aside>
@@ -382,13 +391,7 @@ interface CityBottleneck {
 
 type CityFocusTarget = CityNoticeTarget
 
-interface CityNoticeStreamItem {
-  id: string
-  noticeId: string
-  severity: 'critical' | 'warning' | 'info'
-  title: string
-  message: string
-  tick: number
+interface AmbientCityStoryItem extends AmbientCityStory {
   target?: CityFocusTarget
 }
 

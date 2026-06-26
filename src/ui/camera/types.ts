@@ -22,6 +22,10 @@ export interface ZoomRange {
   max: number
 }
 
+export interface CameraFocusOptions {
+  zoom?: number
+}
+
 export interface CameraOptions {
   bounds: WorldBounds
   zoom: ZoomRange
@@ -29,4 +33,3 @@ export interface CameraOptions {
 }
 
 export type CameraListener = (state: Readonly<CameraState>) => void
-

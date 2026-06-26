@@ -326,6 +326,70 @@ describe('road logistics', () => {
     expect(Object.keys(state.logisticsOrders)).toHaveLength(0)
     expect(source.inventory.food).toBe(8)
     expect(destination.inventory.food).toBeUndefined()
+    expect(destination.statusReason).toBe('logistics-failed:food:no-route')
+    expect(state.metrics.logisticsEfficiency).toBe(0)
+  })
+
+  it('reports missing source inventory and lowers logistics efficiency when no order can be made', () => {
+    const destination = building('eatery-1', 'eatery', { x: 4, y: 0 }, { salt: 2 })
+    const state = snapshot({
+      buildings: { [destination.id]: destination },
+    })
+
+    new LogisticsSystem({ definitions }).update(state)
+
+    expect(Object.keys(state.logisticsOrders)).toHaveLength(0)
+    expect(destination.statusReason).toBe('logistics-failed:food:no-source-inventory')
+    expect(state.metrics.logisticsEfficiency).toBe(0)
+  })
+
+  it('reports source stock made unavailable by existing reservations', () => {
+    const source = building('granary-1', 'granary', { x: 0, y: 0 }, { food: 4 })
+    const reservedDestination = building('eatery-1', 'eatery', { x: 3, y: 0 }, { salt: 2 })
+    const destination = building('eatery-2', 'eatery', { x: 4, y: 0 }, { salt: 2 })
+    const state = snapshot({
+      buildings: {
+        [source.id]: source,
+        [reservedDestination.id]: reservedDestination,
+        [destination.id]: destination,
+      },
+      logisticsOrders: {
+        reserved: {
+          id: 'reserved',
+          resource: 'food',
+          amount: 4,
+          sourceBuildingId: source.id,
+          destinationBuildingId: reservedDestination.id,
+          priority: 50,
+          state: 'waiting',
+        },
+      },
+    })
+
+    new LogisticsSystem({ definitions }).update(state)
+
+    expect(destination.statusReason).toBe('logistics-failed:food:source-inventory-insufficient')
+    expect(state.metrics.logisticsEfficiency).toBe(0)
+  })
+
+  it('keeps waiting orders visible as no-carrier failures in efficiency', () => {
+    const source = building('granary-1', 'granary', { x: 0, y: 0 }, { food: 8 })
+    const destination = building('eatery-1', 'eatery', { x: 4, y: 0 }, { salt: 2 })
+    const state = snapshot({
+      buildings: { [source.id]: source, [destination.id]: destination },
+    })
+
+    new LogisticsSystem({
+      definitions,
+      idFactory: () => 'food-order',
+    }).update(state)
+
+    expect(state.logisticsOrders['food-order']).toMatchObject({
+      resource: 'food',
+      state: 'waiting',
+    })
+    expect(destination.statusReason).toBe('logistics-failed:food:no-carrier')
+    expect(state.metrics.logisticsEfficiency).toBe(0)
   })
 
   it('reserves source stock across simultaneous orders instead of overselling it', () => {

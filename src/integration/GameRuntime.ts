@@ -18,6 +18,7 @@ import {
   type DropSpawnState,
 } from '../simulation/rewards'
 import { WorldGrid, type QuarterRotation } from '../simulation/world'
+import { CityNoticeTracker, deriveCityNotices, type CityNotice } from './cityNotices'
 
 export type BuildTool =
   | { kind: 'inspect' }
@@ -89,6 +90,7 @@ export class GameRuntime {
   private songSequence = 0
   private randomState = 0x4f1bbcdc
   private lastDropTick = 0
+  private cityNoticeTracker = new CityNoticeTracker()
 
   constructor() {
     this.grid = new WorldGrid(28, 22, [], 'land')
@@ -112,6 +114,10 @@ export class GameRuntime {
   }
 
   getSnapshot = (): SimulationSnapshot => this.snapshotCache
+
+  getCityNotices = (): CityNotice[] => deriveCityNotices(this.snapshotCache)
+
+  consumeCityNoticeEvents = (): CityNotice[] => this.cityNoticeTracker.update(this.snapshotCache)
 
   subscribe = (listener: () => void) => {
     this.listeners.add(listener)

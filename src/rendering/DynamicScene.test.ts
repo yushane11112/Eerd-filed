@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { BuildingEntity, SimulationSnapshot } from '../simulation/contracts'
+import validAnimationManifest from '../../tools/asset-validator/fixtures/valid-animation-manifest.json'
+import validBuildingManifest from '../../tools/asset-validator/fixtures/valid-building-manifest.json'
 
 // Pixi performs a canvas blend-mode capability probe during module loading.
 // The scene tests do not render pixels, so a minimal context keeps jsdom quiet.
@@ -225,5 +227,40 @@ describe('DynamicScene', () => {
     ])
 
     expect(afterChildCounts).toEqual(beforeChildCounts)
+  })
+
+  it('can sync buildings with prefab descriptor-driven placeholder visuals enabled', async () => {
+    const { DynamicScene } = await import('./DynamicScene')
+    const { parseRuntimePrefabDescriptor, PrefabRuntimeRegistry } = await import('./prefab')
+    const parsed = parseRuntimePrefabDescriptor(validBuildingManifest, validAnimationManifest)
+    if (!parsed.ok) throw new Error(parsed.errors.join('\n'))
+    const prefabRegistry = new PrefabRuntimeRegistry([parsed.descriptor])
+    const scene = new DynamicScene(undefined, { prefabRegistry })
+    const snapshot = createSnapshot()
+    snapshot.buildings = {
+      pier: createBuilding({
+        id: 'pier',
+        type: 'main-pier',
+        level: 6,
+        status: 'blocked',
+        statusReason: 'output-full',
+      }),
+    }
+    snapshot.agents = {}
+    snapshot.worldDrops = []
+
+    const stats = scene.sync(snapshot, camera)
+
+    expect(stats).toMatchObject({
+      buildings: 1,
+      residents: 0,
+      transport: 0,
+      drops: 0,
+      visible: 1,
+    })
+    const prefabLayer = scene.layers.buildings.children[0]?.children.find((child) => (
+      typeof child.label === 'string' && child.label.startsWith('prefab-placeholder:')
+    ))
+    expect(prefabLayer?.label).toBe('prefab-placeholder:main-pier:L4:storage_full:storage-full')
   })
 })

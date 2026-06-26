@@ -4,6 +4,7 @@ import { applyCameraTransform, gridPointVisible } from './culling'
 import { DEFAULT_ISO_METRICS } from './isometric'
 import { createSceneLayers, type SceneLayers } from './layers'
 import { ObjectPool } from './ObjectPool'
+import type { PrefabRuntimeRegistry } from './prefab'
 import type {
   EntityVisual,
   IsoMetrics,
@@ -14,6 +15,10 @@ import { AgentVisual, BuildingVisual, DropVisual } from './visuals'
 
 function isTransport(agent: Readonly<AgentEntity>): boolean {
   return agent.role === 'carrier' || agent.role === 'cart' || agent.role === 'boat'
+}
+
+export interface DynamicSceneOptions {
+  prefabRegistry?: PrefabRuntimeRegistry
 }
 
 export class DynamicScene {
@@ -28,11 +33,14 @@ export class DynamicScene {
   private readonly dropPool: ObjectPool<DropVisual>
   private readonly active = new Map<EntityId, EntityVisual>()
 
-  constructor(metrics: Readonly<IsoMetrics> = DEFAULT_ISO_METRICS) {
+  constructor(
+    metrics: Readonly<IsoMetrics> = DEFAULT_ISO_METRICS,
+    options: Readonly<DynamicSceneOptions> = {},
+  ) {
     this.metrics = metrics
     this.root.addChild(this.world)
     this.layers = createSceneLayers(this.world)
-    this.buildingPool = new ObjectPool(() => new BuildingVisual(metrics), 16, 256)
+    this.buildingPool = new ObjectPool(() => new BuildingVisual(metrics, options.prefabRegistry), 16, 256)
     this.residentPool = new ObjectPool(() => new AgentVisual(metrics, 'resident'), 32, 512)
     this.transportPool = new ObjectPool(() => new AgentVisual(metrics, 'transport'), 12, 256)
     this.dropPool = new ObjectPool(() => new DropVisual(metrics), 12, 64)
@@ -162,4 +170,3 @@ export class DynamicScene {
     this.layers.drops.sortChildren()
   }
 }
-

@@ -3,6 +3,11 @@ export {
   resolvePrefabAnimationState,
 } from './parser'
 export {
+  PrefabRuntimeRegistry,
+  type PrefabBuildingResolveInput,
+  type ResolvedPrefabBuilding,
+} from './registry'
+export {
   PREFAB_REQUIRED_STATES,
   PREFAB_STATE_PRIORITY,
   type GoldAnimationManifest,

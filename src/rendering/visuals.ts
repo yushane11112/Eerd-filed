@@ -7,6 +7,7 @@ import type {
   WorldDrop,
 } from '../simulation/contracts'
 import { gridToScreen, interpolateGridPoint, isoDepth } from './isometric'
+import type { PrefabRuntimeRegistry, ResolvedPrefabBuilding } from './prefab'
 import type { EntityVisual, IsoMetrics, RenderEntityKind } from './types'
 
 type BlockedReasonKind = 'missing-input' | 'no-workers' | 'storage-full' | 'generic'
@@ -102,16 +103,30 @@ abstract class BaseVisual implements EntityVisual {
 export class BuildingVisual extends BaseVisual {
   kind = 'building' as const
   private readonly body = new Graphics()
+  private readonly prefabPlaceholder: Container | null
+  private readonly prefabShell: Graphics | null
   private readonly statusLayer = new Container({ label: 'building-status-layer' })
   private readonly statusSymbol = new Graphics({ label: 'building-status-symbol' })
   private readonly statusMotion = new Graphics({ label: 'building-status-motion' })
   private readonly statusMask = new Graphics({ label: 'building-status-mask' })
 
-  constructor(metrics: Readonly<IsoMetrics>) {
+  constructor(
+    metrics: Readonly<IsoMetrics>,
+    private readonly prefabRegistry?: PrefabRuntimeRegistry,
+  ) {
     super(metrics)
     this.body.label = 'building-body'
     this.statusLayer.addChild(this.statusMask, this.statusSymbol, this.statusMotion)
-    this.display.addChild(this.body, this.statusLayer)
+    if (this.prefabRegistry) {
+      this.prefabPlaceholder = new Container({ label: 'prefab-placeholder:unresolved' })
+      this.prefabShell = new Graphics({ label: 'prefab-placeholder-shell' })
+      this.prefabPlaceholder.addChild(this.prefabShell)
+      this.display.addChild(this.body, this.prefabPlaceholder, this.statusLayer)
+    } else {
+      this.prefabPlaceholder = null
+      this.prefabShell = null
+      this.display.addChild(this.body, this.statusLayer)
+    }
   }
 
   update(snapshot: Readonly<SimulationSnapshot>, _alpha: number): void {
@@ -135,7 +150,42 @@ export class BuildingVisual extends BaseVisual {
       .fill({ color: level === 0 ? 0x82796b : 0x4f6e62 })
 
     this.drawStatusPresentation(presentation, width, height, phase, building.productionProgress)
+    this.drawPrefabPlaceholder(building, width, height)
     this.display.alpha = building.status === 'blocked' ? 0.72 : 1
+  }
+
+  private drawPrefabPlaceholder(
+    building: Readonly<BuildingEntity>,
+    fallbackWidth: number,
+    fallbackHeight: number,
+  ): void {
+    if (!this.prefabRegistry || !this.prefabPlaceholder || !this.prefabShell) return
+
+    const resolved = this.prefabRegistry.resolveBuilding({
+      assetId: building.type,
+      level: building.level,
+      status: building.status,
+      statusReason: building.statusReason,
+      productionProgress: building.productionProgress,
+    })
+
+    this.prefabShell.clear()
+    if (!resolved) {
+      this.prefabPlaceholder.label = `prefab-placeholder:${building.type}:missing`
+      this.prefabPlaceholder.visible = false
+      return
+    }
+
+    this.prefabPlaceholder.visible = true
+    this.prefabPlaceholder.label = prefabPlaceholderLabel(resolved)
+    const bounds = resolved.descriptor.bounds.localPx
+    const width = Math.max(fallbackWidth * 1.3, bounds.right - bounds.left)
+    const height = Math.max(fallbackHeight, bounds.bottom - bounds.top)
+    this.prefabShell
+      .rect(-width / 2, -height, width, height)
+      .stroke({ color: 0x283643, alpha: 0.28, width: 1.4 })
+      .circle(0, -height * 0.5, 3)
+      .fill({ color: prefabStateColor(resolved.state), alpha: 0.55 })
   }
 
   private drawStatusPresentation(
@@ -299,6 +349,20 @@ export class BuildingVisual extends BaseVisual {
       .circle(0, y + 11, 2.4)
       .fill({ color: accent, alpha: 0.95 })
   }
+}
+
+function prefabPlaceholderLabel(resolved: Readonly<ResolvedPrefabBuilding>): string {
+  const slotIds = resolved.slots.map((slot) => slot.id).join('+') || 'no-slots'
+  return `prefab-placeholder:${resolved.assetId}:${resolved.levelKey}:${resolved.state}:${slotIds}`
+}
+
+function prefabStateColor(state: ResolvedPrefabBuilding['state']): number {
+  if (state === 'storage_full') return 0xc9b58a
+  if (state === 'blocked') return 0xb85c4c
+  if (state === 'working') return 0x6f9f74
+  if (state === 'serving') return 0xd69a72
+  if (state === 'constructing') return 0xc9a66b
+  return 0xb9aa8b
 }
 
 export class AgentVisual extends BaseVisual {

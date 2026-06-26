@@ -41,5 +41,9 @@
 | PREFAB-RUNTIME-01 | 金标 prefab runtime 接口 | `src/rendering/prefab/**` | 已完成 | manifest 驱动 Pixi prefab descriptor 和状态映射 |
 | UI-CITY-MANAGER-01 | 城市瓶颈管理面板 | `src/App.tsx`, `src/styles.css` | 已完成 | 只展示关键瓶颈，不平铺复杂表格 |
 | TOOL-ASSET-VALIDATOR-02 | 资产校验器脚本接入 | `tools/asset-validator/**`, `package.json` | 已完成 | npm 脚本可运行校验器自检和金标 fixture 校验 |
-| LOGISTICS-FAILURE-02 | 物流失败原因与指标 | `src/simulation/economy/**` | 待开始 | 断路/无车/无源库存产生失败事件和效率影响 |
-| PERF-SPLIT-01 | 前端包体与 Pixi 分包 | `vite.config.ts`, `src/**` | 待开始 | 主 chunk 低于 500kB 或有明确分包策略 |
+| LOGISTICS-FAILURE-02 | 物流失败原因与指标 | `src/simulation/economy/**` | 已完成 | 断路/无车/无源库存产生失败事件和效率影响 |
+| PERF-SPLIT-01 | 前端包体与 Pixi 分包 | `vite.config.ts`, `vite.config.js` | 已完成 | 主 chunk 低于 500kB 或有明确分包策略 |
+| PREFAB-RENDER-01 | Prefab 渲染占位接入 | `src/rendering/**` | 已完成 | descriptor 注册、状态解析和灰盒占位渲染可测 |
+| CITY-EVENTS-01 | 城市反馈事件数据层 | `src/integration/**` | 已完成 | 从瓶颈派生轻量城市反馈且不刷屏 |
+| CITY-NOTICE-UI-01 | 城市反馈接入 UI | `src/App.tsx`, `src/styles.css` | 待开始 | 城市反馈以轻量 toast/岛上小事呈现且不打扰 |
+| PREFAB-ASSET-MAP-01 | 建筑类型到金标 assetId 映射 | `src/rendering/**`, `src/content/**` | 待开始 | 真实 building.type 可映射到 gold prefab assetId |

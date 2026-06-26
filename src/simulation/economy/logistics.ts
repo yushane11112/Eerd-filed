@@ -100,6 +100,21 @@ function isCarrier(agent: AgentEntity): boolean {
   return agent.role === 'carrier' || agent.role === 'cart' || agent.role === 'boat'
 }
 
+type LogisticsFailureReason =
+  | 'no-route'
+  | 'no-carrier'
+  | 'no-source-inventory'
+  | 'source-inventory-insufficient'
+  | 'destination-capacity'
+
+function logisticsFailureReason(resource: ResourceKind, reason: LogisticsFailureReason): string {
+  return `logistics-failed:${resource}:${reason}`
+}
+
+function isLogisticsFailure(reason: string | undefined): boolean {
+  return Boolean(reason?.startsWith('logistics-failed:'))
+}
+
 export class LogisticsSystem implements SimulationSystem {
   readonly id = 'economy.logistics'
   private readonly definitions: Readonly<Record<string, BuildingDefinition>>
@@ -190,7 +205,10 @@ export class LogisticsSystem implements SimulationSystem {
     const sourceMatch = this.findSource(snapshot, destination, resource, requestedAvailable => (
       Math.min(missing, this.maxShipment, requestedAvailable) > 0
     ))
-    if (!sourceMatch) return undefined
+    if (!sourceMatch.ok) {
+      this.markFailure(destination, resource, sourceMatch.reason)
+      return undefined
+    }
 
     const inboundCapacityReserved = orders
       .filter((order) => isActive(order) && order.destinationBuildingId === destination.id)
@@ -198,25 +216,29 @@ export class LogisticsSystem implements SimulationSystem {
     const amount = Math.min(
       missing,
       this.maxShipment,
-      sourceMatch.available,
+      sourceMatch.value.available,
       Math.max(
         0,
         inventoryFreeCapacity(destination, this.definitions[destination.type])
           - inboundCapacityReserved,
       ),
     )
-    if (amount <= 0) return undefined
+    if (amount <= 0) {
+      this.markFailure(destination, resource, 'destination-capacity')
+      return undefined
+    }
 
     const id = this.idFactory()
     snapshot.logisticsOrders[id] = {
       id,
       resource,
       amount,
-      sourceBuildingId: sourceMatch.building.id,
+      sourceBuildingId: sourceMatch.value.building.id,
       destinationBuildingId: destination.id,
       priority,
       state: 'waiting',
     }
+    this.clearFailure(destination, resource)
     return { type: 'logistics-order-created', orderId: id }
   }
 
@@ -225,9 +247,15 @@ export class LogisticsSystem implements SimulationSystem {
     destination: BuildingEntity,
     resource: ResourceKind,
     accepts: (available: number) => boolean,
-  ): { building: BuildingEntity; available: number } | undefined {
+  ): {
+    ok: true
+    value: { building: BuildingEntity; available: number }
+  } | {
+    ok: false
+    reason: LogisticsFailureReason
+  } {
     const orders = Object.values(snapshot.logisticsOrders)
-    return Object.values(snapshot.buildings)
+    const candidates = Object.values(snapshot.buildings)
       .map((candidate) => {
         const reserved = orders
           .filter((order) => isActive(order)
@@ -237,20 +265,35 @@ export class LogisticsSystem implements SimulationSystem {
           .reduce((total, order) => total + order.amount, 0)
         return {
           building: candidate,
+          stock: inventoryAmount(candidate, resource),
           available: Math.max(0, inventoryAmount(candidate, resource) - reserved),
         }
       })
-      .filter(({ building: candidate, available }) => candidate.id !== destination.id
-        && accepts(available)
-        && Boolean(this.routePlanner.findRoute(
-          snapshot.cells,
-          candidate.entrance,
-          destination.entrance,
-        )))
-      .sort((left, right) => {
-        return right.available - left.available
-          || left.building.id.localeCompare(right.building.id)
-      })[0]
+      .filter(({ building: candidate }) => candidate.id !== destination.id)
+
+    const stocked = candidates.filter(({ stock }) => stock > 0)
+    if (stocked.length === 0) return { ok: false, reason: 'no-source-inventory' }
+
+    const available = stocked.filter((candidate) => accepts(candidate.available))
+    if (available.length === 0) return { ok: false, reason: 'source-inventory-insufficient' }
+
+    const reachable = available.filter(({ building: candidate }) => (
+      Boolean(this.routePlanner.findRoute(
+        snapshot.cells,
+        candidate.entrance,
+        destination.entrance,
+      ))
+    ))
+    if (reachable.length === 0) return { ok: false, reason: 'no-route' }
+
+    return {
+      ok: true,
+      value: reachable
+        .sort((left, right) => {
+          return right.available - left.available
+            || left.building.id.localeCompare(right.building.id)
+        })[0],
+    }
   }
 
   private assignWaitingOrders(snapshot: SimulationSnapshot): void {
@@ -261,16 +304,28 @@ export class LogisticsSystem implements SimulationSystem {
       .filter((order) => order.state === 'waiting')
       .sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id))
 
+    if (freeCarriers.length === 0) {
+      for (const order of waitingOrders) {
+        const destination = snapshot.buildings[order.destinationBuildingId]
+        if (destination) this.markFailure(destination, order.resource, 'no-carrier')
+      }
+      return
+    }
+
     for (const order of waitingOrders) {
       const carrier = freeCarriers.shift()
       if (!carrier) return
       const source = snapshot.buildings[order.sourceBuildingId]
       if (!source || inventoryAmount(source, order.resource) < order.amount) {
+        const destination = snapshot.buildings[order.destinationBuildingId]
+        if (destination) this.markFailure(destination, order.resource, 'source-inventory-insufficient')
         order.state = 'cancelled'
         continue
       }
       const route = this.routePlanner.findRoute(snapshot.cells, carrier.position, source.entrance)
       if (!route) {
+        const destination = snapshot.buildings[order.destinationBuildingId]
+        if (destination) this.markFailure(destination, order.resource, 'no-route')
         freeCarriers.unshift(carrier)
         continue
       }
@@ -280,6 +335,8 @@ export class LogisticsSystem implements SimulationSystem {
       carrier.activity = 'delivering'
       carrier.path = route
       carrier.pathIndex = 0
+      const destination = snapshot.buildings[order.destinationBuildingId]
+      if (destination) this.clearFailure(destination, order.resource)
     }
   }
 
@@ -314,8 +371,13 @@ export class LogisticsSystem implements SimulationSystem {
   ): void {
     const source = snapshot.buildings[order.sourceBuildingId]
     const destination = snapshot.buildings[order.destinationBuildingId]
-    if (!source || !destination
-      || !removeInventory(source, order.resource, order.amount).ok) {
+    if (!source || !destination) {
+      if (destination) this.markFailure(destination, order.resource, 'no-source-inventory')
+      this.cancel(order, carrier)
+      return
+    }
+    if (!removeInventory(source, order.resource, order.amount).ok) {
+      this.markFailure(destination, order.resource, 'source-inventory-insufficient')
       this.cancel(order, carrier)
       return
     }
@@ -323,6 +385,7 @@ export class LogisticsSystem implements SimulationSystem {
     const route = this.routePlanner.findRoute(snapshot.cells, source.entrance, destination.entrance)
     if (!route) {
       addInventory(source, this.definitions[source.type], order.resource, order.amount)
+      this.markFailure(destination, order.resource, 'no-route')
       this.cancel(order, carrier)
       return
     }
@@ -354,6 +417,7 @@ export class LogisticsSystem implements SimulationSystem {
     carrier.activity = 'idle'
     carrier.path = []
     carrier.pathIndex = 0
+    this.clearFailure(destination, order.resource)
   }
 
   private cancel(order: LogisticsOrder, carrier: AgentEntity): void {
@@ -364,11 +428,31 @@ export class LogisticsSystem implements SimulationSystem {
     carrier.pathIndex = 0
   }
 
+  private markFailure(
+    building: BuildingEntity,
+    resource: ResourceKind,
+    reason: LogisticsFailureReason,
+  ): void {
+    building.statusReason = logisticsFailureReason(resource, reason)
+  }
+
+  private clearFailure(building: BuildingEntity, resource: ResourceKind): void {
+    if (building.statusReason?.startsWith(`logistics-failed:${resource}:`)) {
+      delete building.statusReason
+    }
+  }
+
   private updateEfficiency(snapshot: SimulationSnapshot): void {
     const orders = Object.values(snapshot.logisticsOrders)
-    const resolved = orders.filter((order) => order.state === 'delivered' || order.state === 'cancelled')
-    snapshot.metrics.logisticsEfficiency = resolved.length === 0
+    const delivered = orders.filter((order) => order.state === 'delivered').length
+    const cancelled = orders.filter((order) => order.state === 'cancelled')
+    const cancelledDestinations = new Set(cancelled.map((order) => order.destinationBuildingId))
+    const failedBuildings = Object.values(snapshot.buildings).filter((building) => (
+      isLogisticsFailure(building.statusReason) && !cancelledDestinations.has(building.id)
+    ))
+    const failed = cancelled.length + failedBuildings.length
+    snapshot.metrics.logisticsEfficiency = delivered + failed === 0
       ? 100
-      : (resolved.filter((order) => order.state === 'delivered').length / resolved.length) * 100
+      : (delivered / (delivered + failed)) * 100
   }
 }

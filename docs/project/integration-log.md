@@ -31,3 +31,5 @@
 - 启动第三轮并行生产：ENGINE-FAILURE-01、PREFAB-RUNTIME-01、UI-CITY-MANAGER-01、TOOL-ASSET-VALIDATOR-02，分别推进城市故障后果、manifest 驱动 prefab 数据层、城市瓶颈面板和资产校验 npm 脚本接入。
 - 完成第三轮并行生产：新增故障后果集成测试、manifest 驱动 prefab runtime 数据层、城市瓶颈管理面板、资产校验 npm 脚本。
 - 第三轮验证通过：`asset:validate:self-test`、`asset:validate:gold-fixture`、全量 115 项测试和生产构建均通过；构建出现主 chunk 超过 500kB 的非阻断警告，已记录为 `PERF-SPLIT-01` 后续任务。
+- 启动第四轮并行生产：LOGISTICS-FAILURE-02、PREFAB-RENDER-01、PERF-SPLIT-01、CITY-EVENTS-01，分别推进物流失败显式化、prefab 渲染占位接入、Vite 分包和城市反馈事件数据层。
+- 完成第四轮并行生产：物流失败原因写入建筑状态并影响效率；prefab descriptor 可注册并驱动灰盒占位；城市反馈数据层可从快照派生缺粮、缺工、物流阻塞和居民不满；Vite 默认构建完成 Pixi/React/icons 分包，主 chunk 降至约 71.5kB。

@@ -26,6 +26,9 @@ export interface SimulationAdvanceResult {
 }
 
 const VALID_SPEEDS = new Set([0, 1, 2, 4])
+const CRITICAL_NEED_THRESHOLD = 35
+const MAX_CRITICAL_NEED_PENALTY_PER_NEED = 3
+const MAX_UNEMPLOYMENT_PENALTY = 2
 
 export class SimulationEngine {
   private state: SimulationSnapshot
@@ -252,8 +255,16 @@ export class SimulationEngine {
       const employmentRatio = employed / Math.max(1, household.workerIds.length)
       const needsAverage = average(Object.values(household.needs))
       const target = needsAverage * 0.65 + employmentRatio * 35
+      const criticalNeedPenalty = Object.values(household.needs)
+        .reduce((total, need) => (
+          total + criticalNeedPenaltyForNeed(need)
+        ), 0)
+      const unemploymentPenalty = (1 - employmentRatio) * MAX_UNEMPLOYMENT_PENALTY
       household.satisfaction = clamp(
-        household.satisfaction + (target - household.satisfaction) * 0.05,
+        household.satisfaction
+          + (target - household.satisfaction) * 0.05
+          - criticalNeedPenalty
+          - unemploymentPenalty,
         0,
         100,
       )
@@ -340,6 +351,15 @@ function average(values: number[]): number {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
+}
+
+function criticalNeedPenaltyForNeed(need: number): number {
+  if (need >= CRITICAL_NEED_THRESHOLD) return 0
+  return (
+    (CRITICAL_NEED_THRESHOLD - need)
+    / CRITICAL_NEED_THRESHOLD
+    * MAX_CRITICAL_NEED_PENALTY_PER_NEED
+  )
 }
 
 function positiveInteger(value: number, name: string): number {

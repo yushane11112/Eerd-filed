@@ -31,3 +31,11 @@
 | GOLD-ENGINE-01 | 金标资产入引擎 | 待分配 | 待开始 | Pixi prefab、manifest、LOD 与状态驱动 |
 | ENGINE-SERVICE-01 | 城市服务与市场系统 | `src/simulation/**` | 待开始 | 食物、服务、居民满意度形成真实后果 |
 | TOOL-ASSET-VALIDATOR-01 | 资产自动校验工具 | `tools/**`, `src/assets/**` | 待开始 | 缺级、缺层、缺动画、超预算自动失败 |
+| ENGINE-CONSEQUENCE-01 | 居民需求与迁出后果链 | `src/simulation/core/**` | 已完成 | 服务不足、失业和恢复均有确定性测试 |
+| GOLD-ART-01 | 六类金标建筑美术规格 | `docs/project/gold-slice/building-art-spec.md` | 已完成 | L0–L8 主体、环境、活动、禁项完整 |
+| MODEL-ANIM-01 | 金标建模与动效入引擎规格 | `docs/project/gold-slice/model-animation-spec.md` | 已完成 | 拆件、pivot、LOD、状态动画和 manifest 完整 |
+| QA-PRODUCTION-01 | 并行生产验收矩阵 | `docs/project/parallel-production-qa.md` | 已完成 | 输入输出模板、集成节奏、退回标准完整 |
+| ENGINE-SERVICE-02 | 服务网络与居民路径 | `src/simulation/**` | 待开始 | 市场、药铺、书院、戏台完整影响居民需求 |
+| RENDER-STATE-01 | 状态驱动建筑表现层 | `src/rendering/**` | 待开始 | building status 映射专属动画状态和调试层 |
+| GOLD-BLOCKOUT-01 | 六类金标建筑体块验证 | `docs/project/gold-slice/**`, `art-source/**` | 待开始 | footprint、入口、遮挡、人流与 LOD 验证 |
+| TOOL-ASSET-VALIDATOR-01 | 金标资产 manifest 校验器 | `tools/**`, `src/assets/**` | 待开始 | 缺级、缺层、缺 pivot、超预算自动失败 |

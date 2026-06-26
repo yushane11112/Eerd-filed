@@ -3,6 +3,7 @@ import type {
   BuildingDefinition,
   BuildingEntity,
   HouseholdState,
+  SimulationSystem,
 } from '../contracts'
 import { SimulationEngine } from './SimulationEngine'
 import { createInitialSimulationSnapshot } from './snapshot'
@@ -172,6 +173,101 @@ describe('SimulationEngine', () => {
     })
     expect(engine.snapshot.households).toEqual({})
     expect(engine.snapshot.agents).toEqual({})
+  })
+
+  it('makes a critical service shortage plus unemployment trigger migration pressure', () => {
+    const snapshot = createInitialSimulationSnapshot({
+      buildings: {
+        home: building('home', 'house'),
+      },
+    })
+    snapshot.households.family = {
+      id: 'family',
+      homeBuildingId: 'home',
+      members: 2,
+      workerIds: ['worker-1'],
+      income: 0,
+      satisfaction: 22,
+      needs: {
+        food: 0,
+        goods: 100,
+        health: 100,
+        education: 100,
+        entertainment: 100,
+      },
+    }
+    snapshot.agents['worker-1'] = {
+      id: 'worker-1',
+      role: 'worker',
+      householdId: 'family',
+      position: { x: 0, y: 0 },
+      path: [],
+      pathIndex: 0,
+      activity: 'home',
+    }
+
+    const engine = new SimulationEngine(snapshot, {
+      buildingDefinitions: definitions,
+      migrationIntervalTicks: 100,
+    })
+
+    expect(engine.step()).toContainEqual({
+      type: 'household-migrated',
+      householdId: 'family',
+      direction: 'out',
+    })
+  })
+
+  it('lets restored service needs stabilize and recover household satisfaction', () => {
+    const restoreFood: SimulationSystem = {
+      id: 'test.restore-food',
+      update(state) {
+        for (const household of Object.values(state.households)) {
+          household.needs.food = 100
+        }
+        return []
+      },
+    }
+    const snapshot = createInitialSimulationSnapshot({
+      buildings: {
+        home: building('home', 'house'),
+        work: building('work', 'workshop'),
+      },
+    })
+    snapshot.households.family = {
+      id: 'family',
+      homeBuildingId: 'home',
+      members: 2,
+      workerIds: ['worker-1'],
+      income: 0,
+      satisfaction: 40,
+      needs: {
+        food: 5,
+        goods: 100,
+        health: 100,
+        education: 100,
+        entertainment: 100,
+      },
+    }
+    snapshot.agents['worker-1'] = {
+      id: 'worker-1',
+      role: 'worker',
+      householdId: 'family',
+      position: { x: 0, y: 0 },
+      path: [],
+      pathIndex: 0,
+      activity: 'home',
+    }
+
+    const engine = new SimulationEngine(snapshot, {
+      buildingDefinitions: definitions,
+      systems: [restoreFood],
+      migrationIntervalTicks: 100,
+    })
+
+    engine.step(8)
+
+    expect(engine.snapshot.households.family.satisfaction).toBeGreaterThan(40)
   })
 
   it('is reproducible from the same snapshot and seed', () => {

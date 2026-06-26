@@ -18,6 +18,8 @@ export interface ServiceRule {
   amountPerHousehold?: number
   restoreAmount: number
   maxHouseholdsPerTick: number
+  unmetNeedPenalty?: number
+  unmetSatisfactionPenalty?: number
 }
 
 export interface ServiceSystemOptions {
@@ -33,6 +35,8 @@ export const DEFAULT_SERVICE_RULES: Readonly<Record<string, ServiceRule>> = {
     amountPerHousehold: 1,
     restoreAmount: 16,
     maxHouseholdsPerTick: 3,
+    unmetNeedPenalty: 4,
+    unmetSatisfactionPenalty: 2,
   },
   pharmacy: {
     need: 'health',
@@ -40,16 +44,22 @@ export const DEFAULT_SERVICE_RULES: Readonly<Record<string, ServiceRule>> = {
     amountPerHousehold: 1,
     restoreAmount: 14,
     maxHouseholdsPerTick: 2,
+    unmetNeedPenalty: 3,
+    unmetSatisfactionPenalty: 1.5,
   },
   academy: {
     need: 'education',
     restoreAmount: 10,
     maxHouseholdsPerTick: 4,
+    unmetNeedPenalty: 2,
+    unmetSatisfactionPenalty: 1,
   },
   theatre: {
     need: 'entertainment',
     restoreAmount: 12,
     maxHouseholdsPerTick: 4,
+    unmetNeedPenalty: 2,
+    unmetSatisfactionPenalty: 1,
   },
 }
 
@@ -67,6 +77,11 @@ export class ServiceSystem implements SimulationSystem {
 
   update(snapshot: SimulationSnapshot): SimulationEvent[] {
     const events: SimulationEvent[] = []
+    const servedNeeds = new Set<string>()
+    const unmetNeeds = new Map<string, {
+      household: HouseholdState
+      rule: ServiceRule
+    }>()
     const serviceBuildings = Object.values(snapshot.buildings)
       .filter((building) => this.ruleFor(building))
       .sort((left, right) => left.id.localeCompare(right.id))
@@ -76,21 +91,31 @@ export class ServiceSystem implements SimulationSystem {
       const definition = this.definitions[serviceBuilding.type]
       if (!definition) continue
 
+      const demandingHouseholds = this.demandingHouseholds(snapshot, rule)
       const candidates = this.reachableHouseholds(snapshot, serviceBuilding, rule)
       if (serviceBuilding.workers.length === 0) {
         markBlocked(serviceBuilding, 'no-workers')
+        this.markUnmet(unmetNeeds, candidates, rule)
+        continue
+      }
+      if (candidates.length === 0) {
+        markBlocked(
+          serviceBuilding,
+          demandingHouseholds.length === 0 ? 'no-service-demand' : 'no-service-route',
+        )
+        if (demandingHouseholds.length > 0) {
+          this.markUnmet(unmetNeeds, demandingHouseholds, rule)
+        }
         continue
       }
       if (rule.resource && inventoryAmount(serviceBuilding, rule.resource) <= 0) {
         markBlocked(serviceBuilding, `missing-service-resource:${rule.resource}`)
-        continue
-      }
-      if (candidates.length === 0) {
-        markBlocked(serviceBuilding, 'no-service-demand')
+        this.markUnmet(unmetNeeds, candidates, rule)
         continue
       }
 
       let served = 0
+      const servedHouseholdIds = new Set<string>()
       for (const household of candidates) {
         if (served >= rule.maxHouseholdsPerTick) break
         if (rule.resource) {
@@ -110,14 +135,24 @@ export class ServiceSystem implements SimulationSystem {
           householdId: household.id,
           need: rule.need,
         })
+        servedNeeds.add(needKey(household.id, rule.need))
+        servedHouseholdIds.add(household.id)
       }
 
       if (served > 0) {
         serviceBuilding.status = 'serving'
         delete serviceBuilding.statusReason
       }
+      if (served < candidates.length) {
+        this.markUnmet(
+          unmetNeeds,
+          candidates.filter((household) => !servedHouseholdIds.has(household.id)),
+          rule,
+        )
+      }
     }
 
+    this.applyUnmetNeedPressure(unmetNeeds, servedNeeds)
     return events
   }
 
@@ -130,8 +165,7 @@ export class ServiceSystem implements SimulationSystem {
     serviceBuilding: BuildingEntity,
     rule: ServiceRule,
   ): HouseholdState[] {
-    return Object.values(snapshot.households)
-      .filter((household) => household.needs[rule.need] < 92)
+    return this.demandingHouseholds(snapshot, rule)
       .filter((household) => {
         const home = snapshot.buildings[household.homeBuildingId]
         if (!home) return false
@@ -146,11 +180,62 @@ export class ServiceSystem implements SimulationSystem {
         || left.id.localeCompare(right.id)
       ))
   }
+
+  private demandingHouseholds(
+    snapshot: SimulationSnapshot,
+    rule: ServiceRule,
+  ): HouseholdState[] {
+    return Object.values(snapshot.households)
+      .filter((household) => household.needs[rule.need] < 92)
+      .sort((left, right) => (
+        left.needs[rule.need] - right.needs[rule.need]
+        || left.id.localeCompare(right.id)
+      ))
+  }
+
+  private markUnmet(
+    unmetNeeds: Map<string, {
+      household: HouseholdState
+      rule: ServiceRule
+    }>,
+    households: readonly HouseholdState[],
+    rule: ServiceRule,
+  ): void {
+    for (const household of households) {
+      unmetNeeds.set(needKey(household.id, rule.need), { household, rule })
+    }
+  }
+
+  private applyUnmetNeedPressure(
+    unmetNeeds: ReadonlyMap<string, {
+      household: HouseholdState
+      rule: ServiceRule
+    }>,
+    servedNeeds: ReadonlySet<string>,
+  ): void {
+    for (const [key, { household, rule }] of unmetNeeds) {
+      if (servedNeeds.has(key)) continue
+      household.needs[rule.need] = clamp(
+        household.needs[rule.need] - (rule.unmetNeedPenalty ?? 1),
+        0,
+        100,
+      )
+      household.satisfaction = clamp(
+        household.satisfaction - (rule.unmetSatisfactionPenalty ?? 0),
+        0,
+        100,
+      )
+    }
+  }
 }
 
 function markBlocked(building: BuildingEntity, reason: string): void {
   building.status = 'blocked'
   building.statusReason = reason
+}
+
+function needKey(householdId: string, need: NeedKind): string {
+  return `${householdId}:${need}`
 }
 
 function clamp(value: number, min: number, max: number): number {

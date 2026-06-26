@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "gold-animation.v1",
+  "assetId": "main-eatery",
+  "statePriority": ["constructing", "blocked", "storage_full", "working", "serving", "idle", "ambient"],
+  "slots": {
+    "base": { "domain": "building", "requiredState": "idle", "clip": "main-eatery-base-structure", "technique": "none", "loop": true, "playbackRateSource": "fixed", "anchors": ["origin"], "parts": [], "lodPolicy": { "LOD0": "static", "LOD1": "static", "LOD2": "static", "LOD3": "static" } },
+    "idle-detail": { "domain": "ambient", "requiredState": "idle", "clip": "main-eatery-idle-steam-lanterns", "technique": "sprite-sequence", "fps": 4, "loop": true, "playbackRateSource": "sceneTime", "anchors": ["smoke_01", "audio_kitchen_01"], "parts": ["steam_puff", "order_flag"], "audioCues": [{ "key": "eatery.kitchen.soft", "frame": 0 }], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "staff-entry": { "domain": "building", "requiredState": "working", "clip": "main-eatery-cook-entry", "technique": "sprite-sequence", "fps": 8, "loop": false, "playbackRateSource": "orderPhase", "anchors": ["entrance_main", "worker_01", "queue_guest_01"], "parts": ["serving_shutter"], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "input-receive": { "domain": "logistics", "requiredState": "working", "clip": "main-eatery-ingredient-receive", "technique": "sprite-sequence", "fps": 8, "loop": false, "playbackRateSource": "productionProgress", "anchors": ["input_ingredients_01", "worker_01", "stove_01"], "parts": ["pot_lid"], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "production-primary": { "domain": "kitchen", "requiredState": "working", "clip": "main-eatery-stove-cook-loop", "technique": "part-transform", "fps": 10, "loop": true, "progressRange": { "from": 20, "to": 75 }, "playbackRateSource": "productionProgress", "anchors": ["stove_01", "stove_02", "audio_kitchen_01"], "parts": ["stove_flame", "pot_lid", "steam_puff"], "audioCues": [{ "key": "eatery.wok.sizzle", "progress": 35 }], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "production-secondary": { "domain": "kitchen", "requiredState": "working", "clip": "main-eatery-plating-and-serving-window", "technique": "part-transform", "fps": 8, "loop": true, "progressRange": { "from": 75, "to": 95 }, "playbackRateSource": "productionProgress", "anchors": ["serving_window_01", "worker_02", "output_meal_01"], "parts": ["serving_shutter", "order_flag"], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "output-ready": { "domain": "logistics", "requiredState": "working", "clip": "main-eatery-meal-ready-on-counter", "technique": "sprite-sequence", "fps": 6, "loop": false, "progressRange": { "from": 95, "to": 100 }, "playbackRateSource": "productionProgress", "anchors": ["output_meal_01", "serving_window_01"], "parts": ["order_flag"], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "output-dispatch": { "domain": "logistics", "requiredState": "serving", "clip": "main-eatery-meal-to-table-or-takeaway", "technique": "sprite-sequence", "fps": 8, "loop": false, "playbackRateSource": "orderPhase", "anchors": ["output_meal_01", "output_meal_02", "takeaway_01", "table_01"], "parts": ["serving_shutter"], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "service": { "domain": "service", "requiredState": "serving", "clip": "main-eatery-guests-eating-loop", "technique": "sprite-sequence", "fps": 8, "loop": true, "playbackRateSource": "orderPhase", "anchors": ["service_counter_01", "table_01", "table_02", "queue_guest_01"], "parts": [], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "blocked": { "domain": "feedback", "requiredState": "blocked", "allowedReasons": ["missing_worker", "missing_input", "route_blocked", "kitchen_fire_hold"], "clip": "main-eatery-blocked-counter-sign", "technique": "tint-light", "loop": true, "playbackRateSource": "fixed", "anchors": ["ui_status", "serving_window_01"], "parts": [], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "static" } },
+    "storage-full": { "domain": "feedback", "requiredState": "storage_full", "clip": "main-eatery-storage-full-ingredient-shelves", "technique": "sprite-sequence", "fps": 4, "loop": true, "playbackRateSource": "fixed", "anchors": ["input_ingredients_01", "stove_01", "service_counter_01"], "parts": [], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "static" } },
+    "construction": { "domain": "construction", "requiredState": "constructing", "clip": "main-eatery-construction-counter-and-stove", "technique": "sprite-sequence", "fps": 10, "loop": false, "progressRange": { "from": 0, "to": 100 }, "playbackRateSource": "constructionProgress", "anchors": ["construction_stage_01", "worker_01"], "parts": ["serving_shutter", "stove_flame"], "audioCues": [{ "key": "eatery.build.wood", "progress": 45 }], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "night": { "domain": "ambient", "requiredState": "ambient", "clip": "main-eatery-night-food-lanterns", "technique": "tint-light", "loop": true, "playbackRateSource": "sceneTime", "anchors": ["ui_status", "serving_window_01", "table_01"], "parts": [], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "weather": { "domain": "weather", "requiredState": "ambient", "clip": "main-eatery-weather-awning-rain", "technique": "particle", "fps": 8, "loop": true, "playbackRateSource": "sceneTime", "anchors": ["occlusion_polygon", "queue_guest_01"], "parts": [], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "ui-feedback": { "domain": "feedback", "requiredState": "ambient", "clip": "main-eatery-ui-selection-pulse", "technique": "tint-light", "loop": false, "playbackRateSource": "fixed", "anchors": ["ui_status", "ui_selection"], "parts": [], "lodPolicy": { "LOD0": "full", "LOD1": "full", "LOD2": "static", "LOD3": "static" } }
+  },
+  "transitions": [
+    { "from": "idle", "to": "working", "blendMs": 120, "interruptible": true },
+    { "from": "working", "to": "serving", "blendMs": 100, "interruptible": true },
+    { "from": "working", "to": "storage_full", "blendMs": 80, "interruptible": true },
+    { "from": "working", "to": "blocked", "blendMs": 80, "interruptible": true },
+    { "from": "blocked", "to": "idle", "blendMs": 120, "interruptible": true },
+    { "from": "serving", "to": "idle", "blendMs": 140, "interruptible": true }
+  ],
+  "blockedVariants": {
+    "missing_worker": { "visualSlot": "blocked", "tooltipKey": "building.blocked.missing_worker" },
+    "missing_input": { "visualSlot": "blocked", "tooltipKey": "building.blocked.missing_input" },
+    "route_blocked": { "visualSlot": "blocked", "tooltipKey": "building.blocked.route_blocked" },
+    "kitchen_fire_hold": { "visualSlot": "blocked", "tooltipKey": "building.blocked.kitchen_fire_hold" }
+  }
+}

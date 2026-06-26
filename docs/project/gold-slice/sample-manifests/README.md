@@ -1,0 +1,31 @@
+# Gold-slice sample manifests
+
+This directory holds production-template JSON samples for gold building and animation manifests. Each complete sample lives in its own `assetId` directory with:
+
+- `building-manifest.json`
+- `animation-manifest.json`
+
+Run the batch gate before handing samples to runtime or CI:
+
+```bash
+npm run asset:validate:gold-samples
+```
+
+Current batch coverage:
+
+- `main-pier`
+- `main-homes`
+- `main-eatery`
+
+## Art export requirements
+
+For the next art-export pass, each new gold sample should:
+
+- use one of the validator-approved gold `assetId` values;
+- include validator-required authored levels `L0`, `L1`, `L4`, and `L8` at minimum;
+- declare all required logical sprite layers, even when a layer is visually tiny;
+- provide common anchors plus asset-specific anchors, such as `home_door_*` for `main-homes` or `stove_*` / `serving_window_*` for `main-eatery`;
+- keep LOD draw-call, texture, triangle, layer, and emitter budgets within `tools/asset-validator/asset-validator.js`;
+- keep animation slots independent for `blocked` and `storage_full`; reusing one generic blocked visual is not accepted.
+
+The JSON validator is intentionally not a substitute for reviewing Blender collections, atlas images, pivots, collision shape accuracy, or Pixi capture output.

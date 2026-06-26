@@ -130,6 +130,10 @@ export class BuildingVisual extends BaseVisual {
   private readonly prefabMainPierFoundation: Graphics | null
   private readonly prefabMainPierBerths: Graphics | null
   private readonly prefabMainPierCargo: Graphics | null
+  private readonly prefabGoldAssetDetails: Container | null
+  private readonly prefabGoldAssetGround: Graphics | null
+  private readonly prefabGoldAssetStructure: Graphics | null
+  private readonly prefabGoldAssetActivity: Graphics | null
   private readonly prefabLabel: Text | null
   private readonly statusLayer = new Container({ label: 'building-status-layer' })
   private readonly statusSymbol = new Graphics({ label: 'building-status-symbol' })
@@ -173,6 +177,15 @@ export class BuildingVisual extends BaseVisual {
         this.prefabMainPierBerths,
         this.prefabMainPierCargo,
       )
+      this.prefabGoldAssetDetails = new Container({ label: 'prefab-placeholder-gold-asset-details' })
+      this.prefabGoldAssetGround = new Graphics({ label: 'gold-asset-placeholder-ground' })
+      this.prefabGoldAssetStructure = new Graphics({ label: 'gold-asset-placeholder-structure' })
+      this.prefabGoldAssetActivity = new Graphics({ label: 'gold-asset-placeholder-activity' })
+      this.prefabGoldAssetDetails.addChild(
+        this.prefabGoldAssetGround,
+        this.prefabGoldAssetStructure,
+        this.prefabGoldAssetActivity,
+      )
       this.prefabLabel = new Text({
         text: '',
         style: {
@@ -204,6 +217,10 @@ export class BuildingVisual extends BaseVisual {
       this.prefabMainPierFoundation = null
       this.prefabMainPierBerths = null
       this.prefabMainPierCargo = null
+      this.prefabGoldAssetDetails = null
+      this.prefabGoldAssetGround = null
+      this.prefabGoldAssetStructure = null
+      this.prefabGoldAssetActivity = null
       this.prefabLabel = null
       this.display.addChild(this.body, this.statusLayer)
     }
@@ -326,6 +343,7 @@ export class BuildingVisual extends BaseVisual {
     this.prefabLevelMarks.stroke({ color: 0x283643, alpha: 0.42, width: 1 })
 
     this.drawMainPierPlaceholderDetails(resolved, left, top, width, height, stateColor)
+    this.drawGoldAssetPlaceholderDetails(resolved, left, top, width, height, stateColor)
 
     this.prefabLabel.text = `${resolved.assetId} · ${resolved.levelKey}`
     this.prefabLabel.label = `prefab-placeholder-label:${resolved.assetId}:${resolved.levelKey}`
@@ -339,6 +357,7 @@ export class BuildingVisual extends BaseVisual {
     this.prefabStatusBar?.clear()
     this.prefabLevelMarks?.clear()
     this.clearMainPierPlaceholderDetails()
+    this.clearGoldAssetPlaceholderDetails()
     if (this.prefabLabel) {
       this.prefabLabel.text = ''
       this.prefabLabel.label = 'prefab-placeholder-label'
@@ -538,6 +557,381 @@ export class BuildingVisual extends BaseVisual {
     }
     if (this.prefabMainPierCargo) {
       this.prefabMainPierCargo.label = 'main-pier-placeholder-cargo'
+    }
+  }
+
+  private drawGoldAssetPlaceholderDetails(
+    resolved: Readonly<ResolvedPrefabBuilding>,
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+    stateColor: number,
+  ): void {
+    if (
+      !this.prefabPlaceholder
+      || !this.prefabGoldAssetDetails
+      || !this.prefabGoldAssetGround
+      || !this.prefabGoldAssetStructure
+      || !this.prefabGoldAssetActivity
+      || !this.prefabLabel
+    ) {
+      return
+    }
+
+    if (
+      resolved.assetId !== 'main-homes'
+      && resolved.assetId !== 'main-eatery'
+      && resolved.assetId !== 'main-granary'
+    ) {
+      return
+    }
+
+    if (resolved.levelKey !== 'L0' && resolved.levelKey !== 'L4' && resolved.levelKey !== 'L8') {
+      return
+    }
+
+    if (!this.prefabGoldAssetDetails.parent) {
+      const labelIndex = this.prefabPlaceholder.children.indexOf(this.prefabLabel)
+      this.prefabPlaceholder.addChildAt(
+        this.prefabGoldAssetDetails,
+        Math.max(0, labelIndex),
+      )
+    }
+
+    this.prefabGoldAssetDetails.label = `prefab-placeholder-${resolved.assetId}-details:${resolved.levelKey}`
+
+    if (resolved.assetId === 'main-homes') {
+      this.drawMainHomesPlaceholderDetails(resolved.levelKey, left, top, width, height, stateColor)
+      return
+    }
+
+    if (resolved.assetId === 'main-eatery') {
+      this.drawMainEateryPlaceholderDetails(resolved.levelKey, left, top, width, height, stateColor)
+      return
+    }
+
+    this.drawMainGranaryPlaceholderDetails(resolved.levelKey, left, top, width, height, stateColor)
+  }
+
+  private drawMainHomesPlaceholderDetails(
+    levelKey: 'L0' | 'L4' | 'L8',
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+    stateColor: number,
+  ): void {
+    const ground = this.prefabGoldAssetGround
+    const structure = this.prefabGoldAssetStructure
+    const activity = this.prefabGoldAssetActivity
+    if (!ground || !structure || !activity) return
+
+    const yardY = top + height * 0.64
+    if (levelKey === 'L0') {
+      ground.label = 'main-homes-placeholder-lot:abandoned:L0'
+      structure.label = 'main-homes-placeholder-hut:collapsed:L0'
+      activity.label = 'main-homes-placeholder-yard:weeds:L0'
+
+      ground
+        .poly([left + width * 0.16, yardY, left + width * 0.5, yardY + 10, left + width * 0.84, yardY, left + width * 0.5, yardY - 12])
+        .fill({ color: 0x7b715f, alpha: 0.32 })
+        .moveTo(left + width * 0.2, yardY + 2)
+        .lineTo(left + width * 0.78, yardY - 6)
+        .stroke({ color: 0x4d463d, alpha: 0.42, width: 1 })
+      structure
+        .poly([left + width * 0.28, top + height * 0.48, left + width * 0.44, top + height * 0.3, left + width * 0.62, top + height * 0.5])
+        .fill({ color: 0x6b5a4a, alpha: 0.5 })
+        .moveTo(left + width * 0.35, top + height * 0.5)
+        .lineTo(left + width * 0.58, top + height * 0.38)
+        .stroke({ color: 0x352f2a, alpha: 0.55, width: 1.4 })
+      for (let index = 0; index < 5; index += 1) {
+        const x = left + width * (0.24 + index * 0.12)
+        activity
+          .moveTo(x, yardY + 4)
+          .lineTo(x + 3, yardY - 6 - (index % 2) * 3)
+          .lineTo(x + 7, yardY + 3)
+      }
+      activity.stroke({ color: 0x596b46, alpha: 0.58, width: 1.2 })
+      return
+    }
+
+    if (levelKey === 'L4') {
+      ground.label = 'main-homes-placeholder-courtyard:L4'
+      structure.label = 'main-homes-placeholder-homes:cluster:L4'
+      activity.label = 'main-homes-placeholder-residents:washline:L4'
+
+      ground
+        .roundRect(left + width * 0.18, top + height * 0.5, width * 0.64, height * 0.24, 4)
+        .fill({ color: 0xc9b58a, alpha: 0.32 })
+        .rect(left + width * 0.44, top + height * 0.56, width * 0.12, height * 0.1)
+        .fill({ color: 0x8c9a9a, alpha: 0.36 })
+      for (let index = 0; index < 3; index += 1) {
+        const x = left + width * (0.22 + index * 0.2)
+        structure
+          .rect(x, top + height * 0.34, width * 0.15, height * 0.18)
+          .fill({ color: 0x9f8660, alpha: 0.58 })
+          .poly([x - 2, top + height * 0.34, x + width * 0.075, top + height * 0.22, x + width * 0.15 + 2, top + height * 0.34])
+          .fill({ color: 0x7a9eb8, alpha: 0.58 })
+      }
+      activity
+        .moveTo(left + width * 0.28, top + height * 0.48)
+        .lineTo(left + width * 0.7, top + height * 0.44)
+        .stroke({ color: 0x283643, alpha: 0.42, width: 1 })
+        .rect(left + width * 0.36, top + height * 0.43, 7, 4)
+        .rect(left + width * 0.52, top + height * 0.41, 8, 4)
+        .fill({ color: stateColor, alpha: 0.72 })
+        .circle(left + width * 0.26, top + height * 0.62, 2.4)
+        .circle(left + width * 0.68, top + height * 0.6, 2.4)
+        .fill({ color: 0xe7c6a5, alpha: 0.86 })
+      return
+    }
+
+    ground.label = 'main-homes-placeholder-neighborhood:lanes:L8'
+    structure.label = 'main-homes-placeholder-homes:dense-row:L8'
+    activity.label = 'main-homes-placeholder-civic-yard:lanterns-residents:L8'
+
+    ground
+      .moveTo(left + width * 0.12, top + height * 0.62)
+      .lineTo(left + width * 0.88, top + height * 0.62)
+      .moveTo(left + width * 0.28, top + height * 0.46)
+      .lineTo(left + width * 0.72, top + height * 0.74)
+      .stroke({ color: 0xc9b58a, alpha: 0.62, width: 2 })
+      .roundRect(left + width * 0.42, top + height * 0.5, width * 0.16, height * 0.12, 4)
+      .fill({ color: 0x8c9a9a, alpha: 0.42 })
+    for (let index = 0; index < 5; index += 1) {
+      const x = left + width * (0.12 + index * 0.16)
+      structure
+        .rect(x, top + height * (0.28 + (index % 2) * 0.06), width * 0.13, height * 0.22)
+        .fill({ color: 0x9f8660, alpha: 0.6 })
+        .poly([x - 2, top + height * (0.28 + (index % 2) * 0.06), x + width * 0.065, top + height * (0.15 + (index % 2) * 0.05), x + width * 0.13 + 2, top + height * (0.28 + (index % 2) * 0.06)])
+        .fill({ color: 0x4f6e62, alpha: 0.66 })
+    }
+    for (let index = 0; index < 5; index += 1) {
+      const x = left + width * (0.2 + index * 0.13)
+      activity
+        .circle(x, top + height * 0.68, 2.2)
+        .fill({ color: 0xe7c6a5, alpha: 0.86 })
+        .circle(x + 4, top + height * 0.55, 2)
+        .fill({ color: 0xf0d982, alpha: 0.82 })
+    }
+  }
+
+  private drawMainEateryPlaceholderDetails(
+    levelKey: 'L0' | 'L4' | 'L8',
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+    stateColor: number,
+  ): void {
+    const ground = this.prefabGoldAssetGround
+    const structure = this.prefabGoldAssetStructure
+    const activity = this.prefabGoldAssetActivity
+    if (!ground || !structure || !activity) return
+
+    if (levelKey === 'L0') {
+      ground.label = 'main-eatery-placeholder-foundation:burnt-stall:L0'
+      structure.label = 'main-eatery-placeholder-kitchen:cold-hearth:L0'
+      activity.label = 'main-eatery-placeholder-seating:scattered:L0'
+
+      ground
+        .rect(left + width * 0.2, top + height * 0.58, width * 0.6, height * 0.12)
+        .fill({ color: 0x5b5046, alpha: 0.38 })
+        .moveTo(left + width * 0.24, top + height * 0.58)
+        .lineTo(left + width * 0.68, top + height * 0.44)
+        .stroke({ color: 0x3f3a34, alpha: 0.6, width: 1.4 })
+      structure
+        .circle(left + width * 0.5, top + height * 0.48, 8)
+        .stroke({ color: 0x6d6a62, alpha: 0.68, width: 2 })
+        .rect(left + width * 0.42, top + height * 0.38, width * 0.16, height * 0.08)
+        .fill({ color: 0x3f3a34, alpha: 0.35 })
+      activity
+        .rect(left + width * 0.26, top + height * 0.66, 10, 3)
+        .rect(left + width * 0.62, top + height * 0.62, 12, 3)
+        .rect(left + width * 0.5, top + height * 0.7, 8, 3)
+        .fill({ color: 0x7f6a4d, alpha: 0.52 })
+      return
+    }
+
+    if (levelKey === 'L4') {
+      ground.label = 'main-eatery-placeholder-shopfront:open:L4'
+      structure.label = 'main-eatery-placeholder-kitchen:steaming:L4'
+      activity.label = 'main-eatery-placeholder-tables:served:L4'
+
+      ground
+        .rect(left + width * 0.18, top + height * 0.5, width * 0.64, height * 0.2)
+        .fill({ color: 0xd69a72, alpha: 0.22 })
+        .rect(left + width * 0.18, top + height * 0.48, width * 0.64, 4)
+        .fill({ color: 0xf0b09a, alpha: 0.58 })
+      structure
+        .rect(left + width * 0.28, top + height * 0.32, width * 0.34, height * 0.2)
+        .fill({ color: 0x9c7048, alpha: 0.58 })
+        .poly([left + width * 0.24, top + height * 0.32, left + width * 0.45, top + height * 0.2, left + width * 0.66, top + height * 0.32])
+        .fill({ color: 0xb85c4c, alpha: 0.62 })
+      for (let index = 0; index < 3; index += 1) {
+        const x = left + width * (0.32 + index * 0.12)
+        activity
+          .moveTo(x, top + height * 0.28)
+          .lineTo(x + 4, top + height * 0.18)
+          .stroke({ color: 0xe4e0d4, alpha: 0.5, width: 1 })
+      }
+      activity
+        .circle(left + width * 0.28, top + height * 0.64, 5)
+        .circle(left + width * 0.52, top + height * 0.62, 5)
+        .circle(left + width * 0.7, top + height * 0.64, 5)
+        .fill({ color: stateColor, alpha: 0.48 })
+      return
+    }
+
+    ground.label = 'main-eatery-placeholder-food-street:awnings:L8'
+    structure.label = 'main-eatery-placeholder-kitchens:busy:L8'
+    activity.label = 'main-eatery-placeholder-crowd:banquet-stalls:L8'
+
+    for (let index = 0; index < 4; index += 1) {
+      const x = left + width * (0.14 + index * 0.18)
+      ground
+        .rect(x, top + height * 0.42, width * 0.15, 5)
+        .fill({ color: index % 2 ? 0xf0b09a : 0xf0d982, alpha: 0.76 })
+        .rect(x + 2, top + height * 0.48, width * 0.11, height * 0.14)
+        .fill({ color: 0xd69a72, alpha: 0.34 })
+      structure
+        .rect(x + 3, top + height * 0.3, width * 0.1, height * 0.15)
+        .fill({ color: 0x9c7048, alpha: 0.58 })
+    }
+    for (let index = 0; index < 5; index += 1) {
+      const x = left + width * (0.24 + index * 0.1)
+      structure
+        .moveTo(x, top + height * 0.28)
+        .lineTo(x + 3, top + height * 0.17)
+    }
+    structure.stroke({ color: 0xe4e0d4, alpha: 0.48, width: 1 })
+    for (let index = 0; index < 8; index += 1) {
+      activity
+        .circle(left + width * (0.18 + index * 0.08), top + height * (0.68 - (index % 2) * 0.05), 2.2)
+        .fill({ color: index % 2 ? 0xe7c6a5 : stateColor, alpha: 0.82 })
+    }
+  }
+
+  private drawMainGranaryPlaceholderDetails(
+    levelKey: 'L0' | 'L4' | 'L8',
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+    stateColor: number,
+  ): void {
+    const ground = this.prefabGoldAssetGround
+    const structure = this.prefabGoldAssetStructure
+    const activity = this.prefabGoldAssetActivity
+    if (!ground || !structure || !activity) return
+
+    if (levelKey === 'L0') {
+      ground.label = 'main-granary-placeholder-ground:spilled-grain:L0'
+      structure.label = 'main-granary-placeholder-silo:broken:L0'
+      activity.label = 'main-granary-placeholder-pest-clutter:L0'
+
+      ground
+        .circle(left + width * 0.36, top + height * 0.66, 7)
+        .circle(left + width * 0.56, top + height * 0.62, 5)
+        .fill({ color: 0xe4b94f, alpha: 0.36 })
+      structure
+        .rect(left + width * 0.34, top + height * 0.34, width * 0.16, height * 0.24)
+        .fill({ color: 0x8c806f, alpha: 0.5 })
+        .moveTo(left + width * 0.32, top + height * 0.34)
+        .lineTo(left + width * 0.58, top + height * 0.48)
+        .stroke({ color: 0x3f3a34, alpha: 0.62, width: 1.5 })
+      activity
+        .circle(left + width * 0.62, top + height * 0.7, 2)
+        .circle(left + width * 0.68, top + height * 0.66, 2)
+        .rect(left + width * 0.24, top + height * 0.68, 10, 4)
+        .fill({ color: 0x3f3a34, alpha: 0.46 })
+      return
+    }
+
+    if (levelKey === 'L4') {
+      ground.label = 'main-granary-placeholder-storehouse:raised:L4'
+      structure.label = 'main-granary-placeholder-bins:sorted:L4'
+      activity.label = 'main-granary-placeholder-labor:cart-scale:L4'
+
+      ground
+        .rect(left + width * 0.22, top + height * 0.58, width * 0.56, 5)
+        .fill({ color: 0x7f6a4d, alpha: 0.58 })
+        .moveTo(left + width * 0.26, top + height * 0.58)
+        .lineTo(left + width * 0.26, top + height * 0.7)
+        .moveTo(left + width * 0.72, top + height * 0.58)
+        .lineTo(left + width * 0.72, top + height * 0.7)
+        .stroke({ color: 0x3f3a34, alpha: 0.42, width: 1.2 })
+      structure
+        .rect(left + width * 0.28, top + height * 0.34, width * 0.34, height * 0.23)
+        .fill({ color: 0x9f8660, alpha: 0.62 })
+        .poly([left + width * 0.25, top + height * 0.34, left + width * 0.45, top + height * 0.2, left + width * 0.66, top + height * 0.34])
+        .fill({ color: 0xc9b58a, alpha: 0.68 })
+        .rect(left + width * 0.66, top + height * 0.4, width * 0.11, height * 0.16)
+        .fill({ color: 0xe4b94f, alpha: 0.46 })
+      activity
+        .rect(left + width * 0.22, top + height * 0.68, 16, 7)
+        .fill({ color: 0x9c7048, alpha: 0.55 })
+        .circle(left + width * 0.27, top + height * 0.77, 2.5)
+        .circle(left + width * 0.37, top + height * 0.77, 2.5)
+        .fill({ color: 0x3f3a34, alpha: 0.72 })
+        .circle(left + width * 0.74, top + height * 0.64, 4)
+        .stroke({ color: stateColor, alpha: 0.7, width: 1.4 })
+      return
+    }
+
+    ground.label = 'main-granary-placeholder-warehouse:multi-bay:L8'
+    structure.label = 'main-granary-placeholder-silos:stacked:L8'
+    activity.label = 'main-granary-placeholder-market-yard:carts-workers:L8'
+
+    ground
+      .rect(left + width * 0.12, top + height * 0.56, width * 0.76, height * 0.14)
+      .fill({ color: 0xc9b58a, alpha: 0.28 })
+    for (let index = 0; index < 3; index += 1) {
+      const x = left + width * (0.16 + index * 0.19)
+      ground
+        .rect(x, top + height * 0.42, width * 0.16, height * 0.16)
+        .fill({ color: 0x9f8660, alpha: 0.56 })
+        .rect(x + width * 0.04, top + height * 0.52, width * 0.08, height * 0.06)
+        .fill({ color: 0x283643, alpha: 0.3 })
+    }
+    for (let index = 0; index < 4; index += 1) {
+      const x = left + width * (0.2 + index * 0.14)
+      structure
+        .roundRect(x, top + height * (0.22 + (index % 2) * 0.05), width * 0.1, height * 0.26, 4)
+        .fill({ color: 0xe4b94f, alpha: 0.44 })
+        .rect(x, top + height * (0.2 + (index % 2) * 0.05), width * 0.1, 3)
+        .fill({ color: 0x7f6a4d, alpha: 0.58 })
+    }
+    for (let index = 0; index < 4; index += 1) {
+      const x = left + width * (0.22 + index * 0.14)
+      activity
+        .rect(x, top + height * 0.68, 12, 5)
+        .fill({ color: 0x9c7048, alpha: 0.58 })
+        .circle(x + 2, top + height * 0.75, 2)
+        .circle(x + 10, top + height * 0.75, 2)
+        .fill({ color: 0x3f3a34, alpha: 0.7 })
+        .circle(x + 6, top + height * 0.62, 2)
+        .fill({ color: stateColor, alpha: 0.82 })
+    }
+  }
+
+  private clearGoldAssetPlaceholderDetails(): void {
+    this.prefabGoldAssetGround?.clear()
+    this.prefabGoldAssetStructure?.clear()
+    this.prefabGoldAssetActivity?.clear()
+    if (this.prefabGoldAssetDetails) {
+      this.prefabGoldAssetDetails.label = 'prefab-placeholder-gold-asset-details'
+      this.prefabGoldAssetDetails.removeFromParent()
+    }
+    if (this.prefabGoldAssetGround) {
+      this.prefabGoldAssetGround.label = 'gold-asset-placeholder-ground'
+    }
+    if (this.prefabGoldAssetStructure) {
+      this.prefabGoldAssetStructure.label = 'gold-asset-placeholder-structure'
+    }
+    if (this.prefabGoldAssetActivity) {
+      this.prefabGoldAssetActivity.label = 'gold-asset-placeholder-activity'
     }
   }
 

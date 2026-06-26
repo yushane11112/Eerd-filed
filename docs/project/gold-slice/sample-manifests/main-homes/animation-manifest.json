@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "gold-animation.v1",
+  "assetId": "main-homes",
+  "statePriority": ["constructing", "blocked", "storage_full", "working", "serving", "idle", "ambient"],
+  "slots": {
+    "base": { "domain": "building", "requiredState": "idle", "clip": "main-homes-base-structure", "technique": "none", "loop": true, "playbackRateSource": "fixed", "anchors": ["origin"], "parts": [], "lodPolicy": { "LOD0": "static", "LOD1": "static", "LOD2": "static", "LOD3": "static" } },
+    "idle-detail": { "domain": "ambient", "requiredState": "idle", "clip": "main-homes-idle-smoke-laundry-window", "technique": "sprite-sequence", "fps": 4, "loop": true, "playbackRateSource": "sceneTime", "anchors": ["cooking_smoke_01", "window_light_01", "audio_hearth_01"], "parts": ["cooking_smoke_puff", "laundry_line"], "audioCues": [{ "key": "home.hearth.soft", "frame": 0 }], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "staff-entry": { "domain": "building", "requiredState": "working", "clip": "main-homes-resident-enters-from-front", "technique": "sprite-sequence", "fps": 8, "loop": false, "playbackRateSource": "orderPhase", "anchors": ["entrance_main", "home_door_01", "queue_front_01"], "parts": ["home_door_leaf"], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "input-receive": { "domain": "logistics", "requiredState": "working", "clip": "main-homes-supplies-carried-to-yard", "technique": "sprite-sequence", "fps": 8, "loop": false, "playbackRateSource": "productionProgress", "anchors": ["input_supplies_01", "worker_01", "home_door_01"], "parts": ["home_door_leaf"], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "production-primary": { "domain": "domestic", "requiredState": "working", "clip": "main-homes-cooking-and-yard-chores", "technique": "part-transform", "fps": 8, "loop": true, "progressRange": { "from": 20, "to": 75 }, "playbackRateSource": "productionProgress", "anchors": ["worker_01", "cooking_smoke_01", "audio_hearth_01"], "parts": ["cooking_smoke_puff", "laundry_line"], "audioCues": [{ "key": "home.cooking.sizzle", "progress": 40 }], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "production-secondary": { "domain": "domestic", "requiredState": "working", "clip": "main-homes-window-and-door-life", "technique": "part-transform", "fps": 6, "loop": true, "progressRange": { "from": 75, "to": 95 }, "playbackRateSource": "productionProgress", "anchors": ["window_light_01", "window_light_02", "home_door_02"], "parts": ["window_shutter_a"], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "output-ready": { "domain": "logistics", "requiredState": "working", "clip": "main-homes-resident-ready-at-door", "technique": "sprite-sequence", "fps": 6, "loop": false, "progressRange": { "from": 95, "to": 100 }, "playbackRateSource": "productionProgress", "anchors": ["output_resident_01", "home_door_01"], "parts": ["home_door_leaf"], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "output-dispatch": { "domain": "logistics", "requiredState": "serving", "clip": "main-homes-resident-leaves-or-returns", "technique": "sprite-sequence", "fps": 8, "loop": false, "playbackRateSource": "orderPhase", "anchors": ["output_resident_01", "return_home_01", "entrance_main"], "parts": ["home_door_leaf"], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "service": { "domain": "service", "requiredState": "serving", "clip": "main-homes-family-service-loop", "technique": "sprite-sequence", "fps": 8, "loop": true, "playbackRateSource": "orderPhase", "anchors": ["service_home_01", "queue_front_01", "worker_02"], "parts": [], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "blocked": { "domain": "feedback", "requiredState": "blocked", "allowedReasons": ["missing_worker", "missing_input", "route_blocked", "night_rest"], "clip": "main-homes-blocked-door-sign", "technique": "tint-light", "loop": true, "playbackRateSource": "fixed", "anchors": ["ui_status", "entrance_main"], "parts": [], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "static" } },
+    "storage-full": { "domain": "feedback", "requiredState": "storage_full", "clip": "main-homes-storage-full-yard-jars", "technique": "sprite-sequence", "fps": 4, "loop": true, "playbackRateSource": "fixed", "anchors": ["input_supplies_01", "service_home_01"], "parts": [], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "static" } },
+    "construction": { "domain": "construction", "requiredState": "constructing", "clip": "main-homes-construction-stages", "technique": "sprite-sequence", "fps": 10, "loop": false, "progressRange": { "from": 0, "to": 100 }, "playbackRateSource": "constructionProgress", "anchors": ["construction_stage_01", "worker_01"], "parts": ["home_door_leaf"], "audioCues": [{ "key": "home.build.hammer", "progress": 35 }], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "night": { "domain": "ambient", "requiredState": "ambient", "clip": "main-homes-night-window-lights", "technique": "tint-light", "loop": true, "playbackRateSource": "sceneTime", "anchors": ["window_light_01", "window_light_02", "ui_status"], "parts": [], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "weather": { "domain": "weather", "requiredState": "ambient", "clip": "main-homes-weather-eave-rain", "technique": "particle", "fps": 8, "loop": true, "playbackRateSource": "sceneTime", "anchors": ["occlusion_polygon", "queue_front_01"], "parts": [], "lodPolicy": { "LOD0": "full", "LOD1": "reduced", "LOD2": "static", "LOD3": "off" } },
+    "ui-feedback": { "domain": "feedback", "requiredState": "ambient", "clip": "main-homes-ui-selection-pulse", "technique": "tint-light", "loop": false, "playbackRateSource": "fixed", "anchors": ["ui_status", "ui_selection"], "parts": [], "lodPolicy": { "LOD0": "full", "LOD1": "full", "LOD2": "static", "LOD3": "static" } }
+  },
+  "transitions": [
+    { "from": "idle", "to": "working", "blendMs": 120, "interruptible": true },
+    { "from": "working", "to": "serving", "blendMs": 100, "interruptible": true },
+    { "from": "working", "to": "storage_full", "blendMs": 80, "interruptible": true },
+    { "from": "working", "to": "blocked", "blendMs": 80, "interruptible": true },
+    { "from": "blocked", "to": "idle", "blendMs": 120, "interruptible": true },
+    { "from": "serving", "to": "idle", "blendMs": 140, "interruptible": true }
+  ],
+  "blockedVariants": {
+    "missing_worker": { "visualSlot": "blocked", "tooltipKey": "building.blocked.missing_worker" },
+    "missing_input": { "visualSlot": "blocked", "tooltipKey": "building.blocked.missing_input" },
+    "route_blocked": { "visualSlot": "blocked", "tooltipKey": "building.blocked.route_blocked" },
+    "night_rest": { "visualSlot": "night", "tooltipKey": "building.blocked.night_rest" }
+  }
+}

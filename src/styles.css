@@ -31,6 +31,59 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
 }
 .simulation-canvas:active { cursor: grabbing; }
 .simulation-canvas canvas { width: 100%; height: 100%; display: block; }
+.drop-affordance-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.drop-affordance {
+  position: absolute;
+  left: var(--drop-x);
+  top: var(--drop-y);
+  width: 30px;
+  height: 30px;
+  transform: translate(-50%, -82%);
+  border: 2px solid rgba(255, 248, 191, .95);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 38% 30%, rgba(255,255,255,.95) 0 10%, transparent 11%),
+    radial-gradient(circle at 50% 50%, rgba(239,194,73,.95) 0 36%, rgba(169,103,43,.92) 38% 56%, rgba(67,55,33,.18) 58% 62%, transparent 64%);
+  box-shadow: 0 0 0 4px rgba(255, 225, 96, .22), 0 9px 16px rgba(50, 67, 38, .28);
+  animation: drop-pulse 1.15s ease-in-out infinite;
+}
+.drop-affordance::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  transform: translate(-50%, -50%);
+  border: 1px dashed rgba(255, 246, 172, .78);
+  border-radius: 999px;
+}
+.drop-affordance i {
+  position: absolute;
+  right: -5px;
+  bottom: -3px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  border: 1px solid rgba(255,255,255,.82);
+  border-radius: 999px;
+  color: #fff8d6;
+  background: rgba(60, 82, 54, .9);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 13px;
+  text-align: center;
+}
+@keyframes drop-pulse {
+  0%, 100% { transform: translate(-50%, -82%) scale(1); }
+  50% { transform: translate(-50%, -92%) scale(1.08); }
+}
 
 .glass-panel {
   border: 1px solid rgba(255,255,255,.72);

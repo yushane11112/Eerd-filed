@@ -5,6 +5,7 @@ import type {
   HouseholdState,
   SimulationSystem,
 } from '../contracts'
+import { EconomySystem } from '../economy'
 import { SimulationEngine } from './SimulationEngine'
 import { createInitialSimulationSnapshot } from './snapshot'
 
@@ -27,6 +28,16 @@ const definitions: Record<string, BuildingDefinition> = {
     entrance: { x: 0, y: 1 },
     maxLevel: 8,
     jobs: 4,
+    capacity: 10,
+  },
+  market: {
+    type: 'market',
+    name: '集市',
+    category: 'market',
+    footprint: [{ x: 0, y: 0 }],
+    entrance: { x: 0, y: 1 },
+    maxLevel: 8,
+    jobs: 1,
     capacity: 10,
   },
 }
@@ -268,6 +279,53 @@ describe('SimulationEngine', () => {
     engine.step(8)
 
     expect(engine.snapshot.households.family.satisfaction).toBeGreaterThan(40)
+  })
+
+  it('turns market stockouts into visible household satisfaction pressure', () => {
+    const snapshot = createInitialSimulationSnapshot({
+      buildings: {
+        home: building('home', 'house'),
+        market: building('market', 'market'),
+      },
+    })
+    snapshot.households.family = {
+      id: 'family',
+      homeBuildingId: 'home',
+      members: 2,
+      workerIds: ['worker-1'],
+      income: 0,
+      satisfaction: 60,
+      needs: {
+        food: 35,
+        goods: 100,
+        health: 100,
+        education: 100,
+        entertainment: 100,
+      },
+    }
+    snapshot.agents['worker-1'] = {
+      id: 'worker-1',
+      role: 'worker',
+      householdId: 'family',
+      position: { x: 0, y: 1 },
+      path: [],
+      pathIndex: 0,
+      activity: 'home',
+    }
+
+    const engine = new SimulationEngine(snapshot, {
+      buildingDefinitions: definitions,
+      systems: [new EconomySystem({ definitions })],
+      migrationIntervalTicks: 100,
+      migrationOutThreshold: 0,
+    })
+
+    engine.step(6)
+
+    const family = engine.snapshot.households.family
+    expect(family.needs.food).toBeLessThan(35)
+    expect(family.satisfaction).toBeLessThan(60)
+    expect(engine.snapshot.buildings.market.statusReason).toBe('missing-service-resource:food')
   })
 
   it('is reproducible from the same snapshot and seed', () => {

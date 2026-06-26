@@ -1,7 +1,7 @@
 import { Application, Graphics } from 'pixi.js'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { DynamicScene, gridToScreen, screenToGrid } from '../rendering'
-import type { GridPoint, SimulationSnapshot } from '../simulation/contracts'
+import type { CameraState, GridPoint, SimulationSnapshot } from '../simulation/contracts'
 import { CameraController, DragController } from '../ui'
 import type { BuildTool, GameRuntime } from '../integration/GameRuntime'
 
@@ -29,6 +29,9 @@ interface SimulationCanvasProps {
 const WORLD_BOUNDS = { x: -1120, y: -180, width: 2400, height: 1440 }
 const FOCUS_ZOOM = 1.05
 const FOCUS_DURATION_MS = 420
+const DROP_PICKUP_RADIUS = 1.35
+const DROP_SWEEP_RADIUS = 1.1
+const DROP_SWEEP_SAMPLE_STEP = 0.65
 
 export function SimulationCanvas({
   runtime,
@@ -45,12 +48,25 @@ export function SimulationCanvas({
   const terrainRef = useRef<Graphics | null>(null)
   const snapshotRef = useRef(snapshot)
   const toolRef = useRef(tool)
+  const [cameraView, setCameraView] = useState<Readonly<CameraState>>(() => ({
+    x: 0,
+    y: 520,
+    zoom: 0.72,
+    viewportWidth: 0,
+    viewportHeight: 0,
+    fullscreen: false,
+  }))
   const cameraRef = useRef(new CameraController({
     bounds: WORLD_BOUNDS,
     zoom: { min: 0.48, max: 1.65 },
     initial: { x: 0, y: 520, zoom: 0.72 },
   }))
   const dragRef = useRef(new DragController(5))
+  const sweepRef = useRef<{
+    pointerId: number
+    lastScreen: { x: number; y: number }
+    lastGrid: GridPoint
+  } | null>(null)
   const focusAnimationRef = useRef<number | null>(null)
 
   snapshotRef.current = snapshot
@@ -83,6 +99,7 @@ export function SimulationCanvas({
       scene.layers.terrain.addChild(terrain)
       app.stage.addChild(scene.root)
       cameraRef.current.setViewport({ width: host.clientWidth, height: host.clientHeight })
+      setCameraView({ ...cameraRef.current.getState() })
       drawTerrain(terrain, snapshotRef.current)
       syncScene()
       app.ticker.add(syncScene)
@@ -96,7 +113,10 @@ export function SimulationCanvas({
     }
 
     void initialise()
-    const unsubscribe = cameraRef.current.subscribe(syncScene)
+    const unsubscribe = cameraRef.current.subscribe(() => {
+      syncScene()
+      setCameraView({ ...cameraRef.current.getState() })
+    })
     const resize = new ResizeObserver(() => {
       cameraRef.current.setViewport({ width: host.clientWidth, height: host.clientHeight })
     })
@@ -155,33 +175,69 @@ export function SimulationCanvas({
   }
 
   const gridPoint = (screen: { x: number; y: number }): GridPoint => {
+    const grid = rawGridPoint(screen)
+    return { x: Math.round(grid.x), y: Math.round(grid.y) }
+  }
+
+  const rawGridPoint = (screen: { x: number; y: number }): GridPoint => {
     const camera = cameraRef.current.getState()
     const world = {
       x: camera.x + (screen.x - camera.viewportWidth / 2) / camera.zoom,
       y: camera.y + (screen.y - camera.viewportHeight / 2) / camera.zoom,
     }
-    const grid = screenToGrid(world)
-    return { x: Math.round(grid.x), y: Math.round(grid.y) }
+    return screenToGrid(world)
   }
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (event.button === 2) return
     cancelFocusAnimation(focusAnimationRef)
     const point = localPoint(event)
+    const grid = rawGridPoint(point)
+    if (hasNearbyDrop(snapshotRef.current, grid, DROP_PICKUP_RADIUS)) {
+      sweepRef.current = {
+        pointerId: event.pointerId,
+        lastScreen: point,
+        lastGrid: grid,
+      }
+      event.currentTarget.setPointerCapture(event.pointerId)
+      collectDropAt(grid, DROP_PICKUP_RADIUS)
+      return
+    }
     dragRef.current.start(event.pointerId, point)
     event.currentTarget.setPointerCapture(event.pointerId)
   }
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    const update = dragRef.current.move(event.pointerId, localPoint(event))
+    const point = localPoint(event)
+    const sweep = sweepRef.current
+    if (sweep?.pointerId === event.pointerId) {
+      const grid = rawGridPoint(point)
+      collectDropsAlongPath(sweep.lastGrid, grid)
+      sweepRef.current = {
+        pointerId: event.pointerId,
+        lastScreen: point,
+        lastGrid: grid,
+      }
+      return
+    }
+
+    const update = dragRef.current.move(event.pointerId, point)
     if (update?.state.dragging) cameraRef.current.panByScreenDelta(update.delta)
   }
 
   const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    const sweep = sweepRef.current
+    if (sweep?.pointerId === event.pointerId) {
+      const point = localPoint(event)
+      collectDropsAlongPath(sweep.lastGrid, rawGridPoint(point))
+      sweepRef.current = null
+      return
+    }
+
     const ended = dragRef.current.end(event.pointerId)
     if (!ended || ended.dragging || !ended.last) return
     const point = gridPoint(ended.last)
-    const collected = runtime.collectNearest(point)
+    const collected = runtime.collectNearest(point, DROP_PICKUP_RADIUS)
     if (collected.ok) {
       onToast(collected.message)
       return
@@ -216,7 +272,10 @@ export function SimulationCanvas({
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onPointerCancel={() => dragRef.current.cancel()}
+      onPointerCancel={() => {
+        sweepRef.current = null
+        dragRef.current.cancel()
+      }}
       onWheel={handleWheel}
       onContextMenu={(event) => {
         event.preventDefault()
@@ -225,8 +284,58 @@ export function SimulationCanvas({
         onToolChange(inspect)
         onToast('已退出当前营造操作')
       }}
-    />
+    >
+      <div className="drop-affordance-layer" aria-hidden="true">
+        {snapshot.worldDrops.map((drop) => {
+          const position = dropToViewport(drop.position, cameraView)
+          return (
+            <span
+              key={drop.id}
+              className="drop-affordance"
+              style={{
+                '--drop-x': `${position.x}px`,
+                '--drop-y': `${position.y}px`,
+              } as React.CSSProperties}
+            >
+              <i>{drop.amount}</i>
+            </span>
+          )
+        })}
+      </div>
+    </div>
   )
+
+  function collectDropAt(point: GridPoint, radius = DROP_SWEEP_RADIUS): boolean {
+    const collected = runtime.collectNearest(point, radius)
+    if (!collected.ok) return false
+    onToast(collected.message)
+    return true
+  }
+
+  function collectDropsAlongPath(from: GridPoint, to: GridPoint): void {
+    const distance = Math.hypot(to.x - from.x, to.y - from.y)
+    const steps = Math.max(1, Math.ceil(distance / DROP_SWEEP_SAMPLE_STEP))
+    for (let index = 1; index <= steps; index += 1) {
+      collectDropAt({
+        x: lerp(from.x, to.x, index / steps),
+        y: lerp(from.y, to.y, index / steps),
+      })
+    }
+  }
+}
+
+function hasNearbyDrop(snapshot: Readonly<SimulationSnapshot>, point: GridPoint, radius: number): boolean {
+  return snapshot.worldDrops.some((drop) => (
+    Math.hypot(drop.position.x - point.x, drop.position.y - point.y) <= radius
+  ))
+}
+
+function dropToViewport(point: GridPoint, camera: Readonly<CameraState>): { x: number; y: number } {
+  const world = gridToScreen(point)
+  return {
+    x: camera.viewportWidth / 2 + (world.x - camera.x) * camera.zoom,
+    y: camera.viewportHeight / 2 + (world.y - camera.y) * camera.zoom,
+  }
 }
 
 function drawTerrain(graphics: Graphics, snapshot: SimulationSnapshot) {

@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "gold-building.v1",
+  "assetId": "main-homes",
+  "displayName": "海风民居",
+  "version": "0.1.0-gold-sample",
+  "sourceBlend": "art-source/blender/buildings/main-homes/main-homes.blend",
+  "buildBatch": "gold-slice",
+  "footprint": [{ "x": 0, "y": 0 }, { "x": 3, "y": 0 }, { "x": 3, "y": 3 }, { "x": 0, "y": 3 }],
+  "footprintMeters": { "width": 18, "depth": 18 },
+  "origin": { "x": 9, "y": 0, "z": 0 },
+  "entranceDirection": "SE",
+  "bounds": {
+    "localPx": { "left": -160, "right": 176, "top": -220, "bottom": 96 },
+    "localMeters": { "width": 18, "depth": 18, "height": 8.4 }
+  },
+  "levels": {
+    "L0": {
+      "required": true,
+      "dccCollections": ["COL_L00", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-homes-L0", "frame": "shadow", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ground/foundation", "atlas": "main-homes-L0", "frame": "packed-earth-foundation", "zBand": "ground", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_back", "atlas": "main-homes-L0", "frame": "rear-frame-and-roof-bones", "zBand": "back", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_static", "atlas": "main-homes-L0", "frame": "drying-rack-static", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_dynamic", "atlas": "main-homes-L0", "frame": "laundry-and-door-flap", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "agent_interaction", "atlas": "main-homes-L0", "frame": "resident-slot", "zBand": "agent", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_front/foreground_occluder", "atlas": "main-homes-L0", "frame": "front-fence-occluder", "zBand": "front", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "night_lights", "atlas": "main-homes-L0", "frame": "single-window-warm-light", "zBand": "light", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "weather_overlay", "atlas": "main-homes-L0", "frame": "rain-on-thatch", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "vfx", "atlas": "main-homes-L0", "frame": "small-cooking-smoke", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ui_anchor", "atlas": "main-homes-L0", "frame": "ui-anchor-debug", "zBand": "ui", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["home_door_leaf", "window_shutter_a", "cooking_smoke_puff", "laundry_line"],
+      "anchors": ["origin", "entrance_main", "worker_01", "input_supplies_01", "output_resident_01", "service_home_01", "queue_front_01", "ui_status", "ui_selection", "audio_hearth_01", "construction_stage_01", "occlusion_polygon", "collision_obstacle", "click_hull", "home_door_01", "window_light_01", "cooking_smoke_01", "return_home_01"],
+      "collisionProfile": "main-homes-L0-yard-frame",
+      "occlusionProfile": "main-homes-L0-front-fence",
+      "constructionReveal": [
+        { "progressFrom": 0, "progressTo": 50, "show": ["packed-earth-foundation"], "hide": ["single-window-warm-light"] },
+        { "progressFrom": 50, "progressTo": 100, "show": ["rear-frame-and-roof-bones", "front-fence-occluder"], "hide": [] }
+      ],
+      "lod": {
+        "LOD0": { "atlas": "main-homes-L0-lod0", "maxDrawCalls": 8, "maxTextureMB": 9 },
+        "LOD1": { "atlas": "main-homes-L0-lod1", "maxDrawCalls": 5, "maxTextureMB": 5 },
+        "LOD2": { "atlas": "main-homes-L0-lod2", "maxDrawCalls": 2, "maxTextureMB": 2 },
+        "LOD3": { "atlas": "main-homes-L0-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
+      }
+    },
+    "L1": {
+      "required": true,
+      "dccCollections": ["COL_L01", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-homes-L1", "frame": "shadow", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ground/foundation", "atlas": "main-homes-L1", "frame": "stone-threshold-and-yard", "zBand": "ground", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_back", "atlas": "main-homes-L1", "frame": "whitewashed-back-wall", "zBand": "back", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_static", "atlas": "main-homes-L1", "frame": "water-jar-and-baskets", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_dynamic", "atlas": "main-homes-L1", "frame": "door-curtain-and-laundry", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "agent_interaction", "atlas": "main-homes-L1", "frame": "resident-and-visitor-slots", "zBand": "agent", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_front/foreground_occluder", "atlas": "main-homes-L1", "frame": "front-eave-occluder", "zBand": "front", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "night_lights", "atlas": "main-homes-L1", "frame": "two-window-warm-light", "zBand": "light", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "weather_overlay", "atlas": "main-homes-L1", "frame": "rain-runoff-eaves", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "vfx", "atlas": "main-homes-L1", "frame": "hearth-smoke-thread", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ui_anchor", "atlas": "main-homes-L1", "frame": "ui-anchor-debug", "zBand": "ui", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["home_door_leaf", "window_shutter_a", "cooking_smoke_puff", "laundry_line"],
+      "anchors": ["origin", "entrance_main", "worker_01", "input_supplies_01", "output_resident_01", "service_home_01", "queue_front_01", "ui_status", "ui_selection", "audio_hearth_01", "construction_stage_01", "occlusion_polygon", "collision_obstacle", "click_hull", "home_door_01", "window_light_01", "cooking_smoke_01", "return_home_01"],
+      "collisionProfile": "main-homes-L1-single-family",
+      "occlusionProfile": "main-homes-L1-front-eave",
+      "constructionReveal": [{ "progressFrom": 0, "progressTo": 100, "show": ["stone-threshold-and-yard", "whitewashed-back-wall", "front-eave-occluder"], "hide": [] }],
+      "lod": {
+        "LOD0": { "atlas": "main-homes-L1-lod0", "maxDrawCalls": 8, "maxTextureMB": 9 },
+        "LOD1": { "atlas": "main-homes-L1-lod1", "maxDrawCalls": 5, "maxTextureMB": 5 },
+        "LOD2": { "atlas": "main-homes-L1-lod2", "maxDrawCalls": 2, "maxTextureMB": 2 },
+        "LOD3": { "atlas": "main-homes-L1-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
+      }
+    },
+    "L4": {
+      "required": true,
+      "dccCollections": ["COL_L04", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-homes-L4", "frame": "shadow", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ground/foundation", "atlas": "main-homes-L4", "frame": "shared-courtyard-stone", "zBand": "ground", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_back", "atlas": "main-homes-L4", "frame": "two-room-back-volume", "zBand": "back", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_static", "atlas": "main-homes-L4", "frame": "courtyard-tools-and-jars", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_dynamic", "atlas": "main-homes-L4", "frame": "busy-laundry-and-door-flaps", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "agent_interaction", "atlas": "main-homes-L4", "frame": "family-courtyard-slots", "zBand": "agent", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_front/foreground_occluder", "atlas": "main-homes-L4", "frame": "deep-eave-and-gate-occluder", "zBand": "front", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "night_lights", "atlas": "main-homes-L4", "frame": "courtyard-lanterns", "zBand": "light", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "weather_overlay", "atlas": "main-homes-L4", "frame": "wet-courtyard-and-eaves", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "vfx", "atlas": "main-homes-L4", "frame": "two-hearth-smoke", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ui_anchor", "atlas": "main-homes-L4", "frame": "ui-anchor-debug", "zBand": "ui", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["home_door_leaf", "window_shutter_a", "cooking_smoke_puff", "laundry_line"],
+      "anchors": ["origin", "entrance_main", "worker_01", "worker_02", "input_supplies_01", "output_resident_01", "service_home_01", "queue_front_01", "ui_status", "ui_selection", "audio_hearth_01", "construction_stage_01", "occlusion_polygon", "collision_obstacle", "click_hull", "home_door_01", "window_light_01", "window_light_02", "cooking_smoke_01", "return_home_01"],
+      "collisionProfile": "main-homes-L4-shared-courtyard",
+      "occlusionProfile": "main-homes-L4-deep-eave",
+      "constructionReveal": [{ "progressFrom": 0, "progressTo": 100, "show": ["shared-courtyard-stone", "two-room-back-volume", "deep-eave-and-gate-occluder"], "hide": [] }],
+      "lod": {
+        "LOD0": { "atlas": "main-homes-L4-lod0", "maxDrawCalls": 9, "maxTextureMB": 10 },
+        "LOD1": { "atlas": "main-homes-L4-lod1", "maxDrawCalls": 6, "maxTextureMB": 6 },
+        "LOD2": { "atlas": "main-homes-L4-lod2", "maxDrawCalls": 3, "maxTextureMB": 2 },
+        "LOD3": { "atlas": "main-homes-L4-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
+      }
+    },
+    "L8": {
+      "required": true,
+      "dccCollections": ["COL_L08", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-homes-L8", "frame": "shadow", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ground/foundation", "atlas": "main-homes-L8", "frame": "expanded-family-yard", "zBand": "ground", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_back", "atlas": "main-homes-L8", "frame": "finished-two-storey-back-volume", "zBand": "back", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_static", "atlas": "main-homes-L8", "frame": "garden-storage-and-family-table", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_dynamic", "atlas": "main-homes-L8", "frame": "doors-windows-laundry-and-smoke", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "agent_interaction", "atlas": "main-homes-L8", "frame": "two-residents-and-guest-slots", "zBand": "agent", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_front/foreground_occluder", "atlas": "main-homes-L8", "frame": "front-gate-balcony-occluder", "zBand": "front", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "night_lights", "atlas": "main-homes-L8", "frame": "many-window-and-lantern-lights", "zBand": "light", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "weather_overlay", "atlas": "main-homes-L8", "frame": "storm-safe-eave-rain", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "vfx", "atlas": "main-homes-L8", "frame": "chimney-smoke-and-fireflies", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ui_anchor", "atlas": "main-homes-L8", "frame": "ui-anchor-debug", "zBand": "ui", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["home_door_leaf", "window_shutter_a", "cooking_smoke_puff", "laundry_line"],
+      "anchors": ["origin", "entrance_main", "worker_01", "worker_02", "input_supplies_01", "output_resident_01", "service_home_01", "queue_front_01", "ui_status", "ui_selection", "audio_hearth_01", "construction_stage_01", "occlusion_polygon", "collision_obstacle", "click_hull", "home_door_01", "home_door_02", "window_light_01", "window_light_02", "cooking_smoke_01", "return_home_01"],
+      "collisionProfile": "main-homes-L8-family-compound",
+      "occlusionProfile": "main-homes-L8-balcony-gate",
+      "constructionReveal": [{ "progressFrom": 0, "progressTo": 100, "show": ["expanded-family-yard", "finished-two-storey-back-volume", "front-gate-balcony-occluder"], "hide": [] }],
+      "lod": {
+        "LOD0": { "atlas": "main-homes-L8-lod0", "maxDrawCalls": 10, "maxTextureMB": 11 },
+        "LOD1": { "atlas": "main-homes-L8-lod1", "maxDrawCalls": 6, "maxTextureMB": 6 },
+        "LOD2": { "atlas": "main-homes-L8-lod2", "maxDrawCalls": 3, "maxTextureMB": 2 },
+        "LOD3": { "atlas": "main-homes-L8-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
+      }
+    }
+  },
+  "anchors": {
+    "origin": { "type": "origin", "localMeters": { "x": 9, "y": 0, "z": 0 }, "localPx": { "x": 0, "y": 0 }, "facing": 0, "tags": ["front-yard-origin"] },
+    "entrance_main": { "type": "entrance", "localMeters": { "x": 9, "y": 1.2, "z": 0 }, "localPx": { "x": 0, "y": 28 }, "facing": 3, "tags": ["street-door"] },
+    "worker_01": { "type": "worker", "localMeters": { "x": 7.2, "y": 4.8, "z": 0 }, "localPx": { "x": -44, "y": 56 }, "facing": 3, "tags": ["yard-chore"] },
+    "worker_02": { "type": "worker", "localMeters": { "x": 11.4, "y": 5.3, "z": 0 }, "localPx": { "x": 48, "y": 60 }, "facing": 5, "tags": ["balcony-chore"] },
+    "input_supplies_01": { "type": "input", "localMeters": { "x": 5.4, "y": 2.2, "z": 0 }, "localPx": { "x": -88, "y": 34 }, "facing": 3, "tags": ["daily-supplies"] },
+    "output_resident_01": { "type": "output", "localMeters": { "x": 12.8, "y": 2.4, "z": 0 }, "localPx": { "x": 78, "y": 36 }, "facing": 3, "tags": ["resident-leaves"] },
+    "service_home_01": { "type": "service", "localMeters": { "x": 9.2, "y": 5.6, "z": 0 }, "localPx": { "x": 6, "y": 68 }, "facing": 4, "tags": ["family-service"] },
+    "queue_front_01": { "type": "queue", "localMeters": { "x": 9, "y": 0.7, "z": 0 }, "localPx": { "x": 0, "y": 16 }, "facing": 3, "tags": ["front-step-wait"] },
+    "ui_status": { "type": "ui", "localMeters": { "x": 9, "y": 5.5, "z": 8.2 }, "localPx": { "x": 0, "y": -182 }, "facing": 0, "tags": ["status-above-roof"] },
+    "ui_selection": { "type": "ui", "localMeters": { "x": 9, "y": 5.2, "z": 0 }, "localPx": { "x": 0, "y": 52 }, "facing": 0, "tags": ["selection-ring"] },
+    "audio_hearth_01": { "type": "audio", "localMeters": { "x": 6.6, "y": 6.8, "z": 0 }, "localPx": { "x": -58, "y": 76 }, "facing": 4, "tags": ["hearth-and-domestic-ambience"] },
+    "construction_stage_01": { "type": "construction", "localMeters": { "x": 8.6, "y": 3.6, "z": 0 }, "localPx": { "x": -8, "y": 46 }, "facing": 3, "tags": ["material-drop"] },
+    "occlusion_polygon": { "type": "ui", "localMeters": { "x": 9.2, "y": 4.9, "z": 0 }, "localPx": { "x": 4, "y": 56 }, "facing": 0, "tags": ["eave-and-gate"] },
+    "collision_obstacle": { "type": "ui", "localMeters": { "x": 9, "y": 5.2, "z": 0 }, "localPx": { "x": 0, "y": 58 }, "facing": 0, "tags": ["house-body"] },
+    "click_hull": { "type": "ui", "localMeters": { "x": 9, "y": 5.2, "z": 0 }, "localPx": { "x": 0, "y": 54 }, "facing": 0, "tags": ["full-home-hit-area"] },
+    "home_door_01": { "type": "worker", "localMeters": { "x": 9, "y": 2.5, "z": 0 }, "localPx": { "x": 0, "y": 38 }, "facing": 3, "tags": ["main-door"] },
+    "home_door_02": { "type": "worker", "localMeters": { "x": 12.2, "y": 3.1, "z": 0 }, "localPx": { "x": 70, "y": 44 }, "facing": 5, "tags": ["side-door"] },
+    "window_light_01": { "type": "ui", "localMeters": { "x": 6.4, "y": 4.4, "z": 3.4 }, "localPx": { "x": -68, "y": -58 }, "facing": 0, "tags": ["left-window"] },
+    "window_light_02": { "type": "ui", "localMeters": { "x": 11.8, "y": 4.5, "z": 3.8 }, "localPx": { "x": 66, "y": -64 }, "facing": 0, "tags": ["right-window"] },
+    "cooking_smoke_01": { "type": "audio", "localMeters": { "x": 6.1, "y": 6.9, "z": 7.9 }, "localPx": { "x": -76, "y": -178 }, "facing": 0, "tags": ["chimney-smoke"] },
+    "return_home_01": { "type": "worker", "localMeters": { "x": 9.2, "y": 1.1, "z": 0 }, "localPx": { "x": 4, "y": 24 }, "facing": 3, "tags": ["resident-return"] }
+  },
+  "collision": {
+    "footprint": [{ "x": 0, "y": 0 }, { "x": 3, "y": 0 }, { "x": 3, "y": 3 }, { "x": 0, "y": 3 }],
+    "obstacles": [[{ "x": 0.6, "y": 0.7 }, { "x": 2.5, "y": 0.7 }, { "x": 2.6, "y": 2.2 }, { "x": 0.5, "y": 2.1 }]],
+    "occluders": [[{ "x": 0.3, "y": 1.2 }, { "x": 2.8, "y": 1.1 }, { "x": 2.8, "y": 1.8 }, { "x": 0.3, "y": 1.9 }]],
+    "clickHull": [{ "x": -0.1, "y": -0.1 }, { "x": 3.1, "y": -0.1 }, { "x": 3.1, "y": 3.0 }, { "x": 1.5, "y": 3.4 }, { "x": -0.1, "y": 3.0 }]
+  },
+  "validation": {
+    "triangleBudgetLOD0": 72000,
+    "maxLayers": 10,
+    "maxEmitters": 3,
+    "blindRecognitionTarget": 0.8
+  }
+}

@@ -33,7 +33,15 @@ Validate the production-template `main-pier` sample manifest:
 npm run asset:validate:main-pier
 ```
 
-Both npm scripts are offline-only and do not install packages, download schemas, or call external services.
+Validate all committed gold-slice sample manifest pairs under `docs/project/gold-slice/sample-manifests/`:
+
+```sh
+npm run asset:validate:gold-samples
+```
+
+The batch entry currently validates `main-pier`, `main-homes`, and `main-eatery`. It discovers complete sample directories automatically, so future art-export samples only need to add a sibling directory containing both `building-manifest.json` and `animation-manifest.json`.
+
+All npm scripts are offline-only and do not install packages, download schemas, or call external services.
 
 Validate a pair of manifests directly:
 

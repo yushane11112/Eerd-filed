@@ -403,6 +403,131 @@ describe('DynamicScene', () => {
     }
   })
 
+  it('draws distinct L0 L4 L8 procedural detail layers for additional gold building assets', async () => {
+    const { DynamicScene } = await import('./DynamicScene')
+    const { parseRuntimePrefabDescriptor, PrefabRuntimeRegistry } = await import('./prefab')
+    const goldAssetIds = ['main-homes', 'main-eatery', 'main-granary'] as const
+    const descriptors = goldAssetIds.map((assetId) => {
+      const parsed = parseRuntimePrefabDescriptor(
+        { ...validBuildingManifest, assetId },
+        { ...validAnimationManifest, assetId },
+      )
+      if (!parsed.ok) throw new Error(parsed.errors.join('\n'))
+      return parsed.descriptor
+    })
+    const scene = new DynamicScene(undefined, {
+      prefabRegistry: new PrefabRuntimeRegistry(descriptors),
+    })
+    const snapshot = createSnapshot()
+    snapshot.agents = {}
+    snapshot.worldDrops = []
+
+    const expectedByAsset = [
+      {
+        id: 'homes',
+        type: 'house',
+        detailLayer: 'prefab-placeholder-main-homes-details',
+        detailChildrenByLevel: {
+          L0: [
+            'main-homes-placeholder-lot:abandoned:L0',
+            'main-homes-placeholder-hut:collapsed:L0',
+            'main-homes-placeholder-yard:weeds:L0',
+          ],
+          L4: [
+            'main-homes-placeholder-courtyard:L4',
+            'main-homes-placeholder-homes:cluster:L4',
+            'main-homes-placeholder-residents:washline:L4',
+          ],
+          L8: [
+            'main-homes-placeholder-neighborhood:lanes:L8',
+            'main-homes-placeholder-homes:dense-row:L8',
+            'main-homes-placeholder-civic-yard:lanterns-residents:L8',
+          ],
+        },
+      },
+      {
+        id: 'eatery',
+        type: 'market',
+        detailLayer: 'prefab-placeholder-main-eatery-details',
+        detailChildrenByLevel: {
+          L0: [
+            'main-eatery-placeholder-foundation:burnt-stall:L0',
+            'main-eatery-placeholder-kitchen:cold-hearth:L0',
+            'main-eatery-placeholder-seating:scattered:L0',
+          ],
+          L4: [
+            'main-eatery-placeholder-shopfront:open:L4',
+            'main-eatery-placeholder-kitchen:steaming:L4',
+            'main-eatery-placeholder-tables:served:L4',
+          ],
+          L8: [
+            'main-eatery-placeholder-food-street:awnings:L8',
+            'main-eatery-placeholder-kitchens:busy:L8',
+            'main-eatery-placeholder-crowd:banquet-stalls:L8',
+          ],
+        },
+      },
+      {
+        id: 'granary',
+        type: 'granary',
+        detailLayer: 'prefab-placeholder-main-granary-details',
+        detailChildrenByLevel: {
+          L0: [
+            'main-granary-placeholder-ground:spilled-grain:L0',
+            'main-granary-placeholder-silo:broken:L0',
+            'main-granary-placeholder-pest-clutter:L0',
+          ],
+          L4: [
+            'main-granary-placeholder-storehouse:raised:L4',
+            'main-granary-placeholder-bins:sorted:L4',
+            'main-granary-placeholder-labor:cart-scale:L4',
+          ],
+          L8: [
+            'main-granary-placeholder-warehouse:multi-bay:L8',
+            'main-granary-placeholder-silos:stacked:L8',
+            'main-granary-placeholder-market-yard:carts-workers:L8',
+          ],
+        },
+      },
+    ] as const
+
+    for (const expected of expectedByAsset) {
+      for (const level of [0, 4, 8] as const) {
+        const levelKey = `L${level}` as const
+        snapshot.buildings = {
+          [expected.id]: createBuilding({
+            id: expected.id,
+            type: expected.type,
+            level,
+            status: level === 0 ? 'constructing' : level === 8 ? 'working' : 'idle',
+            productionProgress: 0.65,
+          }),
+        }
+
+        scene.sync(snapshot, camera)
+        const prefabLayer = findPrefabLayer(scene.layers.buildings.children[0] ?? { children: [] })
+        const detailLayer = prefabLayer?.children.find((child) => (
+          child.label === `${expected.detailLayer}:${levelKey}`
+        ))
+        expect(detailLayer?.label).toBe(`${expected.detailLayer}:${levelKey}`)
+        expect(childLabels(detailLayer ?? { children: [] })).toEqual(
+          expected.detailChildrenByLevel[levelKey],
+        )
+
+        const beforeLabels = childLabels(prefabLayer ?? { children: [] })
+        const beforeDetailLabels = childLabels(detailLayer ?? { children: [] })
+        snapshot.tick += 1
+        scene.sync(snapshot, camera)
+        const stablePrefabLayer = findPrefabLayer(scene.layers.buildings.children[0] ?? { children: [] })
+        const stableDetailLayer = stablePrefabLayer?.children.find((child) => (
+          child.label === `${expected.detailLayer}:${levelKey}`
+        ))
+        expect(childLabels(stablePrefabLayer ?? { children: [] })).toEqual(beforeLabels)
+        expect(childLabels(stableDetailLayer ?? { children: [] })).toEqual(beforeDetailLabels)
+      }
+    }
+  })
+
   it('resolves prefab placeholders through building type to asset id mapping', async () => {
     const { DynamicScene } = await import('./DynamicScene')
     const { PrefabRuntimeRegistry } = await import('./prefab')

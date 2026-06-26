@@ -1,0 +1,167 @@
+{
+  "schemaVersion": "gold-building.v1",
+  "assetId": "main-eatery",
+  "displayName": "岛口食肆",
+  "version": "0.1.0-gold-sample",
+  "sourceBlend": "art-source/blender/buildings/main-eatery/main-eatery.blend",
+  "buildBatch": "gold-slice",
+  "footprint": [{ "x": 0, "y": 0 }, { "x": 4, "y": 0 }, { "x": 4, "y": 3 }, { "x": 0, "y": 3 }],
+  "footprintMeters": { "width": 24, "depth": 18 },
+  "origin": { "x": 12, "y": 0, "z": 0 },
+  "entranceDirection": "SE",
+  "bounds": {
+    "localPx": { "left": -192, "right": 208, "top": -224, "bottom": 112 },
+    "localMeters": { "width": 24, "depth": 18, "height": 7.8 }
+  },
+  "levels": {
+    "L0": {
+      "required": true,
+      "dccCollections": ["COL_L00", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-eatery-L0", "frame": "shadow", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ground/foundation", "atlas": "main-eatery-L0", "frame": "packed-earth-stall-foundation", "zBand": "ground", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_back", "atlas": "main-eatery-L0", "frame": "rear-cooking-shed-frame", "zBand": "back", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_static", "atlas": "main-eatery-L0", "frame": "prep-table-and-jars", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_dynamic", "atlas": "main-eatery-L0", "frame": "small-stove-flame-and-pot", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "agent_interaction", "atlas": "main-eatery-L0", "frame": "cook-and-guest-slots", "zBand": "agent", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_front/foreground_occluder", "atlas": "main-eatery-L0", "frame": "front-counter-occluder", "zBand": "front", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "night_lights", "atlas": "main-eatery-L0", "frame": "single-food-stall-lantern", "zBand": "light", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "weather_overlay", "atlas": "main-eatery-L0", "frame": "rain-on-awning", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "vfx", "atlas": "main-eatery-L0", "frame": "thin-noodle-steam", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ui_anchor", "atlas": "main-eatery-L0", "frame": "ui-anchor-debug", "zBand": "ui", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["stove_flame", "pot_lid", "serving_shutter", "steam_puff", "order_flag"],
+      "anchors": ["origin", "entrance_main", "worker_01", "input_ingredients_01", "output_meal_01", "service_counter_01", "queue_guest_01", "ui_status", "ui_selection", "audio_kitchen_01", "construction_stage_01", "occlusion_polygon", "collision_obstacle", "click_hull", "stove_01", "serving_window_01", "table_01", "takeaway_01", "smoke_01"],
+      "collisionProfile": "main-eatery-L0-stall",
+      "occlusionProfile": "main-eatery-L0-front-counter",
+      "constructionReveal": [{ "progressFrom": 0, "progressTo": 100, "show": ["packed-earth-stall-foundation", "rear-cooking-shed-frame", "front-counter-occluder"], "hide": [] }],
+      "lod": {
+        "LOD0": { "atlas": "main-eatery-L0-lod0", "maxDrawCalls": 8, "maxTextureMB": 8 },
+        "LOD1": { "atlas": "main-eatery-L0-lod1", "maxDrawCalls": 5, "maxTextureMB": 5 },
+        "LOD2": { "atlas": "main-eatery-L0-lod2", "maxDrawCalls": 2, "maxTextureMB": 2 },
+        "LOD3": { "atlas": "main-eatery-L0-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
+      }
+    },
+    "L1": {
+      "required": true,
+      "dccCollections": ["COL_L01", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-eatery-L1", "frame": "shadow", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ground/foundation", "atlas": "main-eatery-L1", "frame": "stone-floor-and-drain", "zBand": "ground", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_back", "atlas": "main-eatery-L1", "frame": "rear-kitchen-wall", "zBand": "back", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_static", "atlas": "main-eatery-L1", "frame": "ingredient-shelves-and-bowls", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_dynamic", "atlas": "main-eatery-L1", "frame": "stove-pot-and-serving-shutter", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "agent_interaction", "atlas": "main-eatery-L1", "frame": "cook-server-guest-slots", "zBand": "agent", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_front/foreground_occluder", "atlas": "main-eatery-L1", "frame": "serving-window-awning-occluder", "zBand": "front", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "night_lights", "atlas": "main-eatery-L1", "frame": "counter-lanterns", "zBand": "light", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "weather_overlay", "atlas": "main-eatery-L1", "frame": "awning-rain-drips", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "vfx", "atlas": "main-eatery-L1", "frame": "steam-and-stove-sparks", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ui_anchor", "atlas": "main-eatery-L1", "frame": "ui-anchor-debug", "zBand": "ui", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["stove_flame", "pot_lid", "serving_shutter", "steam_puff", "order_flag"],
+      "anchors": ["origin", "entrance_main", "worker_01", "input_ingredients_01", "output_meal_01", "service_counter_01", "queue_guest_01", "ui_status", "ui_selection", "audio_kitchen_01", "construction_stage_01", "occlusion_polygon", "collision_obstacle", "click_hull", "stove_01", "serving_window_01", "table_01", "takeaway_01", "smoke_01"],
+      "collisionProfile": "main-eatery-L1-counter",
+      "occlusionProfile": "main-eatery-L1-serving-awning",
+      "constructionReveal": [{ "progressFrom": 0, "progressTo": 100, "show": ["stone-floor-and-drain", "rear-kitchen-wall", "serving-window-awning-occluder"], "hide": [] }],
+      "lod": {
+        "LOD0": { "atlas": "main-eatery-L1-lod0", "maxDrawCalls": 8, "maxTextureMB": 8 },
+        "LOD1": { "atlas": "main-eatery-L1-lod1", "maxDrawCalls": 5, "maxTextureMB": 5 },
+        "LOD2": { "atlas": "main-eatery-L1-lod2", "maxDrawCalls": 2, "maxTextureMB": 2 },
+        "LOD3": { "atlas": "main-eatery-L1-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
+      }
+    },
+    "L4": {
+      "required": true,
+      "dccCollections": ["COL_L04", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-eatery-L4", "frame": "shadow", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ground/foundation", "atlas": "main-eatery-L4", "frame": "expanded-dining-floor", "zBand": "ground", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_back", "atlas": "main-eatery-L4", "frame": "tile-roof-kitchen-back", "zBand": "back", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_static", "atlas": "main-eatery-L4", "frame": "prep-shelves-menu-board-tables", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_dynamic", "atlas": "main-eatery-L4", "frame": "double-stove-serving-window", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "agent_interaction", "atlas": "main-eatery-L4", "frame": "cook-server-two-table-slots", "zBand": "agent", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_front/foreground_occluder", "atlas": "main-eatery-L4", "frame": "front-sign-and-awning-occluder", "zBand": "front", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "night_lights", "atlas": "main-eatery-L4", "frame": "warm-dining-lanterns", "zBand": "light", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "weather_overlay", "atlas": "main-eatery-L4", "frame": "wet-floor-and-awning-rain", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "vfx", "atlas": "main-eatery-L4", "frame": "steam-sparks-and-food-aroma", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ui_anchor", "atlas": "main-eatery-L4", "frame": "ui-anchor-debug", "zBand": "ui", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["stove_flame", "pot_lid", "serving_shutter", "steam_puff", "order_flag"],
+      "anchors": ["origin", "entrance_main", "worker_01", "worker_02", "input_ingredients_01", "output_meal_01", "service_counter_01", "queue_guest_01", "ui_status", "ui_selection", "audio_kitchen_01", "construction_stage_01", "occlusion_polygon", "collision_obstacle", "click_hull", "stove_01", "stove_02", "serving_window_01", "table_01", "table_02", "takeaway_01", "smoke_01"],
+      "collisionProfile": "main-eatery-L4-dining-room",
+      "occlusionProfile": "main-eatery-L4-front-sign-awning",
+      "constructionReveal": [{ "progressFrom": 0, "progressTo": 100, "show": ["expanded-dining-floor", "tile-roof-kitchen-back", "front-sign-and-awning-occluder"], "hide": [] }],
+      "lod": {
+        "LOD0": { "atlas": "main-eatery-L4-lod0", "maxDrawCalls": 9, "maxTextureMB": 9 },
+        "LOD1": { "atlas": "main-eatery-L4-lod1", "maxDrawCalls": 6, "maxTextureMB": 6 },
+        "LOD2": { "atlas": "main-eatery-L4-lod2", "maxDrawCalls": 3, "maxTextureMB": 2 },
+        "LOD3": { "atlas": "main-eatery-L4-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
+      }
+    },
+    "L8": {
+      "required": true,
+      "dccCollections": ["COL_L08", "COL_ANIM", "COL_COLLISION", "COL_ANCHOR"],
+      "spriteLayers": [
+        { "key": "shadow", "atlas": "main-eatery-L8", "frame": "shadow", "zBand": "shadow", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ground/foundation", "atlas": "main-eatery-L8", "frame": "full-restaurant-stone-floor", "zBand": "ground", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_back", "atlas": "main-eatery-L8", "frame": "finished-kitchen-and-store-room", "zBand": "back", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_static", "atlas": "main-eatery-L8", "frame": "menu-board-shelves-and-four-tables", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "production_dynamic", "atlas": "main-eatery-L8", "frame": "busy-stoves-serving-and-takeaway", "zBand": "dynamic", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "agent_interaction", "atlas": "main-eatery-L8", "frame": "cook-server-guests-and-queue-slots", "zBand": "agent", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "body_front/foreground_occluder", "atlas": "main-eatery-L8", "frame": "large-awning-sign-and-counter-occluder", "zBand": "front", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "night_lights", "atlas": "main-eatery-L8", "frame": "festival-food-lanterns", "zBand": "light", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "weather_overlay", "atlas": "main-eatery-L8", "frame": "storm-awning-and-wet-stone", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "vfx", "atlas": "main-eatery-L8", "frame": "heavy-steam-sparks-and-aroma", "zBand": "vfx", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true },
+        { "key": "ui_anchor", "atlas": "main-eatery-L8", "frame": "ui-anchor-debug", "zBand": "ui", "pivotPx": { "x": 0, "y": 0 }, "premultipliedAlpha": true }
+      ],
+      "animatedParts": ["stove_flame", "pot_lid", "serving_shutter", "steam_puff", "order_flag"],
+      "anchors": ["origin", "entrance_main", "worker_01", "worker_02", "input_ingredients_01", "output_meal_01", "output_meal_02", "service_counter_01", "queue_guest_01", "ui_status", "ui_selection", "audio_kitchen_01", "construction_stage_01", "occlusion_polygon", "collision_obstacle", "click_hull", "stove_01", "stove_02", "serving_window_01", "table_01", "table_02", "takeaway_01", "smoke_01"],
+      "collisionProfile": "main-eatery-L8-full-restaurant",
+      "occlusionProfile": "main-eatery-L8-large-awning-counter",
+      "constructionReveal": [{ "progressFrom": 0, "progressTo": 100, "show": ["full-restaurant-stone-floor", "finished-kitchen-and-store-room", "large-awning-sign-and-counter-occluder"], "hide": [] }],
+      "lod": {
+        "LOD0": { "atlas": "main-eatery-L8-lod0", "maxDrawCalls": 10, "maxTextureMB": 10 },
+        "LOD1": { "atlas": "main-eatery-L8-lod1", "maxDrawCalls": 6, "maxTextureMB": 6 },
+        "LOD2": { "atlas": "main-eatery-L8-lod2", "maxDrawCalls": 3, "maxTextureMB": 2 },
+        "LOD3": { "atlas": "main-eatery-L8-lod3", "maxDrawCalls": 1, "maxTextureMB": 1 }
+      }
+    }
+  },
+  "anchors": {
+    "origin": { "type": "origin", "localMeters": { "x": 12, "y": 0, "z": 0 }, "localPx": { "x": 0, "y": 0 }, "facing": 0, "tags": ["front-counter-origin"] },
+    "entrance_main": { "type": "entrance", "localMeters": { "x": 12, "y": 1.0, "z": 0 }, "localPx": { "x": 0, "y": 24 }, "facing": 3, "tags": ["street-entrance"] },
+    "worker_01": { "type": "worker", "localMeters": { "x": 8.8, "y": 4.4, "z": 0 }, "localPx": { "x": -76, "y": 54 }, "facing": 4, "tags": ["cook-station"] },
+    "worker_02": { "type": "worker", "localMeters": { "x": 14.8, "y": 3.8, "z": 0 }, "localPx": { "x": 68, "y": 48 }, "facing": 3, "tags": ["server-station"] },
+    "input_ingredients_01": { "type": "input", "localMeters": { "x": 6.0, "y": 2.3, "z": 0 }, "localPx": { "x": -132, "y": 34 }, "facing": 3, "tags": ["ingredient-delivery"] },
+    "output_meal_01": { "type": "output", "localMeters": { "x": 15.4, "y": 2.4, "z": 0 }, "localPx": { "x": 82, "y": 36 }, "facing": 3, "tags": ["served-meal"] },
+    "output_meal_02": { "type": "output", "localMeters": { "x": 17.4, "y": 2.6, "z": 0 }, "localPx": { "x": 126, "y": 40 }, "facing": 3, "tags": ["takeaway-meal"] },
+    "service_counter_01": { "type": "service", "localMeters": { "x": 12.4, "y": 3.2, "z": 0 }, "localPx": { "x": 12, "y": 44 }, "facing": 3, "tags": ["service-counter"] },
+    "queue_guest_01": { "type": "queue", "localMeters": { "x": 12.0, "y": 0.6, "z": 0 }, "localPx": { "x": 0, "y": 14 }, "facing": 3, "tags": ["guest-line"] },
+    "ui_status": { "type": "ui", "localMeters": { "x": 12, "y": 5.4, "z": 7.5 }, "localPx": { "x": 0, "y": -184 }, "facing": 0, "tags": ["status-above-sign"] },
+    "ui_selection": { "type": "ui", "localMeters": { "x": 12, "y": 4.8, "z": 0 }, "localPx": { "x": 0, "y": 56 }, "facing": 0, "tags": ["selection-ring"] },
+    "audio_kitchen_01": { "type": "audio", "localMeters": { "x": 8.6, "y": 5.0, "z": 0 }, "localPx": { "x": -82, "y": 62 }, "facing": 4, "tags": ["stove-wok-ambience"] },
+    "construction_stage_01": { "type": "construction", "localMeters": { "x": 11.0, "y": 3.0, "z": 0 }, "localPx": { "x": -24, "y": 42 }, "facing": 3, "tags": ["counter-build-materials"] },
+    "occlusion_polygon": { "type": "ui", "localMeters": { "x": 12.4, "y": 3.9, "z": 0 }, "localPx": { "x": 12, "y": 52 }, "facing": 0, "tags": ["awning-sign-counter"] },
+    "collision_obstacle": { "type": "ui", "localMeters": { "x": 11.8, "y": 4.4, "z": 0 }, "localPx": { "x": -4, "y": 58 }, "facing": 0, "tags": ["kitchen-body"] },
+    "click_hull": { "type": "ui", "localMeters": { "x": 12, "y": 4.8, "z": 0 }, "localPx": { "x": 0, "y": 56 }, "facing": 0, "tags": ["full-eatery-hit-area"] },
+    "stove_01": { "type": "worker", "localMeters": { "x": 8.2, "y": 5.4, "z": 0 }, "localPx": { "x": -92, "y": 66 }, "facing": 4, "tags": ["primary-stove"] },
+    "stove_02": { "type": "worker", "localMeters": { "x": 10.4, "y": 5.6, "z": 0 }, "localPx": { "x": -42, "y": 68 }, "facing": 4, "tags": ["secondary-stove"] },
+    "serving_window_01": { "type": "service", "localMeters": { "x": 13.6, "y": 2.7, "z": 1.1 }, "localPx": { "x": 40, "y": 36 }, "facing": 3, "tags": ["serving-window"] },
+    "table_01": { "type": "service", "localMeters": { "x": 15.2, "y": 5.0, "z": 0 }, "localPx": { "x": 76, "y": 62 }, "facing": 5, "tags": ["left-dining-table"] },
+    "table_02": { "type": "service", "localMeters": { "x": 17.8, "y": 4.8, "z": 0 }, "localPx": { "x": 136, "y": 60 }, "facing": 5, "tags": ["right-dining-table"] },
+    "takeaway_01": { "type": "output", "localMeters": { "x": 17.0, "y": 1.5, "z": 0 }, "localPx": { "x": 118, "y": 28 }, "facing": 3, "tags": ["takeaway-ledge"] },
+    "smoke_01": { "type": "audio", "localMeters": { "x": 8.6, "y": 6.2, "z": 7.2 }, "localPx": { "x": -82, "y": -174 }, "facing": 0, "tags": ["stove-smoke"] }
+  },
+  "collision": {
+    "footprint": [{ "x": 0, "y": 0 }, { "x": 4, "y": 0 }, { "x": 4, "y": 3 }, { "x": 0, "y": 3 }],
+    "obstacles": [[{ "x": 0.7, "y": 0.8 }, { "x": 3.4, "y": 0.8 }, { "x": 3.4, "y": 2.1 }, { "x": 0.6, "y": 2.2 }]],
+    "occluders": [[{ "x": 0.4, "y": 1.0 }, { "x": 3.8, "y": 1.0 }, { "x": 3.7, "y": 1.8 }, { "x": 0.3, "y": 1.9 }]],
+    "clickHull": [{ "x": -0.1, "y": -0.1 }, { "x": 4.1, "y": -0.1 }, { "x": 4.2, "y": 3.1 }, { "x": 2.0, "y": 3.4 }, { "x": -0.2, "y": 3.1 }]
+  },
+  "validation": {
+    "triangleBudgetLOD0": 44000,
+    "maxLayers": 10,
+    "maxEmitters": 4,
+    "blindRecognitionTarget": 0.8
+  }
+}

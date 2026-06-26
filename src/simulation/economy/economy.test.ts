@@ -695,7 +695,7 @@ describe('service system', () => {
     expect(state.households.first.needs.food).toBe(26)
     expect(state.households.second.needs.food).toBe(36)
     expect(state.households.third.needs.food).toBe(46)
-    expect(state.households.fourth.needs.food).toBe(40)
+    expect(state.households.fourth.needs.food).toBe(36)
     expect(market.inventory.food).toBe(7)
   })
 
@@ -722,9 +722,9 @@ describe('service system', () => {
     const events = new ServiceSystem({ definitions }).update(state)
 
     expect(events).toHaveLength(0)
-    expect(state.households.household.needs.food).toBe(20)
+    expect(state.households.household.needs.food).toBe(16)
     expect(market.inventory.food).toBe(3)
-    expect(market.statusReason).toBe('no-service-demand')
+    expect(market.statusReason).toBe('no-service-route')
   })
 
   it('blocks service buildings without workers or service stock', () => {
@@ -753,7 +753,7 @@ describe('service system', () => {
     expect(events).toHaveLength(0)
     expect(noWorkers.statusReason).toBe('no-workers')
     expect(noStock.statusReason).toBe('missing-service-resource:food')
-    expect(state.households.household.needs.food).toBe(20)
+    expect(state.households.household.needs.food).toBe(16)
   })
 
   it('does not provide pharmacy service without required medicine stock', () => {
@@ -776,7 +776,7 @@ describe('service system', () => {
     const events = new ServiceSystem({ definitions }).update(state)
 
     expect(events).toHaveLength(0)
-    expect(state.households.household.needs.health).toBe(15)
+    expect(state.households.household.needs.health).toBe(12)
     expect(pharmacy.status).toBe('blocked')
     expect(pharmacy.statusReason).toBe('missing-service-resource:medicine')
   })
@@ -885,8 +885,8 @@ describe('integrated economy order', () => {
     expect(allEvents).not.toContainEqual({ type: 'logistics-order-created', orderId: 'market-food' })
     expect(Object.keys(state.logisticsOrders)).toHaveLength(0)
     expect(granary.inventory.food).toBe(20)
-    expect(state.households.family.needs.food).toBe(10)
+    expect(state.households.family.needs.food).toBe(0)
     expect(market.status).toBe('blocked')
-    expect(market.statusReason).toBe('missing-service-resource:food')
+    expect(market.statusReason).toBe('no-service-route')
   })
 })

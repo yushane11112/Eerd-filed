@@ -1,0 +1,62 @@
+import type { Container } from 'pixi.js'
+import type { EntityId, GridPoint, SimulationSnapshot } from '../simulation/contracts'
+
+export interface IsoMetrics {
+  tileWidth: number
+  tileHeight: number
+  elevationHeight: number
+  originX: number
+  originY: number
+}
+
+export interface ScreenPoint {
+  x: number
+  y: number
+}
+
+export interface ScreenRect {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+export interface SceneCamera {
+  x: number
+  y: number
+  zoom: number
+  viewportWidth: number
+  viewportHeight: number
+}
+
+export type SceneLayerName =
+  | 'terrain'
+  | 'water'
+  | 'roads'
+  | 'buildings'
+  | 'residents'
+  | 'transport'
+  | 'drops'
+  | 'effects'
+  | 'overlays'
+
+export type RenderEntityKind = 'building' | 'resident' | 'transport' | 'drop'
+
+export interface EntityVisual<T extends Container = Container> {
+  readonly display: T
+  entityId: EntityId | null
+  kind: RenderEntityKind
+  worldPosition: GridPoint
+  update(snapshot: Readonly<SimulationSnapshot>, alpha: number): void
+  reset(): void
+}
+
+export interface SceneSyncStats {
+  buildings: number
+  residents: number
+  transport: number
+  drops: number
+  visible: number
+  pooled: number
+}
+

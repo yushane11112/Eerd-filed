@@ -2,12 +2,32 @@
 
 | ID | 会话职责 | 写入范围 | 状态 | 集成条件 |
 | --- | --- | --- | --- | --- |
-| CORE-01 | 模拟时钟、家庭、就业 | `src/simulation/core/**` | 进行中 | 固定 Tick、确定性测试通过 |
-| WORLD-01 | 网格、道路、建造、寻路 | `src/simulation/world/**` | 进行中 | 放置、连通、A* 测试通过 |
-| LOG-01 | 生产、库存、订单、物流 | `src/simulation/economy/**` | 进行中 | 无瞬移运输、停工原因可解释 |
-| RENDER-01 | Pixi 动态场景骨架 | `src/rendering/**` | 进行中 | 状态驱动、对象池、可视裁剪 |
-| MUSIC-01 | 世界掉落与歌曲稀缺奖励 | `src/simulation/rewards/**` | 进行中 | 去重、概率、保底、队列测试 |
-| UI-01 | 全屏、相机、建造控制 | `src/ui/**` | 进行中 | 鼠标和触屏输入测试 |
-| QA-01 | 测试矩阵和性能工具 | `src/qa/**`, `docs/project/qa.md` | 进行中 | 基准场景可重复运行 |
-| INTEGRATE-01 | 主应用垂直切片集成 | 主会话 | 待开始 | 所有第一轮模块通过 |
-
+| CORE-01 | 模拟时钟、家庭、就业 | `src/simulation/core/**` | 已完成 | 9 项模块测试通过 |
+| WORLD-01 | 网格、道路、建造、寻路 | `src/simulation/world/**` | 已完成 | 10 项模块测试通过 |
+| LOG-01 | 生产、库存、订单、物流 | `src/simulation/economy/**` | 已完成 | 9 项模块测试通过 |
+| RENDER-01 | Pixi 动态场景骨架 | `src/rendering/**` | 已完成 | 状态驱动、对象池、裁剪测试通过 |
+| MUSIC-01 | 世界掉落与歌曲稀缺奖励 | `src/simulation/rewards/**` | 已完成 | 11 项模块测试通过 |
+| UI-01 | 全屏、相机、建造控制 | `src/ui/**` | 已完成 | 14 项模块测试通过 |
+| QA-01 | 测试矩阵和性能工具 | `src/qa/**`, `docs/project/qa.md` | 已完成 | 500/300/150 基准快照可重复 |
+| INTEGRATE-01 | 主应用垂直切片集成 | `src/App.tsx`, `src/integration/**` | 已完成 | 新引擎成为主入口，98 项测试通过 |
+| ART-AUDIT-01 | 28 类建筑九等级审计 | `docs/project/audits/building-art.md` | 已完成 | 逐建筑重画清单 |
+| ART-AUDIT-02 | 四岛整体镇貌审计 | `docs/project/audits/world-art.md` | 已完成 | 分阶段覆盖率与构图清单 |
+| ANIM-AUDIT-01 | 全动态系统审计 | `docs/project/audits/animation.md` | 已完成 | 状态驱动缺口清单 |
+| ART-DESIGN-01 | 原创视觉圣经重设计 | `docs/project/design/visual-system.md` | 已完成 | 可直接指导资产生产 |
+| ANIM-DESIGN-01 | 动画生产体系重设计 | `docs/project/design/animation-system.md` | 已完成 | 动画槽位、规格和性能预算 |
+| MODEL-AUDIT-01 | 建筑与场景建模审计 | `docs/project/audits/modeling.md` | 已完成 | 体块、透视、尺度与拆件问题清单 |
+| MODEL-DESIGN-01 | 模块化建模生产体系 | `docs/project/design/modeling-system.md` | 已完成 | 构件库、LOD、渲染与导出规范 |
+| MODEL-BATCH-01 | 主镇建筑体块与街区模型 | 待分配 | 待开始 | 16 类主镇建筑 0–8 级模型 |
+| MODEL-BATCH-02 | 三座主题岛生产设施模型 | 待分配 | 待开始 | 12 类主题建筑及生产地貌模型 |
+| MODEL-BATCH-03 | 人物、车辆、船只与动画拆件 | 待分配 | 待开始 | 可绑定、可换装、可LOD资产 |
+| ART-BATCH-01 | 港口与交通建筑重设计 | 待分配 | 待开始 | 审计完成后启动 |
+| ART-BATCH-02 | 商业与民居建筑重设计 | 待分配 | 待开始 | 审计完成后启动 |
+| ART-BATCH-03 | 作坊与仓储建筑重设计 | 待分配 | 待开始 | 审计完成后启动 |
+| ART-BATCH-04 | 农业与主题岛建筑重设计 | 待分配 | 待开始 | 审计完成后启动 |
+| ART-BATCH-05 | 公共与景观建筑重设计 | 待分配 | 待开始 | 审计完成后启动 |
+| GOLD-CONCEPT-01 | 六类金标建筑概念重设 | 待分配 | 待开始 | 功能盲测 ≥80%，L0/L8 差异清晰 |
+| GOLD-BLOCKOUT-01 | 六类金标体块与地块验证 | 待分配 | 待开始 | footprint、入口、遮挡、人流成立 |
+| GOLD-ANIM-01 | 六类金标状态动画原型 | 待分配 | 待开始 | 施工、生产、停工三态可回放 |
+| GOLD-ENGINE-01 | 金标资产入引擎 | 待分配 | 待开始 | Pixi prefab、manifest、LOD 与状态驱动 |
+| ENGINE-SERVICE-01 | 城市服务与市场系统 | `src/simulation/**` | 待开始 | 食物、服务、居民满意度形成真实后果 |
+| TOOL-ASSET-VALIDATOR-01 | 资产自动校验工具 | `tools/**`, `src/assets/**` | 待开始 | 缺级、缺层、缺动画、超预算自动失败 |

@@ -28,3 +28,6 @@
 - 启动第二轮并行生产：ENGINE-SERVICE-02、RENDER-STATE-01、GOLD-BLOCKOUT-01、TOOL-ASSET-VALIDATOR-01，分别推进服务网络、状态渲染、体块验证和资产校验工具。
 - 完成第二轮并行生产：服务网络测试覆盖市场、药铺、书院、戏台；渲染层新增建筑状态灰盒符号和动效层；六类金标建筑新增 blockout 验证方案；工具链新增可运行的金标资产 manifest 校验器和 fixtures。
 - 第二轮验证通过：资产校验器自检、valid manifest 校验、全量 110 项测试和生产构建均通过。
+- 启动第三轮并行生产：ENGINE-FAILURE-01、PREFAB-RUNTIME-01、UI-CITY-MANAGER-01、TOOL-ASSET-VALIDATOR-02，分别推进城市故障后果、manifest 驱动 prefab 数据层、城市瓶颈面板和资产校验 npm 脚本接入。
+- 完成第三轮并行生产：新增故障后果集成测试、manifest 驱动 prefab runtime 数据层、城市瓶颈管理面板、资产校验 npm 脚本。
+- 第三轮验证通过：`asset:validate:self-test`、`asset:validate:gold-fixture`、全量 115 项测试和生产构建均通过；构建出现主 chunk 超过 500kB 的非阻断警告，已记录为 `PERF-SPLIT-01` 后续任务。

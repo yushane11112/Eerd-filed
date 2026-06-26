@@ -37,6 +37,9 @@
 | QA-PRODUCTION-01 | 并行生产验收矩阵 | `docs/project/parallel-production-qa.md` | 已完成 | 输入输出模板、集成节奏、退回标准完整 |
 | ENGINE-SERVICE-02 | 服务网络与居民路径 | `src/simulation/economy/**` | 已完成 | 市场、药铺、书院、戏台完整影响居民需求 |
 | RENDER-STATE-01 | 状态驱动建筑表现层 | `src/rendering/**` | 已完成 | building status 映射专属动画状态和调试层 |
-| ENGINE-FAILURE-01 | 城市故障后果系统 | `src/simulation/**` | 待开始 | 断路、缺工、缺货、仓满产生可见后果 |
-| PREFAB-RUNTIME-01 | 金标 prefab runtime 接口 | `src/rendering/**`, `src/assets/**` | 待开始 | manifest 驱动 Pixi prefab 加载和状态映射 |
-| UI-CITY-MANAGER-01 | 城市瓶颈管理面板 | `src/App.tsx`, `src/styles.css`, `src/ui/**` | 待开始 | 只展示关键瓶颈，不平铺复杂表格 |
+| ENGINE-FAILURE-01 | 城市故障后果系统 | `src/simulation/economy/**` | 已完成 | 断路、缺工、缺货、仓满产生可见后果 |
+| PREFAB-RUNTIME-01 | 金标 prefab runtime 接口 | `src/rendering/prefab/**` | 已完成 | manifest 驱动 Pixi prefab descriptor 和状态映射 |
+| UI-CITY-MANAGER-01 | 城市瓶颈管理面板 | `src/App.tsx`, `src/styles.css` | 已完成 | 只展示关键瓶颈，不平铺复杂表格 |
+| TOOL-ASSET-VALIDATOR-02 | 资产校验器脚本接入 | `tools/asset-validator/**`, `package.json` | 已完成 | npm 脚本可运行校验器自检和金标 fixture 校验 |
+| LOGISTICS-FAILURE-02 | 物流失败原因与指标 | `src/simulation/economy/**` | 待开始 | 断路/无车/无源库存产生失败事件和效率影响 |
+| PERF-SPLIT-01 | 前端包体与 Pixi 分包 | `vite.config.ts`, `src/**` | 待开始 | 主 chunk 低于 500kB 或有明确分包策略 |

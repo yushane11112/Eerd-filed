@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "asset:validate:self-test": "node tools/asset-validator/self-test.js",
+    "asset:validate:gold-fixture": "node tools/asset-validator/asset-validator.js --building tools/asset-validator/fixtures/valid-building-manifest.json --animation tools/asset-validator/fixtures/valid-animation-manifest.json"
   },
   "dependencies": {
     "@pixi/react": "^8.0.3",

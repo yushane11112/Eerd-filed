@@ -727,4 +727,41 @@ describe('integrated economy order', () => {
     expect(state.households.family.needs.food).toBeLessThanOrEqual(100)
     expect(market.status).toBe('serving')
   })
+
+  it('keeps resident needs blocked when a road break prevents market restock', () => {
+    const granary = building('granary', 'granary', { x: 0, y: 0 }, { food: 20 })
+    const market = building('market', 'market', { x: 2, y: 0 })
+    market.workers = ['market-worker']
+    const home = building('home', 'house', { x: 4, y: 0 })
+    const state = snapshot({
+      cells: road(0, 0),
+      buildings: { granary, market, home },
+      agents: { cart: carrier('cart', { x: 0, y: 0 }) },
+      households: {
+        family: household('family', home.id, {
+          food: 10,
+          goods: 60,
+          health: 60,
+          education: 60,
+          entertainment: 60,
+        }),
+      },
+    })
+    const system = new EconomySystem({
+      definitions,
+      idFactory: () => 'market-food',
+    })
+
+    const allEvents = []
+    for (let index = 0; index < 3; index += 1) {
+      allEvents.push(...system.update(state))
+    }
+
+    expect(allEvents).not.toContainEqual({ type: 'logistics-order-created', orderId: 'market-food' })
+    expect(Object.keys(state.logisticsOrders)).toHaveLength(0)
+    expect(granary.inventory.food).toBe(20)
+    expect(state.households.family.needs.food).toBe(10)
+    expect(market.status).toBe('blocked')
+    expect(market.statusReason).toBe('missing-service-resource:food')
+  })
 })

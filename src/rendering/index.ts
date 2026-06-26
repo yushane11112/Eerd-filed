@@ -14,6 +14,34 @@ export {
   pointInRect,
 } from './culling'
 export { createSceneLayers, SCENE_LAYER_ORDER, type SceneLayers } from './layers'
+export {
+  parseRuntimePrefabDescriptor,
+  resolvePrefabAnimationState,
+} from './prefab'
+export type {
+  GoldAnimationManifest,
+  GoldAnimationSlotManifest,
+  GoldBuildingAnchorManifest,
+  GoldBuildingLevelManifest,
+  GoldBuildingManifest,
+  GoldBuildingSpriteLayerManifest,
+  PrefabAnimationState,
+  PrefabAnimationTechnique,
+  PrefabAnchorDescriptor,
+  PrefabBuildingStatus,
+  PrefabLayerDescriptor,
+  PrefabLevelDescriptor,
+  PrefabLod,
+  PrefabLodMode,
+  PrefabParseResult,
+  PrefabPlaybackRateSource,
+  PrefabPoint2,
+  PrefabPoint3,
+  PrefabRequiredState,
+  PrefabStateInput,
+  PrefabZBand,
+  RuntimePrefabDescriptor,
+} from './prefab'
 export type {
   EntityVisual,
   IsoMetrics,
@@ -24,4 +52,3 @@ export type {
   ScreenPoint,
   ScreenRect,
 } from './types'
-

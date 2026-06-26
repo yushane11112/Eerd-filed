@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   Building2,
   Coins,
   Expand,
@@ -45,6 +46,7 @@ export default function App() {
   const [toast, setToast] = useState('欢迎回到小耳镇：铺路、建房，让居民真正生活起来。')
   const [fullscreen, setFullscreen] = useState(INITIAL_FULLSCREEN)
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null)
+  const [bottleneckOpen, setBottleneckOpen] = useState(false)
   const shellRef = useRef<HTMLElement>(null)
   const fullscreenRef = useRef<FullscreenController | null>(null)
 
@@ -82,6 +84,7 @@ export default function App() {
   const rareTotal = Object.values(snapshot.rareRewards.inventory)
     .reduce((sum, value) => sum + (value ?? 0), 0)
   const needScore = averageNeeds(snapshot)
+  const bottlenecks = useMemo(() => getCityBottlenecks(snapshot), [snapshot])
 
   const chooseTool = (next: BuildTool) => {
     setTool(next)
@@ -191,6 +194,33 @@ export default function App() {
         <button onClick={simulateSong}>模拟听完</button>
       </section>
 
+      <aside className={`bottleneck-panel glass-panel ${bottleneckOpen ? 'open' : ''}`} aria-label="城市瓶颈管理">
+        <button
+          className="bottleneck-toggle"
+          onClick={() => setBottleneckOpen((open) => !open)}
+          aria-expanded={bottleneckOpen}
+        >
+          <span><AlertTriangle /> 瓶颈</span>
+          <b>{bottlenecks.length || '稳'}</b>
+        </button>
+        {bottleneckOpen && (
+          <div className="bottleneck-body">
+            <p>优先处理最影响运转的 3 件事。</p>
+            {bottlenecks.length === 0 ? (
+              <div className="bottleneck-empty">暂无明显瓶颈，继续扩建前留意物流和居民需求。</div>
+            ) : (
+              bottlenecks.map((item) => (
+                <article key={item.id} className={`bottleneck-card severity-${item.severity}`}>
+                  <strong>{item.title}</strong>
+                  <span>{item.detail}</span>
+                  <em>{item.action}</em>
+                </article>
+              ))
+            )}
+          </div>
+        )}
+      </aside>
+
       {selectedBuilding && selectedDefinition && (
         <aside className="building-inspector glass-panel">
           <button className="inspector-close" onClick={() => setSelectedBuildingId(null)}><X /></button>
@@ -254,6 +284,135 @@ function reasonName(reason: string) {
 
 function rareName(resource: string) {
   return ({ jade: '玉石', silk: '云锦', porcelain: '名瓷', blueprint: '营造图' } as Record<string, string>)[resource] ?? resource
+}
+
+type BottleneckSeverity = 'high' | 'medium' | 'low'
+
+interface CityBottleneck {
+  id: string
+  title: string
+  detail: string
+  action: string
+  score: number
+  severity: BottleneckSeverity
+}
+
+function getCityBottlenecks(snapshot: ReturnType<GameRuntime['getSnapshot']>) {
+  const bottlenecks: CityBottleneck[] = []
+  const buildings = Object.values(snapshot.buildings)
+  const reasonCounts = buildings.reduce((counts, building) => {
+    if (!building.statusReason || building.statusReason === 'no-service-demand') return counts
+    counts.set(building.statusReason, (counts.get(building.statusReason) ?? 0) + 1)
+    return counts
+  }, new Map<string, number>())
+
+  for (const [reason, count] of reasonCounts) {
+    const missingResource = reason.startsWith('missing-input:')
+      ? reason.slice('missing-input:'.length)
+      : reason.startsWith('missing-service-resource:')
+        ? reason.slice('missing-service-resource:'.length)
+        : ''
+    const entry = reason === 'no-workers'
+      ? {
+          title: '缺工',
+          detail: `${count} 座建筑缺少工人，产出会停摆。`,
+          action: '先补住房与居民，再扩新岗位。',
+          score: 90 + count,
+        }
+      : reason === 'output-full'
+        ? {
+            title: '仓满',
+            detail: `${count} 座建筑库存顶满，后续产出被堵住。`,
+            action: '增加仓储或道路，把货运出去。',
+            score: 78 + count,
+          }
+        : missingResource
+          ? {
+              title: '缺料',
+              detail: `${count} 座建筑缺少「${resourceName(missingResource)}」。`,
+              action: '补对应产线，或检查道路和仓储连接。',
+              score: 84 + count,
+            }
+          : {
+              title: '建筑停摆',
+              detail: `${count} 座建筑：${reasonName(reason)}。`,
+              action: '点选建筑查看入口、库存与岗位。',
+              score: 60 + count,
+            }
+    bottlenecks.push({ id: `reason-${reason}`, severity: severityFromScore(entry.score), ...entry })
+  }
+
+  const households = Object.values(snapshot.households)
+  if (households.length > 0) {
+    const needAverages = (['food', 'goods', 'health', 'education', 'entertainment'] as const)
+      .map((need) => ({
+        need,
+        value: households.reduce((sum, household) => sum + household.needs[need], 0) / households.length,
+      }))
+      .sort((a, b) => a.value - b.value)
+    const lowestNeed = needAverages[0]
+    if (lowestNeed && lowestNeed.value < 82) {
+      const score = 82 - lowestNeed.value + 70
+      bottlenecks.push({
+        id: `need-${lowestNeed.need}`,
+        title: `${needName(lowestNeed.need)}不足`,
+        detail: `居民平均满足度 ${Math.round(lowestNeed.value)}%，满意度会被拖低。`,
+        action: lowestNeed.need === 'food' || lowestNeed.need === 'goods'
+          ? '优先补市场货源与运输。'
+          : '优先补服务建筑与服务库存。',
+        score,
+        severity: severityFromScore(score),
+      })
+    }
+  }
+
+  const waitingOrders = Object.values(snapshot.logisticsOrders)
+    .filter((order) => order.state === 'waiting' || order.state === 'assigned').length
+  if (snapshot.metrics.logisticsEfficiency < 88 || waitingOrders >= 3) {
+    const score = 88 - snapshot.metrics.logisticsEfficiency + waitingOrders * 2 + 62
+    bottlenecks.push({
+      id: 'logistics',
+      title: '物流不畅',
+      detail: `物流效率 ${Math.round(snapshot.metrics.logisticsEfficiency)}%，待处理订单 ${waitingOrders} 个。`,
+      action: '补道路连通，避免产地和仓库距离过远。',
+      score,
+      severity: severityFromScore(score),
+    })
+  }
+
+  return bottlenecks
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+}
+
+function severityFromScore(score: number): BottleneckSeverity {
+  if (score >= 88) return 'high'
+  if (score >= 72) return 'medium'
+  return 'low'
+}
+
+function resourceName(resource: string) {
+  return ({
+    food: '粮食',
+    fish: '鱼获',
+    wood: '木材',
+    stone: '石料',
+    clay: '黏土',
+    brick: '砖',
+    cloth: '布匹',
+    salt: '盐',
+    medicine: '药品',
+  } as Record<string, string>)[resource] ?? resource
+}
+
+function needName(need: string) {
+  return ({
+    food: '饮食',
+    goods: '日用品',
+    health: '医疗',
+    education: '教育',
+    entertainment: '娱乐',
+  } as Record<string, string>)[need] ?? need
 }
 
 function averageNeeds(snapshot: ReturnType<GameRuntime['getSnapshot']>) {

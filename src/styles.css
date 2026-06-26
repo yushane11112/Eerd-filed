@@ -188,6 +188,95 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   cursor: pointer;
 }
 
+.bottleneck-panel {
+  position: absolute;
+  z-index: 13;
+  right: 16px;
+  bottom: 16px;
+  width: 168px;
+  border-radius: 18px;
+  overflow: hidden;
+}
+.bottleneck-panel.open { width: 276px; }
+.bottleneck-toggle {
+  width: 100%;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 12px;
+  border: 0;
+  color: #385f55;
+  background: transparent;
+  cursor: pointer;
+}
+.bottleneck-toggle span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 900;
+}
+.bottleneck-toggle svg { width: 16px; color: #a4663d; }
+.bottleneck-toggle b {
+  min-width: 25px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: #fff7db;
+  background: #a7673e;
+  font-size: 10px;
+}
+.bottleneck-body {
+  padding: 0 10px 10px;
+}
+.bottleneck-body > p {
+  margin: 0 0 8px;
+  color: #7f8982;
+  font-size: 8px;
+  line-height: 1.5;
+}
+.bottleneck-card,
+.bottleneck-empty {
+  display: block;
+  padding: 9px 10px;
+  border: 1px solid #e2dfca;
+  border-radius: 12px;
+  background: rgba(255,249,222,.66);
+}
+.bottleneck-card + .bottleneck-card { margin-top: 6px; }
+.bottleneck-card strong {
+  display: block;
+  color: #294a42;
+  font-size: 11px;
+}
+.bottleneck-card span,
+.bottleneck-card em,
+.bottleneck-empty {
+  color: #748078;
+  font-size: 8px;
+  line-height: 1.45;
+}
+.bottleneck-card span {
+  display: block;
+  margin-top: 3px;
+}
+.bottleneck-card em {
+  display: block;
+  margin-top: 5px;
+  color: #9a633e;
+  font-style: normal;
+  font-weight: 800;
+}
+.bottleneck-card.severity-high {
+  border-color: #d99a82;
+  background: #f5ded4;
+}
+.bottleneck-card.severity-medium {
+  border-color: #d9bd79;
+  background: #f5ecd0;
+}
+
 .building-inspector {
   position: absolute;
   z-index: 14;

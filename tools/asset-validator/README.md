@@ -18,10 +18,18 @@ It checks JSON-only gates from `docs/project/gold-slice/model-animation-spec.md`
 Run:
 
 ```sh
-node tools/asset-validator/self-test.js
+npm run asset:validate:self-test
 ```
 
-Validate a pair of manifests:
+Validate the committed gold fixture through the same CLI path used for real manifests:
+
+```sh
+npm run asset:validate:gold-fixture
+```
+
+Both npm scripts are offline-only and do not install packages, download schemas, or call external services.
+
+Validate a pair of manifests directly:
 
 ```sh
 node tools/asset-validator/asset-validator.js \

@@ -155,13 +155,14 @@ function household(
   id: string,
   homeBuildingId: string,
   needs: SimulationSnapshot['households'][string]['needs'],
+  income = 100,
 ): SimulationSnapshot['households'][string] {
   return {
     id,
     homeBuildingId,
     members: 3,
     workerIds: [],
-    income: 0,
+    income,
     satisfaction: 50,
     needs,
   }
@@ -552,9 +553,9 @@ describe('service system', () => {
           homeBuildingId: home.id,
           members: 3,
           workerIds: [],
-          income: 0,
+          income: 20,
           satisfaction: 50,
-          needs: { food: 20, goods: 70, health: 70, education: 70, entertainment: 70 },
+          needs: { food: 20, goods: 95, health: 70, education: 70, entertainment: 70 },
         },
       },
     })
@@ -576,10 +577,102 @@ describe('service system', () => {
       need: 'food',
     })
     expect(state.households.household.needs.food).toBe(36)
+    expect(state.households.household.income).toBe(15)
     expect(market.inventory.food).toBe(2)
     expect(state.economy.treasury).toBe(100.5)
     expect(state.economy.lastTaxIncome).toBe(0.5)
     expect(market.status).toBe('serving')
+  })
+
+  it('sells cloth as market goods and restores the household goods need', () => {
+    const market = building('market-1', 'market', { x: 0, y: 0 }, { cloth: 2 })
+    market.workers = ['worker-1']
+    const home = building('house-1', 'house', { x: 3, y: 0 })
+    const state = snapshot({
+      buildings: { [market.id]: market, [home.id]: home },
+      households: {
+        household: household('household', home.id, {
+          food: 95,
+          goods: 20,
+          health: 70,
+          education: 70,
+          entertainment: 70,
+        }, 20),
+      },
+    })
+
+    const events = new ServiceSystem({ definitions }).update(state)
+
+    expect(events).toContainEqual({
+      type: 'purchase-completed',
+      buildingId: market.id,
+      householdId: 'household',
+      resource: 'cloth',
+      amount: 1,
+      taxPaid: 0.3,
+    })
+    expect(events).toContainEqual({
+      type: 'service-delivered',
+      buildingId: market.id,
+      householdId: 'household',
+      need: 'goods',
+    })
+    expect(state.households.household.needs.goods).toBe(32)
+    expect(state.households.household.income).toBe(17)
+    expect(market.inventory.cloth).toBe(1)
+    expect(state.economy.treasury).toBe(100.3)
+  })
+
+  it('does not let households buy market goods without enough disposable income', () => {
+    const market = building('market-1', 'market', { x: 0, y: 0 }, { food: 3 })
+    market.workers = ['worker-1']
+    const home = building('house-1', 'house', { x: 3, y: 0 })
+    const state = snapshot({
+      buildings: { [market.id]: market, [home.id]: home },
+      households: {
+        household: household('household', home.id, {
+          food: 20,
+          goods: 95,
+          health: 70,
+          education: 70,
+          entertainment: 70,
+        }, 4),
+      },
+    })
+
+    const events = new ServiceSystem({ definitions }).update(state)
+
+    expect(events).toHaveLength(0)
+    expect(state.households.household.needs.food).toBe(16)
+    expect(state.households.household.income).toBe(4)
+    expect(market.inventory.food).toBe(3)
+    expect(state.economy.treasury).toBe(100)
+    expect(market.statusReason).toBe('insufficient-household-income:food')
+  })
+
+  it('does not sell goods when the market lacks cloth stock', () => {
+    const market = building('market-1', 'market', { x: 0, y: 0 })
+    market.workers = ['worker-1']
+    const home = building('house-1', 'house', { x: 3, y: 0 })
+    const state = snapshot({
+      buildings: { [market.id]: market, [home.id]: home },
+      households: {
+        household: household('household', home.id, {
+          food: 95,
+          goods: 20,
+          health: 70,
+          education: 70,
+          entertainment: 70,
+        }, 20),
+      },
+    })
+
+    const events = new ServiceSystem({ definitions }).update(state)
+
+    expect(events).toHaveLength(0)
+    expect(state.households.household.needs.goods).toBe(17)
+    expect(market.inventory.cloth).toBeUndefined()
+    expect(market.statusReason).toBe('missing-service-resource:cloth')
   })
 
   it('serves medicine-backed health needs from staffed reachable pharmacies', () => {
@@ -670,28 +763,28 @@ describe('service system', () => {
       households: {
         first: household('first', homes[0].id, {
           food: 10,
-          goods: 70,
+          goods: 95,
           health: 70,
           education: 70,
           entertainment: 70,
         }),
         second: household('second', homes[1].id, {
           food: 20,
-          goods: 70,
+          goods: 95,
           health: 70,
           education: 70,
           entertainment: 70,
         }),
         third: household('third', homes[2].id, {
           food: 30,
-          goods: 70,
+          goods: 95,
           health: 70,
           education: 70,
           entertainment: 70,
         }),
         fourth: household('fourth', homes[3].id, {
           food: 40,
-          goods: 70,
+          goods: 95,
           health: 70,
           education: 70,
           entertainment: 70,
@@ -723,9 +816,9 @@ describe('service system', () => {
           homeBuildingId: home.id,
           members: 3,
           workerIds: [],
-          income: 0,
+          income: 20,
           satisfaction: 50,
-          needs: { food: 20, goods: 70, health: 70, education: 70, entertainment: 70 },
+          needs: { food: 20, goods: 95, health: 70, education: 70, entertainment: 70 },
         },
       },
     })
@@ -753,9 +846,9 @@ describe('service system', () => {
           homeBuildingId: home.id,
           members: 3,
           workerIds: [],
-          income: 0,
+          income: 20,
           satisfaction: 50,
-          needs: { food: 20, goods: 70, health: 70, education: 70, entertainment: 70 },
+          needs: { food: 20, goods: 95, health: 70, education: 70, entertainment: 70 },
         },
       },
     })
@@ -837,9 +930,9 @@ describe('integrated economy order', () => {
           homeBuildingId: home.id,
           members: 3,
           workerIds: [],
-          income: 0,
+          income: 20,
           satisfaction: 40,
-          needs: { food: 10, goods: 60, health: 60, education: 60, entertainment: 60 },
+          needs: { food: 10, goods: 95, health: 60, education: 60, entertainment: 60 },
         },
       },
     })

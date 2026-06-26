@@ -95,6 +95,9 @@ export default function App() {
   const selectedDefinition = selectedBuilding
     ? BUILDING_DEFINITIONS[selectedBuilding.type]
     : undefined
+  const selectedUpgrade = selectedBuilding
+    ? runtime.getBuildingUpgradeQuote(selectedBuilding.id)
+    : undefined
   const rareTotal = Object.values(snapshot.rareRewards.inventory)
     .reduce((sum, value) => sum + (value ?? 0), 0)
   const needScore = averageNeeds(snapshot)
@@ -118,6 +121,20 @@ export default function App() {
     } else {
       setToast(`本次未获得稀缺材料，保底进度 ${result.misses}/5。`)
     }
+  }
+
+  const upgradeSelectedBuilding = () => {
+    if (!selectedBuilding || !selectedUpgrade) return
+    if (selectedUpgrade.reason === 'upgrading' || selectedUpgrade.reason === 'already-upgrading') {
+      setToast('这座建筑正在升级中，稍后再看。')
+      return
+    }
+    if (selectedUpgrade.reason === 'max-level') {
+      setToast('这座建筑已达到最高等级。')
+      return
+    }
+    const result = runtime.upgradeBuilding(selectedBuilding.id)
+    setToast(result.message)
   }
 
   const focusCityTarget = (target: CityFocusTarget | undefined, fallbackTitle: string) => {
@@ -327,6 +344,42 @@ export default function App() {
             <span>产能<b>{Math.round(selectedBuilding.productionProgress)} 刻</b></span>
             <span>库存<b>{Object.values(selectedBuilding.inventory).reduce((a, b) => a + (b ?? 0), 0)}</b></span>
           </div>
+          {selectedUpgrade && (
+            <div className="upgrade-card">
+              <div className="upgrade-head">
+                <span>建筑升级</span>
+                <b>
+                  Lv.{selectedUpgrade.currentLevel}
+                  {selectedUpgrade.nextLevel ? ` → Lv.${selectedUpgrade.nextLevel}` : ' · 满级'}
+                </b>
+              </div>
+              <p>
+                成本：{formatResourceList(selectedUpgrade.cost)}
+                {selectedUpgrade.effect
+                  ? ` · 升级后容量 ${selectedUpgrade.effect.capacity}，岗位 ${selectedUpgrade.effect.jobs}`
+                  : ''}
+              </p>
+              {Object.keys(selectedUpgrade.missing).length > 0 && (
+                <em>缺少：{formatResourceList(selectedUpgrade.missing)}</em>
+              )}
+              {selectedUpgrade.reason === 'upgrading' && <em>施工中，暂不能重复升级。</em>}
+              {selectedUpgrade.reason === 'max-level' && <em>已达到最高等级。</em>}
+              <button
+                type="button"
+                onClick={upgradeSelectedBuilding}
+                disabled={selectedUpgrade.reason === 'upgrading' || selectedUpgrade.reason === 'already-upgrading' || selectedUpgrade.reason === 'max-level' || selectedUpgrade.reason === 'invalid-level' || selectedUpgrade.reason === 'unknown-building'}
+                title={upgradeButtonTitle(selectedUpgrade.reason)}
+              >
+                {selectedUpgrade.reason === 'upgrading' || selectedUpgrade.reason === 'already-upgrading'
+                  ? '升级中'
+                  : selectedUpgrade.reason === 'max-level'
+                    ? '已满级'
+                    : selectedUpgrade.canUpgrade
+                      ? '升级'
+                      : '尝试升级'}
+              </button>
+            </div>
+          )}
           <p className="inspector-note">建筑状态由人口、原料、道路和物流实时驱动。</p>
         </aside>
       )}
@@ -375,6 +428,21 @@ function reasonName(reason: string) {
 
 function rareName(resource: string) {
   return ({ jade: '玉石', silk: '云锦', porcelain: '名瓷', blueprint: '营造图' } as Record<string, string>)[resource] ?? resource
+}
+
+function upgradeButtonTitle(reason: string | undefined) {
+  if (reason === 'upgrading') return '建筑正在升级中'
+  if (reason === 'already-upgrading') return '建筑正在升级中'
+  if (reason === 'max-level') return '已达到最高等级'
+  if (reason === 'insufficient-materials') return '材料不足，点击可查看失败提示'
+  return '消耗城市仓储材料升级'
+}
+
+function formatResourceList(resources: Partial<Record<string, number>>) {
+  const entries = Object.entries(resources)
+    .filter((entry): entry is [string, number] => typeof entry[1] === 'number' && entry[1] > 0)
+  if (entries.length === 0) return '无'
+  return entries.map(([resource, amount]) => `${resourceName(resource)}×${amount}`).join('、')
 }
 
 type BottleneckSeverity = 'high' | 'medium' | 'low'

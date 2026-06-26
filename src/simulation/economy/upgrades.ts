@@ -11,6 +11,7 @@ export const MAX_BUILDING_LEVEL = 8
 export type BuildingUpgradeFailure =
   | 'invalid-level'
   | 'max-level'
+  | 'already-upgrading'
   | 'insufficient-materials'
 
 export type BuildingUpgradeResult =
@@ -29,6 +30,30 @@ export type BuildingUpgradeResult =
     reason: BuildingUpgradeFailure
     missing?: Partial<Record<ResourceKind, number>>
   }
+
+export type BuildingUpgradeStartResult =
+  | {
+    ok: true
+    previousLevel: number
+    targetLevel: number
+    cost: Partial<Record<ResourceKind, number>>
+    durationTicks: number
+  }
+  | {
+    ok: false
+    reason: BuildingUpgradeFailure
+    missing?: Partial<Record<ResourceKind, number>>
+  }
+
+export interface BuildingUpgradeCompletion {
+  buildingId: string
+  previousLevel: number
+  level: number
+  effect: {
+    capacity: number
+    jobs: number
+  }
+}
 
 export function buildingUpgradeCost(
   building: BuildingEntity,
@@ -154,8 +179,106 @@ export function upgradeBuildingFromCityStorage(
   }
 }
 
+export function startBuildingUpgradeFromCityStorage(
+  building: BuildingEntity,
+  definition: BuildingDefinition,
+  buildings: Record<string, BuildingEntity>,
+  definitions: Record<string, BuildingDefinition>,
+): BuildingUpgradeStartResult {
+  if (!Number.isInteger(building.level) || building.level < MIN_BUILDING_LEVEL) {
+    return { ok: false, reason: 'invalid-level' }
+  }
+
+  if (building.status === 'upgrading') {
+    return { ok: false, reason: 'already-upgrading' }
+  }
+
+  const maxLevel = maxLevelFor(definition)
+  if (building.level >= maxLevel) {
+    return { ok: false, reason: 'max-level' }
+  }
+
+  const previousLevel = building.level
+  const cost = buildingUpgradeCost(building, definition)
+  const storageBuildings = cityStorageBuildings(buildings, definitions)
+  const missing = missingMaterialsFromCityStorage(storageBuildings, cost)
+  if (Object.keys(missing).length > 0) {
+    return { ok: false, reason: 'insufficient-materials', missing }
+  }
+
+  for (const [resource, amount] of costEntries(cost)) {
+    let remaining = amount
+    for (const store of storageBuildings) {
+      if (remaining <= 0) break
+      const available = inventoryAmount(store, resource)
+      const spent = Math.min(available, remaining)
+      if (spent > 0) {
+        removeInventory(store, resource, spent)
+        remaining -= spent
+      }
+    }
+  }
+
+  building.status = 'upgrading'
+  building.statusReason = `升级至 ${previousLevel + 1} 级`
+  building.productionProgress = 0
+
+  return {
+    ok: true,
+    previousLevel,
+    targetLevel: previousLevel + 1,
+    cost,
+    durationTicks: buildingUpgradeDurationTicks(building, definition),
+  }
+}
+
+export function advanceBuildingUpgrades(
+  buildings: Record<string, BuildingEntity>,
+  definitions: Record<string, BuildingDefinition>,
+  ticks: number,
+): BuildingUpgradeCompletion[] {
+  if (ticks <= 0) return []
+
+  const completions: BuildingUpgradeCompletion[] = []
+  for (const building of Object.values(buildings).sort((a, b) => a.id.localeCompare(b.id))) {
+    if (building.status !== 'upgrading') continue
+    const definition = definitions[building.type]
+    if (!definition) continue
+
+    const previousLevel = building.level
+    const durationTicks = buildingUpgradeDurationTicks(building, definition)
+    building.productionProgress += ticks
+    if (building.productionProgress < durationTicks) continue
+
+    building.level = previousLevel + 1
+    building.status = 'idle'
+    delete building.statusReason
+    building.productionProgress = 0
+
+    const effect = effectiveBuildingDefinition(definition, building)
+    completions.push({
+      buildingId: building.id,
+      previousLevel,
+      level: building.level,
+      effect: {
+        capacity: effect.capacity,
+        jobs: effect.jobs,
+      },
+    })
+  }
+  return completions
+}
+
 function maxLevelFor(definition: BuildingDefinition): number {
   return Math.min(MAX_BUILDING_LEVEL, definition.maxLevel)
+}
+
+function buildingUpgradeDurationTicks(
+  building: BuildingEntity,
+  definition: BuildingDefinition,
+): number {
+  const nextLevel = Math.min(maxLevelFor(definition), building.level + 1)
+  return Math.max(1, nextLevel * 10)
 }
 
 function normalizedLevel(level: number): number {

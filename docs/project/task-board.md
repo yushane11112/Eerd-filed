@@ -69,3 +69,7 @@
 | CITY-UPGRADE-SUPPLY-01 | 城市级升级材料调拨 | `src/simulation/economy/upgrades.ts`, `src/integration/GameRuntime.ts` | 已完成 | 升级优先从城市仓储确定性扣料，材料不足不改变库存 |
 | LONG-RUN-PERF-01 | 长稳模拟性能优化/定位 | `src/qa/**`, `src/simulation/**`, `docs/project/qa.md` | 已完成 | 不降低 tick/阈值的前提下定位物流订单索引热点并显著降低长稳耗时 |
 | FULL-LEVEL-GOLD-SAMPLE-01 | 首个 L0–L8 完整金标样例 | `docs/project/gold-slice/sample-manifests/**`, `tools/asset-validator/**`, `package.json` | 已完成 | `main-homes` 可通过 strict L0–L8 校验 |
+| HOUSEHOLD-CASH-GOODS-01 | 家庭现金与日用品消费 | `src/simulation/economy/**`, `src/simulation/contracts.ts` | 已完成 | 市场支持 food/goods 消费，家庭收入不足不能凭空购买 |
+| UPGRADE-CONSTRUCTION-QUEUE-01 | 建筑升级施工队列 | `src/simulation/economy/upgrades.ts`, `src/integration/GameRuntime.ts` | 已完成 | 升级进入 `upgrading` 并随 tick 完成，而非瞬时换级 |
+| UPGRADE-UI-ENTRY-01 | 建筑详情升级入口 | `src/App.tsx`, `src/styles.css`, `src/integration/GameRuntime.ts` | 已完成 | 玩家可查看成本/缺口并触发升级，UI 保持简洁 |
+| FULL-LEVEL-EATERY-SAMPLE-01 | 第二个 L0–L8 完整金标样例 | `docs/project/gold-slice/sample-manifests/**`, `package.json` | 已完成 | `main-eatery` 可通过 strict L0–L8 校验 |

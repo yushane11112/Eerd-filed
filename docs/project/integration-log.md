@@ -47,3 +47,5 @@
 - 完成第九轮并行生产：新增文明系统矩阵和商业级缺口清单；建筑升级底层支持 0–8 级成本、失败条件和容量/岗位效果；资产校验器新增 `--require-all-levels` 严格模式，明确当前样例缺 L2/L3/L5/L6/L7；长稳 QA 新增 2400 tick 灰盒文明稳定性测试并记录 7200 tick/30 日商业级长测尚未达成。
 - 启动第十轮并行生产：MARKET-CONSUMPTION-01、CITY-UPGRADE-SUPPLY-01、LONG-RUN-PERF-01、FULL-LEVEL-GOLD-SAMPLE-01，分别推进市场真实消费、城市级升级材料调拨、长稳性能优化和首个 L0–L8 完整金标样例。
 - 完成第十轮并行生产：市场消费会扣库存、产生购买事件并增加税收；建筑升级优先从城市仓储确定性扣料；长稳性能热点定位到物流订单全表扫描并通过 active order 索引优化；`main-homes` 补齐 L0–L8 并可通过单样例 strict gate。
+- 启动第十一轮并行生产：HOUSEHOLD-CASH-GOODS-01、UPGRADE-CONSTRUCTION-QUEUE-01、UPGRADE-UI-ENTRY-01、FULL-LEVEL-EATERY-SAMPLE-01，分别推进家庭收入约束与日用品消费、升级施工进度、建筑详情升级入口和第二个 L0–L8 完整样例。
+- 完成第十一轮并行生产：市场支持 food 与 cloth-as-goods 消费并检查家庭收入；升级从瞬时换级推进为 `upgrading` 状态和 tick 进度；建筑详情新增升级成本/缺口/触发入口；`main-eatery` 补齐 L0–L8 并可通过 strict gate，剩余未补齐样例为 `main-pier`。

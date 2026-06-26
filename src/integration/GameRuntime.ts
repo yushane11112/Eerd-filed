@@ -8,7 +8,15 @@ import type {
   SimulationSnapshot,
 } from '../simulation/contracts'
 import { SimulationEngine, createInitialSimulationSnapshot } from '../simulation/core'
-import { EconomySystem, RoadRoutePlanner, upgradeBuildingFromCityStorage } from '../simulation/economy'
+import {
+  advanceBuildingUpgrades,
+  buildingUpgradeCost,
+  EconomySystem,
+  effectiveBuildingDefinition,
+  RoadRoutePlanner,
+  startBuildingUpgradeFromCityStorage,
+  upgradeBuildingFromCityStorage,
+} from '../simulation/economy'
 import {
   createDropSpawnState,
   flushPendingDrops,
@@ -36,6 +44,22 @@ export interface RuntimeActionResult {
       capacity: number
       jobs: number
     }
+  }
+}
+
+export interface BuildingUpgradeQuote {
+  buildingId: string
+  currentLevel: number
+  nextLevel?: number
+  maxLevel: number
+  status: BuildingEntity['status']
+  cost: Partial<Record<ResourceKind, number>>
+  missing: Partial<Record<ResourceKind, number>>
+  canUpgrade: boolean
+  reason?: 'max-level' | 'insufficient-materials' | 'invalid-level' | 'upgrading' | 'already-upgrading' | 'unknown-building'
+  effect?: {
+    capacity: number
+    jobs: number
   }
 }
 
@@ -127,6 +151,76 @@ export class GameRuntime {
 
   consumeCityNoticeEvents = (): CityNotice[] => this.cityNoticeTracker.update(this.snapshotCache)
 
+  getBuildingUpgradeQuote(buildingId: string): BuildingUpgradeQuote | undefined {
+    const snapshot = this.engine.snapshot
+    const building = snapshot.buildings[buildingId]
+    if (!building) return undefined
+    const definition = BUILDING_DEFINITIONS[building.type]
+    if (!definition) {
+      return {
+        buildingId,
+        currentLevel: building.level,
+        maxLevel: 0,
+        status: building.status,
+        cost: {},
+        missing: {},
+        canUpgrade: false,
+        reason: 'unknown-building',
+      }
+    }
+
+    const maxLevel = definition.maxLevel
+    const cost = buildingUpgradeCost(building, definition)
+    if (building.status === 'upgrading') {
+      return {
+        buildingId,
+        currentLevel: building.level,
+        nextLevel: building.level < maxLevel ? building.level + 1 : undefined,
+        maxLevel,
+        status: building.status,
+        cost,
+        missing: {},
+        canUpgrade: false,
+        reason: 'upgrading',
+      }
+    }
+
+    const clonedBuildings = cloneBuildings(snapshot.buildings)
+    const clonedBuilding = clonedBuildings[buildingId]
+    const result = upgradeBuildingFromCityStorage(
+      clonedBuilding,
+      definition,
+      clonedBuildings,
+      BUILDING_DEFINITIONS,
+    )
+
+    if (!result.ok) {
+      return {
+        buildingId,
+        currentLevel: building.level,
+        nextLevel: result.reason === 'max-level' ? undefined : building.level + 1,
+        maxLevel,
+        status: building.status,
+        cost,
+        missing: result.missing ?? {},
+        canUpgrade: false,
+        reason: result.reason,
+      }
+    }
+
+    return {
+      buildingId,
+      currentLevel: building.level,
+      nextLevel: result.level,
+      maxLevel,
+      status: building.status,
+      cost: result.cost,
+      missing: {},
+      canUpgrade: true,
+      effect: result.effect,
+    }
+  }
+
   subscribe = (listener: () => void) => {
     this.listeners.add(listener)
     return () => this.listeners.delete(listener)
@@ -136,6 +230,11 @@ export class GameRuntime {
     const result = this.engine.advance(elapsedMs)
     if (result.ticks === 0) return
     let snapshot = this.engine.snapshot
+    const hasUpgradingBuildings = Object.values(snapshot.buildings)
+      .some((building) => building.status === 'upgrading')
+    if (hasUpgradingBuildings) {
+      advanceBuildingUpgrades(snapshot.buildings, BUILDING_DEFINITIONS, result.ticks)
+    }
     if (snapshot.tick - this.lastDropTick >= 40) {
       this.lastDropTick = snapshot.tick
       const spawned = spawnRandomOrdinaryDrop(
@@ -146,6 +245,8 @@ export class GameRuntime {
       )
       this.dropState = spawned.state
       snapshot.worldDrops = this.dropState.visible
+      this.rebuild(snapshot)
+    } else if (hasUpgradingBuildings) {
       this.rebuild(snapshot)
     } else {
       this.snapshotCache = snapshot
@@ -199,7 +300,7 @@ export class GameRuntime {
     const definition = BUILDING_DEFINITIONS[building.type]
     if (!definition) return { ok: false, message: '未知建筑类型', buildingId }
 
-    const result = upgradeBuildingFromCityStorage(
+    const result = startBuildingUpgradeFromCityStorage(
       building,
       definition,
       snapshot.buildings,
@@ -216,18 +317,25 @@ export class GameRuntime {
           buildingId,
         }
       }
+      if (result.reason === 'already-upgrading') {
+        return { ok: false, message: '这座建筑正在升级中', buildingId }
+      }
       return { ok: false, message: '建筑等级状态异常，无法升级', buildingId }
     }
 
+    const targetEffect = effectiveBuildingDefinition(definition, { level: result.targetLevel })
     this.rebuild(snapshot)
     return {
       ok: true,
-      message: `${definition.name}升至 ${result.level} 级，容量 ${result.effect.capacity}，岗位 ${result.effect.jobs}。`,
+      message: `${definition.name}开始升级至 ${result.targetLevel} 级，预计 ${result.durationTicks} tick 完工。`,
       buildingId,
       upgrade: {
-        level: result.level,
+        level: result.targetLevel,
         cost: result.cost,
-        effect: result.effect,
+        effect: {
+          capacity: targetEffect.capacity,
+          jobs: targetEffect.jobs,
+        },
       },
     }
   }
@@ -385,6 +493,21 @@ function createBuilding(
     inventory: { ...inventory },
     productionProgress: 0,
   }
+}
+
+function cloneBuildings(buildings: Record<string, BuildingEntity>): Record<string, BuildingEntity> {
+  return Object.fromEntries(
+    Object.entries(buildings).map(([id, building]) => [
+      id,
+      {
+        ...building,
+        origin: { ...building.origin },
+        entrance: { ...building.entrance },
+        workers: [...building.workers],
+        inventory: { ...building.inventory },
+      },
+    ]),
+  )
 }
 
 function localDayKey(timestamp: number) {

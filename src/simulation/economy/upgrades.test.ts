@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import type { BuildingDefinition, BuildingEntity } from '../contracts'
 import {
   effectiveBuildingDefinition,
+  advanceBuildingUpgrades,
+  startBuildingUpgradeFromCityStorage,
   upgradeBuildingFromCityStorage,
   upgradeBuildingImmediately,
 } from './upgrades'
@@ -146,5 +148,120 @@ describe('building upgrades', () => {
     expect(effectiveBuildingDefinition(granaryDefinition, levelOne).capacity).toBe(100)
     expect(effectiveBuildingDefinition(granaryDefinition, levelEight).capacity).toBe(205)
     expect(effectiveBuildingDefinition(granaryDefinition, levelEight).jobs).toBe(5)
+  })
+
+  it('starts an upgrade by spending city storage materials and reusing productionProgress as deterministic upgrade progress', () => {
+    const target = building(1, {}, 'house-1', 'house')
+    const store = building(1, { wood: 2, stone: 1 }, 'granary-1')
+
+    const result = startBuildingUpgradeFromCityStorage(
+      target,
+      granaryDefinition,
+      { 'house-1': target, 'granary-1': store },
+      { granary: granaryDefinition },
+    )
+
+    expect(result).toEqual({
+      ok: true,
+      previousLevel: 1,
+      targetLevel: 2,
+      cost: { wood: 2, stone: 1 },
+      durationTicks: 20,
+    })
+    expect(target.level).toBe(1)
+    expect(target.status).toBe('upgrading')
+    expect(target.productionProgress).toBe(0)
+    expect(store.inventory).toEqual({})
+  })
+
+  it('advances an upgrading building over multiple ticks before completing level increase', () => {
+    const target = building(1, {}, 'house-1', 'house')
+    const store = building(1, { wood: 2, stone: 1 }, 'granary-1')
+    startBuildingUpgradeFromCityStorage(
+      target,
+      granaryDefinition,
+      { 'house-1': target, 'granary-1': store },
+      { granary: granaryDefinition },
+    )
+
+    const partial = advanceBuildingUpgrades({ 'house-1': target }, { house: granaryDefinition }, 19)
+    expect(partial).toEqual([])
+    expect(target.status).toBe('upgrading')
+    expect(target.level).toBe(1)
+    expect(target.productionProgress).toBe(19)
+
+    const completed = advanceBuildingUpgrades({ 'house-1': target }, { house: granaryDefinition }, 1)
+    expect(completed).toEqual([
+      {
+        buildingId: 'house-1',
+        previousLevel: 1,
+        level: 2,
+        effect: { capacity: 115, jobs: 2 },
+      },
+    ])
+    expect(target.status).toBe('idle')
+    expect(target.level).toBe(2)
+    expect(target.productionProgress).toBe(0)
+  })
+
+  it('does not start a queued upgrade when city storage materials are missing', () => {
+    const target = building(1, {}, 'house-1', 'house')
+    const store = building(1, { wood: 1, stone: 1 }, 'granary-1')
+
+    const result = startBuildingUpgradeFromCityStorage(
+      target,
+      granaryDefinition,
+      { 'house-1': target, 'granary-1': store },
+      { granary: granaryDefinition },
+    )
+
+    expect(result).toEqual({
+      ok: false,
+      reason: 'insufficient-materials',
+      missing: { wood: 1 },
+    })
+    expect(target.status).toBe('idle')
+    expect(target.level).toBe(1)
+    expect(store.inventory).toEqual({ wood: 1, stone: 1 })
+  })
+
+  it('rejects starting a queued upgrade while the building is already upgrading', () => {
+    const target = building(1, {}, 'house-1', 'house')
+    const store = building(1, { wood: 4, stone: 2 }, 'granary-1')
+    startBuildingUpgradeFromCityStorage(
+      target,
+      granaryDefinition,
+      { 'house-1': target, 'granary-1': store },
+      { granary: granaryDefinition },
+    )
+
+    const result = startBuildingUpgradeFromCityStorage(
+      target,
+      granaryDefinition,
+      { 'house-1': target, 'granary-1': store },
+      { granary: granaryDefinition },
+    )
+
+    expect(result).toEqual({ ok: false, reason: 'already-upgrading' })
+    expect(target.level).toBe(1)
+    expect(target.status).toBe('upgrading')
+    expect(store.inventory).toEqual({ wood: 2, stone: 1 })
+  })
+
+  it('rejects starting a queued upgrade for a max-level building', () => {
+    const target = building(8, {}, 'house-1', 'house')
+    const store = building(1, { wood: 99, stone: 99 }, 'granary-1')
+
+    const result = startBuildingUpgradeFromCityStorage(
+      target,
+      granaryDefinition,
+      { 'house-1': target, 'granary-1': store },
+      { granary: granaryDefinition },
+    )
+
+    expect(result).toEqual({ ok: false, reason: 'max-level' })
+    expect(target.status).toBe('idle')
+    expect(target.level).toBe(8)
+    expect(store.inventory).toEqual({ wood: 99, stone: 99 })
   })
 })

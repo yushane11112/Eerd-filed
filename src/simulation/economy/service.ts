@@ -65,6 +65,18 @@ export const DEFAULT_SERVICE_RULES: Readonly<Record<string, ServiceRule>> = {
   },
 }
 
+const DEFAULT_MARKET_GOODS_RULE: ServiceRule = {
+  need: 'goods',
+  // Cloth represents everyday household goods in the current ResourceKind set.
+  resource: 'cloth',
+  amountPerHousehold: 1,
+  saleValuePerHousehold: 3,
+  restoreAmount: 12,
+  maxHouseholdsPerTick: 3,
+  unmetNeedPenalty: 3,
+  unmetSatisfactionPenalty: 1.5,
+}
+
 export class ServiceSystem implements SimulationSystem {
   readonly id = 'economy.service'
   private readonly definitions: Readonly<Record<string, BuildingDefinition>>
@@ -85,86 +97,99 @@ export class ServiceSystem implements SimulationSystem {
       rule: ServiceRule
     }>()
     const serviceBuildings = Object.values(snapshot.buildings)
-      .filter((building) => this.ruleFor(building))
+      .filter((building) => this.rulesFor(building).length > 0)
       .sort((left, right) => left.id.localeCompare(right.id))
 
     for (const serviceBuilding of serviceBuildings) {
-      const rule = this.ruleFor(serviceBuilding)!
       const definition = this.definitions[serviceBuilding.type]
       if (!definition) continue
 
-      const demandingHouseholds = this.demandingHouseholds(snapshot, rule)
-      const candidates = this.reachableHouseholds(snapshot, serviceBuilding, rule)
-      if (serviceBuilding.workers.length === 0) {
-        markBlocked(serviceBuilding, 'no-workers')
-        this.markUnmet(unmetNeeds, candidates, rule)
-        continue
-      }
-      if (candidates.length === 0) {
-        markBlocked(
-          serviceBuilding,
-          demandingHouseholds.length === 0 ? 'no-service-demand' : 'no-service-route',
-        )
-        if (demandingHouseholds.length > 0) {
-          this.markUnmet(unmetNeeds, demandingHouseholds, rule)
+      for (const rule of this.rulesFor(serviceBuilding)) {
+        const demandingHouseholds = this.demandingHouseholds(snapshot, rule)
+        const candidates = this.reachableHouseholds(snapshot, serviceBuilding, rule)
+        if (serviceBuilding.workers.length === 0) {
+          markBlocked(serviceBuilding, 'no-workers')
+          this.markUnmet(unmetNeeds, candidates, rule)
+          continue
         }
-        continue
-      }
-      if (rule.resource && inventoryAmount(serviceBuilding, rule.resource) <= 0) {
-        markBlocked(serviceBuilding, `missing-service-resource:${rule.resource}`)
-        this.markUnmet(unmetNeeds, candidates, rule)
-        continue
-      }
-
-      let served = 0
-      const servedHouseholdIds = new Set<string>()
-      for (const household of candidates) {
-        if (served >= rule.maxHouseholdsPerTick) break
-        if (rule.resource) {
-          const consume = rule.amountPerHousehold ?? 1
-          const removed = removeInventory(serviceBuilding, rule.resource, consume)
-          if (!removed.ok) break
-          if (definition.category === 'market') {
-            const saleValue = rule.saleValuePerHousehold ?? 0
-            const taxPaid = saleValue * snapshot.economy.taxRate
-            snapshot.economy.treasury += taxPaid
-            snapshot.economy.lastTaxIncome += taxPaid
-            events.push({
-              type: 'purchase-completed',
-              buildingId: serviceBuilding.id,
-              householdId: household.id,
-              resource: rule.resource,
-              amount: consume,
-              taxPaid,
-            })
+        if (candidates.length === 0) {
+          if (demandingHouseholds.length === 0) continue
+          markBlocked(serviceBuilding, 'no-service-route')
+          if (demandingHouseholds.length > 0) {
+            this.markUnmet(unmetNeeds, demandingHouseholds, rule)
           }
+          continue
         }
-        household.needs[rule.need] = clamp(
-          household.needs[rule.need] + rule.restoreAmount,
-          0,
-          100,
-        )
-        served += 1
-        events.push({
-          type: 'service-delivered',
-          buildingId: serviceBuilding.id,
-          householdId: household.id,
-          need: rule.need,
-        })
-        servedNeeds.add(needKey(household.id, rule.need))
-        servedHouseholdIds.add(household.id)
-      }
+        const consume = rule.amountPerHousehold ?? 1
+        if (rule.resource && inventoryAmount(serviceBuilding, rule.resource) < consume) {
+          markBlocked(serviceBuilding, `missing-service-resource:${rule.resource}`)
+          this.markUnmet(unmetNeeds, candidates, rule)
+          continue
+        }
+        const saleValue = definition.category === 'market'
+          ? (rule.saleValuePerHousehold ?? 0)
+          : 0
+        const affordableCandidates = saleValue > 0
+          ? candidates.filter((household) => household.income >= saleValue)
+          : candidates
+        if (definition.category === 'market' && affordableCandidates.length === 0) {
+          markBlocked(
+            serviceBuilding,
+            `insufficient-household-income:${rule.resource ?? rule.need}`,
+          )
+          this.markUnmet(unmetNeeds, candidates, rule)
+          continue
+        }
 
-      if (served > 0) {
-        serviceBuilding.status = 'serving'
-        delete serviceBuilding.statusReason
-      }
-      if (served < candidates.length) {
-        this.markUnmet(
-          unmetNeeds,
-          candidates.filter((household) => !servedHouseholdIds.has(household.id)),
-          rule,
-        )
+        let served = 0
+        const servedHouseholdIds = new Set<string>()
+        for (const household of affordableCandidates) {
+          if (served >= rule.maxHouseholdsPerTick) break
+          if (rule.resource) {
+            const removed = removeInventory(serviceBuilding, rule.resource, consume)
+            if (!removed.ok) break
+            if (definition.category === 'market') {
+              const taxPaid = roundCurrency(saleValue * snapshot.economy.taxRate)
+              household.income = Math.max(0, household.income - saleValue)
+              snapshot.economy.treasury += taxPaid
+              snapshot.economy.lastTaxIncome += taxPaid
+              events.push({
+                type: 'purchase-completed',
+                buildingId: serviceBuilding.id,
+                householdId: household.id,
+                resource: rule.resource,
+                amount: consume,
+                taxPaid,
+              })
+            }
+          }
+          household.needs[rule.need] = clamp(
+            household.needs[rule.need] + rule.restoreAmount,
+            0,
+            100,
+          )
+          served += 1
+          events.push({
+            type: 'service-delivered',
+            buildingId: serviceBuilding.id,
+            householdId: household.id,
+            need: rule.need,
+          })
+          servedNeeds.add(needKey(household.id, rule.need))
+          servedHouseholdIds.add(household.id)
+        }
+
+        if (served > 0) {
+          serviceBuilding.status = 'serving'
+          delete serviceBuilding.statusReason
+        }
+        if (served < candidates.length) {
+          this.markUnmet(
+            unmetNeeds,
+            candidates.filter((household) => !servedHouseholdIds.has(household.id)),
+            rule,
+          )
+        }
       }
     }
 
@@ -172,8 +197,11 @@ export class ServiceSystem implements SimulationSystem {
     return events
   }
 
-  private ruleFor(building: BuildingEntity): ServiceRule | undefined {
-    return this.rules[building.type]
+  private rulesFor(building: BuildingEntity): readonly ServiceRule[] {
+    const rule = this.rules[building.type]
+    if (!rule) return []
+    if (building.type !== 'market' || rule.need === 'goods') return [rule]
+    return [rule, DEFAULT_MARKET_GOODS_RULE]
   }
 
   private reachableHouseholds(
@@ -256,4 +284,8 @@ function needKey(householdId: string, need: NeedKind): string {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
+}
+
+function roundCurrency(value: number): number {
+  return Math.round(value * 100) / 100
 }

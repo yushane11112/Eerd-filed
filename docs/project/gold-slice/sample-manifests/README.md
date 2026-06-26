@@ -21,17 +21,18 @@ npm run asset:validate:gold-samples:strict
 
 Strict validation requires every building manifest to provide all nine levels, `L0` through `L8`. Missing any level is a failure reported as `level.missing_required_all_levels`.
 
-The first single-sample `L0`-through-`L8` complete manifest is now `main-homes`. Use this focused gate to prove strict all-level validation can pass for one gold sample while the batch strict gate continues to expose unfinished samples:
+The first two single-sample `L0`-through-`L8` complete manifests are now `main-homes` and `main-eatery`. Use these focused gates to prove strict all-level validation can pass for complete gold samples while the batch strict gate continues to expose unfinished samples:
 
 ```bash
 npm run asset:validate:main-homes:strict
+npm run asset:validate:main-eatery:strict
 ```
 
 Current batch coverage:
 
-- `main-homes` — first complete single-sample strict pass (`L0`-`L8`)
+- `main-homes` — complete single-sample strict pass (`L0`-`L8`)
+- `main-eatery` — complete single-sample strict pass (`L0`-`L8`), with authored intermediate growth from fixed stall to busy restaurant
 - `main-pier` — still template-level only until `L2`, `L3`, `L5`, `L6`, and `L7` are authored
-- `main-eatery` — still template-level only until `L2`, `L3`, `L5`, `L6`, and `L7` are authored
 
 ## Art export requirements
 

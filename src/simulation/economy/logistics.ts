@@ -4,6 +4,7 @@ import type {
   BuildingEntity,
   EntityId,
   GridPoint,
+  LogisticsFailureReason,
   LogisticsOrder,
   ResourceKind,
   SimulationEvent,
@@ -99,13 +100,6 @@ function isActive(order: LogisticsOrder): boolean {
 function isCarrier(agent: AgentEntity): boolean {
   return agent.role === 'carrier' || agent.role === 'cart' || agent.role === 'boat'
 }
-
-type LogisticsFailureReason =
-  | 'no-route'
-  | 'no-carrier'
-  | 'no-source-inventory'
-  | 'source-inventory-insufficient'
-  | 'destination-capacity'
 
 function logisticsFailureReason(resource: ResourceKind, reason: LogisticsFailureReason): string {
   return `logistics-failed:${resource}:${reason}`
@@ -306,6 +300,7 @@ export class LogisticsSystem implements SimulationSystem {
 
     if (freeCarriers.length === 0) {
       for (const order of waitingOrders) {
+        this.markOrderFailure(order, 'no-carrier')
         const destination = snapshot.buildings[order.destinationBuildingId]
         if (destination) this.markFailure(destination, order.resource, 'no-carrier')
       }
@@ -319,6 +314,7 @@ export class LogisticsSystem implements SimulationSystem {
       if (!source || inventoryAmount(source, order.resource) < order.amount) {
         const destination = snapshot.buildings[order.destinationBuildingId]
         if (destination) this.markFailure(destination, order.resource, 'source-inventory-insufficient')
+        this.markOrderCancelled(order, 'source-inventory-insufficient')
         order.state = 'cancelled'
         continue
       }
@@ -326,12 +322,14 @@ export class LogisticsSystem implements SimulationSystem {
       if (!route) {
         const destination = snapshot.buildings[order.destinationBuildingId]
         if (destination) this.markFailure(destination, order.resource, 'no-route')
+        this.markOrderFailure(order, 'no-route')
         freeCarriers.unshift(carrier)
         continue
       }
 
       order.state = 'assigned'
       order.carrierId = carrier.id
+      this.clearOrderFailure(order)
       carrier.activity = 'delivering'
       carrier.path = route
       carrier.pathIndex = 0
@@ -350,6 +348,7 @@ export class LogisticsSystem implements SimulationSystem {
       if (!carrier) {
         order.state = 'waiting'
         delete order.carrierId
+        this.markOrderFailure(order, 'no-carrier')
         continue
       }
 
@@ -373,12 +372,12 @@ export class LogisticsSystem implements SimulationSystem {
     const destination = snapshot.buildings[order.destinationBuildingId]
     if (!source || !destination) {
       if (destination) this.markFailure(destination, order.resource, 'no-source-inventory')
-      this.cancel(order, carrier)
+      this.cancel(order, carrier, 'no-source-inventory')
       return
     }
     if (!removeInventory(source, order.resource, order.amount).ok) {
       this.markFailure(destination, order.resource, 'source-inventory-insufficient')
-      this.cancel(order, carrier)
+      this.cancel(order, carrier, 'source-inventory-insufficient')
       return
     }
 
@@ -386,11 +385,12 @@ export class LogisticsSystem implements SimulationSystem {
     if (!route) {
       addInventory(source, this.definitions[source.type], order.resource, order.amount)
       this.markFailure(destination, order.resource, 'no-route')
-      this.cancel(order, carrier)
+      this.cancel(order, carrier, 'no-route')
       return
     }
 
     order.state = 'in_transit'
+    this.clearOrderFailure(order)
     carrier.path = route
     carrier.pathIndex = 0
     carrier.position = { ...route[0] }
@@ -402,30 +402,53 @@ export class LogisticsSystem implements SimulationSystem {
     carrier: AgentEntity,
   ): void {
     const destination = snapshot.buildings[order.destinationBuildingId]
-    if (!destination
-      || !addInventory(
+    if (!destination) {
+      return
+    }
+    if (!addInventory(
         destination,
         this.definitions[destination.type],
         order.resource,
         order.amount,
       ).ok) {
       // Cargo remains represented by the in-transit order until capacity is available.
+      this.markFailure(destination, order.resource, 'destination-capacity')
+      this.markOrderFailure(order, 'destination-capacity')
       return
     }
 
     order.state = 'delivered'
+    this.clearOrderFailure(order)
     carrier.activity = 'idle'
     carrier.path = []
     carrier.pathIndex = 0
     this.clearFailure(destination, order.resource)
   }
 
-  private cancel(order: LogisticsOrder, carrier: AgentEntity): void {
+  private cancel(
+    order: LogisticsOrder,
+    carrier: AgentEntity,
+    reason: LogisticsFailureReason,
+  ): void {
     order.state = 'cancelled'
     delete order.carrierId
+    this.markOrderCancelled(order, reason)
     carrier.activity = 'idle'
     carrier.path = []
     carrier.pathIndex = 0
+  }
+
+  private markOrderFailure(order: LogisticsOrder, reason: LogisticsFailureReason): void {
+    order.failureReason = reason
+  }
+
+  private markOrderCancelled(order: LogisticsOrder, reason: LogisticsFailureReason): void {
+    order.cancelReason = reason
+    delete order.failureReason
+  }
+
+  private clearOrderFailure(order: LogisticsOrder): void {
+    delete order.failureReason
   }
 
   private markFailure(

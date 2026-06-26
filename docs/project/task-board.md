@@ -45,5 +45,9 @@
 | PERF-SPLIT-01 | 前端包体与 Pixi 分包 | `vite.config.ts`, `vite.config.js` | 已完成 | 主 chunk 低于 500kB 或有明确分包策略 |
 | PREFAB-RENDER-01 | Prefab 渲染占位接入 | `src/rendering/**` | 已完成 | descriptor 注册、状态解析和灰盒占位渲染可测 |
 | CITY-EVENTS-01 | 城市反馈事件数据层 | `src/integration/**` | 已完成 | 从瓶颈派生轻量城市反馈且不刷屏 |
-| CITY-NOTICE-UI-01 | 城市反馈接入 UI | `src/App.tsx`, `src/styles.css` | 待开始 | 城市反馈以轻量 toast/岛上小事呈现且不打扰 |
-| PREFAB-ASSET-MAP-01 | 建筑类型到金标 assetId 映射 | `src/rendering/**`, `src/content/**` | 待开始 | 真实 building.type 可映射到 gold prefab assetId |
+| CITY-NOTICE-UI-01 | 城市反馈接入 UI | `src/App.tsx`, `src/styles.css` | 已完成 | 城市反馈以轻量 toast/岛上小事呈现且不打扰 |
+| PREFAB-ASSET-MAP-01 | 建筑类型到金标 assetId 映射 | `src/rendering/**`, `src/content/**` | 已完成 | 真实 building.type 可映射到 gold prefab assetId |
+| LOGISTICS-CANCEL-REASON-01 | 物流订单失败原因 | `src/simulation/contracts.ts`, `src/simulation/economy/**` | 已完成 | 订单本身记录取消/失败原因，供诊断使用 |
+| GOLD-SAMPLE-MANIFEST-01 | 金标样例 manifest | `docs/project/gold-slice/sample-manifests/**` | 已完成 | 首个可通过校验器的生产模板 manifest |
+| GOLD-SAMPLE-RUNTIME-01 | 金标样例 manifest 接入 prefab registry | `src/rendering/**`, `docs/project/gold-slice/sample-manifests/**` | 待开始 | main-pier 样例可被 runtime parser/registry 使用 |
+| CITY-NOTICE-STORY-01 | 城市反馈转岛上小事 | `src/integration/**`, `src/App.tsx` | 待开始 | notice 可演化为一两次点击完成的小事，不阻塞建设 |

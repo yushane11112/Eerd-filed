@@ -1,4 +1,9 @@
 export {
+  PREFAB_ASSET_ID_BY_BUILDING_TYPE,
+  resolvePrefabAssetIdForBuildingType,
+  type PrefabAssetMapping,
+} from './assetMapping'
+export {
   parseRuntimePrefabDescriptor,
   resolvePrefabAnimationState,
 } from './parser'

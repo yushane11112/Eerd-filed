@@ -7,6 +7,7 @@ import type {
   WorldDrop,
 } from '../simulation/contracts'
 import { gridToScreen, interpolateGridPoint, isoDepth } from './isometric'
+import { resolvePrefabAssetIdForBuildingType } from './prefab'
 import type { PrefabRuntimeRegistry, ResolvedPrefabBuilding } from './prefab'
 import type { EntityVisual, IsoMetrics, RenderEntityKind } from './types'
 
@@ -161,17 +162,24 @@ export class BuildingVisual extends BaseVisual {
   ): void {
     if (!this.prefabRegistry || !this.prefabPlaceholder || !this.prefabShell) return
 
+    const assetId = resolvePrefabAssetIdForBuildingType(building.type)
+    this.prefabShell.clear()
+    if (!assetId) {
+      this.prefabPlaceholder.label = `prefab-placeholder:${building.type}:unmapped`
+      this.prefabPlaceholder.visible = false
+      return
+    }
+
     const resolved = this.prefabRegistry.resolveBuilding({
-      assetId: building.type,
+      assetId,
       level: building.level,
       status: building.status,
       statusReason: building.statusReason,
       productionProgress: building.productionProgress,
     })
 
-    this.prefabShell.clear()
     if (!resolved) {
-      this.prefabPlaceholder.label = `prefab-placeholder:${building.type}:missing`
+      this.prefabPlaceholder.label = `prefab-placeholder:${assetId}:missing`
       this.prefabPlaceholder.visible = false
       return
     }

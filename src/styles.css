@@ -277,6 +277,74 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   background: #f5ecd0;
 }
 
+.city-notice-stream {
+  position: absolute;
+  z-index: 12;
+  right: 16px;
+  bottom: 74px;
+  width: 276px;
+  padding: 10px;
+  border-radius: 18px;
+  pointer-events: none;
+}
+.bottleneck-panel.open ~ .city-notice-stream { bottom: 300px; }
+.city-notice-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 2px 7px;
+}
+.city-notice-title span {
+  color: #385f55;
+  font-size: 10px;
+  font-weight: 900;
+}
+.city-notice-title small {
+  color: #8a928b;
+  font-size: 7px;
+}
+.city-notice {
+  position: relative;
+  padding: 9px 10px 9px 12px;
+  border: 1px solid #e2dfca;
+  border-radius: 12px;
+  background: rgba(255,249,222,.7);
+  box-shadow: 0 8px 18px rgba(39,74,67,.08);
+  animation: notice-in .22s ease;
+}
+.city-notice + .city-notice { margin-top: 6px; }
+.city-notice::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 0 999px 999px 0;
+  background: #709382;
+}
+.city-notice strong {
+  display: block;
+  color: #294a42;
+  font-size: 10px;
+}
+.city-notice span {
+  display: block;
+  margin-top: 3px;
+  color: #707d76;
+  font-size: 8px;
+  line-height: 1.45;
+}
+.city-notice-warning::before { background: #c79045; }
+.city-notice-critical {
+  border-color: #d99a82;
+  background: rgba(245,222,212,.86);
+}
+.city-notice-critical::before { background: #b95a43; }
+.city-notice.settled { opacity: .62; }
+@keyframes notice-in { from { opacity: 0; transform: translateY(6px); } }
+
 .building-inspector {
   position: absolute;
   z-index: 14;

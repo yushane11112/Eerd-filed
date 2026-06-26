@@ -263,4 +263,62 @@ describe('DynamicScene', () => {
     ))
     expect(prefabLayer?.label).toBe('prefab-placeholder:main-pier:L4:storage_full:storage-full')
   })
+
+  it('resolves prefab placeholders through building type to asset id mapping', async () => {
+    const { DynamicScene } = await import('./DynamicScene')
+    const { PrefabRuntimeRegistry } = await import('./prefab')
+    const { parseRuntimePrefabDescriptor } = await import('./prefab/parser')
+    const parsed = parseRuntimePrefabDescriptor(
+      { ...validBuildingManifest, assetId: 'main-homes' },
+      { ...validAnimationManifest, assetId: 'main-homes' },
+    )
+    if (!parsed.ok) throw new Error(parsed.errors.join('\n'))
+    const prefabRegistry = new PrefabRuntimeRegistry([parsed.descriptor])
+    const scene = new DynamicScene(undefined, { prefabRegistry })
+    const snapshot = createSnapshot()
+    snapshot.buildings = {
+      home: createBuilding({
+        id: 'home',
+        type: 'house',
+        level: 1,
+        status: 'idle',
+      }),
+    }
+    snapshot.agents = {}
+    snapshot.worldDrops = []
+
+    scene.sync(snapshot, camera)
+
+    const prefabLayer = scene.layers.buildings.children[0]?.children.find((child) => (
+      typeof child.label === 'string' && child.label.startsWith('prefab-placeholder:')
+    ))
+    expect(prefabLayer?.label).toBe('prefab-placeholder:main-homes:L1:idle:base+idle-detail')
+  })
+
+  it('keeps unmapped building types on the gray-box fallback', async () => {
+    const { DynamicScene } = await import('./DynamicScene')
+    const { parseRuntimePrefabDescriptor, PrefabRuntimeRegistry } = await import('./prefab')
+    const parsed = parseRuntimePrefabDescriptor(validBuildingManifest, validAnimationManifest)
+    if (!parsed.ok) throw new Error(parsed.errors.join('\n'))
+    const scene = new DynamicScene(undefined, { prefabRegistry: new PrefabRuntimeRegistry([parsed.descriptor]) })
+    const snapshot = createSnapshot()
+    snapshot.buildings = {
+      unknown: createBuilding({
+        id: 'unknown',
+        type: 'unknown-building',
+        level: 1,
+        status: 'idle',
+      }),
+    }
+    snapshot.agents = {}
+    snapshot.worldDrops = []
+
+    scene.sync(snapshot, camera)
+
+    const prefabLayer = scene.layers.buildings.children[0]?.children.find((child) => (
+      typeof child.label === 'string' && child.label.startsWith('prefab-placeholder:')
+    ))
+    expect(prefabLayer?.label).toBe('prefab-placeholder:unknown-building:unmapped')
+    expect(prefabLayer?.visible).toBe(false)
+  })
 })

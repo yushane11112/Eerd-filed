@@ -392,6 +392,67 @@ describe('road logistics', () => {
     expect(state.metrics.logisticsEfficiency).toBe(0)
   })
 
+  it('records no-route on a waiting order when a carrier cannot reach its source', () => {
+    const source = building('granary-1', 'granary', { x: 4, y: 0 }, { food: 8 })
+    const destination = building('eatery-1', 'eatery', { x: 5, y: 0 }, { salt: 2 })
+    const state = snapshot({
+      cells: road(0, 1),
+      buildings: { [source.id]: source, [destination.id]: destination },
+      agents: { cart: carrier('cart', { x: 0, y: 0 }) },
+      logisticsOrders: {
+        'food-order': {
+          id: 'food-order',
+          resource: 'food',
+          amount: 2,
+          sourceBuildingId: source.id,
+          destinationBuildingId: destination.id,
+          priority: 50,
+          state: 'waiting',
+        },
+      },
+    })
+
+    new LogisticsSystem({ definitions }).update(state)
+
+    expect(state.logisticsOrders['food-order']).toMatchObject({
+      state: 'waiting',
+      failureReason: 'no-route',
+    })
+    expect(destination.statusReason).toBe('logistics-failed:food:no-route')
+  })
+
+  it('records destination capacity on an in-transit order that cannot unload', () => {
+    const source = building('granary-1', 'granary', { x: 0, y: 0 })
+    const destination = building('eatery-1', 'eatery', { x: 1, y: 0 }, { food: 8, salt: 2 })
+    const cartEntity = carrier('cart', { x: 1, y: 0 })
+    cartEntity.activity = 'delivering'
+    cartEntity.path = [{ x: 1, y: 0 }]
+    const state = snapshot({
+      buildings: { [source.id]: source, [destination.id]: destination },
+      agents: { [cartEntity.id]: cartEntity },
+      logisticsOrders: {
+        'food-order': {
+          id: 'food-order',
+          resource: 'food',
+          amount: 1,
+          sourceBuildingId: source.id,
+          destinationBuildingId: destination.id,
+          priority: 50,
+          state: 'in_transit',
+          carrierId: cartEntity.id,
+        },
+      },
+    })
+
+    new LogisticsSystem({ definitions }).update(state)
+
+    expect(state.logisticsOrders['food-order']).toMatchObject({
+      state: 'in_transit',
+      failureReason: 'destination-capacity',
+    })
+    expect(destination.statusReason).toBe('logistics-failed:food:destination-capacity')
+  })
+
   it('reserves source stock across simultaneous orders instead of overselling it', () => {
     const source = building('granary-1', 'granary', { x: 0, y: 0 }, { food: 5 })
     const first = building('eatery-1', 'eatery', { x: 3, y: 0 }, { salt: 2 })

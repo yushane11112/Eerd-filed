@@ -44,6 +44,7 @@ export default function App() {
   const snapshot = useSyncExternalStore(runtime.subscribe, runtime.getSnapshot)
   const [tool, setTool] = useState<BuildTool>({ kind: 'inspect' })
   const [toast, setToast] = useState('欢迎回到小耳镇：铺路、建房，让居民真正生活起来。')
+  const [cityNoticeStream, setCityNoticeStream] = useState<CityNoticeStreamItem[]>([])
   const [fullscreen, setFullscreen] = useState(INITIAL_FULLSCREEN)
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null)
   const [bottleneckOpen, setBottleneckOpen] = useState(false)
@@ -75,6 +76,27 @@ export default function App() {
     return () => window.clearTimeout(timer)
   }, [toast])
 
+  useEffect(() => {
+    const events = runtime.consumeCityNoticeEvents()
+    if (events.length === 0) return
+
+    setCityNoticeStream((current) => {
+      const incoming = events.map((notice) => ({
+        id: `${notice.id}-${notice.tick}`,
+        noticeId: notice.id,
+        severity: notice.severity,
+        title: notice.title,
+        message: notice.message,
+        tick: notice.tick,
+      }))
+      const incomingIds = new Set(incoming.map((notice) => notice.noticeId))
+      return [
+        ...incoming,
+        ...current.filter((notice) => !incomingIds.has(notice.noticeId)),
+      ].slice(0, 3)
+    })
+  }, [runtime, snapshot.tick])
+
   const selectedBuilding = selectedBuildingId
     ? snapshot.buildings[selectedBuildingId]
     : undefined
@@ -85,6 +107,10 @@ export default function App() {
     .reduce((sum, value) => sum + (value ?? 0), 0)
   const needScore = averageNeeds(snapshot)
   const bottlenecks = useMemo(() => getCityBottlenecks(snapshot), [snapshot])
+  const activeCityNoticeIds = useMemo(
+    () => new Set(runtime.getCityNotices().map((notice) => notice.id)),
+    [runtime, snapshot.tick],
+  )
 
   const chooseTool = (next: BuildTool) => {
     setTool(next)
@@ -221,6 +247,24 @@ export default function App() {
         )}
       </aside>
 
+      {cityNoticeStream.length > 0 && (
+        <aside className="city-notice-stream glass-panel" aria-label="城市小事流">
+          <div className="city-notice-title">
+            <span>小事流</span>
+            <small>只提示新近变化</small>
+          </div>
+          {cityNoticeStream.map((notice) => (
+            <article
+              key={notice.id}
+              className={`city-notice city-notice-${notice.severity} ${activeCityNoticeIds.has(notice.noticeId) ? 'active' : 'settled'}`}
+            >
+              <strong>{notice.title}</strong>
+              <span>{notice.message}</span>
+            </article>
+          ))}
+        </aside>
+      )}
+
       {selectedBuilding && selectedDefinition && (
         <aside className="building-inspector glass-panel">
           <button className="inspector-close" onClick={() => setSelectedBuildingId(null)}><X /></button>
@@ -295,6 +339,15 @@ interface CityBottleneck {
   action: string
   score: number
   severity: BottleneckSeverity
+}
+
+interface CityNoticeStreamItem {
+  id: string
+  noticeId: string
+  severity: 'critical' | 'warning' | 'info'
+  title: string
+  message: string
+  tick: number
 }
 
 function getCityBottlenecks(snapshot: ReturnType<GameRuntime['getSnapshot']>) {

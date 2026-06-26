@@ -33,3 +33,6 @@
 - 第三轮验证通过：`asset:validate:self-test`、`asset:validate:gold-fixture`、全量 115 项测试和生产构建均通过；构建出现主 chunk 超过 500kB 的非阻断警告，已记录为 `PERF-SPLIT-01` 后续任务。
 - 启动第四轮并行生产：LOGISTICS-FAILURE-02、PREFAB-RENDER-01、PERF-SPLIT-01、CITY-EVENTS-01，分别推进物流失败显式化、prefab 渲染占位接入、Vite 分包和城市反馈事件数据层。
 - 完成第四轮并行生产：物流失败原因写入建筑状态并影响效率；prefab descriptor 可注册并驱动灰盒占位；城市反馈数据层可从快照派生缺粮、缺工、物流阻塞和居民不满；Vite 默认构建完成 Pixi/React/icons 分包，主 chunk 降至约 71.5kB。
+- 启动第五轮并行生产：CITY-NOTICE-UI-01、PREFAB-ASSET-MAP-01、LOGISTICS-CANCEL-REASON-01、GOLD-SAMPLE-MANIFEST-01，分别推进城市反馈 UI、建筑类型到金标 prefab 映射、订单失败原因和首个金标样例 manifest。
+- 完成第五轮并行生产：城市反馈接入轻量小事流；prefab 增加 building.type 到金标 assetId 映射并安全降级；物流订单新增失败/取消原因字段；新增 `main-pier` 金标样例 building/animation manifest 并通过资产校验器。
+- 第五轮验证通过：样例 manifest 校验、资产校验器自检、全量 130 项测试和生产构建均通过。

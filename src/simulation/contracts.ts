@@ -91,6 +91,13 @@ export interface AgentEntity {
   activity: AgentActivity
 }
 
+export type LogisticsFailureReason =
+  | 'no-route'
+  | 'no-carrier'
+  | 'no-source-inventory'
+  | 'source-inventory-insufficient'
+  | 'destination-capacity'
+
 export interface LogisticsOrder {
   id: EntityId
   resource: ResourceKind
@@ -100,6 +107,8 @@ export interface LogisticsOrder {
   priority: number
   state: 'waiting' | 'assigned' | 'in_transit' | 'delivered' | 'cancelled'
   carrierId?: EntityId
+  cancelReason?: LogisticsFailureReason
+  failureReason?: LogisticsFailureReason
 }
 
 export interface EconomyState {

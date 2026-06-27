@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-27：第二十六轮城市阶段分层覆盖标记
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 阶段顾问数据层 | 覆盖点增加类型、短标签和坐标，支持分层显示 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证人口、吸引力和街区覆盖点的类型与标签 |
+| `src/components/SimulationCanvas.tsx` | 地图画布 | 按覆盖点类型渲染分层标记 |
+| `src/styles.css` | 界面样式 | 为住房、外来人口、瓶颈和街区核心设置不同标记颜色 |
+| `docs/project/task-board.md` | 任务看板 | 标记 CITY-STAGE-LAYER-01 完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录第二十六轮启动、完成和验证结果 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新 UI/UX 完成度和下一轮任务 |
+| `docs/project/qa.md` | 验收记录 | 记录本轮目标测试和后续全量验证 |
+
 ## 2026-06-27：第二十五轮城市阶段地图覆盖提示
 
 | 文件 | 产物类型 | 用途 |

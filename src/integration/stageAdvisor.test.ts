@@ -25,7 +25,10 @@ describe('stage advisor overlays', () => {
     expect(overlay).toEqual({
       id: 1,
       label: '住房与外来人口',
-      points: [{ x: 2, y: 3 }, { x: 5, y: 6 }],
+      points: [
+        { kind: 'housing', label: '住房', position: { x: 2, y: 3 } },
+        { kind: 'migration', label: '等房', position: { x: 5, y: 6 } },
+      ],
     })
   })
 
@@ -49,11 +52,14 @@ describe('stage advisor overlays', () => {
 
     expect(deriveStageAdvisorOverlay('activeDistricts', snapshot, 2)).toMatchObject({
       label: '街区核心',
-      points: [{ x: 8, y: 9 }],
+      points: [{ kind: 'district', label: '市街', position: { x: 8, y: 9 } }],
     })
     expect(deriveStageAdvisorOverlay('attraction', snapshot, 3)).toMatchObject({
       label: '吸引力瓶颈',
-      points: [{ x: 4, y: 5 }, { x: 6, y: 7 }],
+      points: [
+        { kind: 'bottleneck', label: '停工', position: { x: 4, y: 5 } },
+        { kind: 'bottleneck', label: '仓储', position: { x: 6, y: 7 } },
+      ],
     })
   })
 })
@@ -106,4 +112,3 @@ function building(id: string, type: string, entrance: { x: number; y: number }):
     productionProgress: 0,
   }
 }
-

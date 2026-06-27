@@ -55,6 +55,22 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   background: rgba(69, 113, 91, .74);
   box-shadow: 0 0 0 5px rgba(255, 221, 92, .18), 0 8px 18px rgba(28, 61, 54, .26);
 }
+.stage-overlay-marker--housing {
+  background: rgba(68, 125, 101, .78);
+  box-shadow: 0 0 0 5px rgba(150, 224, 161, .2), 0 8px 18px rgba(28, 61, 54, .26);
+}
+.stage-overlay-marker--migration {
+  background: rgba(77, 127, 170, .8);
+  box-shadow: 0 0 0 5px rgba(119, 195, 236, .22), 0 8px 18px rgba(28, 61, 54, .26);
+}
+.stage-overlay-marker--bottleneck {
+  background: rgba(172, 91, 67, .82);
+  box-shadow: 0 0 0 5px rgba(255, 152, 103, .22), 0 8px 18px rgba(71, 42, 32, .28);
+}
+.stage-overlay-marker--district {
+  background: rgba(138, 103, 173, .82);
+  box-shadow: 0 0 0 5px rgba(207, 169, 233, .22), 0 8px 18px rgba(52, 38, 72, .28);
+}
 .stage-overlay-marker i {
   position: absolute;
   left: 50%;

@@ -308,17 +308,17 @@ export function SimulationCanvas({
       {stageAdvisorOverlay && (
         <div className="stage-overlay-layer" aria-hidden="true">
           {stageAdvisorOverlay.points.map((point, index) => {
-            const position = pointToViewport(point, cameraView)
+            const position = pointToViewport(point.position, cameraView)
             return (
               <span
                 key={`${stageAdvisorOverlay.id}-${index}`}
-                className="stage-overlay-marker"
+                className={`stage-overlay-marker stage-overlay-marker--${point.kind}`}
                 style={{
                   '--stage-x': `${position.x}px`,
                   '--stage-y': `${position.y}px`,
                 } as React.CSSProperties}
               >
-                <i>{stageAdvisorOverlay.label}</i>
+                <i>{point.label}</i>
               </span>
             )
           })}

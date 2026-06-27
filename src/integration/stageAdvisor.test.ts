@@ -103,8 +103,14 @@ describe('stage advisor overlays', () => {
       points: [{ kind: 'housing', label: '空5', position: { x: 2, y: 3 } }],
     })
     expect(deriveStageMapOverlay('service', snapshot, 12)).toMatchObject({
-      label: '服务覆盖',
+      label: '服务范围',
       points: [{ kind: 'service', label: '服务点', position: { x: 4, y: 5 } }],
+      areas: [{
+        kind: 'service',
+        label: '覆盖',
+        center: { x: 4, y: 5 },
+        radius: 4,
+      }],
     })
     expect(deriveStageMapOverlay('logistics', snapshot, 13)).toMatchObject({
       label: '物流线路',

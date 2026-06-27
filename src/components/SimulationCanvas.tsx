@@ -307,6 +307,25 @@ export function SimulationCanvas({
       </div>
       {stageAdvisorOverlay && (
         <div className="stage-overlay-layer" aria-hidden="true">
+          {stageAdvisorOverlay.areas?.map((area, index) => {
+            const center = pointToViewport(area.center, cameraView)
+            const width = area.radius * 64 * cameraView.zoom
+            const height = area.radius * 32 * cameraView.zoom
+            return (
+              <span
+                key={`${stageAdvisorOverlay.id}-area-${index}`}
+                className={`stage-overlay-area stage-overlay-area--${area.kind}`}
+                style={{
+                  '--stage-area-x': `${center.x}px`,
+                  '--stage-area-y': `${center.y}px`,
+                  '--stage-area-width': `${width}px`,
+                  '--stage-area-height': `${height}px`,
+                } as React.CSSProperties}
+              >
+                <i>{area.label}</i>
+              </span>
+            )
+          })}
           {stageAdvisorOverlay.paths?.map((path, index) => {
             const from = pointToViewport(path.from, cameraView)
             const to = pointToViewport(path.to, cameraView)

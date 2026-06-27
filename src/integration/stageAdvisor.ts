@@ -25,11 +25,19 @@ export interface StageAdvisorOverlayPath {
   to: GridPoint
 }
 
+export interface StageAdvisorOverlayArea {
+  kind: StageAdvisorOverlayKind
+  label: string
+  center: GridPoint
+  radius: number
+}
+
 export interface StageAdvisorOverlay {
   id: number
   label: string
   points: StageAdvisorOverlayPoint[]
   paths?: StageAdvisorOverlayPath[]
+  areas?: StageAdvisorOverlayArea[]
 }
 
 export const STAGE_ADVISOR_OVERLAY_MODES: ReadonlyArray<{
@@ -119,16 +127,23 @@ export function deriveStageMapOverlay(
   }
 
   if (mode === 'service') {
-    return compactOverlay(id, '服务覆盖', Object.values(snapshot.buildings)
+    const serviceBuildings = Object.values(snapshot.buildings)
       .filter((building) => {
         const definition = BUILDING_DEFINITIONS[building.type]
         return definition?.functions?.some((fn) => fn === 'service' || fn === 'market' || fn === 'culture')
       })
-      .map((building) => ({
+    return compactOverlay(id, '服务范围', serviceBuildings.map((building) => ({
         kind: 'service' as const,
         label: building.status === 'blocked' ? '服务停摆' : '服务点',
         position: building.entrance,
-      })))
+      })), [], serviceBuildings
+        .filter((building) => building.status !== 'blocked')
+        .map((building) => ({
+          kind: 'service' as const,
+          label: '覆盖',
+          center: building.entrance,
+          radius: 3 + Math.min(building.level, 5),
+        })))
   }
 
   if (mode === 'logistics') {
@@ -188,6 +203,7 @@ function compactOverlay(
   label: string,
   points: StageAdvisorOverlayPoint[],
   paths: StageAdvisorOverlayPath[] = [],
+  areas: StageAdvisorOverlayArea[] = [],
 ): StageAdvisorOverlay | undefined {
   const seen = new Set<string>()
   const unique = points.filter((point) => {
@@ -203,7 +219,14 @@ function compactOverlay(
     pathSeen.add(key)
     return true
   })
-  if (unique.length === 0 && uniquePaths.length === 0) return undefined
+  const areaSeen = new Set<string>()
+  const uniqueAreas = areas.filter((area) => {
+    const key = `${area.kind}:${Math.round(area.center.x * 100) / 100},${Math.round(area.center.y * 100) / 100}:${Math.round(area.radius * 100) / 100}`
+    if (areaSeen.has(key)) return false
+    areaSeen.add(key)
+    return true
+  })
+  if (unique.length === 0 && uniquePaths.length === 0 && uniqueAreas.length === 0) return undefined
   const overlay: StageAdvisorOverlay = {
     id,
     label,
@@ -220,6 +243,13 @@ function compactOverlay(
       to: { ...path.to },
     }))
   if (limitedPaths.length > 0) overlay.paths = limitedPaths
+  const limitedAreas = uniqueAreas.slice(0, 8).map((area) => ({
+    kind: area.kind,
+    label: area.label,
+    center: { ...area.center },
+    radius: area.radius,
+  }))
+  if (limitedAreas.length > 0) overlay.areas = limitedAreas
   return overlay
 }
 

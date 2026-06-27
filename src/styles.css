@@ -43,6 +43,36 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   z-index: 3;
   pointer-events: none;
 }
+.stage-overlay-area {
+  position: absolute;
+  left: var(--stage-area-x);
+  top: var(--stage-area-y);
+  width: var(--stage-area-width);
+  height: var(--stage-area-height);
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(255, 247, 196, .46);
+  border-radius: 999px;
+  background: rgba(255, 219, 123, .12);
+  box-shadow: inset 0 0 28px rgba(255, 230, 145, .16), 0 0 18px rgba(93, 78, 45, .12);
+}
+.stage-overlay-area--service {
+  border-color: rgba(238, 171, 83, .58);
+  background: rgba(238, 171, 83, .14);
+}
+.stage-overlay-area i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: #fff8dc;
+  background: rgba(111, 75, 39, .72);
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 900;
+  white-space: nowrap;
+}
 .stage-overlay-path {
   position: absolute;
   left: var(--stage-path-x);

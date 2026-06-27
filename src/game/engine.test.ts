@@ -4,26 +4,43 @@ import {
   buildSelectedSite,
   collectDrop,
   createInitialState,
+  LEGACY_LISTENING_DROPS_ENABLED,
   resolveAmbientEvent,
   selectBuildSite,
   spawnNaturalDrop,
 } from './engine'
 import { BUILD_SITE_IDS } from './config'
 
-describe('world drops from listening', () => {
-  it('spawns one visible material bundle per four effective minutes', () => {
+describe('archived listening material drops', () => {
+  it('does not spawn ordinary materials from listening by default', () => {
     const state = createInitialState()
     const next = addListeningMinutes(state, 12, () => 0)
 
+    expect(LEGACY_LISTENING_DROPS_ENABLED).toBe(false)
     expect(next.listeningMinutes).toBe(12)
+    expect(next.worldDrops).toHaveLength(state.worldDrops.length)
+    expect(next.listeningRemainder).toBe(0)
+  })
+
+  it('keeps the old material-drop behavior only behind an explicit legacy option', () => {
+    const state = createInitialState()
+    const next = addListeningMinutes(state, 12, () => 0, undefined, {
+      legacyMaterialDrops: true,
+    })
+
     expect(next.worldDrops).toHaveLength(state.worldDrops.length + 3)
+    expect(next.worldDrops.slice(-3).every((drop) => drop.source === 'music')).toBe(true)
     expect(next.listeningRemainder).toBe(0)
   })
 
   it('does not double count a repeated music report', () => {
     const state = createInitialState()
-    const first = addListeningMinutes(state, 8, () => 0, 'report-1')
-    const repeated = addListeningMinutes(first, 8, () => 0, 'report-1')
+    const first = addListeningMinutes(state, 8, () => 0, 'report-1', {
+      legacyMaterialDrops: true,
+    })
+    const repeated = addListeningMinutes(first, 8, () => 0, 'report-1', {
+      legacyMaterialDrops: true,
+    })
 
     expect(repeated.listeningMinutes).toBe(8)
     expect(repeated.worldDrops).toHaveLength(state.worldDrops.length + 2)
@@ -42,7 +59,9 @@ describe('world drops from listening', () => {
       createdAt: index,
     })) }
 
-    const next = addListeningMinutes(state, 8, () => 0)
+    const next = addListeningMinutes(state, 8, () => 0, undefined, {
+      legacyMaterialDrops: true,
+    })
     expect(next.worldDrops).toHaveLength(30)
     expect(next.pendingDrops).toHaveLength(2)
   })

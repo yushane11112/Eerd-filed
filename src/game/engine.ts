@@ -7,6 +7,12 @@ import type {
   IslandId, IslandState, MaterialKind, PendingDrop, WorldDrop,
 } from './types'
 
+export const LEGACY_LISTENING_DROPS_ENABLED = false
+
+export interface ListeningProgressOptions {
+  legacyMaterialDrops?: boolean
+}
+
 const emptyInventory = (): InventoryState => ({ wood: 0, stone: 0, brick: 0, rope: 0, cloth: 0 })
 
 const buildSiteProgress = (): Record<BuildSiteId, BuildSiteProgress> => Object.fromEntries(
@@ -76,7 +82,7 @@ function seedDrops(state: IslandState): IslandState {
     next = spawnDrop(next, {
       kind: MATERIAL_KINDS[index % MATERIAL_KINDS.length],
       amount: index % 3 === 0 ? 2 : 1,
-      source: index % 2 ? 'tide' : 'music',
+      source: index % 2 ? 'tide' : 'visitor',
     }, () => ((index * .137) % 1))
   }
   return next
@@ -87,15 +93,17 @@ export function addListeningMinutes(
   minutes: number,
   random: () => number = Math.random,
   reportId?: string,
+  options: ListeningProgressOptions = {},
 ): IslandState {
   if (reportId && state.processedMusicReports.includes(reportId)) return state
   const increment = Math.max(0, minutes)
   const totalRemainder = state.listeningRemainder + increment
-  const earned = Math.floor(totalRemainder / DROP_INTERVAL_MINUTES)
+  const legacyMaterialDrops = options.legacyMaterialDrops ?? LEGACY_LISTENING_DROPS_ENABLED
+  const earned = legacyMaterialDrops ? Math.floor(totalRemainder / DROP_INTERVAL_MINUTES) : 0
   let next: IslandState = {
     ...state,
     listeningMinutes: state.listeningMinutes + increment,
-    listeningRemainder: totalRemainder % DROP_INTERVAL_MINUTES,
+    listeningRemainder: legacyMaterialDrops ? totalRemainder % DROP_INTERVAL_MINUTES : 0,
     processedMusicReports: reportId
       ? [...state.processedMusicReports.slice(-49), reportId]
       : state.processedMusicReports,

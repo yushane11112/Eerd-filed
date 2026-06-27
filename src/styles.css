@@ -352,6 +352,14 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   color: #385f55;
   font-size: 10px;
 }
+.stage-requirements em {
+  display: block;
+  margin-top: 3px;
+  color: #8a7255;
+  font-size: 7px;
+  font-style: normal;
+  line-height: 1.35;
+}
 
 .bottleneck-panel {
   position: absolute;

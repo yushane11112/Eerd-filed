@@ -189,12 +189,12 @@ export default function App() {
     }
     if (requirement.id === 'population') {
       chooseTool({ kind: 'building', type: 'house', rotation: 0 })
-      setToast('阶段顾问：先补民居和道路，给外来人口留下可入住空间。')
+      setToast(`阶段顾问：${requirement.diagnosis}`)
       return
     }
     if (requirement.id === 'attraction') {
       setBottleneckOpen(true)
-      setToast('阶段顾问：先处理瓶颈，空房、岗位、食物和物流都会影响吸引力。')
+      setToast(`阶段顾问：${requirement.diagnosis}`)
       return
     }
     const district = snapshot.districts?.[0]
@@ -206,7 +206,7 @@ export default function App() {
       return
     }
     chooseTool({ kind: 'building', type: 'market', rotation: 0 })
-    setToast('阶段顾问：把市场、民居、仓储成组放置，更容易形成街区。')
+    setToast(`阶段顾问：${requirement.diagnosis}`)
   }
 
   const resolveAmbientStory = (story: AmbientCityStoryItem, shouldFocus = true) => {
@@ -370,6 +370,7 @@ export default function App() {
                       {requirement.current}{requirement.suffix ?? ''}
                       /{requirement.target}{requirement.suffix ?? ''}
                     </b>
+                    <em>{requirement.diagnosis}</em>
                   </button>
                 ))}
               </div>

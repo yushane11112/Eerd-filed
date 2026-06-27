@@ -117,6 +117,7 @@ export interface RuntimeCityStageProgress {
     met: boolean
     suffix?: string
     advice: string
+    diagnosis: string
   }>
   readyForNextStage: boolean
 }
@@ -169,6 +170,7 @@ export function getRuntimeCityStageProgress(metrics: CityMetrics): RuntimeCitySt
         target: next.population,
         met: metrics.population >= next.population,
         advice: '补民居、稳吸引，等候选人口沿路入住。',
+        diagnosis: populationStageDiagnosis(metrics),
       },
       {
         id: 'attraction' as const,
@@ -178,6 +180,7 @@ export function getRuntimeCityStageProgress(metrics: CityMetrics): RuntimeCitySt
         met: (metrics.cityAttraction ?? 0) >= next.attraction,
         suffix: '%',
         advice: '补空房、岗位、食物和物流，降低税负压力。',
+        diagnosis: attractionStageDiagnosis(metrics),
       },
       {
         id: 'activeDistricts' as const,
@@ -186,6 +189,7 @@ export function getRuntimeCityStageProgress(metrics: CityMetrics): RuntimeCitySt
         target: next.activeDistricts,
         met: (metrics.activeDistricts ?? 0) >= next.activeDistricts,
         advice: '成组营造民居、市场、粮仓和作坊，形成连续街区。',
+        diagnosis: districtStageDiagnosis(metrics, next.activeDistricts),
       },
     ]
     : []
@@ -209,6 +213,31 @@ function stageThresholdMet(metrics: CityMetrics, threshold: RuntimeStageThreshol
     && (metrics.cityAttraction ?? 0) >= threshold.attraction
     && (metrics.activeDistricts ?? 0) >= threshold.activeDistricts
   )
+}
+
+function populationStageDiagnosis(metrics: CityMetrics): string {
+  if (openHousingCapacity(metrics) <= 0) return '住房容量已满，先补民居。'
+  if ((metrics.waitingMigrants ?? 0) > 0) return '已有外来人口正在等待或进城。'
+  if ((metrics.cityAttraction ?? 0) < 45) return '城市吸引力偏低，外来人口来得慢。'
+  return '住房还有余量，保持吸引力即可继续增长。'
+}
+
+function attractionStageDiagnosis(metrics: CityMetrics): string {
+  if (openHousingCapacity(metrics) <= 0) return '空房不足会直接拉低吸引力。'
+  if (metrics.availableJobs <= 0) return '可用岗位不足，补作坊或市场。'
+  if (metrics.satisfaction < 65) return '居民满意度偏低，先补基础需求。'
+  if (metrics.logisticsEfficiency < 75) return '物流效率偏低，检查道路与仓储。'
+  return '吸引力接近达标，继续补食物、岗位和服务。'
+}
+
+function districtStageDiagnosis(metrics: CityMetrics, target: number): string {
+  const activeDistricts = metrics.activeDistricts ?? 0
+  if (activeDistricts <= 0) return '还没有成型街区，先集中建设。'
+  return `还差 ${Math.max(0, target - activeDistricts)} 个活跃街区。`
+}
+
+function openHousingCapacity(metrics: CityMetrics): number {
+  return metrics.openHousingCapacity ?? Math.max(0, metrics.housingCapacity - metrics.population)
 }
 
 function runtimeSeed(

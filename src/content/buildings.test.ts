@@ -128,6 +128,7 @@ describe('building catalog', () => {
         target: 16,
         met: false,
         advice: '补民居、稳吸引，等候选人口沿路入住。',
+        diagnosis: '住房还有余量，保持吸引力即可继续增长。',
       },
       {
         id: 'attraction',
@@ -137,6 +138,7 @@ describe('building catalog', () => {
         met: true,
         suffix: '%',
         advice: '补空房、岗位、食物和物流，降低税负压力。',
+        diagnosis: '吸引力接近达标，继续补食物、岗位和服务。',
       },
       {
         id: 'activeDistricts',
@@ -145,7 +147,30 @@ describe('building catalog', () => {
         target: 2,
         met: false,
         advice: '成组营造民居、市场、粮仓和作坊，形成连续街区。',
+        diagnosis: '还差 1 个活跃街区。',
       },
+    ])
+  })
+
+  it('diagnoses concrete blockers for runtime stage goals', () => {
+    const progress = getRuntimeCityStageProgress({
+      population: 12,
+      households: 3,
+      employedWorkers: 4,
+      availableJobs: 0,
+      housingCapacity: 12,
+      satisfaction: 60,
+      logisticsEfficiency: 70,
+      openHousingCapacity: 0,
+      cityAttraction: 35,
+      activeDistricts: 0,
+      waitingMigrants: 0,
+    })
+
+    expect(progress.requirements.map((requirement) => requirement.diagnosis)).toEqual([
+      '住房容量已满，先补民居。',
+      '空房不足会直接拉低吸引力。',
+      '还没有成型街区，先集中建设。',
     ])
   })
 })

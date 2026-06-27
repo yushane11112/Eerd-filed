@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-27：第二十四轮城市阶段原因诊断
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/content/runtimeBuildings.ts` | 内容运行时 | 阶段目标条件增加基于指标的具体诊断 |
+| `src/content/buildings.test.ts` | 自动测试 | 验证普通阶段目标和具体卡点诊断 |
+| `src/App.tsx` | 主界面 | 阶段顾问点击 toast 复用具体诊断原因 |
+| `src/styles.css` | 界面样式 | 阶段按钮内显示诊断文本 |
+| `docs/project/task-board.md` | 任务看板 | 标记 CITY-STAGE-DIAGNOSIS-01 完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录第二十四轮启动、完成和验证结果 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新 UI/UX 完成度和下一轮任务 |
+| `docs/project/qa.md` | 验收记录 | 记录本轮目标测试和后续全量验证 |
+
 ## 2026-06-27：第二十三轮城市阶段可点击顾问
 
 | 文件 | 产物类型 | 用途 |

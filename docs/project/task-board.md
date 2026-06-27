@@ -10,6 +10,7 @@
 | POP-LIFECYCLE-01 | 外来人口生命周期设计 | `docs/project/design/population-lifecycle.md` | 已完成 | 抵达、找房、临时停留、入住、生活、离城明确 |
 | ART-ROADMAP-01 | 美术全阶段生产计划 | `docs/project/design/art-production-roadmap.md` | 已完成 | ART-P0 到 ART-P11、角色分工和门禁明确 |
 | DOC-SYNC-20260627 | 旧规划方向同步 | `docs/project/README.md`, `docs/project/commercial-civilization-target.md`, `docs/project/production-pipeline.md`, `docs/project/gates.md` | 已完成 | 旧岛屿/听歌/28 类主线被降级，商业级城市模拟口径统一 |
+| DOC-SYNC-20260627B | 完整上线总计划与美术全阶段一致性补强 | `docs/project/commercial-launch-master-plan.md`, `docs/project/production-pipeline.md`, `docs/project/gates.md`, `docs/project/task-board.md`, `docs/project/progress-dashboard.md`, `docs/project/artifact-index.md`, `docs/project/integration-log.md` | 已完成 | 商业级最终上线计划、美术 ART-P0–P11、自动执行机制和旧口径冲突完成同步 |
 | POP-MIGRATION-ENGINE-01 | 外来人口状态机实现 | `src/simulation/core/**`, `src/simulation/contracts.ts` | 待开始 | 人口不再凭空入住，抵达/等待/入住/离城可测 |
 | CITY-ATTRACTION-01 | 城市吸引力评分 | `src/simulation/**`, `src/integration/**` | 待开始 | 空房、岗位、食物、水、税率、治安影响迁入 |
 | TAXONOMY-RUNTIME-01 | 可扩展建筑分类运行时 | `src/content/**`, `src/simulation/**` | 待开始 | 建筑类别从固定清单转为阶段/功能/年代一致分类 |
@@ -29,13 +30,13 @@
 | ANIM-DESIGN-01 | 动画生产体系重设计 | `docs/project/design/animation-system.md` | 已完成 | 动画槽位、规格和性能预算 |
 | MODEL-AUDIT-01 | 建筑与场景建模审计 | `docs/project/audits/modeling.md` | 已完成 | 体块、透视、尺度与拆件问题清单 |
 | MODEL-DESIGN-01 | 模块化建模生产体系 | `docs/project/design/modeling-system.md` | 已完成 | 构件库、LOD、渲染与导出规范 |
-| MODEL-BATCH-01 | 主镇建筑体块与街区模型 | 待分配 | 待开始 | 16 类主镇建筑 0–8 级模型 |
-| MODEL-BATCH-02 | 三座主题岛生产设施模型 | 待分配 | 待开始 | 12 类主题建筑及生产地貌模型 |
+| MODEL-BATCH-01 | 城市基础建筑体块与街区模型 | 待分配 | 待开始 | 住宅、道路、生产、仓储、市场、服务等核心建筑阶段模型 |
+| MODEL-BATCH-02 | 城市高级商业/行政/文化街区模型 | 待分配 | 待开始 | 商业街、码头仓区、官署街、书院街、园林住宅区等街区模型 |
 | MODEL-BATCH-03 | 人物、车辆、船只与动画拆件 | 待分配 | 待开始 | 可绑定、可换装、可LOD资产 |
 | ART-BATCH-01 | 港口与交通建筑重设计 | 待分配 | 待开始 | 审计完成后启动 |
 | ART-BATCH-02 | 商业与民居建筑重设计 | 待分配 | 待开始 | 审计完成后启动 |
 | ART-BATCH-03 | 作坊与仓储建筑重设计 | 待分配 | 待开始 | 审计完成后启动 |
-| ART-BATCH-04 | 农业与主题岛建筑重设计 | 待分配 | 待开始 | 审计完成后启动 |
+| ART-BATCH-04 | 农业、资源与水乡环境建筑重设计 | 待分配 | 待开始 | 审计完成后启动 |
 | ART-BATCH-05 | 公共与景观建筑重设计 | 待分配 | 待开始 | 审计完成后启动 |
 | GOLD-CONCEPT-01 | 六类金标建筑概念重设 | 待分配 | 待开始 | 功能盲测 ≥80%，L0/L8 差异清晰 |
 | GOLD-BLOCKOUT-01 | 六类金标体块与地块验证 | `docs/project/gold-slice/blockout-validation.md` | 已完成 | footprint、入口、遮挡、人流成立 |

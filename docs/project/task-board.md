@@ -21,6 +21,7 @@
 | CITY-STAGE-GOALS-01 | 城市阶段晋升提示 | `src/content/**`, `src/App.tsx`, `src/styles.css` | 已完成 | 玩家可看到当前阶段、下一阶段以及人口/吸引力/街区晋升条件 |
 | CITY-STAGE-ADVISOR-01 | 城市阶段可点击顾问 | `src/content/**`, `src/App.tsx`, `src/styles.css` | 已完成 | 阶段条件可点击，人口/吸引力/街区缺口会切工具、开瓶颈或定位街区 |
 | CITY-STAGE-DIAGNOSIS-01 | 城市阶段原因诊断 | `src/content/**`, `src/App.tsx`, `src/styles.css` | 已完成 | 阶段顾问显示住房、岗位、满意度、物流、街区等具体卡点 |
+| CITY-STAGE-OVERLAY-01 | 城市阶段地图覆盖提示 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/App.tsx`, `src/styles.css` | 已完成 | 阶段顾问点击后在地图标出住房、外来人口、瓶颈建筑或街区核心 |
 | OPTIONAL-MUSIC-ENTRY-01 | 音乐奖励入口降级 | `src/App.tsx`, `src/styles.css` | 已完成 | 听歌从常驻主界面卡片降为默认收起的可选轻奖励入口 |
 | LEGACY-LISTENING-DROPS-01 | 旧听歌掉落原型隔离 | `src/game/**`, `src/simulation/rewards/**` | 已完成 | 旧群岛引擎默认不再由听歌产生普通材料，旧行为仅可显式 legacy 启用 |
 | LEGACY-ARCHIPELAGO-GATE-01 | 旧群岛视图归档开关 | `src/components/IslandCanvas.tsx`, `src/game/**`, `src/styles.css` | 已完成 | 旧群岛 Pixi 视图默认显示归档提示，只有显式 legacy/QA 参数才启动 |

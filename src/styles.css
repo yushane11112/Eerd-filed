@@ -37,6 +37,40 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   z-index: 2;
   pointer-events: none;
 }
+.stage-overlay-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+.stage-overlay-marker {
+  position: absolute;
+  left: var(--stage-x);
+  top: var(--stage-y);
+  width: 34px;
+  height: 22px;
+  transform: translate(-50%, -100%);
+  border: 2px solid rgba(255, 247, 196, .96);
+  border-radius: 999px;
+  background: rgba(69, 113, 91, .74);
+  box-shadow: 0 0 0 5px rgba(255, 221, 92, .18), 0 8px 18px rgba(28, 61, 54, .26);
+}
+.stage-overlay-marker i {
+  position: absolute;
+  left: 50%;
+  bottom: 25px;
+  min-width: 54px;
+  transform: translateX(-50%);
+  padding: 3px 6px;
+  border-radius: 999px;
+  color: #fff8dc;
+  background: rgba(39, 74, 67, .9);
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 900;
+  text-align: center;
+  white-space: nowrap;
+}
 .drop-affordance {
   position: absolute;
   left: var(--drop-x);

@@ -36,6 +36,7 @@ import {
   type AmbientCityStory,
   type CityNoticeTarget,
 } from './integration/cityNotices'
+import { deriveStageAdvisorOverlay, type StageAdvisorOverlay } from './integration/stageAdvisor'
 import {
   createBrowserFullscreenAdapter,
   FullscreenController,
@@ -60,6 +61,7 @@ export default function App() {
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null)
   const [bottleneckOpen, setBottleneckOpen] = useState(false)
   const [optionalRewardOpen, setOptionalRewardOpen] = useState(false)
+  const [stageAdvisorOverlay, setStageAdvisorOverlay] = useState<StageAdvisorOverlay | null>(null)
   const [cameraFocusRequest, setCameraFocusRequest] = useState<CameraFocusRequest | null>(null)
   const shellRef = useRef<HTMLElement>(null)
   const fullscreenRef = useRef<FullscreenController | null>(null)
@@ -187,6 +189,7 @@ export default function App() {
       setToast(`${requirement.label}已达标，继续补齐其他阶段条件。`)
       return
     }
+    setStageAdvisorOverlay(deriveStageAdvisorOverlay(requirement.id, snapshot, Date.now()) ?? null)
     if (requirement.id === 'population') {
       chooseTool({ kind: 'building', type: 'house', rotation: 0 })
       setToast(`阶段顾问：${requirement.diagnosis}`)
@@ -232,6 +235,7 @@ export default function App() {
         snapshot={snapshot}
         tool={tool}
         cameraFocusRequest={cameraFocusRequest}
+        stageAdvisorOverlay={stageAdvisorOverlay}
         onToolChange={setTool}
         onToast={setToast}
         onBuildingSelect={setSelectedBuildingId}

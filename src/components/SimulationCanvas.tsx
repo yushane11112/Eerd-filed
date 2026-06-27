@@ -4,6 +4,7 @@ import { DynamicScene, gridToScreen, screenToGrid } from '../rendering'
 import type { CameraState, GridPoint, SimulationSnapshot } from '../simulation/contracts'
 import { CameraController, DragController } from '../ui'
 import type { BuildTool, GameRuntime } from '../integration/GameRuntime'
+import type { StageAdvisorOverlay } from '../integration/stageAdvisor'
 
 type CameraFocusTarget =
   | { kind: 'building'; buildingId: string }
@@ -21,6 +22,7 @@ interface SimulationCanvasProps {
   snapshot: SimulationSnapshot
   tool: BuildTool
   cameraFocusRequest?: CameraFocusRequest | null
+  stageAdvisorOverlay?: StageAdvisorOverlay | null
   onToolChange(tool: BuildTool): void
   onToast(message: string): void
   onBuildingSelect(id: string | null): void
@@ -38,6 +40,7 @@ export function SimulationCanvas({
   snapshot,
   tool,
   cameraFocusRequest,
+  stageAdvisorOverlay,
   onToolChange,
   onToast,
   onBuildingSelect,
@@ -302,6 +305,25 @@ export function SimulationCanvas({
           )
         })}
       </div>
+      {stageAdvisorOverlay && (
+        <div className="stage-overlay-layer" aria-hidden="true">
+          {stageAdvisorOverlay.points.map((point, index) => {
+            const position = pointToViewport(point, cameraView)
+            return (
+              <span
+                key={`${stageAdvisorOverlay.id}-${index}`}
+                className="stage-overlay-marker"
+                style={{
+                  '--stage-x': `${position.x}px`,
+                  '--stage-y': `${position.y}px`,
+                } as React.CSSProperties}
+              >
+                <i>{stageAdvisorOverlay.label}</i>
+              </span>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 
@@ -331,6 +353,10 @@ function hasNearbyDrop(snapshot: Readonly<SimulationSnapshot>, point: GridPoint,
 }
 
 function dropToViewport(point: GridPoint, camera: Readonly<CameraState>): { x: number; y: number } {
+  return pointToViewport(point, camera)
+}
+
+function pointToViewport(point: GridPoint, camera: Readonly<CameraState>): { x: number; y: number } {
   const world = gridToScreen(point)
   return {
     x: camera.viewportWidth / 2 + (world.x - camera.x) * camera.zoom,

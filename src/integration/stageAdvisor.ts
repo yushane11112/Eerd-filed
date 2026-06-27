@@ -1,7 +1,16 @@
 import type { GridPoint, SimulationSnapshot } from '../simulation/contracts'
+import { BUILDING_DEFINITIONS } from '../content/runtimeBuildings'
 
 export type StageRequirementId = 'population' | 'attraction' | 'activeDistricts'
-export type StageAdvisorOverlayKind = 'housing' | 'migration' | 'bottleneck' | 'district'
+export type StageAdvisorOverlayMode = 'housing' | 'service' | 'logistics' | 'roads'
+export type StageAdvisorOverlayKind =
+  | 'housing'
+  | 'migration'
+  | 'bottleneck'
+  | 'district'
+  | 'service'
+  | 'logistics'
+  | 'road'
 
 export interface StageAdvisorOverlayPoint {
   kind: StageAdvisorOverlayKind
@@ -14,6 +23,16 @@ export interface StageAdvisorOverlay {
   label: string
   points: StageAdvisorOverlayPoint[]
 }
+
+export const STAGE_ADVISOR_OVERLAY_MODES: ReadonlyArray<{
+  mode: StageAdvisorOverlayMode
+  label: string
+}> = [
+  { mode: 'housing', label: '住房' },
+  { mode: 'service', label: '服务' },
+  { mode: 'logistics', label: '物流' },
+  { mode: 'roads', label: '道路' },
+]
 
 export function deriveStageAdvisorOverlay(
   requirementId: StageRequirementId,
@@ -65,6 +84,87 @@ export function deriveStageAdvisorOverlay(
   ])
 }
 
+export function deriveStageMapOverlay(
+  mode: StageAdvisorOverlayMode,
+  snapshot: Readonly<SimulationSnapshot>,
+  id = Date.now(),
+): StageAdvisorOverlay | undefined {
+  if (mode === 'housing') {
+    const householdCounts = new Map<string, number>()
+    Object.values(snapshot.households).forEach((household) => {
+      householdCounts.set(
+        household.homeBuildingId,
+        (householdCounts.get(household.homeBuildingId) ?? 0) + household.members,
+      )
+    })
+    return compactOverlay(id, '住房容量', Object.values(snapshot.buildings)
+      .filter((building) => building.type === 'house')
+      .map((building) => {
+        const capacity = BUILDING_DEFINITIONS[building.type]?.capacity ?? 0
+        const used = householdCounts.get(building.id) ?? 0
+        return {
+          kind: 'housing' as const,
+          label: capacity > used ? `空${capacity - used}` : '满员',
+          position: building.entrance,
+        }
+      }))
+  }
+
+  if (mode === 'service') {
+    return compactOverlay(id, '服务覆盖', Object.values(snapshot.buildings)
+      .filter((building) => {
+        const definition = BUILDING_DEFINITIONS[building.type]
+        return definition?.functions?.some((fn) => fn === 'service' || fn === 'market' || fn === 'culture')
+      })
+      .map((building) => ({
+        kind: 'service' as const,
+        label: building.status === 'blocked' ? '服务停摆' : '服务点',
+        position: building.entrance,
+      })))
+  }
+
+  if (mode === 'logistics') {
+    return compactOverlay(id, '物流拥堵', Object.values(snapshot.logisticsOrders)
+      .filter((order) => order.state !== 'delivered')
+      .flatMap((order) => {
+        const source = snapshot.buildings[order.sourceBuildingId]
+        const destination = snapshot.buildings[order.destinationBuildingId]
+        const points: Array<StageAdvisorOverlayPoint | undefined> = [
+          source && {
+            kind: 'logistics' as const,
+            label: order.state === 'cancelled' ? '失败源' : '发货',
+            position: source.entrance,
+          },
+          destination && {
+            kind: 'logistics' as const,
+            label: order.state === 'cancelled' ? '失败点' : '收货',
+            position: destination.entrance,
+          },
+        ]
+        return points.filter((point): point is StageAdvisorOverlayPoint => Boolean(point))
+      }))
+  }
+
+  return compactOverlay(id, '道路连通', [
+    ...snapshot.cells
+      .filter((cell) => cell.road)
+      .slice(0, 8)
+      .map((cell) => ({
+        kind: 'road' as const,
+        label: cell.road === 'bridge' ? '桥' : '道路',
+        position: cell.point,
+      })),
+    ...Object.values(snapshot.buildings)
+      .filter((building) => !snapshot.cells.some((cell) => cell.road && isNear(cell.point, building.entrance, 1)))
+      .slice(0, 4)
+      .map((building) => ({
+        kind: 'road' as const,
+        label: '缺路',
+        position: building.entrance,
+      })),
+  ])
+}
+
 function compactOverlay(
   id: number,
   label: string,
@@ -87,4 +187,8 @@ function compactOverlay(
       position: { ...point.position },
     })),
   }
+}
+
+function isNear(a: GridPoint, b: GridPoint, distance: number): boolean {
+  return Math.abs(a.x - b.x) + Math.abs(a.y - b.y) <= distance
 }

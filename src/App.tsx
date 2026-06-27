@@ -36,7 +36,13 @@ import {
   type AmbientCityStory,
   type CityNoticeTarget,
 } from './integration/cityNotices'
-import { deriveStageAdvisorOverlay, type StageAdvisorOverlay } from './integration/stageAdvisor'
+import {
+  deriveStageAdvisorOverlay,
+  deriveStageMapOverlay,
+  STAGE_ADVISOR_OVERLAY_MODES,
+  type StageAdvisorOverlay,
+  type StageAdvisorOverlayMode,
+} from './integration/stageAdvisor'
 import {
   createBrowserFullscreenAdapter,
   FullscreenController,
@@ -62,6 +68,7 @@ export default function App() {
   const [bottleneckOpen, setBottleneckOpen] = useState(false)
   const [optionalRewardOpen, setOptionalRewardOpen] = useState(false)
   const [stageAdvisorOverlay, setStageAdvisorOverlay] = useState<StageAdvisorOverlay | null>(null)
+  const [activeStageOverlayMode, setActiveStageOverlayMode] = useState<StageAdvisorOverlayMode | null>(null)
   const [cameraFocusRequest, setCameraFocusRequest] = useState<CameraFocusRequest | null>(null)
   const shellRef = useRef<HTMLElement>(null)
   const fullscreenRef = useRef<FullscreenController | null>(null)
@@ -96,6 +103,11 @@ export default function App() {
   useEffect(() => {
     setAmbientStories(ambientStoryTrackerRef.current.update(snapshot).slice(0, 3))
   }, [snapshot])
+
+  useEffect(() => {
+    if (!activeStageOverlayMode) return
+    setStageAdvisorOverlay(deriveStageMapOverlay(activeStageOverlayMode, snapshot, Date.now()) ?? null)
+  }, [activeStageOverlayMode, snapshot])
 
   const selectedBuilding = selectedBuildingId
     ? snapshot.buildings[selectedBuildingId]
@@ -189,6 +201,7 @@ export default function App() {
       setToast(`${requirement.label}已达标，继续补齐其他阶段条件。`)
       return
     }
+    setActiveStageOverlayMode(null)
     setStageAdvisorOverlay(deriveStageAdvisorOverlay(requirement.id, snapshot, Date.now()) ?? null)
     if (requirement.id === 'population') {
       chooseTool({ kind: 'building', type: 'house', rotation: 0 })
@@ -210,6 +223,19 @@ export default function App() {
     }
     chooseTool({ kind: 'building', type: 'market', rotation: 0 })
     setToast(`阶段顾问：${requirement.diagnosis}`)
+  }
+
+  const toggleStageOverlayMode = (mode: StageAdvisorOverlayMode) => {
+    if (activeStageOverlayMode === mode) {
+      setActiveStageOverlayMode(null)
+      setStageAdvisorOverlay(null)
+      setToast('阶段图层已关闭。')
+      return
+    }
+    const overlay = deriveStageMapOverlay(mode, snapshot, Date.now()) ?? null
+    setActiveStageOverlayMode(mode)
+    setStageAdvisorOverlay(overlay)
+    setToast(overlay ? `已打开${overlay.label}图层。` : '当前地图还没有可显示的图层点。')
   }
 
   const resolveAmbientStory = (story: AmbientCityStoryItem, shouldFocus = true) => {
@@ -375,6 +401,18 @@ export default function App() {
                       /{requirement.target}{requirement.suffix ?? ''}
                     </b>
                     <em>{requirement.diagnosis}</em>
+                  </button>
+                ))}
+              </div>
+              <div className="stage-layer-switcher" aria-label="阶段地图图层">
+                {STAGE_ADVISOR_OVERLAY_MODES.map((item) => (
+                  <button
+                    key={item.mode}
+                    type="button"
+                    className={activeStageOverlayMode === item.mode ? 'active' : ''}
+                    onClick={() => toggleStageOverlayMode(item.mode)}
+                  >
+                    {item.label}
                   </button>
                 ))}
               </div>

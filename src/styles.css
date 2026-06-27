@@ -71,6 +71,18 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   background: rgba(138, 103, 173, .82);
   box-shadow: 0 0 0 5px rgba(207, 169, 233, .22), 0 8px 18px rgba(52, 38, 72, .28);
 }
+.stage-overlay-marker--service {
+  background: rgba(195, 126, 65, .84);
+  box-shadow: 0 0 0 5px rgba(255, 195, 112, .22), 0 8px 18px rgba(78, 48, 27, .28);
+}
+.stage-overlay-marker--logistics {
+  background: rgba(81, 111, 167, .84);
+  box-shadow: 0 0 0 5px rgba(141, 174, 236, .22), 0 8px 18px rgba(32, 48, 84, .28);
+}
+.stage-overlay-marker--road {
+  background: rgba(89, 100, 91, .84);
+  box-shadow: 0 0 0 5px rgba(213, 215, 167, .2), 0 8px 18px rgba(39, 47, 40, .28);
+}
 .stage-overlay-marker i {
   position: absolute;
   left: 50%;
@@ -409,6 +421,30 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   font-size: 7px;
   font-style: normal;
   line-height: 1.35;
+}
+.stage-layer-switcher {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 8px;
+}
+.stage-layer-switcher button {
+  min-width: 0;
+  padding: 6px 4px;
+  border: 1px solid rgba(64, 96, 75, .18);
+  border-radius: 8px;
+  color: #48665b;
+  background: rgba(255, 252, 231, .72);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.stage-layer-switcher button:hover,
+.stage-layer-switcher button:focus-visible,
+.stage-layer-switcher button.active {
+  color: #fff8dc;
+  border-color: rgba(59, 105, 83, .28);
+  background: #4f7d66;
 }
 
 .bottleneck-panel {

@@ -49,6 +49,9 @@
 - 启动第二十六轮并行生产：CITY-STAGE-LAYER-01，把阶段覆盖从统一标记推进为分层标记。
 - 完成第二十六轮并行生产：阶段覆盖点增加 `housing`、`migration`、`bottleneck`、`district` 类型和短标签；地图覆盖层按类型显示不同颜色，住房、等房/进城中、停工/仓储和街区核心不再混在同一种提示里。
 - 第二十六轮目标验证通过：阶段覆盖测试 2 项通过，TypeScript 检查通过。
+- 启动第二十七轮并行生产：CITY-STAGE-LAYER-SWITCH-01，把阶段覆盖推进为可切换图层。
+- 完成第二十七轮并行生产：新增 `deriveStageMapOverlay` 和固定图层模式，阶段面板可切换住房容量、服务覆盖、物流拥堵和道路连通；打开图层后会随快照刷新，关闭后清空地图标记。
+- 第二十七轮目标验证通过：阶段覆盖测试 3 项通过，TypeScript 检查通过。
 - 补强商业级完整上线总计划：`commercial-launch-master-plan.md` 新增美术 ART-P0–P11 全阶段上线要求，明确美术不是首批金标任务，而是从方向、灰盒、概念、金标、角色、动画、环境、UI、Alpha 量产、Beta 完整化、RC 冻结到上线后运营的完整生产线。
 - 清理 `production-pipeline.md` 与 `gates.md` 中残留的 28×9、四岛、音乐奖励、拾取材料等旧主线门禁，替换为可扩展建筑/街区资产矩阵、人口生命周期、城市吸引力、街区繁荣和城市问题诊断。
 - 更新 `task-board.md`、`progress-dashboard.md` 和 `artifact-index.md`，让本轮总计划一致性补强在项目中枢内可追踪。

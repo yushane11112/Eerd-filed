@@ -222,6 +222,27 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   padding: 8px 9px;
   border-radius: 18px;
 }
+.music-reward.collapsed {
+  width: auto;
+  grid-template-columns: 1fr;
+  padding: 6px;
+}
+.music-toggle {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  color: #6a725f;
+  background: transparent;
+  font-size: 8px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.music-toggle svg { width: 14px; color: #a7673e; }
+.music-toggle:hover { background: #eef0df; }
 .music-disc {
   width: 38px;
   height: 38px;
@@ -236,7 +257,10 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
 .music-reward > div:nth-child(2) { min-width: 0; display: flex; flex-direction: column; }
 .music-reward strong { font-size: 10px; }
 .music-reward span { color: #7e8983; font-size: 7px; }
-.music-reward button {
+.music-reward.open {
+  grid-template-columns: 40px 1fr auto auto;
+}
+.music-reward.open > button {
   padding: 8px;
   border: 0;
   border-radius: 10px;
@@ -246,6 +270,16 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   font-weight: 800;
   cursor: pointer;
 }
+.music-reward .music-close {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: #63736c;
+  background: #e8eadb;
+}
+.music-reward .music-close svg { width: 13px; }
 
 .stage-panel {
   position: absolute;

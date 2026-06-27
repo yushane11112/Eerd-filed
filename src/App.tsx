@@ -59,6 +59,7 @@ export default function App() {
   const [fullscreen, setFullscreen] = useState(INITIAL_FULLSCREEN)
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null)
   const [bottleneckOpen, setBottleneckOpen] = useState(false)
+  const [optionalRewardOpen, setOptionalRewardOpen] = useState(false)
   const [cameraFocusRequest, setCameraFocusRequest] = useState<CameraFocusRequest | null>(null)
   const shellRef = useRef<HTMLElement>(null)
   const fullscreenRef = useRef<FullscreenController | null>(null)
@@ -286,13 +287,35 @@ export default function App() {
         </button>
       </section>
 
-      <section className="music-reward glass-panel">
-        <div className="music-disc"><Music2 /></div>
-        <div>
-          <strong>听完喜欢的歌</strong>
-          <span>仅奖励稀缺材料 · 五首保底</span>
-        </div>
-        <button onClick={simulateSong}>模拟听完</button>
+      <section className={`music-reward glass-panel ${optionalRewardOpen ? 'open' : 'collapsed'}`}>
+        {!optionalRewardOpen ? (
+          <button
+            type="button"
+            className="music-toggle"
+            onClick={() => setOptionalRewardOpen(true)}
+            title="可选轻奖励"
+          >
+            <Music2 />
+            <span>轻奖励</span>
+          </button>
+        ) : (
+          <>
+            <div className="music-disc"><Music2 /></div>
+            <div>
+              <strong>可选听歌轻奖励</strong>
+              <span>只给珍材，不影响城市主线</span>
+            </div>
+            <button onClick={simulateSong}>模拟</button>
+            <button
+              type="button"
+              className="music-close"
+              onClick={() => setOptionalRewardOpen(false)}
+              aria-label="收起轻奖励"
+            >
+              <X />
+            </button>
+          </>
+        )}
       </section>
 
       {!selectedBuilding && (

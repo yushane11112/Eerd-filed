@@ -1181,7 +1181,10 @@ export class AgentVisual extends BaseVisual {
   update(snapshot: Readonly<SimulationSnapshot>, alpha: number): void {
     if (!this.entityId) return
     const agent = snapshot.agents[this.entityId]
-    if (!agent) return
+    if (!agent) {
+      this.updateMigrationCandidate(snapshot)
+      return
+    }
 
     const next = agent.path[Math.min(agent.pathIndex + 1, agent.path.length - 1)]
     const position = next ? interpolateGridPoint(agent.position, next, alpha) : agent.position
@@ -1205,6 +1208,31 @@ export class AgentVisual extends BaseVisual {
       this.body.circle(0, -12 - bob, 4).fill({ color: 0xe7c6a5 })
       this.body.roundRect(-4, -8 - bob, 8, 12, 3).fill({ color: ROLE_COLOR[agent.role] })
     }
+  }
+
+  private updateMigrationCandidate(snapshot: Readonly<SimulationSnapshot>): void {
+    if (!this.entityId) return
+    const candidateId = this.entityId.startsWith('migration-candidate:')
+      ? this.entityId.slice('migration-candidate:'.length)
+      : this.entityId
+    const candidate = snapshot.migrationCandidates?.[candidateId]
+    if (!candidate) return
+
+    const phase = animationPhase(snapshot, candidate.id)
+    this.place(candidate.position)
+    this.body.clear()
+    const count = Math.min(3, Math.max(1, candidate.members))
+    for (let index = 0; index < count; index += 1) {
+      const offset = (index - (count - 1) / 2) * 7
+      const bob = Math.sin(phase + index * 0.75) * 1.5
+      this.body.circle(offset, -13 - bob, 3.5).fill({ color: 0xe7c6a5 })
+      this.body.roundRect(offset - 3.5, -9 - bob, 7, 11, 3)
+        .fill({ color: 0x6f7f95 })
+    }
+    this.body.roundRect(-13, 3, 26, 6, 3)
+      .fill({ color: 0xd7b75b, alpha: 0.85 })
+    this.body.circle(10, -16 + Math.sin(phase) * 1.5, 3)
+      .fill({ color: 0xf2d77c, alpha: 0.95 })
   }
 }
 

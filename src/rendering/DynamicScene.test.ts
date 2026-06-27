@@ -38,6 +38,7 @@ function createSnapshot(): SimulationSnapshot {
       },
     },
     households: {},
+    migrationCandidates: {},
     agents: {
       walker: {
         id: 'walker',
@@ -159,6 +160,35 @@ describe('DynamicScene', () => {
     expect(scene.layers.transport.children).toHaveLength(0)
     expect(scene.layers.drops.children).toHaveLength(0)
     expect(stats.pooled).toBeGreaterThanOrEqual(4)
+  })
+
+  it('renders waiting migration candidates on the resident layer', async () => {
+    const { DynamicScene } = await import('./DynamicScene')
+    const scene = new DynamicScene()
+    const snapshot = createSnapshot()
+    snapshot.agents = {}
+    snapshot.worldDrops = []
+    snapshot.migrationCandidates = {
+      visitor: {
+        id: 'visitor',
+        members: 3,
+        workerCount: 1,
+        status: 'waiting',
+        position: { x: 4, y: 4 },
+        arrivedTick: 8,
+        patienceTicks: 4,
+        attractionAtArrival: 72,
+      },
+    }
+
+    const stats = scene.sync(snapshot, camera)
+
+    expect(stats).toMatchObject({
+      residents: 1,
+      transport: 0,
+      drops: 0,
+    })
+    expect(scene.layers.residents.children).toHaveLength(1)
   })
 
   it('adds distinct procedural building status layers without growing pooled visuals', async () => {

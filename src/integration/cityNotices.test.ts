@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import type { BuildingEntity, LogisticsOrder, SimulationSnapshot } from '../simulation/contracts'
+import type {
+  BuildingEntity,
+  LogisticsOrder,
+  MigrationCandidateState,
+  SimulationSnapshot,
+} from '../simulation/contracts'
 import {
   AmbientCityStoryTracker,
   CityNoticeTracker,
@@ -105,6 +110,26 @@ describe('city notice derivation', () => {
     })
   })
 
+  it('surfaces waiting migration candidates as locatable ambient stories', () => {
+    const stories = deriveAmbientCityStories(makeSnapshot({
+      tick: 42,
+      migrationCandidates: {
+        visitor: migrationCandidate('visitor'),
+      },
+    }))
+
+    expect(stories.find((story) => story.id === 'story-migration-waiting')).toMatchObject({
+      title: '有人在城口等房',
+      body: '3 位外来人正在找住处，空房和城镇吸引力会决定他们是否留下。',
+      actionLabel: '看一眼',
+      target: {
+        kind: 'point',
+        point: { x: 1, y: 2 },
+        label: '外来人口临时停留点',
+      },
+    })
+  })
+
   it('keeps an acknowledged ambient story quiet until the underlying notice resolves', () => {
     const tracker = new AmbientCityStoryTracker()
     const lowFood = makeSnapshot({
@@ -146,6 +171,7 @@ function makeSnapshot(overrides: {
   metrics?: Partial<SimulationSnapshot['metrics']>
   buildings?: Record<string, BuildingEntity>
   logisticsOrders?: Record<string, LogisticsOrder>
+  migrationCandidates?: Record<string, MigrationCandidateState>
 } = {}): SimulationSnapshot {
   return {
     version: 6,
@@ -155,6 +181,7 @@ function makeSnapshot(overrides: {
     cells: [],
     buildings: overrides.buildings ?? {},
     households: {},
+    migrationCandidates: overrides.migrationCandidates ?? {},
     agents: {},
     logisticsOrders: overrides.logisticsOrders ?? {},
     economy: {
@@ -172,6 +199,19 @@ function makeSnapshot(overrides: {
       processedEventIds: [],
       inventory: {},
     },
+  }
+}
+
+function migrationCandidate(id: string): MigrationCandidateState {
+  return {
+    id,
+    members: 3,
+    workerCount: 1,
+    status: 'waiting',
+    position: { x: 1, y: 2 },
+    arrivedTick: 40,
+    patienceTicks: 4,
+    attractionAtArrival: 66,
   }
 }
 

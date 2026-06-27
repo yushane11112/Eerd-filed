@@ -16,6 +16,14 @@
 - `pnpm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
 - 说明：当前执行环境没有系统 `npm`，本轮使用 Codex 内置 `pnpm` 和内置 Node 运行等价脚本。
 
+## 2026-06-27 第十三轮验证
+
+- `vitest run src/simulation/core/SimulationEngine.test.ts src/integration/cityNotices.test.ts src/rendering/DynamicScene.test.ts`：3 个测试文件、30 项通过，覆盖候选停留点、迁入小事和居民层渲染。
+- `vitest run`：26 个测试文件、165 项测试通过。
+- `tsc -b`：类型检查通过。
+- `vite build`：生产构建通过，`dist/` 产物生成。
+- 说明：由于当前依赖目录由 pnpm 创建但仓库保留 npm lockfile，本轮验证直接调用 `node_modules/.bin` 下的本地工具，避免 pnpm 在非交互环境触发依赖目录清理。
+
 ## 压力基准
 
 - 500 户家庭。

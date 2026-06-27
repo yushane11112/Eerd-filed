@@ -17,6 +17,10 @@ function isTransport(agent: Readonly<AgentEntity>): boolean {
   return agent.role === 'carrier' || agent.role === 'cart' || agent.role === 'boat'
 }
 
+function migrationCandidateVisualId(id: EntityId): EntityId {
+  return `migration-candidate:${id}`
+}
+
 export interface DynamicSceneOptions {
   prefabRegistry?: PrefabRuntimeRegistry
 }
@@ -74,6 +78,15 @@ export class DynamicScene {
       visible += this.applyVisibility(visual, camera)
       if (agentIsTransport) transport += 1
       else residents += 1
+    }
+
+    for (const candidate of Object.values(snapshot.migrationCandidates ?? {})) {
+      const visualId = migrationCandidateVisualId(candidate.id)
+      expected.add(visualId)
+      const visual = this.ensureAgent(visualId, false)
+      visual.update(snapshot, interpolationAlpha)
+      visible += this.applyVisibility(visual, camera)
+      residents += 1
     }
 
     for (const drop of snapshot.worldDrops) {

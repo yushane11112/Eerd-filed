@@ -118,6 +118,8 @@ describe('SimulationEngine', () => {
       attraction: expect.any(Number),
     })
     expect(engine.snapshot.metrics.waitingMigrants).toBe(1)
+    expect(waiting.position).toEqual({ x: 0, y: 1 })
+    expect(waiting.targetHomeBuildingId).toBe('home')
 
     const settlementEvents = engine.step()
     const snapshot = engine.snapshot
@@ -186,6 +188,7 @@ describe('SimulationEngine', () => {
         members: 3,
         workerCount: 1,
         status: 'waiting',
+        position: { x: 0, y: 1 },
         arrivedTick: 0,
         patienceTicks: 2,
         attractionAtArrival: 50,

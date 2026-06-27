@@ -1,7 +1,7 @@
 import type { EntityId, GridPoint, LogisticsOrder, SimulationSnapshot } from '../simulation/contracts'
 
 export type CityNoticeSeverity = 'critical' | 'warning' | 'info'
-export type CityNoticeKind = 'resource' | 'workforce' | 'resident' | 'logistics'
+export type CityNoticeKind = 'resource' | 'workforce' | 'resident' | 'logistics' | 'migration'
 
 export interface CityNotice {
   id: string
@@ -39,6 +39,9 @@ export function deriveCityNotices(snapshot: SimulationSnapshot): CityNotice[] {
   const blockedBuildings = Object.values(snapshot.buildings)
     .filter((building) => building.status === 'blocked')
     .length
+  const waitingMigrants = Object.values(snapshot.migrationCandidates ?? {})
+    .filter((candidate) => candidate.status === 'waiting')
+    .sort((left, right) => left.arrivedTick - right.arrivedTick || left.id.localeCompare(right.id))
 
   if (population > 0 && food < Math.max(6, population * 0.35)) {
     notices.push({
@@ -101,6 +104,25 @@ export function deriveCityNotices(snapshot: SimulationSnapshot): CityNotice[] {
       tick: snapshot.tick,
       priority: 65,
       target: residentTarget,
+    })
+  }
+
+  if (waitingMigrants.length > 0) {
+    const candidate = waitingMigrants[0]
+    const waitTicks = Math.max(0, snapshot.tick - candidate.arrivedTick)
+    notices.push({
+      id: 'migration-waiting',
+      kind: 'migration',
+      severity: waitTicks >= Math.max(1, candidate.patienceTicks - 1) ? 'warning' : 'info',
+      title: '有人在城口等房',
+      message: `${candidate.members} 位外来人正在找住处，空房和城镇吸引力会决定他们是否留下。`,
+      tick: snapshot.tick,
+      priority: 62,
+      target: {
+        kind: 'point',
+        point: candidate.position,
+        label: '外来人口临时停留点',
+      },
     })
   }
 

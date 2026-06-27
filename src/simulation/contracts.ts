@@ -80,6 +80,8 @@ export interface MigrationCandidateState {
   members: number
   workerCount: number
   status: 'arriving' | 'waiting'
+  position: GridPoint
+  targetHomeBuildingId?: EntityId
   arrivedTick: Tick
   patienceTicks: number
   attractionAtArrival: number

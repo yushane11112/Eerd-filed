@@ -144,6 +144,7 @@ export class SimulationEngine {
     const members = random.integer(this.householdSize[0], this.householdSize[1])
     const workerCount = Math.max(1, Math.floor(members / 2))
     const candidateId = this.uniqueId('migrant', random)
+    const home = this.findAvailableHome(members)
 
     this.state.migrationCandidates ??= {}
     this.state.migrationCandidates[candidateId] = {
@@ -151,6 +152,8 @@ export class SimulationEngine {
       members,
       workerCount,
       status: 'waiting',
+      position: this.findMigrationArrivalPoint(home),
+      targetHomeBuildingId: home?.id,
       arrivedTick: this.state.tick,
       patienceTicks: MIGRATION_PATIENCE_TICKS,
       attractionAtArrival: attraction,
@@ -170,6 +173,7 @@ export class SimulationEngine {
     for (const candidate of candidates) {
       const attraction = this.calculateCityAttraction()
       const home = this.findAvailableHome(candidate.members)
+      candidate.targetHomeBuildingId = home?.id
       if (home && attraction >= MIGRATION_SETTLE_ATTRACTION) {
         events.push(this.settleMigrationCandidate(candidate.id, home))
         continue
@@ -383,6 +387,25 @@ export class SimulationEngine {
     return effectiveBuildingDefinition(definition, building).jobs
   }
 
+  private findMigrationArrivalPoint(home?: BuildingEntity): { x: number; y: number } {
+    const roadCell = [...this.state.cells]
+      .filter((cell) => cell.road && !cell.buildingId)
+      .sort((left, right) => {
+        if (home) {
+          const leftDistance = distanceSquared(left.point, home.entrance)
+          const rightDistance = distanceSquared(right.point, home.entrance)
+          if (leftDistance !== rightDistance) return leftDistance - rightDistance
+        }
+        return (left.point.x + left.point.y) - (right.point.x + right.point.y)
+          || left.point.x - right.point.x
+          || left.point.y - right.point.y
+      })[0]
+    if (roadCell) return { ...roadCell.point }
+    if (home) return { ...home.entrance }
+    const firstBuilding = Object.values(this.state.buildings).sort(byId)[0]
+    return firstBuilding ? { ...firstBuilding.entrance } : { x: 0, y: 0 }
+  }
+
   private recalculateMetrics(): void {
     const households = Object.values(this.state.households)
     const agents = Object.values(this.state.agents)
@@ -511,4 +534,11 @@ function positiveInteger(value: number, name: string): number {
 
 function byId<T extends { id: string }>(left: T, right: T): number {
   return left.id.localeCompare(right.id)
+}
+
+function distanceSquared(
+  left: { x: number; y: number },
+  right: { x: number; y: number },
+): number {
+  return (left.x - right.x) ** 2 + (left.y - right.y) ** 2
 }

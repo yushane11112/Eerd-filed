@@ -1,5 +1,4 @@
 import type {
-  BuildingDefinition,
   BuildingEntity,
   GridPoint,
   MusicCompletionEvent,
@@ -7,6 +6,10 @@ import type {
   ResourceKind,
   SimulationSnapshot,
 } from '../simulation/contracts'
+import {
+  BUILDING_DEFINITIONS,
+  BUILDING_MENU,
+} from '../content/runtimeBuildings'
 import { SimulationEngine, createInitialSimulationSnapshot } from '../simulation/core'
 import {
   advanceBuildingUpgrades,
@@ -63,49 +66,7 @@ export interface BuildingUpgradeQuote {
   }
 }
 
-const square = (width: number, height: number): GridPoint[] =>
-  Array.from({ length: width * height }, (_, index) => ({
-    x: index % width,
-    y: Math.floor(index / width),
-  }))
-
-export const BUILDING_DEFINITIONS: Record<string, BuildingDefinition> = {
-  house: {
-    type: 'house', name: '江南民居', category: 'housing',
-    footprint: square(2, 2), entrance: { x: 1, y: 1 }, maxLevel: 8,
-    jobs: 0, capacity: 12,
-  },
-  granary: {
-    type: 'granary', name: '粮仓', category: 'storage',
-    footprint: square(2, 2), entrance: { x: 1, y: 1 }, maxLevel: 8,
-    jobs: 2, capacity: 100,
-  },
-  riceField: {
-    type: 'riceField', name: '水稻田', category: 'production',
-    footprint: square(3, 2), entrance: { x: 1, y: 1 }, maxLevel: 8,
-    jobs: 3, capacity: 60,
-    production: { durationTicks: 35, inputs: {}, outputs: { food: 4 } },
-  },
-  woodshop: {
-    type: 'woodshop', name: '木作坊', category: 'production',
-    footprint: square(2, 2), entrance: { x: 1, y: 1 }, maxLevel: 8,
-    jobs: 3, capacity: 60,
-    production: { durationTicks: 45, inputs: { wood: 2 }, outputs: { brick: 1 } },
-  },
-  market: {
-    type: 'market', name: '临河集市', category: 'market',
-    footprint: square(3, 2), entrance: { x: 1, y: 1 }, maxLevel: 8,
-    jobs: 4, capacity: 80,
-  },
-}
-
-export const BUILDING_MENU = [
-  { type: 'house', shortName: '民居', icon: 'home' },
-  { type: 'granary', shortName: '粮仓', icon: 'storage' },
-  { type: 'riceField', shortName: '稻田', icon: 'building' },
-  { type: 'woodshop', shortName: '木作', icon: 'building' },
-  { type: 'market', shortName: '集市', icon: 'building' },
-] as const
+export { BUILDING_DEFINITIONS, BUILDING_MENU }
 
 const RESOURCE_NAMES: Record<ResourceKind, string> = {
   food: '粮食', fish: '鱼获', wood: '木料', stone: '石料', clay: '黏土',

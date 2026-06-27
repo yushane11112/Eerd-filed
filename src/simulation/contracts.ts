@@ -11,6 +11,18 @@ export type RoadKind = 'dirt' | 'stone' | 'bridge'
 export type BuildingCategory =
   | 'housing' | 'production' | 'storage' | 'market'
   | 'service' | 'harbor' | 'landmark'
+export type BuildingCityStage =
+  | 'wilderness'
+  | 'village-market'
+  | 'water-town'
+  | 'trade-town'
+  | 'prefecture-town'
+  | 'prosperous-water-city'
+export type BuildingFunction =
+  | 'housing' | 'employment' | 'production' | 'storage' | 'market'
+  | 'service' | 'logistics' | 'culture' | 'governance'
+  | 'risk-control' | 'beautification'
+export type BuildingConnectionKind = 'road' | 'water' | 'shore'
 export type BuildingRuntimeStatus =
   | 'constructing' | 'idle' | 'working' | 'delivering'
   | 'serving' | 'blocked' | 'upgrading'
@@ -37,6 +49,11 @@ export interface BuildingDefinition {
   jobs: number
   capacity: number
   production?: ProductionRecipe
+  cityStage?: BuildingCityStage
+  functions?: BuildingFunction[]
+  connections?: BuildingConnectionKind[]
+  eraTags?: string[]
+  districtAffinity?: string[]
 }
 
 export interface BuildingEntity {

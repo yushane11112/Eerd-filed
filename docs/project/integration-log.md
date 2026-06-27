@@ -10,6 +10,9 @@
 - 启动第十三轮并行生产：POP-MIGRATION-VISUAL-01，补齐候选外来人口的可见到达点、临时停留和找房反馈。
 - 完成第十三轮并行生产：迁入候选人拥有地图位置和目标住宅；`DynamicScene` 将等待候选人渲染到居民层；城市小事流新增“有人在城口等房”并可定位到临时停留点。
 - 第十三轮验证通过：迁入核心、小事流和动态场景目标测试 30 项通过；全量测试 26 个文件、165 项通过；TypeScript 检查与 Vite 生产构建通过。
+- 启动第十四轮并行生产：TAXONOMY-RUNTIME-01，把建筑从运行时硬编码小清单推进到阶段、功能、连接方式和年代一致性的内容目录。
+- 完成第十四轮并行生产：`BuildingDefinition` 增加城市阶段、功能、连接和年代标签；`BUILDING_CATALOG` 可按阶段/功能查询并校验年代一致性；新增 starter 运行时建筑目录，保留现有 `house/granary/riceField/woodshop/market` 类型兼容，同时映射到金标分类；`GameRuntime` 改为读取内容目录定义。
+- 第十四轮验证通过：内容目录、运行时集成和 prefab 映射目标测试 14 项通过；全量测试 26 个文件、168 项通过；TypeScript 检查与 Vite 生产构建通过。
 - 补强商业级完整上线总计划：`commercial-launch-master-plan.md` 新增美术 ART-P0–P11 全阶段上线要求，明确美术不是首批金标任务，而是从方向、灰盒、概念、金标、角色、动画、环境、UI、Alpha 量产、Beta 完整化、RC 冻结到上线后运营的完整生产线。
 - 清理 `production-pipeline.md` 与 `gates.md` 中残留的 28×9、四岛、音乐奖励、拾取材料等旧主线门禁，替换为可扩展建筑/街区资产矩阵、人口生命周期、城市吸引力、街区繁荣和城市问题诊断。
 - 更新 `task-board.md`、`progress-dashboard.md` 和 `artifact-index.md`，让本轮总计划一致性补强在项目中枢内可追踪。

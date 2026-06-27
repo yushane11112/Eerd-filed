@@ -24,6 +24,13 @@
 - `vite build`：生产构建通过，`dist/` 产物生成。
 - 说明：由于当前依赖目录由 pnpm 创建但仓库保留 npm lockfile，本轮验证直接调用 `node_modules/.bin` 下的本地工具，避免 pnpm 在非交互环境触发依赖目录清理。
 
+## 2026-06-27 第十四轮验证
+
+- `vitest run src/content/buildings.test.ts src/integration/GameRuntime.test.ts src/rendering/prefab/assetMapping.test.ts`：3 个测试文件、14 项通过，覆盖建筑分类元数据、starter 运行时定义、运行时放置/升级兼容和 prefab 映射。
+- `vitest run`：26 个测试文件、168 项测试通过。
+- `tsc -b`：类型检查通过。
+- `vite build`：生产构建通过，`dist/` 产物生成。
+
 ## 压力基准
 
 - 500 户家庭。

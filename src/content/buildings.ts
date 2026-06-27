@@ -1,8 +1,24 @@
-import type { BuildingDefinition, ProductionRecipe, ResourceKind } from '../simulation/contracts'
+import type {
+  BuildingCityStage,
+  BuildingConnectionKind,
+  BuildingDefinition,
+  BuildingFunction,
+  ProductionRecipe,
+  ResourceKind,
+} from '../simulation/contracts'
 
 type BuildingSeed = Omit<BuildingDefinition, 'footprint' | 'entrance' | 'maxLevel'> & {
   size?: [number, number]
 }
+
+export const CITY_STAGE_ORDER: readonly BuildingCityStage[] = [
+  'wilderness',
+  'village-market',
+  'water-town',
+  'trade-town',
+  'prefecture-town',
+  'prosperous-water-city',
+]
 
 const recipe = (
   durationTicks: number,
@@ -15,6 +31,7 @@ const seed = ({
   ...definition
 }: BuildingSeed): BuildingDefinition => {
   const [width, height] = size
+  const cityStage = definition.cityStage ?? inferCityStage(definition.type)
   return {
     ...definition,
     footprint: Array.from({ length: width * height }, (_, index) => ({
@@ -23,6 +40,10 @@ const seed = ({
     })),
     entrance: { x: Math.floor(width / 2), y: height },
     maxLevel: 8,
+    cityStage,
+    functions: definition.functions ?? inferFunctions(definition),
+    connections: definition.connections ?? inferConnections(definition),
+    eraTags: definition.eraTags ?? ['jiangnan-water-town', 'ming-qing-inspired', 'preindustrial'],
   }
 }
 
@@ -159,3 +180,80 @@ export const BUILDING_CATALOG: Record<string, BuildingDefinition> = {
 
 export const BUILDING_TYPES = Object.keys(BUILDING_CATALOG)
 
+export function getBuildingsByStage(stage: BuildingCityStage): BuildingDefinition[] {
+  const stageIndex = CITY_STAGE_ORDER.indexOf(stage)
+  return Object.values(BUILDING_CATALOG)
+    .filter((definition) => (
+      CITY_STAGE_ORDER.indexOf(definition.cityStage ?? 'water-town') <= stageIndex
+    ))
+    .sort((left, right) => left.type.localeCompare(right.type))
+}
+
+export function getBuildingsByFunction(buildingFunction: BuildingFunction): BuildingDefinition[] {
+  return Object.values(BUILDING_CATALOG)
+    .filter((definition) => definition.functions?.includes(buildingFunction))
+    .sort((left, right) => left.type.localeCompare(right.type))
+}
+
+export function isEraConsistentBuilding(definition: BuildingDefinition): boolean {
+  const tags = definition.eraTags ?? []
+  return (
+    tags.includes('jiangnan-water-town')
+    && tags.includes('ming-qing-inspired')
+    && tags.includes('preindustrial')
+    && !tags.some((tag) => (
+      tag === 'modern'
+      || tag === 'electric'
+      || tag === 'steam-industrial'
+      || tag === 'future'
+    ))
+  )
+}
+
+function inferCityStage(type: string): BuildingCityStage {
+  if (type.startsWith('windfield-') || type === 'main-ferry') return 'village-market'
+  if (type.startsWith('mistgrove-')) return 'water-town'
+  if (type.startsWith('tide-')) return 'trade-town'
+  if (type === 'main-academy' || type === 'main-theatre' || type === 'main-garden') {
+    return 'prefecture-town'
+  }
+  return 'water-town'
+}
+
+function inferFunctions(definition: BuildingSeed): BuildingFunction[] {
+  const functions = new Set<BuildingFunction>()
+  if (definition.jobs > 0) functions.add('employment')
+  if (definition.production) functions.add('production')
+  if (definition.category === 'housing') functions.add('housing')
+  if (definition.category === 'storage') functions.add('storage')
+  if (definition.category === 'market') functions.add('market')
+  if (definition.category === 'service') functions.add('service')
+  if (definition.category === 'harbor') functions.add('logistics')
+  if (definition.category === 'landmark') functions.add('culture')
+  if (definition.type.includes('gate') || definition.type.includes('lighthouse')) {
+    functions.add('governance')
+  }
+  if (definition.type.includes('bridge') || definition.type.includes('pier') || definition.type.includes('ferry')) {
+    functions.add('logistics')
+  }
+  if (definition.type.includes('garden') || definition.type.includes('pavilion')) {
+    functions.add('beautification')
+  }
+  return [...functions]
+}
+
+function inferConnections(definition: BuildingSeed): BuildingConnectionKind[] {
+  const connections = new Set<BuildingConnectionKind>(['road'])
+  if (
+    definition.category === 'harbor'
+    || definition.type.includes('pier')
+    || definition.type.includes('ferry')
+    || definition.type.includes('harbor')
+    || definition.type.includes('shipyard')
+    || definition.type.includes('lighthouse')
+  ) {
+    connections.add('water')
+    connections.add('shore')
+  }
+  return [...connections]
+}

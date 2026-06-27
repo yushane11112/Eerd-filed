@@ -9,6 +9,7 @@ import type {
   SimulationEvent,
   SimulationSnapshot,
   SimulationSystem,
+  WorldCell,
 } from '../contracts'
 import { DeterministicRandom } from './random'
 import { effectiveBuildingDefinition } from '../economy/upgrades'
@@ -194,7 +195,7 @@ export class SimulationEngine {
       candidate.targetHomeBuildingId = home?.id
       if (home && attraction >= MIGRATION_SETTLE_ATTRACTION) {
         candidate.status = 'walking'
-        candidate.path = buildStraightPath(candidate.position, home.entrance)
+        candidate.path = buildMigrationPath(candidate.position, home.entrance, this.state.cells)
         candidate.pathIndex = 0
         continue
       }
@@ -592,6 +593,80 @@ function distanceSquared(
   return (left.x - right.x) ** 2 + (left.y - right.y) ** 2
 }
 
+function buildMigrationPath(
+  from: GridPoint,
+  to: GridPoint,
+  cells: readonly WorldCell[],
+): GridPoint[] {
+  if (samePoint(from, to)) return [{ ...from }]
+  if (cells.length === 0) return buildStraightPath(from, to)
+
+  const cellByKey = new Map(cells.map((cell) => [pointKey(cell.point), cell]))
+  const targetKey = pointKey(to)
+  const startKey = pointKey(from)
+  if (!cellByKey.has(startKey) || !cellByKey.has(targetKey)) {
+    return buildStraightPath(from, to)
+  }
+
+  const distances = new Map<string, number>([[startKey, 0]])
+  const previous = new Map<string, string>()
+  const open = new Set<string>([startKey])
+
+  while (open.size > 0) {
+    const currentKey = [...open].sort((left, right) => (
+      (distances.get(left) ?? Number.POSITIVE_INFINITY)
+        - (distances.get(right) ?? Number.POSITIVE_INFINITY)
+        || left.localeCompare(right)
+    ))[0]
+    open.delete(currentKey)
+    if (currentKey === targetKey) break
+
+    const current = cellByKey.get(currentKey)
+    if (!current) continue
+    for (const neighbor of gridNeighbors(current.point)) {
+      const neighborKey = pointKey(neighbor)
+      const cell = cellByKey.get(neighborKey)
+      if (!cell || !isMigrationPassable(cell, from, to)) continue
+      const distance = (distances.get(currentKey) ?? 0) + migrationStepCost(cell, to)
+      if (distance >= (distances.get(neighborKey) ?? Number.POSITIVE_INFINITY)) continue
+      distances.set(neighborKey, distance)
+      previous.set(neighborKey, currentKey)
+      open.add(neighborKey)
+    }
+  }
+
+  if (!distances.has(targetKey)) return buildStraightPath(from, to)
+  const pathKeys = [targetKey]
+  while (pathKeys[0] !== startKey) {
+    const before = previous.get(pathKeys[0])
+    if (!before) return buildStraightPath(from, to)
+    pathKeys.unshift(before)
+  }
+  return pathKeys.map(parsePointKey)
+}
+
+function isMigrationPassable(cell: WorldCell, from: GridPoint, to: GridPoint): boolean {
+  if (cell.terrain === 'water') return false
+  if (samePoint(cell.point, from) || samePoint(cell.point, to)) return true
+  return !cell.buildingId
+}
+
+function migrationStepCost(cell: WorldCell, to: GridPoint): number {
+  if (samePoint(cell.point, to)) return 1
+  if (cell.road === 'stone') return 1
+  if (cell.road === 'dirt' || cell.road === 'bridge') return 2
+  return 5
+}
+
+function gridNeighbors(point: GridPoint): GridPoint[] {
+  return [
+    { x: point.x + 1, y: point.y },
+    { x: point.x - 1, y: point.y },
+    { x: point.x, y: point.y + 1 },
+    { x: point.x, y: point.y - 1 },
+  ]
+}
+
 function buildStraightPath(from: GridPoint, to: GridPoint): GridPoint[] {
   const path: GridPoint[] = [{ ...from }]
   let current = { ...from }
@@ -610,4 +685,17 @@ function buildStraightPath(from: GridPoint, to: GridPoint): GridPoint[] {
     path.push({ ...current })
   }
   return path
+}
+
+function samePoint(left: GridPoint, right: GridPoint): boolean {
+  return left.x === right.x && left.y === right.y
+}
+
+function pointKey(point: GridPoint): string {
+  return `${point.x},${point.y}`
+}
+
+function parsePointKey(key: string): GridPoint {
+  const [x, y] = key.split(',').map(Number)
+  return { x, y }
 }

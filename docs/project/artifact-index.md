@@ -2,6 +2,17 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-27：第十八轮候选外来人口道路优先寻路
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/core/SimulationEngine.ts` | 模拟核心 | 候选人口进城路径改为读取网格、道路优先、避开水面和建筑占用，失败时退回直线 |
+| `src/simulation/core/SimulationEngine.test.ts` | 自动测试 | 验证候选人口会绕到道路上进入住宅，而非横穿普通地块 |
+| `docs/project/task-board.md` | 任务看板 | 标记 POP-MIGRATION-ROAD-PATH-01 完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录第十八轮启动、完成和验证结果 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新城市模拟和人口生命周期完成度 |
+| `docs/project/qa.md` | 验收记录 | 记录本轮目标测试和后续全量验证 |
+
 ## 2026-06-27：第十七轮城建菜单阶段解锁
 
 | 文件 | 产物类型 | 用途 |

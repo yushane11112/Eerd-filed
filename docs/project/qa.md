@@ -52,6 +52,13 @@
 - `vitest run`：27 个测试文件、174 项测试通过。
 - `vite build`：生产构建通过，`dist/` 产物生成。
 
+## 2026-06-27 第十八轮验证
+
+- `vitest run src/simulation/core/SimulationEngine.test.ts`：1 个测试文件、13 项通过，覆盖候选外来人口道路优先进城路径和原有迁入状态机。
+- `tsc -b`：类型检查通过。
+- `vitest run`：27 个测试文件、175 项测试通过。
+- `vite build`：生产构建通过，`dist/` 产物生成。
+
 ## 压力基准
 
 - 500 户家庭。

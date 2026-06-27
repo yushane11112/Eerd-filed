@@ -4,6 +4,7 @@ import type {
   BuildingEntity,
   HouseholdState,
   SimulationSystem,
+  WorldCell,
 } from '../contracts'
 import { EconomySystem } from '../economy'
 import { SimulationEngine } from './SimulationEngine'
@@ -182,6 +183,52 @@ describe('SimulationEngine', () => {
       population: 8,
       housingCapacity: 8,
       openHousingCapacity: 0,
+    })
+  })
+
+  it('routes walking migration candidates along roads when a road path is available', () => {
+    const home = {
+      ...building('home', 'house'),
+      entrance: { x: 2, y: 1 },
+    }
+    const snapshot = createInitialSimulationSnapshot({
+      buildings: {
+        home,
+        work: building('work', 'workshop'),
+      },
+    })
+    snapshot.cells = migrationRouteCells()
+    snapshot.migrationCandidates = {
+      visitor: {
+        id: 'visitor',
+        members: 4,
+        workerCount: 2,
+        status: 'waiting',
+        position: { x: 0, y: 1 },
+        targetHomeBuildingId: 'home',
+        arrivedTick: 0,
+        patienceTicks: 6,
+        attractionAtArrival: 80,
+      },
+    }
+    const engine = new SimulationEngine(snapshot, {
+      buildingDefinitions: definitions,
+      migrationIntervalTicks: 100,
+      householdSize: [4, 4],
+    })
+
+    engine.step()
+
+    expect(engine.snapshot.migrationCandidates?.visitor).toMatchObject({
+      status: 'walking',
+      path: [
+        { x: 0, y: 1 },
+        { x: 0, y: 2 },
+        { x: 1, y: 2 },
+        { x: 2, y: 2 },
+        { x: 2, y: 1 },
+      ],
+      pathIndex: 0,
     })
   })
 
@@ -438,3 +485,20 @@ describe('SimulationEngine', () => {
     expect(engine.snapshot.tick).toBe(0)
   })
 })
+
+function migrationRouteCells(): WorldCell[] {
+  const roads = new Set(['0,1', '0,2', '1,2', '2,2'])
+  return [
+    { x: 0, y: 1 },
+    { x: 1, y: 1 },
+    { x: 2, y: 1 },
+    { x: 0, y: 2 },
+    { x: 1, y: 2 },
+    { x: 2, y: 2 },
+  ].map((point) => ({
+    point,
+    terrain: 'land',
+    elevation: 0,
+    road: roads.has(`${point.x},${point.y}`) ? 'stone' : undefined,
+  }))
+}

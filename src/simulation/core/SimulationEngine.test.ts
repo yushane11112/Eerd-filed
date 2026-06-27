@@ -108,11 +108,22 @@ describe('SimulationEngine', () => {
 
   it('migrates a household in and assigns workers to real job slots', () => {
     const engine = createEngine()
-    const events = engine.step()
+    const arrivalEvents = engine.step()
+    const waiting = Object.values(engine.snapshot.migrationCandidates ?? {})[0]
+
+    expect(arrivalEvents).toContainEqual({
+      type: 'migration-candidate-arrived',
+      candidateId: waiting.id,
+      members: 4,
+      attraction: expect.any(Number),
+    })
+    expect(engine.snapshot.metrics.waitingMigrants).toBe(1)
+
+    const settlementEvents = engine.step()
     const snapshot = engine.snapshot
     const household = Object.values(snapshot.households)[0]
 
-    expect(events).toContainEqual({
+    expect(settlementEvents).toContainEqual({
       type: 'household-migrated',
       householdId: household.id,
       direction: 'in',
@@ -123,7 +134,10 @@ describe('SimulationEngine', () => {
       employedWorkers: 2,
       availableJobs: 2,
       housingCapacity: 8,
+      openHousingCapacity: 4,
+      waitingMigrants: 1,
     })
+    expect(snapshot.metrics.cityAttraction).toBeGreaterThan(0)
     expect(snapshot.buildings.work.workers).toHaveLength(2)
     expect(household.income).toBe(0)
 
@@ -133,12 +147,63 @@ describe('SimulationEngine', () => {
 
   it('does not overfill housing with a household that cannot fit', () => {
     const engine = createEngine()
-    engine.step(3)
+    engine.step(5)
     expect(engine.snapshot.metrics).toMatchObject({
       households: 2,
       population: 8,
       housingCapacity: 8,
+      openHousingCapacity: 0,
     })
+  })
+
+  it('keeps migrants away when city attraction is too low', () => {
+    const snapshot = createInitialSimulationSnapshot({
+      taxRate: 0.5,
+      buildings: {},
+    })
+    const engine = new SimulationEngine(snapshot, {
+      buildingDefinitions: definitions,
+      migrationIntervalTicks: 1,
+      householdSize: [4, 4],
+    })
+
+    const events = engine.step()
+
+    expect(events.some((event) => event.type === 'migration-candidate-arrived')).toBe(false)
+    expect(engine.snapshot.metrics.cityAttraction).toBeLessThan(35)
+    expect(engine.snapshot.migrationCandidates).toEqual({})
+  })
+
+  it('lets waiting migrants leave when no housing opens before patience expires', () => {
+    const snapshot = createInitialSimulationSnapshot({
+      buildings: {
+        work: building('work', 'workshop'),
+      },
+    })
+    snapshot.migrationCandidates = {
+      visitor: {
+        id: 'visitor',
+        members: 3,
+        workerCount: 1,
+        status: 'waiting',
+        arrivedTick: 0,
+        patienceTicks: 2,
+        attractionAtArrival: 50,
+      },
+    }
+    const engine = new SimulationEngine(snapshot, {
+      buildingDefinitions: definitions,
+      migrationIntervalTicks: 100,
+    })
+
+    const events = engine.step(2)
+
+    expect(events).toContainEqual({
+      type: 'migration-candidate-left',
+      candidateId: 'visitor',
+      reason: 'no-housing',
+    })
+    expect(engine.snapshot.migrationCandidates).toEqual({})
   })
 
   it('migrates households out when satisfaction reaches the threshold', () => {

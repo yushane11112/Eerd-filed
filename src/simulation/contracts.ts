@@ -75,6 +75,16 @@ export interface HouseholdState {
   }
 }
 
+export interface MigrationCandidateState {
+  id: EntityId
+  members: number
+  workerCount: number
+  status: 'arriving' | 'waiting'
+  arrivedTick: Tick
+  patienceTicks: number
+  attractionAtArrival: number
+}
+
 export type AgentRole = 'resident' | 'worker' | 'carrier' | 'service' | 'cart' | 'boat'
 export type AgentActivity =
   | 'home' | 'commuting' | 'working' | 'shopping'
@@ -126,6 +136,9 @@ export interface CityMetrics {
   housingCapacity: number
   satisfaction: number
   logisticsEfficiency: number
+  openHousingCapacity?: number
+  cityAttraction?: number
+  waitingMigrants?: number
 }
 
 export interface WorldDrop {
@@ -177,6 +190,17 @@ export type SimulationEvent =
   }
   | { type: 'logistics-order-created'; orderId: EntityId }
   | { type: 'household-migrated'; householdId: EntityId; direction: 'in' | 'out' }
+  | {
+    type: 'migration-candidate-arrived'
+    candidateId: EntityId
+    members: number
+    attraction: number
+  }
+  | {
+    type: 'migration-candidate-left'
+    candidateId: EntityId
+    reason: 'no-housing' | 'low-attraction' | 'wait-timeout'
+  }
   | { type: 'world-drop-spawned'; dropId: EntityId }
   | { type: 'music-reward-granted'; resource: RareResourceKind }
 
@@ -188,6 +212,7 @@ export interface SimulationSnapshot {
   cells: WorldCell[]
   buildings: Record<EntityId, BuildingEntity>
   households: Record<EntityId, HouseholdState>
+  migrationCandidates?: Record<EntityId, MigrationCandidateState>
   agents: Record<EntityId, AgentEntity>
   logisticsOrders: Record<EntityId, LogisticsOrder>
   economy: EconomyState

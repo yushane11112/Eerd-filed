@@ -30,6 +30,10 @@ const VALID_SPEEDS = new Set([0, 1, 2, 4])
 const CRITICAL_NEED_THRESHOLD = 35
 const MAX_CRITICAL_NEED_PENALTY_PER_NEED = 3
 const MAX_UNEMPLOYMENT_PENALTY = 2
+const MIGRATION_MIN_ATTRACTION = 35
+const MIGRATION_SETTLE_ATTRACTION = 45
+const MIGRATION_LEAVE_ATTRACTION = 20
+const MIGRATION_PATIENCE_TICKS = 3
 
 export class SimulationEngine {
   private state: SimulationSnapshot
@@ -44,6 +48,7 @@ export class SimulationEngine {
 
   constructor(snapshot: SimulationSnapshot, options: SimulationEngineOptions = {}) {
     this.state = structuredClone(snapshot)
+    this.state.migrationCandidates ??= {}
     this.definitions = options.buildingDefinitions ?? {}
     this.systems = options.systems ?? []
     const ticksPerSecond = options.ticksPerSecond ?? 5
@@ -116,10 +121,11 @@ export class SimulationEngine {
     this.updateHouseholdNeedsAndSatisfaction()
     events.push(...this.migrateOutDissatisfiedHouseholds())
     this.matchEmployment()
+    events.push(...this.updateMigrationCandidates())
 
     if (this.state.tick % this.migrationIntervalTicks === 0) {
-      const migrated = this.migrateInHousehold()
-      if (migrated) events.push(migrated)
+      const arrived = this.createMigrationCandidate()
+      if (arrived) events.push(arrived)
       this.matchEmployment()
     }
 
@@ -130,19 +136,91 @@ export class SimulationEngine {
     return events
   }
 
-  private migrateInHousehold(): SimulationEvent | undefined {
+  private createMigrationCandidate(): SimulationEvent | undefined {
+    const attraction = this.calculateCityAttraction()
+    if (attraction < MIGRATION_MIN_ATTRACTION) return undefined
+
     const random = new DeterministicRandom(this.state.seed)
     const members = random.integer(this.householdSize[0], this.householdSize[1])
-    const home = this.findAvailableHome(members)
-    if (!home) {
-      this.state.seed = random.seed
-      return undefined
-    }
-    const householdId = this.uniqueId('household', random)
     const workerCount = Math.max(1, Math.floor(members / 2))
+    const candidateId = this.uniqueId('migrant', random)
+
+    this.state.migrationCandidates ??= {}
+    this.state.migrationCandidates[candidateId] = {
+      id: candidateId,
+      members,
+      workerCount,
+      status: 'waiting',
+      arrivedTick: this.state.tick,
+      patienceTicks: MIGRATION_PATIENCE_TICKS,
+      attractionAtArrival: attraction,
+    }
+    this.state.seed = random.seed
+    return {
+      type: 'migration-candidate-arrived',
+      candidateId,
+      members,
+      attraction: Math.round(attraction),
+    }
+  }
+
+  private updateMigrationCandidates(): SimulationEvent[] {
+    const events: SimulationEvent[] = []
+    const candidates = Object.values(this.state.migrationCandidates ?? {}).sort(byId)
+    for (const candidate of candidates) {
+      const attraction = this.calculateCityAttraction()
+      const home = this.findAvailableHome(candidate.members)
+      if (home && attraction >= MIGRATION_SETTLE_ATTRACTION) {
+        events.push(this.settleMigrationCandidate(candidate.id, home))
+        continue
+      }
+
+      const waitTicks = this.state.tick - candidate.arrivedTick
+      if (!home && waitTicks >= candidate.patienceTicks) {
+        delete this.state.migrationCandidates?.[candidate.id]
+        events.push({
+          type: 'migration-candidate-left',
+          candidateId: candidate.id,
+          reason: 'no-housing',
+        })
+        continue
+      }
+
+      if (attraction < MIGRATION_LEAVE_ATTRACTION) {
+        delete this.state.migrationCandidates?.[candidate.id]
+        events.push({
+          type: 'migration-candidate-left',
+          candidateId: candidate.id,
+          reason: 'low-attraction',
+        })
+        continue
+      }
+
+      if (waitTicks >= candidate.patienceTicks) {
+        delete this.state.migrationCandidates?.[candidate.id]
+        events.push({
+          type: 'migration-candidate-left',
+          candidateId: candidate.id,
+          reason: 'wait-timeout',
+        })
+      }
+    }
+    return events
+  }
+
+  private settleMigrationCandidate(
+    candidateId: EntityId,
+    home: BuildingEntity,
+  ): SimulationEvent {
+    const candidate = this.state.migrationCandidates?.[candidateId]
+    if (!candidate) {
+      throw new Error(`Missing migration candidate ${candidateId}`)
+    }
+    const random = new DeterministicRandom(this.state.seed)
+    const householdId = this.uniqueId('household', random)
     const workerIds: EntityId[] = []
 
-    for (let index = 0; index < workerCount; index += 1) {
+    for (let index = 0; index < candidate.workerCount; index += 1) {
       const workerId = this.uniqueId('worker', random)
       workerIds.push(workerId)
       this.state.agents[workerId] = {
@@ -159,7 +237,7 @@ export class SimulationEngine {
     this.state.households[householdId] = {
       id: householdId,
       homeBuildingId: home.id,
-      members,
+      members: candidate.members,
       workerIds,
       income: 0,
       satisfaction: this.initialSatisfaction,
@@ -171,6 +249,7 @@ export class SimulationEngine {
         entertainment: 100,
       },
     }
+    delete this.state.migrationCandidates?.[candidateId]
     this.state.seed = random.seed
     return { type: 'household-migrated', householdId, direction: 'in' }
   }
@@ -323,9 +402,11 @@ export class SimulationEngine {
       },
       0,
     )
+    const population = households.reduce((total, household) => total + household.members, 0)
+    const openHousingCapacity = Math.max(0, housingCapacity - population)
 
     this.state.metrics = {
-      population: households.reduce((total, household) => total + household.members, 0),
+      population,
       households: households.length,
       employedWorkers,
       availableJobs: Math.max(0, jobCapacity - employedWorkers),
@@ -334,7 +415,59 @@ export class SimulationEngine {
         ? 100
         : average(households.map((household) => household.satisfaction)),
       logisticsEfficiency: this.state.metrics.logisticsEfficiency,
+      openHousingCapacity,
+      cityAttraction: Math.round(this.calculateCityAttraction()),
+      waitingMigrants: Object.keys(this.state.migrationCandidates ?? {}).length,
     }
+  }
+
+  private calculateCityAttraction(): number {
+    const households = Object.values(this.state.households)
+    const population = households.reduce((total, household) => total + household.members, 0)
+    const housingCapacity = Object.values(this.state.buildings).reduce(
+      (total, building) => {
+        const definition = this.definitions[building.type]
+        return total + (definition?.category === 'housing'
+          ? effectiveBuildingDefinition(definition, building).capacity
+          : 0)
+      },
+      0,
+    )
+    const openHousingCapacity = Math.max(0, housingCapacity - population)
+    const jobCapacity = Object.values(this.state.buildings).reduce(
+      (total, building) => total + this.jobCapacity(building),
+      0,
+    )
+    const employedWorkers = Object.values(this.state.agents).filter(
+      (agent) => agent.role === 'worker' && agent.employerBuildingId,
+    ).length
+    const availableJobs = Math.max(0, jobCapacity - employedWorkers)
+    const storedFood = Object.values(this.state.buildings).reduce(
+      (total, building) => total + (building.inventory.food ?? 0),
+      0,
+    )
+    const satisfaction = households.length === 0
+      ? 70
+      : average(households.map((household) => household.satisfaction))
+    const foodCoverage = population === 0
+      ? (storedFood > 0 ? 1 : 0.55)
+      : Math.min(1, storedFood / Math.max(1, population * 0.75))
+    const housingScore = Math.min(1, openHousingCapacity / Math.max(1, this.householdSize[1] * 2))
+    const jobsScore = Math.min(1, availableJobs / Math.max(1, this.householdSize[0]))
+    const satisfactionScore = satisfaction / 100
+    const logisticsScore = clamp(this.state.metrics.logisticsEfficiency / 100, 0, 1)
+    const taxScore = clamp(1 - this.state.economy.taxRate * 2, 0, 1)
+
+    return clamp(
+      housingScore * 30
+        + jobsScore * 25
+        + foodCoverage * 18
+        + satisfactionScore * 15
+        + logisticsScore * 7
+        + taxScore * 5,
+      0,
+      100,
+    )
   }
 
   private uniqueId(prefix: string, random: DeterministicRandom): string {
@@ -343,6 +476,7 @@ export class SimulationEngine {
       id = `${prefix}-${this.state.tick}-${random.integer(0, 0xffff_ffff).toString(36)}`
     } while (
       this.state.households[id]
+      || this.state.migrationCandidates?.[id]
       || this.state.agents[id]
       || this.state.buildings[id]
     )

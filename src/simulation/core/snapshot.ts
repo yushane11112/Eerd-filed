@@ -34,6 +34,7 @@ export function createInitialSimulationSnapshot(
     cells: [],
     buildings,
     households: {},
+    migrationCandidates: {},
     agents: {},
     logisticsOrders: {},
     economy: {

@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   Building2,
   Coins,
+  Compass,
   Expand,
   FastForward,
   Hammer,
@@ -210,6 +211,7 @@ export default function App() {
       <section className="metrics-bar glass-panel" aria-label="城市指标">
         <Metric icon={<Users />} label="人口" value={`${snapshot.metrics.population}/${snapshot.metrics.housingCapacity}`} />
         <Metric icon={<Hammer />} label="就业" value={`${snapshot.metrics.employedWorkers}/${snapshot.metrics.employedWorkers + snapshot.metrics.availableJobs}`} />
+        <Metric icon={<Compass />} label="吸引" value={`${Math.round(snapshot.metrics.cityAttraction ?? 0)}%`} />
         <Metric icon={<HeartPulse />} label="民需" value={`${Math.round(needScore)}%`} />
         <Metric icon={<Coins />} label="财政" value={Math.round(snapshot.economy.treasury).toLocaleString()} />
         <Metric icon={<Route />} label="物流" value={`${Math.round(snapshot.metrics.logisticsEfficiency)}%`} />

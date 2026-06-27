@@ -4,6 +4,9 @@
 
 - 新增 `HANDOFF.md` 跨电脑/空对话接续手册，明确 GitHub 仓库、当前主控分支、另一台电脑首次 clone/checkout/test/build 命令、新 Codex 对话启动提示词、回到当前电脑继续的 pull/test/build 流程，以及必须保留的项目原则。
 - 更新 `README.md` 核心索引，把 `HANDOFF.md` 加入项目中枢入口，避免换电脑后新对话找不到上下文恢复路径。
+- 启动第十二轮并行生产：POP-MIGRATION-ENGINE-01、CITY-ATTRACTION-01，优先把外来人口从“凭空生成住户”推进为“候选人口抵达、等待、入住或离开”的运行时状态机，并建立城市吸引力评分。
+- 完成第十二轮并行生产：`SimulationSnapshot` 增加候选外来人口状态；`SimulationEngine` 每轮按空房、岗位、库存粮、满意度、物流和税率计算城市吸引力，低吸引力不吸引新人，无房或等待过久会离开；住户只会在候选人口成功入住后创建工人与家庭；主界面指标栏新增吸引力读数。
+- 第十二轮验证通过：`src/simulation/core/SimulationEngine.test.ts` 扩展到 12 项，覆盖候选抵达、入住、低吸引力拒绝和无房离开；全量测试 26 个文件、163 项通过；生产构建通过。
 - 补强商业级完整上线总计划：`commercial-launch-master-plan.md` 新增美术 ART-P0–P11 全阶段上线要求，明确美术不是首批金标任务，而是从方向、灰盒、概念、金标、角色、动画、环境、UI、Alpha 量产、Beta 完整化、RC 冻结到上线后运营的完整生产线。
 - 清理 `production-pipeline.md` 与 `gates.md` 中残留的 28×9、四岛、音乐奖励、拾取材料等旧主线门禁，替换为可扩展建筑/街区资产矩阵、人口生命周期、城市吸引力、街区繁荣和城市问题诊断。
 - 更新 `task-board.md`、`progress-dashboard.md` 和 `artifact-index.md`，让本轮总计划一致性补强在项目中枢内可追踪。

@@ -11,8 +11,8 @@
 | ART-ROADMAP-01 | 美术全阶段生产计划 | `docs/project/design/art-production-roadmap.md` | 已完成 | ART-P0 到 ART-P11、角色分工和门禁明确 |
 | DOC-SYNC-20260627 | 旧规划方向同步 | `docs/project/README.md`, `docs/project/commercial-civilization-target.md`, `docs/project/production-pipeline.md`, `docs/project/gates.md` | 已完成 | 旧岛屿/听歌/28 类主线被降级，商业级城市模拟口径统一 |
 | DOC-SYNC-20260627B | 完整上线总计划与美术全阶段一致性补强 | `docs/project/commercial-launch-master-plan.md`, `docs/project/production-pipeline.md`, `docs/project/gates.md`, `docs/project/task-board.md`, `docs/project/progress-dashboard.md`, `docs/project/artifact-index.md`, `docs/project/integration-log.md` | 已完成 | 商业级最终上线计划、美术 ART-P0–P11、自动执行机制和旧口径冲突完成同步 |
-| POP-MIGRATION-ENGINE-01 | 外来人口状态机实现 | `src/simulation/core/**`, `src/simulation/contracts.ts` | 待开始 | 人口不再凭空入住，抵达/等待/入住/离城可测 |
-| CITY-ATTRACTION-01 | 城市吸引力评分 | `src/simulation/**`, `src/integration/**` | 待开始 | 空房、岗位、食物、水、税率、治安影响迁入 |
+| POP-MIGRATION-ENGINE-01 | 外来人口状态机实现 | `src/simulation/core/**`, `src/simulation/contracts.ts` | 已完成 | 人口不再凭空入住，抵达/等待/入住/离城可测 |
+| CITY-ATTRACTION-01 | 城市吸引力评分 | `src/simulation/**`, `src/integration/**`, `src/App.tsx` | 已完成 | 空房、岗位、食物、税率、满意度和物流影响迁入，指标栏可见 |
 | TAXONOMY-RUNTIME-01 | 可扩展建筑分类运行时 | `src/content/**`, `src/simulation/**` | 待开始 | 建筑类别从固定清单转为阶段/功能/年代一致分类 |
 | DISTRICT-PROSPERITY-01 | 街区繁荣系统 | `src/simulation/**`, `src/rendering/**` | 待开始 | 商业街、码头仓区等街区能驱动人流、灯火、装饰 |
 | CORE-01 | 模拟时钟、家庭、就业 | `src/simulation/core/**` | 已完成 | 9 项模块测试通过 |

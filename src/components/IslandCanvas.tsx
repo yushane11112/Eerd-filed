@@ -6,6 +6,11 @@ import {
   BUILD_SITES, BUILD_SITE_IDS, DISPLAY_SITE_POSITIONS, MATERIAL_META,
   TOWNSCAPE_ASSET_PATHS, WORLD, townscapeStageForIsland,
 } from '../game/config'
+import {
+  isLegacyArchipelagoEnabled,
+  isLegacyArchipelagoStaticQa,
+  LEGACY_ARCHIPELAGO_PARAM,
+} from '../game/legacy'
 import type {
   AmbientEvent, BuildSiteId, BuildSiteProgress, IslandId, SceneTime, WorldDrop,
 } from '../game/types'
@@ -27,7 +32,8 @@ interface IslandCanvasProps {
 }
 
 export function IslandCanvas(props: IslandCanvasProps) {
-  const staticQa = new URLSearchParams(window.location.search).has('qa-static')
+  const params = new URLSearchParams(window.location.search)
+  const staticQa = isLegacyArchipelagoStaticQa(params)
   if (staticQa) {
     const stage = townscapeStageForIsland(props.buildSites, props.viewIslandId)
     const marker = DISPLAY_SITE_POSITIONS[props.selectedBuildSiteId]
@@ -46,6 +52,14 @@ export function IslandCanvas(props: IslandCanvasProps) {
             }}
           />
         )}
+      </div>
+    )
+  }
+  if (!isLegacyArchipelagoEnabled(params)) {
+    return (
+      <div className="island-canvas legacy-archipelago-archive" aria-label="旧群岛原型已归档">
+        <strong>旧群岛原型已归档</strong>
+        <span>当前正式入口是城市模拟主循环。需要旧版对照时，在地址后加入 ?{LEGACY_ARCHIPELAGO_PARAM}。</span>
       </div>
     )
   }

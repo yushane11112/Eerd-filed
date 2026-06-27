@@ -79,6 +79,13 @@
 - `vitest run`：27 个测试文件、177 项测试通过。
 - `vite build`：生产构建通过，`dist/` 产物生成。
 
+## 2026-06-27 第二十二轮验证
+
+- `vitest run src/game/legacy.test.ts src/game/engine.test.ts src/game/storage.test.ts`：3 个测试文件、16 项通过，覆盖旧群岛渲染开关、旧引擎兼容和旧存档迁移。
+- `tsc -b`：类型检查通过。
+- `vitest run`：28 个测试文件、179 项测试通过。
+- `vite build`：生产构建通过，`dist/` 产物生成。
+
 ## 压力基准
 
 - 500 户家庭。

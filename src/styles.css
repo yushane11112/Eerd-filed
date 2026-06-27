@@ -673,6 +673,29 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
 }
 @keyframes toast-in { from { opacity: 0; transform: translate(-50%,8px); } }
 
+.legacy-archipelago-archive {
+  width: 100%;
+  min-height: 360px;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  padding: 32px;
+  color: #fff9df;
+  background: #315f57;
+  text-align: center;
+}
+.legacy-archipelago-archive strong {
+  display: block;
+  font: 900 22px 'Noto Serif SC', serif;
+}
+.legacy-archipelago-archive span {
+  display: block;
+  max-width: 460px;
+  color: rgba(255,249,223,.76);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
 .portrait-blocker { display: none; }
 @media (orientation: portrait), (max-height: 519px) {
   .portrait-blocker {

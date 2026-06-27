@@ -34,6 +34,9 @@
 - 启动第二十一轮并行生产：LEGACY-LISTENING-DROPS-01，隔离旧 `game/engine` 中“听歌刷普通材料”的历史原型行为。
 - 完成第二十一轮并行生产：旧群岛引擎默认关闭听歌普通材料掉落，初始掉落改为潮汐/访客来源；旧听歌掉落行为保留在显式 `legacyMaterialDrops` 选项下，测试名称同步改为归档兼容语义；当前城市主线继续使用 `simulation/rewards/music.ts` 的稀缺奖励和 `drops.ts` 的普通城市来源。
 - 第二十一轮目标验证通过：旧群岛引擎、音乐稀缺奖励、普通掉落目标测试 23 项通过，TypeScript 检查通过。
+- 启动第二十二轮并行生产：LEGACY-ARCHIPELAGO-GATE-01，给旧 `IslandCanvas` 群岛 Pixi 视图增加显式归档开关。
+- 完成第二十二轮并行生产：新增 `src/game/legacy.ts`，默认禁用旧群岛渲染；`IslandCanvas` 默认显示“旧群岛原型已归档”提示，只有 `?legacy-islands` 或 `?qa-static` 才启动旧渲染/静态验收；新增测试固定开关规则。
+- 第二十二轮目标验证通过：旧群岛开关、旧引擎和存档兼容目标测试 16 项通过，TypeScript 检查通过。
 - 补强商业级完整上线总计划：`commercial-launch-master-plan.md` 新增美术 ART-P0–P11 全阶段上线要求，明确美术不是首批金标任务，而是从方向、灰盒、概念、金标、角色、动画、环境、UI、Alpha 量产、Beta 完整化、RC 冻结到上线后运营的完整生产线。
 - 清理 `production-pipeline.md` 与 `gates.md` 中残留的 28×9、四岛、音乐奖励、拾取材料等旧主线门禁，替换为可扩展建筑/街区资产矩阵、人口生命周期、城市吸引力、街区繁荣和城市问题诊断。
 - 更新 `task-board.md`、`progress-dashboard.md` 和 `artifact-index.md`，让本轮总计划一致性补强在项目中枢内可追踪。

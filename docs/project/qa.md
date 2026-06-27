@@ -45,6 +45,13 @@
 - `tsc -b`：类型检查通过。
 - `vite build`：生产构建通过，`dist/` 产物生成。
 
+## 2026-06-27 第十七轮验证
+
+- `vitest run src/content/buildings.test.ts src/integration/GameRuntime.test.ts`：2 个测试文件、14 项通过，覆盖阶段菜单推导、建筑解锁判断和运行时拒绝未解锁放置。
+- `tsc -b`：类型检查通过。
+- `vitest run`：27 个测试文件、174 项测试通过。
+- `vite build`：生产构建通过，`dist/` 产物生成。
+
 ## 压力基准
 
 - 500 户家庭。

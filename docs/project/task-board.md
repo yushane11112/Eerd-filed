@@ -16,6 +16,7 @@
 | POP-MIGRATION-VISUAL-01 | 候选外来人口可见反馈 | `src/simulation/**`, `src/rendering/**`, `src/integration/**` | 已完成 | 等房候选人在地图可见，小事流可定位临时停留点 |
 | POP-MIGRATION-PATH-01 | 候选外来人口进城路径 | `src/simulation/core/**`, `src/integration/**` | 已完成 | 候选人先从停留点沿路径走到住宅，抵达后才正式入住 |
 | TAXONOMY-RUNTIME-01 | 可扩展建筑分类运行时 | `src/content/**`, `src/simulation/**`, `src/integration/GameRuntime.ts` | 已完成 | 建筑类别从固定清单转为阶段/功能/年代一致分类 |
+| BUILD-MENU-STAGE-01 | 城建菜单阶段解锁 | `src/content/**`, `src/integration/GameRuntime.ts`, `src/App.tsx` | 已完成 | 城建菜单按城市阶段显示/锁定建筑，运行时也拒绝未解锁放置 |
 | DISTRICT-PROSPERITY-01 | 街区繁荣系统 | `src/simulation/**`, `src/rendering/**`, `src/integration/GameRuntime.ts` | 已完成 | 商业街、码头仓区等街区能驱动人流、灯火、装饰 |
 | CORE-01 | 模拟时钟、家庭、就业 | `src/simulation/core/**` | 已完成 | 9 项模块测试通过 |
 | WORLD-01 | 网格、道路、建造、寻路 | `src/simulation/world/**` | 已完成 | 10 项模块测试通过 |

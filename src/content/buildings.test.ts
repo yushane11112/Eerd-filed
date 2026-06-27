@@ -8,7 +8,10 @@ import {
 } from './buildings'
 import {
   BUILDING_DEFINITIONS,
+  deriveRuntimeCityStage,
+  getRuntimeBuildingMenu,
   getRuntimeBuildingDefinition,
+  isRuntimeBuildingUnlocked,
   LEGACY_RUNTIME_ASSET_IDS,
 } from './runtimeBuildings'
 
@@ -61,5 +64,38 @@ describe('building catalog', () => {
       entrance: { x: 1, y: 1 },
     })
     expect(BUILDING_DEFINITIONS.market.districtAffinity).toContain('market-street')
+  })
+
+  it('gates starter runtime menu by derived city stage', () => {
+    const starterStage = deriveRuntimeCityStage({
+      population: 8,
+      households: 2,
+      employedWorkers: 2,
+      availableJobs: 4,
+      housingCapacity: 24,
+      satisfaction: 72,
+      logisticsEfficiency: 80,
+      cityAttraction: 42,
+      activeDistricts: 1,
+    })
+    const tradeStage = deriveRuntimeCityStage({
+      population: 24,
+      households: 6,
+      employedWorkers: 8,
+      availableJobs: 4,
+      housingCapacity: 48,
+      satisfaction: 78,
+      logisticsEfficiency: 82,
+      cityAttraction: 58,
+      activeDistricts: 2,
+    })
+
+    expect(starterStage).toBe('water-town')
+    expect(tradeStage).toBe('trade-town')
+    expect(isRuntimeBuildingUnlocked('market', starterStage)).toBe(true)
+    expect(isRuntimeBuildingUnlocked('woodshop', starterStage)).toBe(false)
+    expect(isRuntimeBuildingUnlocked('woodshop', tradeStage)).toBe(true)
+    expect(getRuntimeBuildingMenu(starterStage).find((item) => item.type === 'woodshop'))
+      .toMatchObject({ unlocked: false, requiredStageLabel: '商贸镇' })
   })
 })

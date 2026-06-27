@@ -27,6 +27,19 @@ describe('GameRuntime integration', () => {
     expect(runtime.getSnapshot().buildings[result.buildingId!]).toBeDefined()
   })
 
+  it('rejects buildings that are locked behind a later city stage', () => {
+    const runtime = new GameRuntime()
+
+    const result = runtime.placeBuilding('woodshop', { x: 4, y: 8 }, 0)
+
+    expect(result).toEqual({
+      ok: false,
+      message: '木作坊需要进入商贸镇后营造。',
+    })
+    expect(Object.values(runtime.getSnapshot().buildings)
+      .some((building) => building.type === 'woodshop')).toBe(false)
+  })
+
   it('settles completed songs into rare-only reward state', () => {
     const runtime = new GameRuntime()
     for (let index = 0; index < 5; index += 1) runtime.completeSong()

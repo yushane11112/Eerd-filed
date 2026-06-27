@@ -8,6 +8,7 @@ import {
   Hammer,
   HeartPulse,
   House,
+  Lock,
   Music2,
   Pause,
   Pickaxe,
@@ -23,8 +24,10 @@ import { SimulationCanvas } from './components/SimulationCanvas'
 import type { CameraFocusRequest } from './components/SimulationCanvas'
 import {
   BUILDING_DEFINITIONS,
-  BUILDING_MENU,
+  CITY_STAGE_LABELS,
+  deriveRuntimeCityStage,
   GameRuntime,
+  getRuntimeBuildingMenu,
   type BuildTool,
 } from './integration/GameRuntime'
 import {
@@ -103,6 +106,8 @@ export default function App() {
     .reduce((sum, value) => sum + (value ?? 0), 0)
   const needScore = averageNeeds(snapshot)
   const bottlenecks = useMemo(() => getCityBottlenecks(snapshot), [snapshot])
+  const cityStage = deriveRuntimeCityStage(snapshot.metrics)
+  const buildMenu = getRuntimeBuildingMenu(cityStage)
   const chooseTool = (next: BuildTool) => {
     setTool(next)
     setSelectedBuildingId(null)
@@ -221,7 +226,7 @@ export default function App() {
       <aside className="build-palette glass-panel">
         <div className="palette-title">
           <span><Building2 /> 城建</span>
-          <small>点击地块放置</small>
+          <small>{CITY_STAGE_LABELS[cityStage]}</small>
         </div>
         <button
           className={tool.kind === 'inspect' ? 'active' : ''}
@@ -235,13 +240,30 @@ export default function App() {
         >
           <Route /><span>道路</span>
         </button>
-        {BUILDING_MENU.map((item) => (
+        {buildMenu.map((item) => (
           <button
             key={item.type}
-            className={tool.kind === 'building' && tool.type === item.type ? 'active' : ''}
-            onClick={() => chooseTool({ kind: 'building', type: item.type, rotation: 0 })}
+            className={[
+              tool.kind === 'building' && tool.type === item.type ? 'active' : '',
+              item.unlocked ? '' : 'locked',
+            ].filter(Boolean).join(' ')}
+            disabled={!item.unlocked}
+            title={item.unlocked ? item.shortName : `需要${item.requiredStageLabel}`}
+            onClick={() => {
+              if (!item.unlocked) {
+                setToast(`${item.shortName}需要进入${item.requiredStageLabel}后营造。`)
+                return
+              }
+              chooseTool({ kind: 'building', type: item.type, rotation: 0 })
+            }}
           >
-            {item.icon === 'home' ? <House /> : item.icon === 'storage' ? <Warehouse /> : <Building2 />}
+            {!item.unlocked
+              ? <Lock />
+              : item.icon === 'home'
+                ? <House />
+                : item.icon === 'storage'
+                  ? <Warehouse />
+                  : <Building2 />}
             <span>{item.shortName}</span>
           </button>
         ))}

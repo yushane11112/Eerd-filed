@@ -1,5 +1,9 @@
-import type { BuildingDefinition } from '../simulation/contracts'
-import { BUILDING_CATALOG } from './buildings'
+import type {
+  BuildingCityStage,
+  BuildingDefinition,
+  CityMetrics,
+} from '../simulation/contracts'
+import { BUILDING_CATALOG, CITY_STAGE_ORDER } from './buildings'
 
 type RuntimeBuildingSeed = Pick<
   BuildingDefinition,
@@ -48,6 +52,7 @@ export const BUILDING_DEFINITIONS: Record<string, BuildingDefinition> = {
   woodshop: runtimeSeed('main-carpentry', {
     type: 'woodshop',
     name: '木作坊',
+    cityStage: 'trade-town',
     footprint: square(2, 2),
     entrance: { x: 1, y: 1 },
     jobs: 3,
@@ -81,8 +86,57 @@ export const BUILDING_MENU = [
   { type: 'market', shortName: '集市', icon: 'building', cityStage: 'water-town' },
 ] as const
 
+export type RuntimeBuildingMenuItem = typeof BUILDING_MENU[number]
+
+export const CITY_STAGE_LABELS: Record<BuildingCityStage, string> = {
+  wilderness: '荒村',
+  'village-market': '村集',
+  'water-town': '水乡镇',
+  'trade-town': '商贸镇',
+  'prefecture-town': '府镇',
+  'prosperous-water-city': '盛世水都',
+}
+
 export function getRuntimeBuildingDefinition(type: string): BuildingDefinition | undefined {
   return BUILDING_DEFINITIONS[type]
+}
+
+export function deriveRuntimeCityStage(metrics: CityMetrics): BuildingCityStage {
+  const population = metrics.population
+  const attraction = metrics.cityAttraction ?? 0
+  const activeDistricts = metrics.activeDistricts ?? 0
+
+  if (population >= 120 && attraction >= 70 && activeDistricts >= 4) {
+    return 'prosperous-water-city'
+  }
+  if (population >= 80 && attraction >= 60 && activeDistricts >= 3) {
+    return 'prefecture-town'
+  }
+  if (population >= 16 && attraction >= 45 && activeDistricts >= 2) {
+    return 'trade-town'
+  }
+  return 'water-town'
+}
+
+export function isRuntimeBuildingUnlocked(
+  type: string,
+  stage: BuildingCityStage,
+): boolean {
+  const item = BUILDING_MENU.find((candidate) => candidate.type === type)
+  if (!item) return false
+  return stageRank(item.cityStage) <= stageRank(stage)
+}
+
+export function getRuntimeBuildingMenu(stage: BuildingCityStage) {
+  return BUILDING_MENU.map((item) => ({
+    ...item,
+    unlocked: isRuntimeBuildingUnlocked(item.type, stage),
+    requiredStageLabel: CITY_STAGE_LABELS[item.cityStage],
+  }))
+}
+
+function stageRank(stage: BuildingCityStage): number {
+  return CITY_STAGE_ORDER.indexOf(stage)
 }
 
 function runtimeSeed(

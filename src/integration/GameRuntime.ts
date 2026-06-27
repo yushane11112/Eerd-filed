@@ -9,6 +9,10 @@ import type {
 import {
   BUILDING_DEFINITIONS,
   BUILDING_MENU,
+  CITY_STAGE_LABELS,
+  deriveRuntimeCityStage,
+  getRuntimeBuildingMenu,
+  isRuntimeBuildingUnlocked,
 } from '../content/runtimeBuildings'
 import {
   deriveDistrictProsperity,
@@ -70,7 +74,14 @@ export interface BuildingUpgradeQuote {
   }
 }
 
-export { BUILDING_DEFINITIONS, BUILDING_MENU }
+export {
+  BUILDING_DEFINITIONS,
+  BUILDING_MENU,
+  CITY_STAGE_LABELS,
+  deriveRuntimeCityStage,
+  getRuntimeBuildingMenu,
+  isRuntimeBuildingUnlocked,
+}
 
 const RESOURCE_NAMES: Record<ResourceKind, string> = {
   food: '粮食', fish: '鱼获', wood: '木料', stone: '石料', clay: '黏土',
@@ -240,6 +251,13 @@ export class GameRuntime {
   placeBuilding(type: string, point: GridPoint, rotation: QuarterRotation): RuntimeActionResult {
     const definition = BUILDING_DEFINITIONS[type]
     if (!definition) return { ok: false, message: '未知建筑类型' }
+    const stage = deriveRuntimeCityStage(this.snapshotCache.metrics)
+    if (!isRuntimeBuildingUnlocked(type, stage)) {
+      return {
+        ok: false,
+        message: `${definition.name}需要进入${CITY_STAGE_LABELS[definition.cityStage ?? 'water-town']}后营造。`,
+      }
+    }
     const id = `${type}-${++this.buildingSequence}`
     const placement = this.grid.placeBuilding(id, definition, point, rotation, {
       requireRoadAccess: true,

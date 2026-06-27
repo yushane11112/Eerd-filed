@@ -2,6 +2,21 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-27：第十七轮城建菜单阶段解锁
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/content/runtimeBuildings.ts` | 内容运行时 | 增加城市阶段标签、阶段推导、建筑解锁判断和菜单状态 |
+| `src/content/buildings.test.ts` | 自动测试 | 验证 starter 菜单会按阶段锁定木作坊并在商贸镇解锁 |
+| `src/integration/GameRuntime.ts` | 运行时集成 | 放置建筑前检查当前城市阶段，拒绝未解锁建筑 |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 验证绕过 UI 放置未解锁建筑会失败 |
+| `src/App.tsx` | 主界面 | 城建面板显示当前阶段，并把未解锁建筑置灰 |
+| `src/styles.css` | 界面样式 | 增加锁定建筑按钮样式 |
+| `docs/project/task-board.md` | 任务看板 | 标记 BUILD-MENU-STAGE-01 完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录第十七轮启动、完成和验证结果 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新建筑体系和 UI/UX 完成度 |
+| `docs/project/qa.md` | 验收记录 | 记录本轮目标测试和后续全量验证 |
+
 ## 2026-06-27：第十六轮候选外来人口进城路径
 
 | 文件 | 产物类型 | 用途 |

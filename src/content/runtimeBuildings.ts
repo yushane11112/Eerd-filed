@@ -97,25 +97,45 @@ export const CITY_STAGE_LABELS: Record<BuildingCityStage, string> = {
   'prosperous-water-city': '盛世水都',
 }
 
+interface RuntimeStageThreshold {
+  stage: BuildingCityStage
+  population: number
+  attraction: number
+  activeDistricts: number
+}
+
+export interface RuntimeCityStageProgress {
+  stage: BuildingCityStage
+  stageLabel: string
+  nextStage?: BuildingCityStage
+  nextStageLabel?: string
+  requirements: Array<{
+    id: 'population' | 'attraction' | 'activeDistricts'
+    label: string
+    current: number
+    target: number
+    met: boolean
+    suffix?: string
+  }>
+  readyForNextStage: boolean
+}
+
+const RUNTIME_STAGE_THRESHOLDS: readonly RuntimeStageThreshold[] = [
+  { stage: 'water-town', population: 0, attraction: 0, activeDistricts: 0 },
+  { stage: 'trade-town', population: 16, attraction: 45, activeDistricts: 2 },
+  { stage: 'prefecture-town', population: 80, attraction: 60, activeDistricts: 3 },
+  { stage: 'prosperous-water-city', population: 120, attraction: 70, activeDistricts: 4 },
+]
+
 export function getRuntimeBuildingDefinition(type: string): BuildingDefinition | undefined {
   return BUILDING_DEFINITIONS[type]
 }
 
 export function deriveRuntimeCityStage(metrics: CityMetrics): BuildingCityStage {
-  const population = metrics.population
-  const attraction = metrics.cityAttraction ?? 0
-  const activeDistricts = metrics.activeDistricts ?? 0
-
-  if (population >= 120 && attraction >= 70 && activeDistricts >= 4) {
-    return 'prosperous-water-city'
-  }
-  if (population >= 80 && attraction >= 60 && activeDistricts >= 3) {
-    return 'prefecture-town'
-  }
-  if (population >= 16 && attraction >= 45 && activeDistricts >= 2) {
-    return 'trade-town'
-  }
-  return 'water-town'
+  return [...RUNTIME_STAGE_THRESHOLDS]
+    .reverse()
+    .find((threshold) => stageThresholdMet(metrics, threshold))
+    ?.stage ?? 'water-town'
 }
 
 export function isRuntimeBuildingUnlocked(
@@ -135,8 +155,56 @@ export function getRuntimeBuildingMenu(stage: BuildingCityStage) {
   }))
 }
 
+export function getRuntimeCityStageProgress(metrics: CityMetrics): RuntimeCityStageProgress {
+  const stage = deriveRuntimeCityStage(metrics)
+  const stageIndex = RUNTIME_STAGE_THRESHOLDS.findIndex((threshold) => threshold.stage === stage)
+  const next = RUNTIME_STAGE_THRESHOLDS[stageIndex + 1]
+  const requirements = next
+    ? [
+      {
+        id: 'population' as const,
+        label: '人口',
+        current: metrics.population,
+        target: next.population,
+        met: metrics.population >= next.population,
+      },
+      {
+        id: 'attraction' as const,
+        label: '吸引',
+        current: Math.round(metrics.cityAttraction ?? 0),
+        target: next.attraction,
+        met: (metrics.cityAttraction ?? 0) >= next.attraction,
+        suffix: '%',
+      },
+      {
+        id: 'activeDistricts' as const,
+        label: '街区',
+        current: metrics.activeDistricts ?? 0,
+        target: next.activeDistricts,
+        met: (metrics.activeDistricts ?? 0) >= next.activeDistricts,
+      },
+    ]
+    : []
+  return {
+    stage,
+    stageLabel: CITY_STAGE_LABELS[stage],
+    nextStage: next?.stage,
+    nextStageLabel: next ? CITY_STAGE_LABELS[next.stage] : undefined,
+    requirements,
+    readyForNextStage: requirements.length > 0 && requirements.every((requirement) => requirement.met),
+  }
+}
+
 function stageRank(stage: BuildingCityStage): number {
   return CITY_STAGE_ORDER.indexOf(stage)
+}
+
+function stageThresholdMet(metrics: CityMetrics, threshold: RuntimeStageThreshold): boolean {
+  return (
+    metrics.population >= threshold.population
+    && (metrics.cityAttraction ?? 0) >= threshold.attraction
+    && (metrics.activeDistricts ?? 0) >= threshold.activeDistricts
+  )
 }
 
 function runtimeSeed(

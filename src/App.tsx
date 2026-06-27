@@ -27,6 +27,7 @@ import {
   CITY_STAGE_LABELS,
   deriveRuntimeCityStage,
   GameRuntime,
+  getRuntimeCityStageProgress,
   getRuntimeBuildingMenu,
   type BuildTool,
 } from './integration/GameRuntime'
@@ -107,6 +108,7 @@ export default function App() {
   const needScore = averageNeeds(snapshot)
   const bottlenecks = useMemo(() => getCityBottlenecks(snapshot), [snapshot])
   const cityStage = deriveRuntimeCityStage(snapshot.metrics)
+  const stageProgress = getRuntimeCityStageProgress(snapshot.metrics)
   const buildMenu = getRuntimeBuildingMenu(cityStage)
   const chooseTool = (next: BuildTool) => {
     setTool(next)
@@ -292,6 +294,33 @@ export default function App() {
         </div>
         <button onClick={simulateSong}>模拟听完</button>
       </section>
+
+      {!selectedBuilding && (
+        <aside className="stage-panel glass-panel" aria-label="城市阶段目标">
+          <div className="stage-head">
+            <span><Compass /> 阶段</span>
+            <b>{stageProgress.stageLabel}</b>
+          </div>
+          {stageProgress.nextStageLabel ? (
+            <>
+              <p>下一阶段：{stageProgress.nextStageLabel}</p>
+              <div className="stage-requirements">
+                {stageProgress.requirements.map((requirement) => (
+                  <span key={requirement.id} className={requirement.met ? 'met' : ''}>
+                    {requirement.label}
+                    <b>
+                      {requirement.current}{requirement.suffix ?? ''}
+                      /{requirement.target}{requirement.suffix ?? ''}
+                    </b>
+                  </span>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p>城市阶段已达当前版本上限，继续优化街区和民生。</p>
+          )}
+        </aside>
+      )}
 
       <aside className={`bottleneck-panel glass-panel ${bottleneckOpen ? 'open' : ''}`} aria-label="城市瓶颈管理">
         <button

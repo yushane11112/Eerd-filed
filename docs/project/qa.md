@@ -59,6 +59,13 @@
 - `vitest run`：27 个测试文件、175 项测试通过。
 - `vite build`：生产构建通过，`dist/` 产物生成。
 
+## 2026-06-27 第十九轮验证
+
+- `vitest run src/content/buildings.test.ts`：1 个测试文件、7 项通过，覆盖阶段目标解释和原有建筑分类/阶段解锁规则。
+- `tsc -b`：类型检查通过。
+- `vitest run`：27 个测试文件、176 项测试通过。
+- `vite build`：生产构建通过，`dist/` 产物生成。
+
 ## 压力基准
 
 - 500 户家庭。

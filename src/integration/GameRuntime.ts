@@ -11,6 +11,7 @@ import {
   BUILDING_MENU,
   CITY_STAGE_LABELS,
   deriveRuntimeCityStage,
+  getRuntimeCityStageProgress,
   getRuntimeBuildingMenu,
   isRuntimeBuildingUnlocked,
 } from '../content/runtimeBuildings'
@@ -79,6 +80,7 @@ export {
   BUILDING_MENU,
   CITY_STAGE_LABELS,
   deriveRuntimeCityStage,
+  getRuntimeCityStageProgress,
   getRuntimeBuildingMenu,
   isRuntimeBuildingUnlocked,
 }

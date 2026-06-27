@@ -9,6 +9,7 @@ import {
 import {
   BUILDING_DEFINITIONS,
   deriveRuntimeCityStage,
+  getRuntimeCityStageProgress,
   getRuntimeBuildingMenu,
   getRuntimeBuildingDefinition,
   isRuntimeBuildingUnlocked,
@@ -97,5 +98,32 @@ describe('building catalog', () => {
     expect(isRuntimeBuildingUnlocked('woodshop', tradeStage)).toBe(true)
     expect(getRuntimeBuildingMenu(starterStage).find((item) => item.type === 'woodshop'))
       .toMatchObject({ unlocked: false, requiredStageLabel: '商贸镇' })
+  })
+
+  it('explains the next runtime city stage requirements', () => {
+    const progress = getRuntimeCityStageProgress({
+      population: 12,
+      households: 3,
+      employedWorkers: 4,
+      availableJobs: 4,
+      housingCapacity: 36,
+      satisfaction: 78,
+      logisticsEfficiency: 82,
+      cityAttraction: 52,
+      activeDistricts: 1,
+    })
+
+    expect(progress).toMatchObject({
+      stage: 'water-town',
+      stageLabel: '水乡镇',
+      nextStage: 'trade-town',
+      nextStageLabel: '商贸镇',
+      readyForNextStage: false,
+    })
+    expect(progress.requirements).toEqual([
+      { id: 'population', label: '人口', current: 12, target: 16, met: false },
+      { id: 'attraction', label: '吸引', current: 52, target: 45, met: true, suffix: '%' },
+      { id: 'activeDistricts', label: '街区', current: 1, target: 2, met: false },
+    ])
   })
 })

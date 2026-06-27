@@ -247,6 +247,67 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   cursor: pointer;
 }
 
+.stage-panel {
+  position: absolute;
+  z-index: 11;
+  top: 86px;
+  right: 16px;
+  width: 276px;
+  padding: 11px 12px;
+  border-radius: 18px;
+}
+.stage-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.stage-head span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #385f55;
+  font-size: 10px;
+  font-weight: 900;
+}
+.stage-head svg { width: 15px; color: #477367; }
+.stage-head b {
+  color: #fff7db;
+  background: #477367;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 9px;
+}
+.stage-panel p {
+  margin: 8px 0 0;
+  color: #758178;
+  font-size: 8px;
+}
+.stage-requirements {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+.stage-requirements span {
+  padding: 7px 6px;
+  border: 1px solid #ded8bd;
+  border-radius: 10px;
+  color: #7d877f;
+  background: rgba(255,248,220,.64);
+  font-size: 8px;
+}
+.stage-requirements span.met {
+  border-color: #a7c19a;
+  background: rgba(229,239,225,.82);
+}
+.stage-requirements b {
+  display: block;
+  margin-top: 2px;
+  color: #385f55;
+  font-size: 10px;
+}
+
 .bottleneck-panel {
   position: absolute;
   z-index: 13;

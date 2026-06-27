@@ -2,6 +2,20 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-27：第十六轮候选外来人口进城路径
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 模拟公共契约 | 候选外来人口增加 `walking` 状态、路径和路径进度 |
+| `src/simulation/core/SimulationEngine.ts` | 模拟核心 | 候选人从停留点走到目标住宅后才正式入住，并把路上家庭计入住房预占 |
+| `src/simulation/core/SimulationEngine.test.ts` | 自动测试 | 验证候选人先等待、再沿路径移动，最终才生成家庭与就业 |
+| `src/integration/cityNotices.ts` | 城市反馈 | 小事流区分“城口等房”和“正在进城”两种迁入状态 |
+| `src/integration/cityNotices.test.ts` | 自动测试 | 验证正在进城的候选人可生成定位故事 |
+| `docs/project/task-board.md` | 任务看板 | 标记 POP-MIGRATION-PATH-01 完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录第十六轮启动、完成和验证结果 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新人口生命周期、城市模拟和动态引擎完成度 |
+| `docs/project/qa.md` | 验收记录 | 记录本轮目标测试和后续全量验证 |
+
 ## 2026-06-27：第十五轮街区繁荣系统
 
 | 文件 | 产物类型 | 用途 |

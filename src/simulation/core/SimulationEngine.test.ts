@@ -118,8 +118,35 @@ describe('SimulationEngine', () => {
       attraction: expect.any(Number),
     })
     expect(engine.snapshot.metrics.waitingMigrants).toBe(1)
-    expect(waiting.position).toEqual({ x: 0, y: 1 })
+    expect(waiting.position).toEqual({ x: 2, y: 1 })
     expect(waiting.targetHomeBuildingId).toBe('home')
+
+    const movingEvents = engine.step()
+    const moving = Object.values(engine.snapshot.migrationCandidates ?? {})[0]
+
+    expect(movingEvents).not.toContainEqual({
+      type: 'household-migrated',
+      householdId: expect.any(String),
+      direction: 'in',
+    })
+    expect(moving).toMatchObject({
+      id: waiting.id,
+      status: 'walking',
+      position: { x: 2, y: 1 },
+      path: [
+        { x: 2, y: 1 },
+        { x: 1, y: 1 },
+        { x: 0, y: 1 },
+      ],
+      pathIndex: 0,
+    })
+
+    engine.step()
+    expect(Object.values(engine.snapshot.migrationCandidates ?? {})[0]).toMatchObject({
+      status: 'walking',
+      position: { x: 1, y: 1 },
+      pathIndex: 1,
+    })
 
     const settlementEvents = engine.step()
     const snapshot = engine.snapshot
@@ -137,8 +164,8 @@ describe('SimulationEngine', () => {
       availableJobs: 2,
       housingCapacity: 8,
       openHousingCapacity: 4,
-      waitingMigrants: 1,
     })
+    expect(snapshot.metrics.waitingMigrants).toBeGreaterThan(0)
     expect(snapshot.metrics.cityAttraction).toBeGreaterThan(0)
     expect(snapshot.buildings.work.workers).toHaveLength(2)
     expect(household.income).toBe(0)

@@ -38,6 +38,13 @@
 - `tsc -b`：类型检查通过。
 - `vite build`：生产构建通过，`dist/` 产物生成。
 
+## 2026-06-27 第十六轮验证
+
+- `vitest run src/simulation/core/SimulationEngine.test.ts src/integration/cityNotices.test.ts src/rendering/DynamicScene.test.ts`：3 个测试文件、32 项通过，覆盖候选外来人口等待、进城路径、抵达入住、小事流定位和动态场景同步。
+- `vitest run`：27 个测试文件、172 项测试通过。
+- `tsc -b`：类型检查通过。
+- `vite build`：生产构建通过，`dist/` 产物生成。
+
 ## 压力基准
 
 - 500 户家庭。

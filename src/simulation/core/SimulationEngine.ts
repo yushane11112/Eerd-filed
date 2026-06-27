@@ -3,7 +3,9 @@ import type {
   BuildingDefinition,
   BuildingEntity,
   EntityId,
+  GridPoint,
   HouseholdState,
+  MigrationCandidateState,
   SimulationEvent,
   SimulationSnapshot,
   SimulationSystem,
@@ -171,11 +173,29 @@ export class SimulationEngine {
     const events: SimulationEvent[] = []
     const candidates = Object.values(this.state.migrationCandidates ?? {}).sort(byId)
     for (const candidate of candidates) {
+      if (candidate.status === 'walking') {
+        const home = candidate.targetHomeBuildingId
+          ? this.state.buildings[candidate.targetHomeBuildingId]
+          : undefined
+        if (!home) {
+          candidate.status = 'waiting'
+          candidate.path = undefined
+          candidate.pathIndex = undefined
+          continue
+        }
+        if (this.advanceMigrationCandidate(candidate)) {
+          events.push(this.settleMigrationCandidate(candidate.id, home))
+        }
+        continue
+      }
+
       const attraction = this.calculateCityAttraction()
-      const home = this.findAvailableHome(candidate.members)
+      const home = this.findAvailableHome(candidate.members, candidate.id)
       candidate.targetHomeBuildingId = home?.id
       if (home && attraction >= MIGRATION_SETTLE_ATTRACTION) {
-        events.push(this.settleMigrationCandidate(candidate.id, home))
+        candidate.status = 'walking'
+        candidate.path = buildStraightPath(candidate.position, home.entrance)
+        candidate.pathIndex = 0
         continue
       }
 
@@ -210,6 +230,20 @@ export class SimulationEngine {
       }
     }
     return events
+  }
+
+  private advanceMigrationCandidate(candidate: MigrationCandidateState): boolean {
+    if (!candidate.path || candidate.path.length === 0) {
+      candidate.path = [candidate.position]
+      candidate.pathIndex = 0
+    }
+    const nextIndex = Math.min(
+      (candidate.pathIndex ?? 0) + 1,
+      candidate.path.length - 1,
+    )
+    candidate.pathIndex = nextIndex
+    candidate.position = { ...candidate.path[nextIndex] }
+    return nextIndex >= candidate.path.length - 1
   }
 
   private settleMigrationCandidate(
@@ -356,12 +390,27 @@ export class SimulationEngine {
     }
   }
 
-  private findAvailableHome(requiredCapacity: number): BuildingEntity | undefined {
+  private findAvailableHome(
+    requiredCapacity: number,
+    excludeCandidateId?: EntityId,
+  ): BuildingEntity | undefined {
     const occupancy = new Map<EntityId, number>()
     for (const household of Object.values(this.state.households)) {
       occupancy.set(
         household.homeBuildingId,
         (occupancy.get(household.homeBuildingId) ?? 0) + household.members,
+      )
+    }
+    for (const candidate of Object.values(this.state.migrationCandidates ?? {})) {
+      if (
+        candidate.id === excludeCandidateId
+        || !candidate.targetHomeBuildingId
+      ) {
+        continue
+      }
+      occupancy.set(
+        candidate.targetHomeBuildingId,
+        (occupancy.get(candidate.targetHomeBuildingId) ?? 0) + candidate.members,
       )
     }
     return Object.values(this.state.buildings)
@@ -401,7 +450,7 @@ export class SimulationEngine {
           || left.point.y - right.point.y
       })[0]
     if (roadCell) return { ...roadCell.point }
-    if (home) return { ...home.entrance }
+    if (home) return { x: home.entrance.x + 2, y: home.entrance.y }
     const firstBuilding = Object.values(this.state.buildings).sort(byId)[0]
     return firstBuilding ? { ...firstBuilding.entrance } : { x: 0, y: 0 }
   }
@@ -541,4 +590,24 @@ function distanceSquared(
   right: { x: number; y: number },
 ): number {
   return (left.x - right.x) ** 2 + (left.y - right.y) ** 2
+}
+
+function buildStraightPath(from: GridPoint, to: GridPoint): GridPoint[] {
+  const path: GridPoint[] = [{ ...from }]
+  let current = { ...from }
+  while (current.x !== to.x) {
+    current = {
+      x: current.x + Math.sign(to.x - current.x),
+      y: current.y,
+    }
+    path.push({ ...current })
+  }
+  while (current.y !== to.y) {
+    current = {
+      x: current.x,
+      y: current.y + Math.sign(to.y - current.y),
+    }
+    path.push({ ...current })
+  }
+  return path
 }

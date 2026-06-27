@@ -130,6 +130,36 @@ describe('city notice derivation', () => {
     })
   })
 
+  it('surfaces walking migration candidates as in-city move-in stories', () => {
+    const stories = deriveAmbientCityStories(makeSnapshot({
+      tick: 42,
+      migrationCandidates: {
+        visitor: {
+          ...migrationCandidate('visitor'),
+          status: 'walking',
+          position: { x: 3, y: 4 },
+          targetHomeBuildingId: 'home',
+          path: [
+            { x: 1, y: 2 },
+            { x: 2, y: 3 },
+            { x: 3, y: 4 },
+          ],
+          pathIndex: 2,
+        },
+      },
+    }))
+
+    expect(stories.find((story) => story.id === 'story-migration-waiting')).toMatchObject({
+      title: '新住户正在进城',
+      body: '3 位外来人正往住处走，抵达家门后会正式入住。',
+      target: {
+        kind: 'point',
+        point: { x: 3, y: 4 },
+        label: '外来人口进城路线',
+      },
+    })
+  })
+
   it('keeps an acknowledged ambient story quiet until the underlying notice resolves', () => {
     const tracker = new AmbientCityStoryTracker()
     const lowFood = makeSnapshot({

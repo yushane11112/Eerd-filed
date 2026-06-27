@@ -96,8 +96,10 @@ export interface MigrationCandidateState {
   id: EntityId
   members: number
   workerCount: number
-  status: 'arriving' | 'waiting'
+  status: 'arriving' | 'waiting' | 'walking'
   position: GridPoint
+  path?: GridPoint[]
+  pathIndex?: number
   targetHomeBuildingId?: EntityId
   arrivedTick: Tick
   patienceTicks: number

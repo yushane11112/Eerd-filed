@@ -40,7 +40,7 @@ export function deriveCityNotices(snapshot: SimulationSnapshot): CityNotice[] {
     .filter((building) => building.status === 'blocked')
     .length
   const waitingMigrants = Object.values(snapshot.migrationCandidates ?? {})
-    .filter((candidate) => candidate.status === 'waiting')
+    .filter((candidate) => candidate.status === 'waiting' || candidate.status === 'walking')
     .sort((left, right) => left.arrivedTick - right.arrivedTick || left.id.localeCompare(right.id))
 
   if (population > 0 && food < Math.max(6, population * 0.35)) {
@@ -114,14 +114,16 @@ export function deriveCityNotices(snapshot: SimulationSnapshot): CityNotice[] {
       id: 'migration-waiting',
       kind: 'migration',
       severity: waitTicks >= Math.max(1, candidate.patienceTicks - 1) ? 'warning' : 'info',
-      title: '有人在城口等房',
-      message: `${candidate.members} 位外来人正在找住处，空房和城镇吸引力会决定他们是否留下。`,
+      title: candidate.status === 'walking' ? '新住户正在进城' : '有人在城口等房',
+      message: candidate.status === 'walking'
+        ? `${candidate.members} 位外来人正往住处走，抵达家门后会正式入住。`
+        : `${candidate.members} 位外来人正在找住处，空房和城镇吸引力会决定他们是否留下。`,
       tick: snapshot.tick,
       priority: 62,
       target: {
         kind: 'point',
         point: candidate.position,
-        label: '外来人口临时停留点',
+        label: candidate.status === 'walking' ? '外来人口进城路线' : '外来人口临时停留点',
       },
     })
   }

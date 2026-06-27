@@ -16,6 +16,9 @@
 - 启动第十五轮并行生产：DISTRICT-PROSPERITY-01，建立街区繁荣第一版数据层与地图轻表现。
 - 完成第十五轮并行生产：`SimulationSnapshot` 增加街区繁荣状态和指标；新增 `deriveDistrictProsperity`，按建筑街区亲和、等级、状态、相邻关系推导住宅巷、市街、仓储院等街区；`GameRuntime` 每次刷新快照时派生街区；`DynamicScene` 新增道路之上、建筑之下的 `districts` 层，渲染地表暖光、灯点和人流点。
 - 第十五轮验证通过：街区数据层、运行时集成和动态场景目标测试 20 项通过；全量测试 27 个文件、171 项通过；TypeScript 检查与 Vite 生产构建通过。
+- 启动第十六轮并行生产：POP-MIGRATION-PATH-01，把候选外来人口从“等待后瞬时入住”推进为“等待、移动、抵达后入住”的可观察路径行为。
+- 完成第十六轮并行生产：`MigrationCandidateState` 增加 `walking` 状态和路径进度；`SimulationEngine` 会让候选人从临时停留点沿路径走到目标住宅后才生成家庭与工人，并把路上的家庭计入住房预占，避免多个候选家庭抢占同一套剩余容量；小事流可区分等房与正在进城。
+- 第十六轮目标验证通过：迁入核心、小事流和动态场景目标测试 32 项通过。
 - 补强商业级完整上线总计划：`commercial-launch-master-plan.md` 新增美术 ART-P0–P11 全阶段上线要求，明确美术不是首批金标任务，而是从方向、灰盒、概念、金标、角色、动画、环境、UI、Alpha 量产、Beta 完整化、RC 冻结到上线后运营的完整生产线。
 - 清理 `production-pipeline.md` 与 `gates.md` 中残留的 28×9、四岛、音乐奖励、拾取材料等旧主线门禁，替换为可扩展建筑/街区资产矩阵、人口生命周期、城市吸引力、街区繁荣和城市问题诊断。
 - 更新 `task-board.md`、`progress-dashboard.md` 和 `artifact-index.md`，让本轮总计划一致性补强在项目中枢内可追踪。

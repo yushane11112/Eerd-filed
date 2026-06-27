@@ -180,6 +180,35 @@ export default function App() {
     setToast(`${fallbackTitle}：已定位到 ${target.label}（${target.point.x}, ${target.point.y}）附近。`)
   }
 
+  const followStageRequirement = (
+    requirement: (typeof stageProgress.requirements)[number],
+  ) => {
+    if (requirement.met) {
+      setToast(`${requirement.label}已达标，继续补齐其他阶段条件。`)
+      return
+    }
+    if (requirement.id === 'population') {
+      chooseTool({ kind: 'building', type: 'house', rotation: 0 })
+      setToast('阶段顾问：先补民居和道路，给外来人口留下可入住空间。')
+      return
+    }
+    if (requirement.id === 'attraction') {
+      setBottleneckOpen(true)
+      setToast('阶段顾问：先处理瓶颈，空房、岗位、食物和物流都会影响吸引力。')
+      return
+    }
+    const district = snapshot.districts?.[0]
+    if (district) {
+      focusCityTarget(
+        { kind: 'point', point: district.center, label: district.name },
+        '阶段顾问',
+      )
+      return
+    }
+    chooseTool({ kind: 'building', type: 'market', rotation: 0 })
+    setToast('阶段顾问：把市场、民居、仓储成组放置，更容易形成街区。')
+  }
+
   const resolveAmbientStory = (story: AmbientCityStoryItem, shouldFocus = true) => {
     if (story.target && shouldFocus) {
       focusCityTarget(story.target, story.title)
@@ -329,13 +358,19 @@ export default function App() {
               <p>下一阶段：{stageProgress.nextStageLabel}</p>
               <div className="stage-requirements">
                 {stageProgress.requirements.map((requirement) => (
-                  <span key={requirement.id} className={requirement.met ? 'met' : ''}>
-                    {requirement.label}
+                  <button
+                    key={requirement.id}
+                    type="button"
+                    className={requirement.met ? 'met' : ''}
+                    onClick={() => followStageRequirement(requirement)}
+                    title={requirement.advice}
+                  >
+                    <span>{requirement.label}</span>
                     <b>
                       {requirement.current}{requirement.suffix ?? ''}
                       /{requirement.target}{requirement.suffix ?? ''}
                     </b>
-                  </span>
+                  </button>
                 ))}
               </div>
             </>

@@ -121,9 +121,31 @@ describe('building catalog', () => {
       readyForNextStage: false,
     })
     expect(progress.requirements).toEqual([
-      { id: 'population', label: '人口', current: 12, target: 16, met: false },
-      { id: 'attraction', label: '吸引', current: 52, target: 45, met: true, suffix: '%' },
-      { id: 'activeDistricts', label: '街区', current: 1, target: 2, met: false },
+      {
+        id: 'population',
+        label: '人口',
+        current: 12,
+        target: 16,
+        met: false,
+        advice: '补民居、稳吸引，等候选人口沿路入住。',
+      },
+      {
+        id: 'attraction',
+        label: '吸引',
+        current: 52,
+        target: 45,
+        met: true,
+        suffix: '%',
+        advice: '补空房、岗位、食物和物流，降低税负压力。',
+      },
+      {
+        id: 'activeDistricts',
+        label: '街区',
+        current: 1,
+        target: 2,
+        met: false,
+        advice: '成组营造民居、市场、粮仓和作坊，形成连续街区。',
+      },
     ])
   })
 })

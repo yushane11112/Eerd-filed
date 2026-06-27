@@ -37,6 +37,9 @@
 - 启动第二十二轮并行生产：LEGACY-ARCHIPELAGO-GATE-01，给旧 `IslandCanvas` 群岛 Pixi 视图增加显式归档开关。
 - 完成第二十二轮并行生产：新增 `src/game/legacy.ts`，默认禁用旧群岛渲染；`IslandCanvas` 默认显示“旧群岛原型已归档”提示，只有 `?legacy-islands` 或 `?qa-static` 才启动旧渲染/静态验收；新增测试固定开关规则。
 - 第二十二轮目标验证通过：旧群岛开关、旧引擎和存档兼容目标测试 16 项通过，TypeScript 检查通过。
+- 启动第二十三轮并行生产：CITY-STAGE-ADVISOR-01，把阶段目标从静态数值推进为可点击顾问。
+- 完成第二十三轮并行生产：阶段条件增加顾问建议；人口缺口点击后切到民居建造，吸引力缺口打开瓶颈面板，街区缺口优先定位已有街区或切到市场建造；阶段面板的条件按钮支持 hover/focus。
+- 第二十三轮目标验证通过：建筑/阶段目标测试 7 项通过，TypeScript 检查通过。
 - 补强商业级完整上线总计划：`commercial-launch-master-plan.md` 新增美术 ART-P0–P11 全阶段上线要求，明确美术不是首批金标任务，而是从方向、灰盒、概念、金标、角色、动画、环境、UI、Alpha 量产、Beta 完整化、RC 冻结到上线后运营的完整生产线。
 - 清理 `production-pipeline.md` 与 `gates.md` 中残留的 28×9、四岛、音乐奖励、拾取材料等旧主线门禁，替换为可扩展建筑/街区资产矩阵、人口生命周期、城市吸引力、街区繁荣和城市问题诊断。
 - 更新 `task-board.md`、`progress-dashboard.md` 和 `artifact-index.md`，让本轮总计划一致性补强在项目中枢内可追踪。

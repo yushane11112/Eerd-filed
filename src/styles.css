@@ -323,17 +323,28 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   gap: 6px;
   margin-top: 8px;
 }
-.stage-requirements span {
+.stage-requirements button {
   padding: 7px 6px;
   border: 1px solid #ded8bd;
   border-radius: 10px;
   color: #7d877f;
   background: rgba(255,248,220,.64);
   font-size: 8px;
+  text-align: left;
+  cursor: pointer;
 }
-.stage-requirements span.met {
+.stage-requirements button:hover,
+.stage-requirements button:focus-visible {
+  border-color: #bca66b;
+  box-shadow: 0 0 0 2px rgba(188,166,107,.18);
+  outline: none;
+}
+.stage-requirements button.met {
   border-color: #a7c19a;
   background: rgba(229,239,225,.82);
+}
+.stage-requirements span {
+  display: block;
 }
 .stage-requirements b {
   display: block;

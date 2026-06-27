@@ -116,6 +116,7 @@ export interface RuntimeCityStageProgress {
     target: number
     met: boolean
     suffix?: string
+    advice: string
   }>
   readyForNextStage: boolean
 }
@@ -167,6 +168,7 @@ export function getRuntimeCityStageProgress(metrics: CityMetrics): RuntimeCitySt
         current: metrics.population,
         target: next.population,
         met: metrics.population >= next.population,
+        advice: '补民居、稳吸引，等候选人口沿路入住。',
       },
       {
         id: 'attraction' as const,
@@ -175,6 +177,7 @@ export function getRuntimeCityStageProgress(metrics: CityMetrics): RuntimeCitySt
         target: next.attraction,
         met: (metrics.cityAttraction ?? 0) >= next.attraction,
         suffix: '%',
+        advice: '补空房、岗位、食物和物流，降低税负压力。',
       },
       {
         id: 'activeDistricts' as const,
@@ -182,6 +185,7 @@ export function getRuntimeCityStageProgress(metrics: CityMetrics): RuntimeCitySt
         current: metrics.activeDistricts ?? 0,
         target: next.activeDistricts,
         met: (metrics.activeDistricts ?? 0) >= next.activeDistricts,
+        advice: '成组营造民居、市场、粮仓和作坊，形成连续街区。',
       },
     ]
     : []

@@ -36,3 +36,10 @@
 | `docs/project/gates.md` | 清理 G0/G2/G4/最终发布门禁中的旧范围，改为建筑/街区资产矩阵、人口生命周期和城市问题诊断 |
 | `docs/project/task-board.md` | 增加 `DOC-SYNC-20260627B`，记录本轮完整上线计划一致性补强 |
 | `docs/project/progress-dashboard.md` | 更新 P0 阶段完成度、当前风险和下一轮任务 |
+
+## 2026-06-27：跨电脑 / 空对话接续手册
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `docs/project/HANDOFF.md` | 项目交接手册 | 说明另一台电脑如何 clone、checkout、测试、恢复新 Codex 对话上下文，以及回到当前电脑如何继续 |
+| `docs/project/README.md` | 项目索引 | 增加 HANDOFF 入口，确保新会话能优先找到接续手册 |

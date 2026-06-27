@@ -11,6 +11,7 @@
 ## 核心索引
 
 - 完整上线总计划：`commercial-launch-master-plan.md`
+- 跨电脑/空对话接续手册：`HANDOFF.md`
 - 商业级文明目标：`commercial-civilization-target.md`
 - 生产流水线：`production-pipeline.md`
 - 世界观与年代设定：`design/world-bible.md`

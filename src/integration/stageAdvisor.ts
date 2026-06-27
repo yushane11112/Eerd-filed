@@ -18,10 +18,18 @@ export interface StageAdvisorOverlayPoint {
   position: GridPoint
 }
 
+export interface StageAdvisorOverlayPath {
+  kind: StageAdvisorOverlayKind
+  label: string
+  from: GridPoint
+  to: GridPoint
+}
+
 export interface StageAdvisorOverlay {
   id: number
   label: string
   points: StageAdvisorOverlayPoint[]
+  paths?: StageAdvisorOverlayPath[]
 }
 
 export const STAGE_ADVISOR_OVERLAY_MODES: ReadonlyArray<{
@@ -124,25 +132,35 @@ export function deriveStageMapOverlay(
   }
 
   if (mode === 'logistics') {
-    return compactOverlay(id, '物流拥堵', Object.values(snapshot.logisticsOrders)
+    const activeOrders = Object.values(snapshot.logisticsOrders)
       .filter((order) => order.state !== 'delivered')
-      .flatMap((order) => {
-        const source = snapshot.buildings[order.sourceBuildingId]
-        const destination = snapshot.buildings[order.destinationBuildingId]
-        const points: Array<StageAdvisorOverlayPoint | undefined> = [
-          source && {
-            kind: 'logistics' as const,
-            label: order.state === 'cancelled' ? '失败源' : '发货',
-            position: source.entrance,
-          },
-          destination && {
-            kind: 'logistics' as const,
-            label: order.state === 'cancelled' ? '失败点' : '收货',
-            position: destination.entrance,
-          },
-        ]
-        return points.filter((point): point is StageAdvisorOverlayPoint => Boolean(point))
-      }))
+    return compactOverlay(id, '物流线路', activeOrders.flatMap((order) => {
+      const source = snapshot.buildings[order.sourceBuildingId]
+      const destination = snapshot.buildings[order.destinationBuildingId]
+      const points: Array<StageAdvisorOverlayPoint | undefined> = [
+        source && {
+          kind: 'logistics' as const,
+          label: order.state === 'cancelled' ? '失败源' : '发货',
+          position: source.entrance,
+        },
+        destination && {
+          kind: 'logistics' as const,
+          label: order.state === 'cancelled' ? '失败点' : '收货',
+          position: destination.entrance,
+        },
+      ]
+      return points.filter((point): point is StageAdvisorOverlayPoint => Boolean(point))
+    }), activeOrders.flatMap((order) => {
+      const source = snapshot.buildings[order.sourceBuildingId]
+      const destination = snapshot.buildings[order.destinationBuildingId]
+      if (!source || !destination) return []
+      return [{
+        kind: 'logistics' as const,
+        label: order.state === 'cancelled' ? '失败线路' : `${order.resource} x${order.amount}`,
+        from: source.entrance,
+        to: destination.entrance,
+      }]
+    }))
   }
 
   return compactOverlay(id, '道路连通', [
@@ -169,6 +187,7 @@ function compactOverlay(
   id: number,
   label: string,
   points: StageAdvisorOverlayPoint[],
+  paths: StageAdvisorOverlayPath[] = [],
 ): StageAdvisorOverlay | undefined {
   const seen = new Set<string>()
   const unique = points.filter((point) => {
@@ -177,8 +196,15 @@ function compactOverlay(
     seen.add(key)
     return true
   })
-  if (unique.length === 0) return undefined
-  return {
+  const pathSeen = new Set<string>()
+  const uniquePaths = paths.filter((path) => {
+    const key = `${path.kind}:${Math.round(path.from.x * 100) / 100},${Math.round(path.from.y * 100) / 100}->${Math.round(path.to.x * 100) / 100},${Math.round(path.to.y * 100) / 100}`
+    if (pathSeen.has(key)) return false
+    pathSeen.add(key)
+    return true
+  })
+  if (unique.length === 0 && uniquePaths.length === 0) return undefined
+  const overlay: StageAdvisorOverlay = {
     id,
     label,
     points: unique.slice(0, 8).map((point) => ({
@@ -187,6 +213,14 @@ function compactOverlay(
       position: { ...point.position },
     })),
   }
+  const limitedPaths = uniquePaths.slice(0, 8).map((path) => ({
+      kind: path.kind,
+      label: path.label,
+      from: { ...path.from },
+      to: { ...path.to },
+    }))
+  if (limitedPaths.length > 0) overlay.paths = limitedPaths
+  return overlay
 }
 
 function isNear(a: GridPoint, b: GridPoint, distance: number): boolean {

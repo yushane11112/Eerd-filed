@@ -307,6 +307,28 @@ export function SimulationCanvas({
       </div>
       {stageAdvisorOverlay && (
         <div className="stage-overlay-layer" aria-hidden="true">
+          {stageAdvisorOverlay.paths?.map((path, index) => {
+            const from = pointToViewport(path.from, cameraView)
+            const to = pointToViewport(path.to, cameraView)
+            const dx = to.x - from.x
+            const dy = to.y - from.y
+            const length = Math.hypot(dx, dy)
+            const angle = Math.atan2(dy, dx)
+            return (
+              <span
+                key={`${stageAdvisorOverlay.id}-path-${index}`}
+                className={`stage-overlay-path stage-overlay-path--${path.kind}`}
+                style={{
+                  '--stage-path-x': `${from.x}px`,
+                  '--stage-path-y': `${from.y}px`,
+                  '--stage-path-width': `${length}px`,
+                  '--stage-path-angle': `${angle}rad`,
+                } as React.CSSProperties}
+              >
+                <i>{path.label}</i>
+              </span>
+            )
+          })}
           {stageAdvisorOverlay.points.map((point, index) => {
             const position = pointToViewport(point.position, cameraView)
             return (

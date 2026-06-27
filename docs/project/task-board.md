@@ -24,6 +24,7 @@
 | CITY-STAGE-OVERLAY-01 | 城市阶段地图覆盖提示 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/App.tsx`, `src/styles.css` | 已完成 | 阶段顾问点击后在地图标出住房、外来人口、瓶颈建筑或街区核心 |
 | CITY-STAGE-LAYER-01 | 城市阶段分层覆盖标记 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 住房、外来人口、吸引力瓶颈和街区核心使用分层类型与短标签显示 |
 | CITY-STAGE-LAYER-SWITCH-01 | 城市阶段覆盖图层开关 | `src/integration/**`, `src/App.tsx`, `src/styles.css` | 已完成 | 阶段面板可切换住房容量、服务覆盖、物流拥堵和道路连通图层 |
+| CITY-STAGE-LOGISTICS-PATH-01 | 城市阶段物流线路覆盖 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 物流图层除发货/收货点外显示订单线路和方向 |
 | OPTIONAL-MUSIC-ENTRY-01 | 音乐奖励入口降级 | `src/App.tsx`, `src/styles.css` | 已完成 | 听歌从常驻主界面卡片降为默认收起的可选轻奖励入口 |
 | LEGACY-LISTENING-DROPS-01 | 旧听歌掉落原型隔离 | `src/game/**`, `src/simulation/rewards/**` | 已完成 | 旧群岛引擎默认不再由听歌产生普通材料，旧行为仅可显式 legacy 启用 |
 | LEGACY-ARCHIPELAGO-GATE-01 | 旧群岛视图归档开关 | `src/components/IslandCanvas.tsx`, `src/game/**`, `src/styles.css` | 已完成 | 旧群岛 Pixi 视图默认显示归档提示，只有显式 legacy/QA 参数才启动 |

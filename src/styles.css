@@ -43,6 +43,48 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   z-index: 3;
   pointer-events: none;
 }
+.stage-overlay-path {
+  position: absolute;
+  left: var(--stage-path-x);
+  top: var(--stage-path-y);
+  width: var(--stage-path-width);
+  height: 0;
+  transform: rotate(var(--stage-path-angle));
+  transform-origin: 0 0;
+  border-top: 3px solid rgba(255, 247, 196, .72);
+  filter: drop-shadow(0 2px 5px rgba(28, 61, 54, .22));
+}
+.stage-overlay-path::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: -6px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid rgba(255, 247, 196, .82);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+.stage-overlay-path--logistics {
+  border-top-color: rgba(118, 152, 218, .82);
+}
+.stage-overlay-path--logistics::after {
+  border-left-color: rgba(118, 152, 218, .9);
+}
+.stage-overlay-path i {
+  position: absolute;
+  left: 50%;
+  top: -18px;
+  transform: translateX(-50%);
+  padding: 2px 5px;
+  border-radius: 999px;
+  color: #fff8dc;
+  background: rgba(50, 67, 108, .86);
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 900;
+  white-space: nowrap;
+}
 .stage-overlay-marker {
   position: absolute;
   left: var(--stage-x);

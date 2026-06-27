@@ -33,6 +33,7 @@ export type SceneLayerName =
   | 'terrain'
   | 'water'
   | 'roads'
+  | 'districts'
   | 'buildings'
   | 'residents'
   | 'transport'
@@ -40,7 +41,7 @@ export type SceneLayerName =
   | 'effects'
   | 'overlays'
 
-export type RenderEntityKind = 'building' | 'resident' | 'transport' | 'drop'
+export type RenderEntityKind = 'building' | 'resident' | 'transport' | 'drop' | 'district'
 
 export interface EntityVisual<T extends Container = Container> {
   readonly display: T
@@ -53,10 +54,10 @@ export interface EntityVisual<T extends Container = Container> {
 
 export interface SceneSyncStats {
   buildings: number
+  districts: number
   residents: number
   transport: number
   drops: number
   visible: number
   pooled: number
 }
-

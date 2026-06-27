@@ -11,7 +11,7 @@ import type {
   SceneCamera,
   SceneSyncStats,
 } from './types'
-import { AgentVisual, BuildingVisual, DropVisual } from './visuals'
+import { AgentVisual, BuildingVisual, DistrictProsperityVisual, DropVisual } from './visuals'
 
 function isTransport(agent: Readonly<AgentEntity>): boolean {
   return agent.role === 'carrier' || agent.role === 'cart' || agent.role === 'boat'
@@ -32,6 +32,7 @@ export class DynamicScene {
 
   private readonly metrics: Readonly<IsoMetrics>
   private readonly buildingPool: ObjectPool<BuildingVisual>
+  private readonly districtPool: ObjectPool<DistrictProsperityVisual>
   private readonly residentPool: ObjectPool<AgentVisual>
   private readonly transportPool: ObjectPool<AgentVisual>
   private readonly dropPool: ObjectPool<DropVisual>
@@ -45,6 +46,7 @@ export class DynamicScene {
     this.root.addChild(this.world)
     this.layers = createSceneLayers(this.world)
     this.buildingPool = new ObjectPool(() => new BuildingVisual(metrics, options.prefabRegistry), 16, 256)
+    this.districtPool = new ObjectPool(() => new DistrictProsperityVisual(metrics), 8, 64)
     this.residentPool = new ObjectPool(() => new AgentVisual(metrics, 'resident'), 32, 512)
     this.transportPool = new ObjectPool(() => new AgentVisual(metrics, 'transport'), 12, 256)
     this.dropPool = new ObjectPool(() => new DropVisual(metrics), 12, 64)
@@ -59,8 +61,17 @@ export class DynamicScene {
     const expected = new Set<EntityId>()
     let visible = 0
     let buildings = 0
+    let districts = 0
     let residents = 0
     let transport = 0
+
+    for (const district of snapshot.districts ?? []) {
+      expected.add(district.id)
+      const visual = this.ensureDistrict(district.id)
+      visual.update(snapshot, interpolationAlpha)
+      visible += this.applyVisibility(visual, camera)
+      districts += 1
+    }
 
     for (const building of Object.values(snapshot.buildings)) {
       expected.add(building.id)
@@ -103,11 +114,13 @@ export class DynamicScene {
     this.sortDynamicLayers()
     return {
       buildings,
+      districts,
       residents,
       transport,
       drops: snapshot.worldDrops.length,
       visible,
       pooled: this.buildingPool.pooledCount
+        + this.districtPool.pooledCount
         + this.residentPool.pooledCount
         + this.transportPool.pooledCount
         + this.dropPool.pooledCount,
@@ -128,6 +141,19 @@ export class DynamicScene {
     visual.display.visible = true
     visual.display.renderable = true
     this.layers.buildings.addChild(visual.display)
+    this.active.set(id, visual)
+    return visual
+  }
+
+  private ensureDistrict(id: EntityId): DistrictProsperityVisual {
+    const existing = this.active.get(id)
+    if (existing instanceof DistrictProsperityVisual) return existing
+    if (existing) this.release(id, existing)
+    const visual = this.districtPool.acquire()
+    visual.entityId = id
+    visual.display.visible = true
+    visual.display.renderable = true
+    this.layers.districts.addChild(visual.display)
     this.active.set(id, visual)
     return visual
   }
@@ -171,6 +197,7 @@ export class DynamicScene {
   private release(id: EntityId, visual: EntityVisual): void {
     this.active.delete(id)
     if (visual instanceof BuildingVisual) this.buildingPool.release(visual)
+    else if (visual instanceof DistrictProsperityVisual) this.districtPool.release(visual)
     else if (visual instanceof DropVisual) this.dropPool.release(visual)
     else if (visual.kind === 'transport') this.transportPool.release(visual as AgentVisual)
     else this.residentPool.release(visual as AgentVisual)

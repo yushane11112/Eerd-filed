@@ -44,6 +44,7 @@ export function createInitialSimulationSnapshot(
       lastMaintenanceCost: 0,
     },
     metrics,
+    districts: [],
     worldDrops: [],
     rareRewards: {
       missesSinceReward: 0,

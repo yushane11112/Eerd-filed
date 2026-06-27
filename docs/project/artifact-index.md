@@ -2,6 +2,27 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-27：第十五轮街区繁荣系统
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 模拟公共契约 | 增加街区繁荣状态、活动等级、视觉提示和城市街区指标 |
+| `src/simulation/core/snapshot.ts` | 初始快照 | 初始化街区列表为空数组 |
+| `src/simulation/districts/prosperity.ts` | 模拟数据层 | 按建筑街区亲和、等级、状态和相邻关系推导街区繁荣 |
+| `src/simulation/districts/index.ts` | 模块出口 | 暴露街区繁荣推导方法 |
+| `src/simulation/districts/prosperity.test.ts` | 自动测试 | 验证街区分组、繁荣评分、视觉提示和指标汇总 |
+| `src/integration/GameRuntime.ts` | 运行时集成 | 每次快照刷新时派生街区数据并写入指标 |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 验证启动城镇能产出街区与街区指标 |
+| `src/rendering/types.ts` | 渲染契约 | 增加 `district` 可渲染实体和 `districts` 同步统计 |
+| `src/rendering/layers.ts` | 渲染层级 | 增加道路之上、建筑之下的 `districts` 图层 |
+| `src/rendering/visuals.ts` | 程序化视觉 | 增加街区地表暖光、灯点和人流轻表现 |
+| `src/rendering/DynamicScene.ts` | 动态场景 | 同步并回收街区繁荣视觉对象 |
+| `src/rendering/DynamicScene.test.ts` | 自动测试 | 验证街区视觉层级、标签和同步复用 |
+| `docs/project/task-board.md` | 任务看板 | 标记 DISTRICT-PROSPERITY-01 完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录第十五轮启动、完成和验证结果 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新城市模拟、动态引擎、建筑体系完成度和下一轮任务 |
+| `docs/project/qa.md` | 验收记录 | 记录本轮目标测试、全量测试和构建结果 |
+
 ## 2026-06-27：第十四轮建筑分类运行时
 
 | 文件 | 产物类型 | 用途 |

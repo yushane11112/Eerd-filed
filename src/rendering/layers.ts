@@ -5,6 +5,7 @@ export const SCENE_LAYER_ORDER: readonly SceneLayerName[] = [
   'terrain',
   'water',
   'roads',
+  'districts',
   'buildings',
   'residents',
   'transport',
@@ -30,4 +31,3 @@ export function createSceneLayers(parent: Container): SceneLayers {
   parent.sortableChildren = true
   return layers
 }
-

@@ -158,6 +158,25 @@ export interface CityMetrics {
   openHousingCapacity?: number
   cityAttraction?: number
   waitingMigrants?: number
+  activeDistricts?: number
+  averageDistrictProsperity?: number
+}
+
+export type DistrictActivityLevel = 'quiet' | 'steady' | 'busy'
+
+export interface DistrictProsperityState {
+  id: EntityId
+  kind: string
+  name: string
+  center: GridPoint
+  buildingIds: EntityId[]
+  prosperity: number
+  activityLevel: DistrictActivityLevel
+  visualHints: {
+    lanterns: number
+    footTraffic: number
+    decoration: number
+  }
 }
 
 export interface WorldDrop {
@@ -236,6 +255,7 @@ export interface SimulationSnapshot {
   logisticsOrders: Record<EntityId, LogisticsOrder>
   economy: EconomyState
   metrics: CityMetrics
+  districts?: DistrictProsperityState[]
   worldDrops: WorldDrop[]
   rareRewards: RareRewardState
 }

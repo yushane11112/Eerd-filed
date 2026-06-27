@@ -10,6 +10,10 @@ import {
   BUILDING_DEFINITIONS,
   BUILDING_MENU,
 } from '../content/runtimeBuildings'
+import {
+  deriveDistrictProsperity,
+  summarizeDistrictProsperity,
+} from '../simulation/districts'
 import { SimulationEngine, createInitialSimulationSnapshot } from '../simulation/core'
 import {
   advanceBuildingUpgrades,
@@ -101,9 +105,10 @@ export class GameRuntime {
       path: [], pathIndex: 0, activity: 'idle',
     }
     this.dropState = createDropSpawnState()
+    this.applyDistrictProsperity(initial)
     this.engine = this.createEngine(initial)
     this.engine.step(45)
-    this.snapshotCache = this.engine.snapshot
+    this.snapshotCache = this.withDistrictProsperity(this.engine.snapshot)
   }
 
   getSnapshot = (): SimulationSnapshot => this.snapshotCache
@@ -191,6 +196,7 @@ export class GameRuntime {
     const result = this.engine.advance(elapsedMs)
     if (result.ticks === 0) return
     let snapshot = this.engine.snapshot
+    this.applyDistrictProsperity(snapshot)
     const hasUpgradingBuildings = Object.values(snapshot.buildings)
       .some((building) => building.status === 'upgrading')
     if (hasUpgradingBuildings) {
@@ -210,7 +216,7 @@ export class GameRuntime {
     } else if (hasUpgradingBuildings) {
       this.rebuild(snapshot)
     } else {
-      this.snapshotCache = snapshot
+      this.snapshotCache = this.withDistrictProsperity(snapshot)
       this.emit()
     }
   }
@@ -403,14 +409,29 @@ export class GameRuntime {
   private rebuild(snapshot: SimulationSnapshot) {
     snapshot.cells = this.grid.toCells()
     snapshot.worldDrops = this.dropState.visible
+    this.applyDistrictProsperity(snapshot)
     this.engine = this.createEngine(snapshot)
-    this.snapshotCache = this.engine.snapshot
+    this.snapshotCache = this.withDistrictProsperity(this.engine.snapshot)
     this.emit()
   }
 
   private refresh() {
-    this.snapshotCache = this.engine.snapshot
+    this.snapshotCache = this.withDistrictProsperity(this.engine.snapshot)
     this.emit()
+  }
+
+  private withDistrictProsperity(snapshot: SimulationSnapshot): SimulationSnapshot {
+    this.applyDistrictProsperity(snapshot)
+    return snapshot
+  }
+
+  private applyDistrictProsperity(snapshot: SimulationSnapshot) {
+    const districts = deriveDistrictProsperity(snapshot, BUILDING_DEFINITIONS)
+    snapshot.districts = districts
+    snapshot.metrics = {
+      ...snapshot.metrics,
+      ...summarizeDistrictProsperity(districts),
+    }
   }
 
   private emit() {

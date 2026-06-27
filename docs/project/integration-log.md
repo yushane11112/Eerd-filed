@@ -13,6 +13,9 @@
 - 启动第十四轮并行生产：TAXONOMY-RUNTIME-01，把建筑从运行时硬编码小清单推进到阶段、功能、连接方式和年代一致性的内容目录。
 - 完成第十四轮并行生产：`BuildingDefinition` 增加城市阶段、功能、连接和年代标签；`BUILDING_CATALOG` 可按阶段/功能查询并校验年代一致性；新增 starter 运行时建筑目录，保留现有 `house/granary/riceField/woodshop/market` 类型兼容，同时映射到金标分类；`GameRuntime` 改为读取内容目录定义。
 - 第十四轮验证通过：内容目录、运行时集成和 prefab 映射目标测试 14 项通过；全量测试 26 个文件、168 项通过；TypeScript 检查与 Vite 生产构建通过。
+- 启动第十五轮并行生产：DISTRICT-PROSPERITY-01，建立街区繁荣第一版数据层与地图轻表现。
+- 完成第十五轮并行生产：`SimulationSnapshot` 增加街区繁荣状态和指标；新增 `deriveDistrictProsperity`，按建筑街区亲和、等级、状态、相邻关系推导住宅巷、市街、仓储院等街区；`GameRuntime` 每次刷新快照时派生街区；`DynamicScene` 新增道路之上、建筑之下的 `districts` 层，渲染地表暖光、灯点和人流点。
+- 第十五轮验证通过：街区数据层、运行时集成和动态场景目标测试 20 项通过；全量测试 27 个文件、171 项通过；TypeScript 检查与 Vite 生产构建通过。
 - 补强商业级完整上线总计划：`commercial-launch-master-plan.md` 新增美术 ART-P0–P11 全阶段上线要求，明确美术不是首批金标任务，而是从方向、灰盒、概念、金标、角色、动画、环境、UI、Alpha 量产、Beta 完整化、RC 冻结到上线后运营的完整生产线。
 - 清理 `production-pipeline.md` 与 `gates.md` 中残留的 28×9、四岛、音乐奖励、拾取材料等旧主线门禁，替换为可扩展建筑/街区资产矩阵、人口生命周期、城市吸引力、街区繁荣和城市问题诊断。
 - 更新 `task-board.md`、`progress-dashboard.md` 和 `artifact-index.md`，让本轮总计划一致性补强在项目中枢内可追踪。

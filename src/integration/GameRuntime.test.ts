@@ -10,6 +10,9 @@ describe('GameRuntime integration', () => {
     expect(snapshot.metrics.housingCapacity).toBeGreaterThan(0)
     expect(snapshot.metrics.population).toBeGreaterThan(0)
     expect(snapshot.metrics.employedWorkers).toBeGreaterThan(0)
+    expect(snapshot.districts?.length).toBeGreaterThan(0)
+    expect(snapshot.metrics.activeDistricts).toBe(snapshot.districts?.length)
+    expect(snapshot.districts?.some((district) => district.kind === 'market-street')).toBe(true)
   })
 
   it('places roads and road-connected buildings into the shared snapshot', () => {

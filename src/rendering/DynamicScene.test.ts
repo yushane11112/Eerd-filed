@@ -191,6 +191,37 @@ describe('DynamicScene', () => {
     expect(scene.layers.residents.children).toHaveLength(1)
   })
 
+  it('renders district prosperity below buildings without duplicating visuals', async () => {
+    const { DynamicScene } = await import('./DynamicScene')
+    const scene = new DynamicScene()
+    const snapshot = createSnapshot()
+    snapshot.districts = [{
+      id: 'district:market-street',
+      kind: 'market-street',
+      name: '临河市街',
+      center: { x: 2, y: 3 },
+      buildingIds: ['kiln'],
+      prosperity: 76,
+      activityLevel: 'busy',
+      visualHints: { lanterns: 3, footTraffic: 4, decoration: 2 },
+    }]
+
+    const first = scene.sync(snapshot, camera)
+    const second = scene.sync({ ...snapshot, tick: snapshot.tick + 1 }, camera)
+
+    expect(first).toMatchObject({
+      districts: 1,
+      visible: expect.any(Number),
+    })
+    expect(second.districts).toBe(1)
+    expect(scene.layers.districts.children).toHaveLength(1)
+    expect(childLabels(scene.layers.districts.children[0])).toEqual([
+      'district-prosperity-ground:market-street:high',
+      'district-prosperity-lamps:market-street:high',
+      'district-prosperity-activity:busy',
+    ])
+  })
+
   it('adds distinct procedural building status layers without growing pooled visuals', async () => {
     const { DynamicScene } = await import('./DynamicScene')
     const scene = new DynamicScene()

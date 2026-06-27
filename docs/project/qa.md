@@ -31,6 +31,13 @@
 - `tsc -b`：类型检查通过。
 - `vite build`：生产构建通过，`dist/` 产物生成。
 
+## 2026-06-27 第十五轮验证
+
+- `vitest run src/simulation/districts/prosperity.test.ts src/integration/GameRuntime.test.ts src/rendering/DynamicScene.test.ts`：3 个测试文件、20 项通过，覆盖街区推导、运行时快照指标和地图视觉层。
+- `vitest run`：27 个测试文件、171 项测试通过。
+- `tsc -b`：类型检查通过。
+- `vite build`：生产构建通过，`dist/` 产物生成。
+
 ## 压力基准
 
 - 500 户家庭。

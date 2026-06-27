@@ -2,6 +2,7 @@ import { Container, Graphics, Text } from 'pixi.js'
 import type {
   AgentEntity,
   BuildingEntity,
+  DistrictProsperityState,
   EntityId,
   SimulationSnapshot,
   WorldDrop,
@@ -48,6 +49,17 @@ const ROLE_COLOR: Record<AgentEntity['role'], number> = {
   service: 0x8b668e,
   cart: 0x79563c,
   boat: 0x477f9d,
+}
+
+const DISTRICT_COLOR: Record<string, number> = {
+  'residential-lane': 0xd9b978,
+  'garden-homes': 0x9fbf87,
+  'warehouse-yard': 0xc4a36e,
+  'market-backstreet': 0xcaa06f,
+  'farm-edge': 0xa7bd6f,
+  'craft-lane': 0xb89365,
+  'market-street': 0xd69a72,
+  'riverside-shops': 0xd7b75b,
 }
 
 function animationPhase(snapshot: Readonly<SimulationSnapshot>, id: EntityId): number {
@@ -1151,6 +1163,68 @@ export class BuildingVisual extends BaseVisual {
       .stroke({ color: accent, alpha: 0.95, width: 3 })
       .circle(0, y + 11, 2.4)
       .fill({ color: accent, alpha: 0.95 })
+  }
+}
+
+export class DistrictProsperityVisual extends BaseVisual {
+  kind = 'district' as const
+  private readonly ground = new Graphics({ label: 'district-prosperity-ground' })
+  private readonly lamps = new Graphics({ label: 'district-prosperity-lamps' })
+  private readonly activity = new Graphics({ label: 'district-prosperity-activity' })
+
+  constructor(metrics: Readonly<IsoMetrics>) {
+    super(metrics)
+    this.display.addChild(this.ground, this.lamps, this.activity)
+  }
+
+  update(snapshot: Readonly<SimulationSnapshot>, _alpha: number): void {
+    if (!this.entityId) return
+    const district = snapshot.districts?.find((candidate) => candidate.id === this.entityId)
+    if (!district) return
+    this.updateDistrict(snapshot, district)
+  }
+
+  private updateDistrict(
+    snapshot: Readonly<SimulationSnapshot>,
+    district: Readonly<DistrictProsperityState>,
+  ): void {
+    this.place(district.center)
+    const phase = animationPhase(snapshot, district.id)
+    const color = DISTRICT_COLOR[district.kind] ?? 0xd7b75b
+    const tier = district.prosperity >= 75 ? 'high' : district.prosperity >= 45 ? 'mid' : 'low'
+    const radius = 34 + Math.min(64, district.buildingIds.length * 8 + district.prosperity * 0.25)
+    const alpha = 0.08 + district.prosperity / 500
+
+    this.ground.label = `district-prosperity-ground:${district.kind}:${tier}`
+    this.ground.clear()
+      .poly([
+        0, -radius * 0.45,
+        radius, 0,
+        0, radius * 0.45,
+        -radius, 0,
+      ])
+      .fill({ color, alpha })
+      .stroke({ color, alpha: Math.min(0.35, alpha * 1.7), width: 1 })
+
+    this.lamps.label = `district-prosperity-lamps:${district.kind}:${tier}`
+    this.lamps.clear()
+    for (let index = 0; index < district.visualHints.lanterns; index += 1) {
+      const angle = phase * 0.15 + index * 1.7
+      const x = Math.cos(angle) * radius * 0.42
+      const y = Math.sin(angle) * radius * 0.2
+      this.lamps.circle(x, y - 10, 3.2)
+        .fill({ color: 0xf0d982, alpha: 0.72 + Math.sin(phase + index) * 0.12 })
+    }
+
+    this.activity.label = `district-prosperity-activity:${district.activityLevel}`
+    this.activity.clear()
+    for (let index = 0; index < district.visualHints.footTraffic; index += 1) {
+      const offset = ((snapshot.tick + index * 7) % 30) / 30
+      const x = -radius * 0.5 + offset * radius
+      const y = (index % 2 === 0 ? -1 : 1) * radius * 0.12
+      this.activity.circle(x, y - 4, 2.4)
+        .fill({ color: 0x6f7f95, alpha: 0.55 })
+    }
   }
 }
 

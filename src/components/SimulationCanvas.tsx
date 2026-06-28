@@ -307,6 +307,14 @@ export function SimulationCanvas({
       </div>
       {stageAdvisorOverlay && (
         <div className="stage-overlay-layer" aria-hidden="true">
+          {stageAdvisorOverlay.summary && (
+            <div className="stage-overlay-summary">
+              <strong>{stageAdvisorOverlay.label}</strong>
+              {stageAdvisorOverlay.summary.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
+            </div>
+          )}
           {stageAdvisorOverlay.areas?.map((area, index) => {
             const center = pointToViewport(area.center, cameraView)
             const width = area.radius * 64 * cameraView.zoom

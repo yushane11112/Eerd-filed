@@ -38,6 +38,7 @@ export interface StageAdvisorOverlay {
   points: StageAdvisorOverlayPoint[]
   paths?: StageAdvisorOverlayPath[]
   areas?: StageAdvisorOverlayArea[]
+  summary?: string[]
 }
 
 export const STAGE_ADVISOR_OVERLAY_MODES: ReadonlyArray<{
@@ -113,7 +114,7 @@ export function deriveStageMapOverlay(
         (householdCounts.get(household.homeBuildingId) ?? 0) + household.members,
       )
     })
-    return compactOverlay(id, '住房容量', Object.values(snapshot.buildings)
+    const housingPoints = Object.values(snapshot.buildings)
       .filter((building) => building.type === 'house')
       .map((building) => {
         const capacity = BUILDING_DEFINITIONS[building.type]?.capacity ?? 0
@@ -123,7 +124,11 @@ export function deriveStageMapOverlay(
           label: capacity > used ? `空${capacity - used}` : '满员',
           position: building.entrance,
         }
-      }))
+      })
+    return compactOverlay(id, '住房容量', housingPoints, [], [], [
+      `住宅 ${housingPoints.length}`,
+      `空位 ${snapshot.metrics.openHousingCapacity ?? Math.max(0, snapshot.metrics.housingCapacity - snapshot.metrics.population)}`,
+    ])
   }
 
   if (mode === 'service') {
@@ -156,7 +161,10 @@ export function deriveStageMapOverlay(
         position: building.entrance,
       })),
       ...uncoveredHomes,
-    ], [], serviceAreas)
+    ], [], serviceAreas, [
+      `服务点 ${serviceBuildings.length}`,
+      `缺口住宅 ${uncoveredHomes.length}`,
+    ])
   }
 
   if (mode === 'logistics') {
@@ -207,26 +215,34 @@ export function deriveStageMapOverlay(
         from: source.entrance,
         to: destination.entrance,
       }]
-    }))
+    }), [], [
+      `未完成 ${activeOrders.length}`,
+      `热点 ${hotspots.length}`,
+    ])
   }
 
+  const roadCells = snapshot.cells
+    .filter((cell) => cell.road)
+    .slice(0, 8)
+    .map((cell) => ({
+      kind: 'road' as const,
+      label: cell.road === 'bridge' ? '桥' : '道路',
+      position: cell.point,
+    }))
+  const roadGaps = Object.values(snapshot.buildings)
+    .filter((building) => !snapshot.cells.some((cell) => cell.road && isNear(cell.point, building.entrance, 1)))
+    .slice(0, 4)
+    .map((building) => ({
+      kind: 'road' as const,
+      label: roadGapLabel(building.type),
+      position: building.entrance,
+    }))
   return compactOverlay(id, '道路连通', [
-    ...snapshot.cells
-      .filter((cell) => cell.road)
-      .slice(0, 8)
-      .map((cell) => ({
-        kind: 'road' as const,
-        label: cell.road === 'bridge' ? '桥' : '道路',
-        position: cell.point,
-      })),
-    ...Object.values(snapshot.buildings)
-      .filter((building) => !snapshot.cells.some((cell) => cell.road && isNear(cell.point, building.entrance, 1)))
-      .slice(0, 4)
-      .map((building) => ({
-        kind: 'road' as const,
-        label: roadGapLabel(building.type),
-        position: building.entrance,
-      })),
+    ...roadCells,
+    ...roadGaps,
+  ], [], [], [
+    `道路点 ${roadCells.length}`,
+    `缺路 ${roadGaps.length}`,
   ])
 }
 
@@ -236,6 +252,7 @@ function compactOverlay(
   points: StageAdvisorOverlayPoint[],
   paths: StageAdvisorOverlayPath[] = [],
   areas: StageAdvisorOverlayArea[] = [],
+  summary: string[] = [],
 ): StageAdvisorOverlay | undefined {
   const seen = new Set<string>()
   const unique = points.filter((point) => {
@@ -282,6 +299,8 @@ function compactOverlay(
     radius: area.radius,
   }))
   if (limitedAreas.length > 0) overlay.areas = limitedAreas
+  const cleanSummary = summary.filter(Boolean).slice(0, 3)
+  if (cleanSummary.length > 0) overlay.summary = cleanSummary
   return overlay
 }
 

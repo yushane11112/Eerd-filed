@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-28：第三十三轮城市阶段覆盖图层摘要
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 阶段顾问数据层 | 覆盖层增加摘要字段并为四类图层生成摘要 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证住房、服务、物流和道路图层摘要 |
+| `src/components/SimulationCanvas.tsx` | 地图画布 | 渲染覆盖图层摘要条 |
+| `src/styles.css` | 界面样式 | 增加覆盖图层摘要条样式 |
+| `docs/project/task-board.md` | 任务看板 | 标记 CITY-STAGE-OVERLAY-SUMMARY-01 完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录第三十三轮启动、完成和验证结果 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新 UI/UX 完成度和下一轮任务 |
+| `docs/project/qa.md` | 验收记录 | 记录本轮目标测试和后续全量验证 |
+
 ## 2026-06-28：第三十二轮城市阶段物流热点诊断
 
 | 文件 | 产物类型 | 用途 |

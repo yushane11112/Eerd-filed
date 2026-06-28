@@ -43,6 +43,30 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   z-index: 3;
   pointer-events: none;
 }
+.stage-overlay-summary {
+  position: absolute;
+  left: 50%;
+  top: 112px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transform: translateX(-50%);
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 248, 213, .62);
+  border-radius: 999px;
+  color: #fff8dc;
+  background: rgba(38, 72, 66, .78);
+  box-shadow: 0 8px 18px rgba(31, 57, 51, .22);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.stage-overlay-summary strong {
+  font-size: 12px;
+}
+.stage-overlay-summary span {
+  color: rgba(255, 248, 220, .9);
+}
 .stage-overlay-area {
   position: absolute;
   left: var(--stage-area-x);

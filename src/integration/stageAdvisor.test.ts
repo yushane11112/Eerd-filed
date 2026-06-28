@@ -114,6 +114,7 @@ describe('stage advisor overlays', () => {
         { kind: 'housing', label: '空5', position: { x: 2, y: 3 } },
         { kind: 'housing', label: '空12', position: { x: 12, y: 12 } },
       ]),
+      summary: ['住宅 2', '空位 0'],
     })
     expect(deriveStageMapOverlay('service', snapshot, 12)).toMatchObject({
       label: '服务范围',
@@ -127,6 +128,7 @@ describe('stage advisor overlays', () => {
         center: { x: 4, y: 5 },
         radius: 4,
       }],
+      summary: ['服务点 1', '缺口住宅 1'],
     })
     expect(deriveStageMapOverlay('logistics', snapshot, 13)).toMatchObject({
       label: '物流线路',
@@ -143,6 +145,7 @@ describe('stage advisor overlays', () => {
           to: { x: 4, y: 5 },
         },
       ]),
+      summary: ['未完成 2', '热点 1'],
     })
     expect(deriveStageMapOverlay('roads', snapshot, 14)).toMatchObject({
       label: '道路连通',
@@ -151,6 +154,7 @@ describe('stage advisor overlays', () => {
         { kind: 'road', label: '缺路仓储', position: { x: 8, y: 8 } },
         { kind: 'road', label: '缺路住宅', position: { x: 12, y: 12 } },
       ]),
+      summary: ['道路点 1', '缺路 4'],
     })
   })
 })

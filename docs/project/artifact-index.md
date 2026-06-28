@@ -2,6 +2,17 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-28：第三十二轮城市阶段物流热点诊断
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 阶段顾问数据层 | 物流图层统计未完成订单端点并生成热点标记 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证多条订单压到同一建筑时生成物流热点 |
+| `docs/project/task-board.md` | 任务看板 | 标记 CITY-STAGE-LOGISTICS-HOTSPOT-01 完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录第三十二轮启动、完成和验证结果 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新 UI/UX 完成度和下一轮任务 |
+| `docs/project/qa.md` | 验收记录 | 记录本轮目标测试和后续全量验证 |
+
 ## 2026-06-28：第三十一轮城市阶段道路缺口诊断
 
 | 文件 | 产物类型 | 用途 |

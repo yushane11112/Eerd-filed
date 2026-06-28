@@ -25,6 +25,7 @@
 | CITY-STAGE-LAYER-01 | 城市阶段分层覆盖标记 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 住房、外来人口、吸引力瓶颈和街区核心使用分层类型与短标签显示 |
 | CITY-STAGE-LAYER-SWITCH-01 | 城市阶段覆盖图层开关 | `src/integration/**`, `src/App.tsx`, `src/styles.css` | 已完成 | 阶段面板可切换住房容量、服务覆盖、物流拥堵和道路连通图层 |
 | CITY-STAGE-LOGISTICS-PATH-01 | 城市阶段物流线路覆盖 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 物流图层除发货/收货点外显示订单线路和方向 |
+| CITY-STAGE-LOGISTICS-HOTSPOT-01 | 城市阶段物流热点诊断 | `src/integration/**` | 已完成 | 物流图层标出多条未完成订单共同压到的建筑热点 |
 | CITY-STAGE-SERVICE-RANGE-01 | 城市阶段服务范围覆盖 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 服务图层除服务点外显示半透明服务范围 |
 | CITY-STAGE-SERVICE-GAP-01 | 城市阶段服务缺口诊断 | `src/integration/**` | 已完成 | 服务图层标出不在服务范围内的住宅 |
 | CITY-STAGE-ROAD-GAP-01 | 城市阶段道路缺口诊断 | `src/integration/**` | 已完成 | 道路图层按住宅、服务、仓储、生产细分缺路入口 |

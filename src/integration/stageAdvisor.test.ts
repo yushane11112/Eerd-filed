@@ -96,6 +96,15 @@ describe('stage advisor overlays', () => {
           priority: 1,
           state: 'waiting',
         },
+        order2: {
+          id: 'order2',
+          resource: 'wood',
+          amount: 2,
+          sourceBuildingId: 'home',
+          destinationBuildingId: 'market',
+          priority: 1,
+          state: 'assigned',
+        },
       },
     })
 
@@ -121,18 +130,19 @@ describe('stage advisor overlays', () => {
     })
     expect(deriveStageMapOverlay('logistics', snapshot, 13)).toMatchObject({
       label: '物流线路',
-      points: [
+      points: expect.arrayContaining([
         { kind: 'logistics', label: '发货', position: { x: 8, y: 8 } },
         { kind: 'logistics', label: '收货', position: { x: 4, y: 5 } },
-      ],
-      paths: [
+        { kind: 'bottleneck', label: '物流热点x2', position: { x: 4, y: 5 } },
+      ]),
+      paths: expect.arrayContaining([
         {
           kind: 'logistics',
           label: 'food x5',
           from: { x: 8, y: 8 },
           to: { x: 4, y: 5 },
         },
-      ],
+      ]),
     })
     expect(deriveStageMapOverlay('roads', snapshot, 14)).toMatchObject({
       label: '道路连通',

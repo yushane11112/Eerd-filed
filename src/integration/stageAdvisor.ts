@@ -162,7 +162,24 @@ export function deriveStageMapOverlay(
   if (mode === 'logistics') {
     const activeOrders = Object.values(snapshot.logisticsOrders)
       .filter((order) => order.state !== 'delivered')
-    return compactOverlay(id, '物流线路', activeOrders.flatMap((order) => {
+    const endpointCounts = new Map<string, number>()
+    activeOrders.forEach((order) => {
+      endpointCounts.set(order.sourceBuildingId, (endpointCounts.get(order.sourceBuildingId) ?? 0) + 1)
+      endpointCounts.set(order.destinationBuildingId, (endpointCounts.get(order.destinationBuildingId) ?? 0) + 1)
+    })
+    const hotspots = Array.from(endpointCounts.entries())
+      .filter(([, count]) => count > 1)
+      .flatMap(([buildingId, count]) => {
+        const building = snapshot.buildings[buildingId]
+        if (!building) return []
+        return [{
+          kind: 'bottleneck' as const,
+          label: `物流热点x${count}`,
+          position: building.entrance,
+        }]
+      })
+    return compactOverlay(id, '物流线路', [
+      ...activeOrders.flatMap((order) => {
       const source = snapshot.buildings[order.sourceBuildingId]
       const destination = snapshot.buildings[order.destinationBuildingId]
       const points: Array<StageAdvisorOverlayPoint | undefined> = [
@@ -178,7 +195,9 @@ export function deriveStageMapOverlay(
         },
       ]
       return points.filter((point): point is StageAdvisorOverlayPoint => Boolean(point))
-    }), activeOrders.flatMap((order) => {
+      }),
+      ...hotspots,
+    ], activeOrders.flatMap((order) => {
       const source = snapshot.buildings[order.sourceBuildingId]
       const destination = snapshot.buildings[order.destinationBuildingId]
       if (!source || !destination) return []

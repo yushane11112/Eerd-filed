@@ -416,6 +416,16 @@ export default function App() {
                   </button>
                 ))}
               </div>
+              {activeStageOverlayMode && stageAdvisorOverlay?.metrics && (
+                <div className="stage-layer-readout" aria-label="当前图层指标">
+                  <strong>{stageAdvisorOverlay.label}</strong>
+                  {formatStageOverlayMetrics(activeStageOverlayMode, stageAdvisorOverlay.metrics).map((item) => (
+                    <span key={item.label}>
+                      <b>{item.value}</b>{item.label}
+                    </span>
+                  ))}
+                </div>
+              )}
             </>
           ) : (
             <p>城市阶段已达当前版本上限，继续优化街区和民生。</p>
@@ -767,6 +777,34 @@ function needName(need: string) {
     education: '教育',
     entertainment: '娱乐',
   } as Record<string, string>)[need] ?? need
+}
+
+function formatStageOverlayMetrics(
+  mode: StageAdvisorOverlayMode,
+  metrics: Readonly<Record<string, number>>,
+): Array<{ label: string; value: number }> {
+  if (mode === 'housing') {
+    return [
+      { label: '住宅', value: metrics.houses ?? 0 },
+      { label: '空位', value: metrics.openHousing ?? 0 },
+    ]
+  }
+  if (mode === 'service') {
+    return [
+      { label: '服务点', value: metrics.servicePoints ?? 0 },
+      { label: '缺口住宅', value: metrics.serviceGaps ?? 0 },
+    ]
+  }
+  if (mode === 'logistics') {
+    return [
+      { label: '未完成', value: metrics.activeOrders ?? 0 },
+      { label: '热点', value: metrics.hotspots ?? 0 },
+    ]
+  }
+  return [
+    { label: '道路点', value: metrics.roadCells ?? 0 },
+    { label: '缺路', value: metrics.roadGaps ?? 0 },
+  ]
 }
 
 function averageNeeds(snapshot: ReturnType<GameRuntime['getSnapshot']>) {

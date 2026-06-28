@@ -542,6 +542,34 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   border-color: rgba(59, 105, 83, .28);
   background: #4f7d66;
 }
+.stage-layer-readout {
+  display: grid;
+  grid-template-columns: auto repeat(2, minmax(0, 1fr));
+  align-items: center;
+  gap: 6px;
+  margin-top: 7px;
+  padding: 7px;
+  border-radius: 10px;
+  color: #4f675e;
+  background: rgba(255, 252, 231, .7);
+  font-size: 10px;
+  font-weight: 800;
+}
+.stage-layer-readout strong {
+  color: #385f55;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.stage-layer-readout span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  min-width: 0;
+}
+.stage-layer-readout b {
+  color: #9b6039;
+  font-size: 12px;
+}
 
 .bottleneck-panel {
   position: absolute;

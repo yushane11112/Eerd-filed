@@ -71,6 +71,7 @@ describe('stage advisor overlays', () => {
       ],
       buildings: {
         home: building('home', 'house', { x: 2, y: 3 }),
+        farHome: building('farHome', 'house', { x: 12, y: 12 }),
         market: building('market', 'market', { x: 4, y: 5 }),
         granary: building('granary', 'granary', { x: 8, y: 8 }),
       },
@@ -100,11 +101,17 @@ describe('stage advisor overlays', () => {
 
     expect(deriveStageMapOverlay('housing', snapshot, 11)).toMatchObject({
       label: '住房容量',
-      points: [{ kind: 'housing', label: '空5', position: { x: 2, y: 3 } }],
+      points: expect.arrayContaining([
+        { kind: 'housing', label: '空5', position: { x: 2, y: 3 } },
+        { kind: 'housing', label: '空12', position: { x: 12, y: 12 } },
+      ]),
     })
     expect(deriveStageMapOverlay('service', snapshot, 12)).toMatchObject({
       label: '服务范围',
-      points: [{ kind: 'service', label: '服务点', position: { x: 4, y: 5 } }],
+      points: expect.arrayContaining([
+        { kind: 'service', label: '服务点', position: { x: 4, y: 5 } },
+        { kind: 'bottleneck', label: '缺服务', position: { x: 12, y: 12 } },
+      ]),
       areas: [{
         kind: 'service',
         label: '覆盖',

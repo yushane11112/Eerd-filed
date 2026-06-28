@@ -132,18 +132,31 @@ export function deriveStageMapOverlay(
         const definition = BUILDING_DEFINITIONS[building.type]
         return definition?.functions?.some((fn) => fn === 'service' || fn === 'market' || fn === 'culture')
       })
-    return compactOverlay(id, '服务范围', serviceBuildings.map((building) => ({
+    const serviceAreas = serviceBuildings
+      .filter((building) => building.status !== 'blocked')
+      .map((building) => ({
+        kind: 'service' as const,
+        label: '覆盖',
+        center: building.entrance,
+        radius: serviceRadius(building.level),
+      }))
+    const uncoveredHomes = Object.values(snapshot.buildings)
+      .filter((building) => building.type === 'house')
+      .filter((building) => !serviceAreas.some((area) => isNear(area.center, building.entrance, area.radius)))
+      .slice(0, 4)
+      .map((building) => ({
+        kind: 'bottleneck' as const,
+        label: '缺服务',
+        position: building.entrance,
+      }))
+    return compactOverlay(id, '服务范围', [
+      ...serviceBuildings.map((building) => ({
         kind: 'service' as const,
         label: building.status === 'blocked' ? '服务停摆' : '服务点',
         position: building.entrance,
-      })), [], serviceBuildings
-        .filter((building) => building.status !== 'blocked')
-        .map((building) => ({
-          kind: 'service' as const,
-          label: '覆盖',
-          center: building.entrance,
-          radius: 3 + Math.min(building.level, 5),
-        })))
+      })),
+      ...uncoveredHomes,
+    ], [], serviceAreas)
   }
 
   if (mode === 'logistics') {
@@ -255,4 +268,8 @@ function compactOverlay(
 
 function isNear(a: GridPoint, b: GridPoint, distance: number): boolean {
   return Math.abs(a.x - b.x) + Math.abs(a.y - b.y) <= distance
+}
+
+function serviceRadius(level: number): number {
+  return 3 + Math.min(level, 5)
 }

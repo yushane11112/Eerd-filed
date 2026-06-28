@@ -177,6 +177,13 @@
 - `vitest run`：29 个测试文件、183 项测试通过。
 - `vite build`：生产构建通过，`dist/` 产物生成。
 
+## 2026-06-28 第三十六轮验证
+
+- `vitest run src/integration/stageAdvisor.test.ts`：1 个测试文件、3 项通过，确认图层指标数据仍稳定。
+- `tsc -b`：类型检查通过，覆盖阶段面板图层指标定位接入。
+- `vitest run`：29 个测试文件、183 项测试通过。
+- `vite build`：生产构建通过，`dist/` 产物生成。
+
 ## 压力基准
 
 - 500 户家庭。

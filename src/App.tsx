@@ -238,6 +238,19 @@ export default function App() {
     setToast(overlay ? `已打开${overlay.label}图层。` : '当前地图还没有可显示的图层点。')
   }
 
+  const focusStageOverlayMetric = (label: string) => {
+    if (!activeStageOverlayMode || !stageAdvisorOverlay) return
+    const point = pickStageOverlayPoint(activeStageOverlayMode, label, stageAdvisorOverlay)
+    if (!point) {
+      setToast(`${stageAdvisorOverlay.label}：当前没有可定位的${label}。`)
+      return
+    }
+    focusCityTarget(
+      { kind: 'point', point: point.position, label: point.label },
+      stageAdvisorOverlay.label,
+    )
+  }
+
   const resolveAmbientStory = (story: AmbientCityStoryItem, shouldFocus = true) => {
     if (story.target && shouldFocus) {
       focusCityTarget(story.target, story.title)
@@ -420,9 +433,13 @@ export default function App() {
                 <div className="stage-layer-readout" aria-label="当前图层指标">
                   <strong>{stageAdvisorOverlay.label}</strong>
                   {formatStageOverlayMetrics(activeStageOverlayMode, stageAdvisorOverlay.metrics).map((item) => (
-                    <span key={item.label}>
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => focusStageOverlayMetric(item.label)}
+                    >
                       <b>{item.value}</b>{item.label}
-                    </span>
+                    </button>
                   ))}
                 </div>
               )}
@@ -805,6 +822,31 @@ function formatStageOverlayMetrics(
     { label: '道路点', value: metrics.roadCells ?? 0 },
     { label: '缺路', value: metrics.roadGaps ?? 0 },
   ]
+}
+
+function pickStageOverlayPoint(
+  mode: StageAdvisorOverlayMode,
+  label: string,
+  overlay: Readonly<StageAdvisorOverlay>,
+) {
+  if (mode === 'housing') {
+    return label === '空位'
+      ? overlay.points.find((point) => point.kind === 'housing' && point.label.startsWith('空'))
+      : overlay.points.find((point) => point.kind === 'housing')
+  }
+  if (mode === 'service') {
+    return label === '缺口住宅'
+      ? overlay.points.find((point) => point.label === '缺服务')
+      : overlay.points.find((point) => point.kind === 'service')
+  }
+  if (mode === 'logistics') {
+    return label === '热点'
+      ? overlay.points.find((point) => point.label.startsWith('物流热点'))
+      : overlay.points.find((point) => point.kind === 'logistics')
+  }
+  return label === '缺路'
+    ? overlay.points.find((point) => point.label.startsWith('缺路'))
+    : overlay.points.find((point) => point.kind === 'road')
 }
 
 function averageNeeds(snapshot: ReturnType<GameRuntime['getSnapshot']>) {

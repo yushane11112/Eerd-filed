@@ -560,11 +560,22 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   font-size: 10px;
   white-space: nowrap;
 }
-.stage-layer-readout span {
+.stage-layer-readout button {
   display: inline-flex;
   align-items: baseline;
   gap: 3px;
   min-width: 0;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+.stage-layer-readout button:hover,
+.stage-layer-readout button:focus-visible {
+  color: #7e4f32;
+  outline: none;
 }
 .stage-layer-readout b {
   color: #9b6039;

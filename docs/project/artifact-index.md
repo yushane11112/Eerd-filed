@@ -2,6 +2,17 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-28：第三十六轮城市阶段图层指标定位
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/App.tsx` | 主界面 | 阶段面板图层指标可点击并定位对应覆盖点 |
+| `src/styles.css` | 界面样式 | 将图层指标读数改为可交互按钮 |
+| `docs/project/task-board.md` | 任务看板 | 标记 CITY-STAGE-OVERLAY-METRIC-FOCUS-01 完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录第三十六轮启动、完成和验证结果 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新 UI/UX 完成度和下一轮任务 |
+| `docs/project/qa.md` | 验收记录 | 记录本轮目标测试和后续全量验证 |
+
 ## 2026-06-28：第三十五轮城市阶段面板图层指标
 
 | 文件 | 产物类型 | 用途 |

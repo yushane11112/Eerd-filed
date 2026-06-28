@@ -138,7 +138,8 @@ describe('stage advisor overlays', () => {
       label: '道路连通',
       points: expect.arrayContaining([
         { kind: 'road', label: '道路', position: { x: 1, y: 1 } },
-        { kind: 'road', label: '缺路', position: { x: 8, y: 8 } },
+        { kind: 'road', label: '缺路仓储', position: { x: 8, y: 8 } },
+        { kind: 'road', label: '缺路住宅', position: { x: 12, y: 12 } },
       ]),
     })
   })

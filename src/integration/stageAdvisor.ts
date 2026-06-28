@@ -205,7 +205,7 @@ export function deriveStageMapOverlay(
       .slice(0, 4)
       .map((building) => ({
         kind: 'road' as const,
-        label: '缺路',
+        label: roadGapLabel(building.type),
         position: building.entrance,
       })),
   ])
@@ -272,4 +272,13 @@ function isNear(a: GridPoint, b: GridPoint, distance: number): boolean {
 
 function serviceRadius(level: number): number {
   return 3 + Math.min(level, 5)
+}
+
+function roadGapLabel(type: string): string {
+  const definition = BUILDING_DEFINITIONS[type]
+  if (type === 'house' || definition?.functions?.includes('housing')) return '缺路住宅'
+  if (definition?.functions?.some((fn) => fn === 'service' || fn === 'market' || fn === 'culture')) return '缺路服务'
+  if (definition?.functions?.includes('storage')) return '缺路仓储'
+  if (definition?.functions?.some((fn) => fn === 'production' || fn === 'employment')) return '缺路生产'
+  return '缺路'
 }

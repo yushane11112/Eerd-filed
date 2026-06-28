@@ -2,6 +2,17 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-28：第三十一轮城市阶段道路缺口诊断
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 阶段顾问数据层 | 道路图层按建筑功能细分缺路标签 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证缺路住宅和缺路仓储标签 |
+| `docs/project/task-board.md` | 任务看板 | 标记 CITY-STAGE-ROAD-GAP-01 完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录第三十一轮启动、完成和验证结果 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新 UI/UX 完成度和下一轮任务 |
+| `docs/project/qa.md` | 验收记录 | 记录本轮目标测试和后续全量验证 |
+
 ## 2026-06-27：第三十轮城市阶段服务缺口诊断
 
 | 文件 | 产物类型 | 用途 |

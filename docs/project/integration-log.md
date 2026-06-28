@@ -70,6 +70,9 @@
 - 启动第三十三轮并行生产：CITY-STAGE-OVERLAY-SUMMARY-01，把覆盖图层从地图标记推进为可读摘要。
 - 完成第三十三轮并行生产：`StageAdvisorOverlay` 增加 `summary`，住房、服务、物流和道路图层分别输出住宅/空位、服务点/缺口住宅、未完成订单/热点、道路点/缺路摘要；地图覆盖层顶部显示摘要条。
 - 第三十三轮目标验证通过：阶段覆盖测试 3 项通过，TypeScript 检查通过。
+- 启动第三十四轮并行生产：CITY-STAGE-OVERLAY-METRICS-01，把覆盖图层摘要推进为结构化指标。
+- 完成第三十四轮并行生产：`StageAdvisorOverlay` 增加 `metrics` 字典；住房、服务、物流和道路图层分别输出 `houses/openHousing`、`servicePoints/serviceGaps`、`activeOrders/hotspots`、`roadCells/roadGaps`，为后续接入瓶颈/阶段面板做准备。
+- 第三十四轮目标验证通过：阶段覆盖测试 3 项通过，TypeScript 检查通过。
 - 补强商业级完整上线总计划：`commercial-launch-master-plan.md` 新增美术 ART-P0–P11 全阶段上线要求，明确美术不是首批金标任务，而是从方向、灰盒、概念、金标、角色、动画、环境、UI、Alpha 量产、Beta 完整化、RC 冻结到上线后运营的完整生产线。
 - 清理 `production-pipeline.md` 与 `gates.md` 中残留的 28×9、四岛、音乐奖励、拾取材料等旧主线门禁，替换为可扩展建筑/街区资产矩阵、人口生命周期、城市吸引力、街区繁荣和城市问题诊断。
 - 更新 `task-board.md`、`progress-dashboard.md` 和 `artifact-index.md`，让本轮总计划一致性补强在项目中枢内可追踪。

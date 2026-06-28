@@ -2,6 +2,17 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-28：第三十四轮城市阶段覆盖图层结构化指标
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 阶段顾问数据层 | 覆盖层增加结构化 metrics 字段 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证四类图层输出结构化指标 |
+| `docs/project/task-board.md` | 任务看板 | 标记 CITY-STAGE-OVERLAY-METRICS-01 完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录第三十四轮启动、完成和验证结果 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新 UI/UX 完成度和下一轮任务 |
+| `docs/project/qa.md` | 验收记录 | 记录本轮目标测试和后续全量验证 |
+
 ## 2026-06-28：第三十三轮城市阶段覆盖图层摘要
 
 | 文件 | 产物类型 | 用途 |

@@ -39,6 +39,7 @@ export interface StageAdvisorOverlay {
   paths?: StageAdvisorOverlayPath[]
   areas?: StageAdvisorOverlayArea[]
   summary?: string[]
+  metrics?: Record<string, number>
 }
 
 export const STAGE_ADVISOR_OVERLAY_MODES: ReadonlyArray<{
@@ -125,10 +126,15 @@ export function deriveStageMapOverlay(
           position: building.entrance,
         }
       })
+    const openHousing = snapshot.metrics.openHousingCapacity
+      ?? Math.max(0, snapshot.metrics.housingCapacity - snapshot.metrics.population)
     return compactOverlay(id, '住房容量', housingPoints, [], [], [
       `住宅 ${housingPoints.length}`,
-      `空位 ${snapshot.metrics.openHousingCapacity ?? Math.max(0, snapshot.metrics.housingCapacity - snapshot.metrics.population)}`,
-    ])
+      `空位 ${openHousing}`,
+    ], {
+      houses: housingPoints.length,
+      openHousing,
+    })
   }
 
   if (mode === 'service') {
@@ -164,7 +170,10 @@ export function deriveStageMapOverlay(
     ], [], serviceAreas, [
       `服务点 ${serviceBuildings.length}`,
       `缺口住宅 ${uncoveredHomes.length}`,
-    ])
+    ], {
+      servicePoints: serviceBuildings.length,
+      serviceGaps: uncoveredHomes.length,
+    })
   }
 
   if (mode === 'logistics') {
@@ -218,7 +227,10 @@ export function deriveStageMapOverlay(
     }), [], [
       `未完成 ${activeOrders.length}`,
       `热点 ${hotspots.length}`,
-    ])
+    ], {
+      activeOrders: activeOrders.length,
+      hotspots: hotspots.length,
+    })
   }
 
   const roadCells = snapshot.cells
@@ -243,7 +255,10 @@ export function deriveStageMapOverlay(
   ], [], [], [
     `道路点 ${roadCells.length}`,
     `缺路 ${roadGaps.length}`,
-  ])
+  ], {
+    roadCells: roadCells.length,
+    roadGaps: roadGaps.length,
+  })
 }
 
 function compactOverlay(
@@ -253,6 +268,7 @@ function compactOverlay(
   paths: StageAdvisorOverlayPath[] = [],
   areas: StageAdvisorOverlayArea[] = [],
   summary: string[] = [],
+  metrics: Record<string, number> = {},
 ): StageAdvisorOverlay | undefined {
   const seen = new Set<string>()
   const unique = points.filter((point) => {
@@ -301,6 +317,7 @@ function compactOverlay(
   if (limitedAreas.length > 0) overlay.areas = limitedAreas
   const cleanSummary = summary.filter(Boolean).slice(0, 3)
   if (cleanSummary.length > 0) overlay.summary = cleanSummary
+  if (Object.keys(metrics).length > 0) overlay.metrics = { ...metrics }
   return overlay
 }
 

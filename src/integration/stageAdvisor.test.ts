@@ -235,15 +235,44 @@ describe('stage advisor overlays', () => {
           to: { x: 4, y: 5 },
         },
       ]),
-      summary: ['活动 3', '服务 1', '货运 1'],
+      summary: ['道压 3', '服务热 1', '货拥 1'],
       metrics: {
         activeAgents: 3,
         serviceVisits: 1,
         commutes: 1,
         cargoTrips: 1,
         hotspots: 2,
+        roadPressure: 3,
+        serviceHeat: 1,
+        cargoCongestion: 1,
       },
     })
+  })
+
+  it('turns concentrated activity into a governance card', () => {
+    const snapshot = makeSnapshot({
+      agents: {
+        shopper1: serviceAgent('shopper1', { x: 4, y: 5 }),
+        shopper2: serviceAgent('shopper2', { x: 4, y: 5 }),
+        cart1: cargoAgent('cart1', { x: 4, y: 5 }),
+        cart2: cargoAgent('cart2', { x: 4, y: 5 }),
+      },
+    })
+
+    expect(deriveStageGovernanceCards(snapshot)).toMatchObject([
+      {
+        id: 'governance-activity-pressure',
+        title: '城市活动压力',
+        recommendation: {
+          label: '打开活动图层检查热区',
+          tool: 'inspect',
+          overlayMode: 'activity',
+        },
+        overlayMode: 'activity',
+        metricLabel: '货拥',
+        target: { point: { x: 4, y: 5 }, label: '货运热x4' },
+      },
+    ])
   })
 
   it('turns layer metrics into sorted governance cards', () => {
@@ -378,5 +407,44 @@ function building(id: string, type: string, entrance: { x: number; y: number }):
     workers: [],
     inventory: {},
     productionProgress: 0,
+  }
+}
+
+function serviceAgent(id: string, position: { x: number; y: number }): SimulationSnapshot['agents'][string] {
+  return {
+    id,
+    role: 'resident',
+    householdId: 'family',
+    position,
+    path: [position, { x: position.x + 2, y: position.y }],
+    pathIndex: 0,
+    activity: 'shopping',
+    serviceIntent: {
+      buildingId: 'market',
+      need: 'food',
+      resource: 'food',
+      amount: 1,
+      saleValue: 5,
+      restoreAmount: 16,
+    },
+  }
+}
+
+function cargoAgent(id: string, position: { x: number; y: number }): SimulationSnapshot['agents'][string] {
+  return {
+    id,
+    role: 'cart',
+    position,
+    path: [position, { x: position.x + 3, y: position.y }],
+    pathIndex: 0,
+    activity: 'delivering',
+    cargoIntent: {
+      orderId: `${id}-order`,
+      resource: 'food',
+      amount: 5,
+      sourceBuildingId: 'granary',
+      destinationBuildingId: 'market',
+      phase: 'dropoff',
+    },
   }
 }

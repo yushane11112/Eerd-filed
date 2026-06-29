@@ -163,6 +163,34 @@ export function deriveStageGovernanceCards(
     })
   }
 
+  const activity = overlays.activity
+  const roadPressure = activity?.metrics?.roadPressure ?? 0
+  const serviceHeat = activity?.metrics?.serviceHeat ?? 0
+  const cargoCongestion = activity?.metrics?.cargoCongestion ?? 0
+  if (roadPressure >= 4 || serviceHeat >= 3 || cargoCongestion >= 2) {
+    const target = activity?.points.find((point) => point.label.startsWith('货运热'))
+      ?? activity?.points.find((point) => point.label.startsWith('服务热'))
+      ?? activity?.points.find((point) => point.kind === 'activity')
+    const score = 76 + roadPressure * 2 + serviceHeat * 3 + cargoCongestion * 5
+    cards.push({
+      id: 'governance-activity-pressure',
+      title: '城市活动压力',
+      detail: `道路压力 ${roadPressure}、服务热度 ${serviceHeat}、货运拥堵 ${cargoCongestion}，说明人流与货流正在压向少数路径。`,
+      cause: '居民服务访问、工人通勤和承运人货运在同一区域叠加，可能放大道路拥堵与服务排队。',
+      action: '先打开活动图层确认热区，再补道路分流、服务点或仓储缓冲。',
+      recommendation: {
+        label: '打开活动图层检查热区',
+        tool: 'inspect',
+        overlayMode: 'activity',
+      },
+      score,
+      severity: severityFromScore(score),
+      overlayMode: 'activity',
+      metricLabel: cargoCongestion >= serviceHeat ? '货拥' : '服务热',
+      target: target && { point: target.position, label: target.label },
+    })
+  }
+
   return cards.sort((left, right) => (
     right.score - left.score || left.id.localeCompare(right.id)
   ))
@@ -410,16 +438,22 @@ export function deriveStageMapOverlay(
       && !agent.cargoIntent
       && (agent.activity === 'commuting' || agent.activity === 'returning')
     )).length
+    const roadPressure = activeAgents.filter((agent) => agent.path.length > 1).length
+    const serviceHeat = serviceVisits
+    const cargoCongestion = cargoTrips
     return compactOverlay(id, '城市活动热力', hotspots, paths, [], [
-      `活动 ${activeAgents.length}`,
-      `服务 ${serviceVisits}`,
-      `货运 ${cargoTrips}`,
+      `道压 ${roadPressure}`,
+      `服务热 ${serviceHeat}`,
+      `货拥 ${cargoCongestion}`,
     ], {
       activeAgents: activeAgents.length,
       serviceVisits,
       commutes,
       cargoTrips,
       hotspots: hotspots.length,
+      roadPressure,
+      serviceHeat,
+      cargoCongestion,
     })
   }
 

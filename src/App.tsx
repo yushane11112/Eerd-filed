@@ -926,9 +926,9 @@ function formatStageOverlayMetrics(
   }
   if (mode === 'activity') {
     return [
-      { label: '活动', value: metrics.activeAgents ?? 0 },
-      { label: '货运', value: metrics.cargoTrips ?? 0 },
-      { label: '服务', value: metrics.serviceVisits ?? 0 },
+      { label: '道压', value: metrics.roadPressure ?? metrics.activeAgents ?? 0 },
+      { label: '货拥', value: metrics.cargoCongestion ?? metrics.cargoTrips ?? 0 },
+      { label: '服务热', value: metrics.serviceHeat ?? metrics.serviceVisits ?? 0 },
     ]
   }
   return [
@@ -958,8 +958,8 @@ function pickStageOverlayPoint(
       : overlay.points.find((point) => point.kind === 'logistics')
   }
   if (mode === 'activity') {
-    if (label === '货运') return overlay.points.find((point) => point.label.startsWith('货运热'))
-    if (label === '服务') return overlay.points.find((point) => point.label.startsWith('服务热'))
+    if (label === '货拥') return overlay.points.find((point) => point.label.startsWith('货运热'))
+    if (label === '服务热') return overlay.points.find((point) => point.label.startsWith('服务热'))
     return overlay.points.find((point) => point.kind === 'activity')
   }
   return label === '缺路'

@@ -183,6 +183,10 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   background: rgba(184, 116, 152, .84);
   box-shadow: 0 0 0 5px rgba(255, 166, 209, .22), 0 8px 18px rgba(77, 38, 58, .28);
 }
+.stage-overlay-marker--placement {
+  background: rgba(70, 142, 117, .92);
+  box-shadow: 0 0 0 6px rgba(114, 218, 160, .28), 0 10px 22px rgba(30, 82, 59, .32);
+}
 .stage-overlay-marker i {
   position: absolute;
   left: 50%;
@@ -364,6 +368,10 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   color: #9b7d6d;
   background: rgba(229, 199, 171, .38);
   cursor: not-allowed;
+}
+.build-palette > button.recommended {
+  outline: 2px solid rgba(69, 126, 103, .72);
+  background: rgba(219, 239, 211, .72);
 }
 
 .simulation-controls {

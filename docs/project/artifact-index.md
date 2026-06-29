@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第五十九轮治理卡推荐落点提示
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 城市顾问数据层 | 新增 placement 覆盖点和 `withRecommendationExecutionOverlay`，把建议落点/入口注入地图图层 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证 placement 点优先进入覆盖图层，避免被热点点位裁掉 |
+| `src/App.tsx` | 主界面 | 点击建筑类治理建议后保留推荐对象，地图显示建议落点，建造菜单标出推荐建筑 |
+| `src/styles.css` | 界面样式 | 增加推荐落点 marker 与推荐建筑按钮样式 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `GOVERNANCE-PLACEMENT-FOCUS-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第五十九轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录推荐落点提示和浏览器 QA 修复事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、浏览器验证、全量测试和构建结果 |
+
 ## 2026-06-29：第五十八轮建造菜单成本与缺口
 
 | 文件 | 产物类型 | 用途 |

@@ -18,6 +18,7 @@ export type StageAdvisorOverlayKind =
   | 'logistics'
   | 'road'
   | 'activity'
+  | 'placement'
 
 export interface StageAdvisorOverlayPoint {
   kind: StageAdvisorOverlayKind
@@ -81,6 +82,7 @@ export interface StageGovernanceRecommendation {
     buildable: boolean
     reason: string
     candidate?: GridPoint
+    entrance?: GridPoint
     landCandidates: number
     roadAnchors: number
     missingMaterials?: Partial<Record<string, number>>
@@ -557,6 +559,40 @@ export function deriveStageMapOverlay(
   })
 }
 
+export function withRecommendationExecutionOverlay(
+  overlay: StageAdvisorOverlay | undefined,
+  recommendation: Readonly<StageGovernanceRecommendation> | undefined,
+  id = Date.now(),
+): StageAdvisorOverlay | undefined {
+  const execution = recommendation?.execution
+  if (!execution?.candidate) return overlay
+  const points: StageAdvisorOverlayPoint[] = [
+    {
+      kind: 'placement',
+      label: '建议落点',
+      position: execution.candidate,
+    },
+    ...(execution.entrance ? [{
+      kind: 'placement' as const,
+      label: '入口',
+      position: execution.entrance,
+    }] : []),
+    ...(overlay?.points ?? []),
+  ]
+  return compactOverlay(
+    id,
+    overlay?.label ?? '推荐营造位置',
+    points,
+    overlay?.paths ?? [],
+    overlay?.areas ?? [],
+    [
+      recommendation?.buildingType ? `推荐 ${BUILDING_DEFINITIONS[recommendation.buildingType]?.name ?? recommendation.buildingType}` : '推荐营造',
+      ...(overlay?.summary ?? []),
+    ],
+    overlay?.metrics ?? {},
+  )
+}
+
 function compactOverlay(
   id: number,
   label: string,
@@ -777,6 +813,7 @@ function diagnoseBuildingRecommendationExecution(
         buildable: true,
         reason: '已找到空地和道路入口，可切换到营造工具试放。',
         candidate: origin,
+        entrance,
         landCandidates,
         roadAnchors,
       }

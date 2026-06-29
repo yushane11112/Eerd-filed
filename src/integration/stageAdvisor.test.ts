@@ -5,6 +5,7 @@ import {
   deriveStageGovernanceCards,
   deriveStageMapOverlay,
   explainStageRecommendationAvailability,
+  withRecommendationExecutionOverlay,
 } from './stageAdvisor'
 
 describe('stage advisor overlays', () => {
@@ -464,6 +465,40 @@ describe('stage advisor overlays', () => {
         missingMaterials: { wood: 4, stone: 2 },
         missingTreasury: 0,
       },
+    })
+  })
+
+  it('adds a recommended placement candidate to an existing overlay', () => {
+    const recommendation = explainStageRecommendationAvailability({
+      label: '营造集市',
+      tool: 'building',
+      buildingType: 'market',
+      overlayMode: 'service',
+    }, makeSnapshot({
+      cells: [
+        ...landRect(0, 0, 4, 3),
+        { point: { x: 1, y: 2 }, terrain: 'land', elevation: 0, road: 'stone' },
+      ],
+      buildings: {
+        granary: { ...building('granary', 'granary', { x: 8, y: 8 }), inventory: { wood: 10, stone: 10 } },
+      },
+      economy: { treasury: 500, taxRate: 0.1, lastTaxIncome: 0, lastMaintenanceCost: 0 },
+    }))
+
+    expect(withRecommendationExecutionOverlay({
+      id: 20,
+      label: '服务范围',
+      points: [{ kind: 'service', label: '服务点', position: { x: 4, y: 5 } }],
+      summary: ['服务点 1'],
+    }, recommendation, 21)).toMatchObject({
+      id: 21,
+      label: '服务范围',
+      points: [
+        { kind: 'placement', label: '建议落点', position: { x: 0, y: 0 } },
+        { kind: 'placement', label: '入口', position: { x: 1, y: 1 } },
+        { kind: 'service', label: '服务点', position: { x: 4, y: 5 } },
+      ],
+      summary: ['推荐 临河集市', '服务点 1'],
     })
   })
 

@@ -43,8 +43,10 @@ import {
   deriveStageGovernanceCards,
   deriveStageMapOverlay,
   STAGE_ADVISOR_OVERLAY_MODES,
+  withRecommendationExecutionOverlay,
   type StageAdvisorOverlay,
   type StageAdvisorOverlayMode,
+  type StageGovernanceRecommendation,
 } from './integration/stageAdvisor'
 import {
   createBrowserFullscreenAdapter,
@@ -72,6 +74,8 @@ export default function App() {
   const [optionalRewardOpen, setOptionalRewardOpen] = useState(false)
   const [stageAdvisorOverlay, setStageAdvisorOverlay] = useState<StageAdvisorOverlay | null>(null)
   const [activeStageOverlayMode, setActiveStageOverlayMode] = useState<StageAdvisorOverlayMode | null>(null)
+  const [recommendedBuildType, setRecommendedBuildType] = useState<string | null>(null)
+  const [activeStageRecommendation, setActiveStageRecommendation] = useState<StageGovernanceRecommendation | null>(null)
   const [cameraFocusRequest, setCameraFocusRequest] = useState<CameraFocusRequest | null>(null)
   const shellRef = useRef<HTMLElement>(null)
   const fullscreenRef = useRef<FullscreenController | null>(null)
@@ -109,8 +113,9 @@ export default function App() {
 
   useEffect(() => {
     if (!activeStageOverlayMode) return
-    setStageAdvisorOverlay(deriveStageMapOverlay(activeStageOverlayMode, snapshot, Date.now()) ?? null)
-  }, [activeStageOverlayMode, snapshot])
+    const overlay = deriveStageMapOverlay(activeStageOverlayMode, snapshot, Date.now()) ?? undefined
+    setStageAdvisorOverlay(withRecommendationExecutionOverlay(overlay, activeStageRecommendation ?? undefined, Date.now()) ?? null)
+  }, [activeStageOverlayMode, activeStageRecommendation, snapshot])
 
   const selectedBuilding = selectedBuildingId
     ? snapshot.buildings[selectedBuildingId]
@@ -131,6 +136,7 @@ export default function App() {
   const chooseTool = (next: BuildTool) => {
     setTool(next)
     setSelectedBuildingId(null)
+    if (next.kind !== 'building') setRecommendedBuildType(null)
     if (next.kind === 'road') setToast('道路模式：点击地块连续铺设石路。')
     if (next.kind === 'building') setToast(`营造「${BUILDING_DEFINITIONS[next.type].name}」：点击绿色可建地块。`)
   }
@@ -232,11 +238,13 @@ export default function App() {
     if (activeStageOverlayMode === mode) {
       setActiveStageOverlayMode(null)
       setStageAdvisorOverlay(null)
+      setActiveStageRecommendation(null)
       setToast('阶段图层已关闭。')
       return
     }
     const overlay = deriveStageMapOverlay(mode, snapshot, Date.now()) ?? null
     setActiveStageOverlayMode(mode)
+    setActiveStageRecommendation(null)
     setStageAdvisorOverlay(overlay)
     setToast(overlay ? `已打开${overlay.label}图层。` : '当前地图还没有可显示的图层点。')
   }
@@ -256,38 +264,52 @@ export default function App() {
 
   const applyBottleneckRecommendation = (item: CityBottleneck) => {
     const recommendation = item.recommendation
+    setActiveStageRecommendation(recommendation)
+    let overlay: StageAdvisorOverlay | null = null
     if (recommendation.overlayMode) {
-      const overlay = deriveStageMapOverlay(recommendation.overlayMode, snapshot, Date.now()) ?? null
+      overlay = deriveStageMapOverlay(recommendation.overlayMode, snapshot, Date.now()) ?? null
       setActiveStageOverlayMode(recommendation.overlayMode)
-      setStageAdvisorOverlay(overlay)
     }
+    const overlayWithCandidate = withRecommendationExecutionOverlay(overlay ?? undefined, recommendation, Date.now()) ?? null
+    if (overlayWithCandidate) setStageAdvisorOverlay(overlayWithCandidate)
     if (recommendation.tool === 'road') {
+      setRecommendedBuildType(null)
+      setActiveStageRecommendation(null)
       chooseTool({ kind: 'road' })
       setToast(`${item.title}：${recommendation.label}。`)
       return
     }
     if (recommendation.tool === 'building' && recommendation.buildingType) {
       if (!BUILDING_DEFINITIONS[recommendation.buildingType]) {
+        setRecommendedBuildType(null)
+        setActiveStageRecommendation(null)
         setTool({ kind: 'inspect' })
         setToast(`${item.title}：推荐建筑暂未开放，先按图层定位问题。`)
         return
       }
       const currentStage = deriveRuntimeCityStage(snapshot.metrics)
       if (!isRuntimeBuildingUnlocked(recommendation.buildingType, currentStage)) {
+        setRecommendedBuildType(null)
+        setActiveStageRecommendation(null)
         setTool({ kind: 'inspect' })
         setToast(`${item.title}：${recommendation.availability?.reason ?? '推荐建筑当前阶段未解锁'}先按图层定位问题。`)
         return
       }
       if (recommendation.execution && !recommendation.execution.buildable) {
+        setRecommendedBuildType(null)
+        setActiveStageRecommendation(null)
         setTool({ kind: 'inspect' })
         setToast(`${item.title}：${recommendation.execution.reason}`)
         return
       }
+      setRecommendedBuildType(recommendation.buildingType)
       chooseTool({ kind: 'building', type: recommendation.buildingType, rotation: 0 })
       setToast(`${item.title}：${recommendation.label}。`)
       return
     }
     setTool({ kind: 'inspect' })
+    setRecommendedBuildType(null)
+    setActiveStageRecommendation(null)
     setToast(`${item.title}：${recommendation.label}。`)
   }
 
@@ -362,6 +384,7 @@ export default function App() {
               tool.kind === 'building' && tool.type === item.type ? 'active' : '',
               item.unlocked ? '' : 'locked',
               item.unlocked && !item.canBuild ? 'unaffordable' : '',
+              recommendedBuildType === item.type ? 'recommended' : '',
             ].filter(Boolean).join(' ')}
             disabled={!item.unlocked || !item.canBuild}
             title={item.unavailableReason ?? `${item.shortName}：${formatConstructionCost(item.construction.cost)}`}

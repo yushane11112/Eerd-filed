@@ -154,6 +154,13 @@
 - `npm test`：30 个测试文件、205 项测试通过。
 - `npm run build`：TypeScript 与 Vite 生产构建通过。
 
+## 2026-06-29 第五十九轮验证
+
+- `npm test -- src/integration/stageAdvisor.test.ts src/content/buildings.test.ts`：2 个测试文件、20 项通过，覆盖推荐落点注入和建造菜单成本状态。
+- `npm run build`：TypeScript 与 Vite 生产构建通过。
+- 浏览器 QA：`http://localhost:5173/` 打开正常，无 console error/warn；建造菜单显示银两/材料成本；点击“打开服务图层并营造市场”后，地图显示“建议落点/入口”，建造菜单标出“集市”为推荐建筑。
+- `npm test`：30 个测试文件、206 项测试通过。
+
 ## 2026-06-27 第十二轮验证
 
 - `pnpm vitest run src/simulation/core/SimulationEngine.test.ts`：12 项通过，覆盖候选抵达、正式入住、低吸引力拒绝、无房离开、迁出和满意度压力。

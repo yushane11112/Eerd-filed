@@ -130,6 +130,12 @@
 - `npm test`：30 个测试文件、201 项测试通过。
 - `npm run build`：TypeScript 与 Vite 生产构建通过。
 
+## 2026-06-29 第五十五轮验证
+
+- `npm test -- src/integration/stageAdvisor.test.ts`：1 个测试文件、9 项通过，覆盖治理卡推荐建筑的阶段可用性解释。
+- `npm test`：30 个测试文件、202 项测试通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过。
+
 ## 2026-06-27 第十二轮验证
 
 - `pnpm vitest run src/simulation/core/SimulationEngine.test.ts`：12 项通过，覆盖候选抵达、正式入住、低吸引力拒绝、无房离开、迁出和满意度压力。

@@ -2,6 +2,18 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第五十五轮治理卡推荐阶段可用性
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 城市顾问数据层 | 推荐对象携带当前阶段、所需阶段和解锁状态；未解锁建筑推荐降级为查看图层 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证木作坊在水乡镇被解释为未解锁，到商贸镇后恢复建筑推荐 |
+| `src/App.tsx` | 主界面 | 治理卡显示阶段限制，点击推荐时二次检查建筑是否已解锁 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `CITY-RECOMMENDATION-UNLOCK-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第五十五轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录推荐阶段可用性集成事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、全量测试和构建结果 |
+
 ## 2026-06-29：第五十四轮活动压力分因推荐
 
 | 文件 | 产物类型 | 用途 |

@@ -1,5 +1,10 @@
 import type { GridPoint, SimulationSnapshot } from '../simulation/contracts'
-import { BUILDING_DEFINITIONS } from '../content/runtimeBuildings'
+import {
+  BUILDING_DEFINITIONS,
+  CITY_STAGE_LABELS,
+  deriveRuntimeCityStage,
+  isRuntimeBuildingUnlocked,
+} from '../content/runtimeBuildings'
 
 export type StageRequirementId = 'population' | 'attraction' | 'activeDistricts'
 export type StageAdvisorOverlayMode = 'housing' | 'service' | 'logistics' | 'roads' | 'activity'
@@ -49,12 +54,7 @@ export interface StageGovernanceCard {
   detail: string
   cause: string
   action: string
-  recommendation: {
-    label: string
-    tool: 'road' | 'building' | 'inspect'
-    buildingType?: string
-    overlayMode?: StageAdvisorOverlayMode
-  }
+  recommendation: StageGovernanceRecommendation
   score: number
   severity: 'high' | 'medium' | 'low'
   overlayMode: StageAdvisorOverlayMode
@@ -62,6 +62,19 @@ export interface StageGovernanceCard {
   target?: {
     point: GridPoint
     label: string
+  }
+}
+
+export interface StageGovernanceRecommendation {
+  label: string
+  tool: 'road' | 'building' | 'inspect'
+  buildingType?: string
+  overlayMode?: StageAdvisorOverlayMode
+  availability?: {
+    unlocked: boolean
+    currentStageLabel: string
+    requiredStageLabel?: string
+    reason?: string
   }
 }
 
@@ -92,18 +105,19 @@ export function deriveStageGovernanceCards(
   if (serviceGaps > 0) {
     const target = service?.points.find((point) => point.label === '缺服务')
     const score = 92 + serviceGaps * 4
+    const recommendation = explainStageRecommendationAvailability({
+      label: '打开服务图层并营造市场',
+      tool: 'building',
+      buildingType: 'market',
+      overlayMode: 'service',
+    }, snapshot)
     cards.push({
       id: 'governance-service-gaps',
       title: '服务覆盖缺口',
       detail: `${serviceGaps} 处住宅不在服务范围内，后续会拖低满意度和迁入吸引力。`,
       cause: '住宅离现有市场、医馆、学塾或文化服务太远，居民无法形成稳定服务访问。',
-      action: '优先在缺口附近补市场、医馆、学塾或文化服务。',
-      recommendation: {
-        label: '打开服务图层并营造市场',
-        tool: 'building',
-        buildingType: 'market',
-        overlayMode: 'service',
-      },
+      action: actionWithAvailability('优先在缺口附近补市场、医馆、学塾或文化服务。', recommendation),
+      recommendation,
       score,
       severity: severityFromScore(score),
       overlayMode: 'service',
@@ -117,17 +131,18 @@ export function deriveStageGovernanceCards(
   if (roadGaps > 0) {
     const target = roads?.points.find((point) => point.label.startsWith('缺路'))
     const score = 88 + roadGaps * 3
+    const recommendation = explainStageRecommendationAvailability({
+      label: '打开道路图层并铺路',
+      tool: 'road',
+      overlayMode: 'roads',
+    }, snapshot)
     cards.push({
       id: 'governance-road-gaps',
       title: '道路入口缺口',
       detail: `${roadGaps} 处建筑入口没有道路贴近，通勤、服务和物流都会变慢。`,
       cause: '建筑入口没有贴近道路，居民、工人和承运人无法稳定走共享路径。',
-      action: '先给住宅、仓储、服务和生产入口补齐道路连接。',
-      recommendation: {
-        label: '打开道路图层并铺路',
-        tool: 'road',
-        overlayMode: 'roads',
-      },
+      action: actionWithAvailability('先给住宅、仓储、服务和生产入口补齐道路连接。', recommendation),
+      recommendation,
       score,
       severity: severityFromScore(score),
       overlayMode: 'roads',
@@ -143,18 +158,19 @@ export function deriveStageGovernanceCards(
     const target = logistics?.points.find((point) => point.label.startsWith('物流热点'))
       ?? logistics?.points.find((point) => point.kind === 'logistics')
     const score = 82 + hotspots * 8 + activeOrders
+    const recommendation = explainStageRecommendationAvailability({
+      label: '打开物流图层并补仓储',
+      tool: 'building',
+      buildingType: 'granary',
+      overlayMode: 'logistics',
+    }, snapshot)
     cards.push({
       id: 'governance-logistics-hotspots',
       title: '物流热点拥堵',
       detail: `当前有 ${activeOrders} 条未完成订单、${hotspots} 个物流热点，货物流转容易压到少数建筑。`,
       cause: '订单集中在少数产地、仓储或市场，现有道路与仓储缓冲不足。',
-      action: '靠近热点补仓储、优化道路，避免产地和市场单线拥堵。',
-      recommendation: {
-        label: '打开物流图层并补仓储',
-        tool: 'building',
-        buildingType: 'granary',
-        overlayMode: 'logistics',
-      },
+      action: actionWithAvailability('靠近热点补仓储、优化道路，避免产地和市场单线拥堵。', recommendation),
+      recommendation,
       score,
       severity: severityFromScore(score),
       overlayMode: 'logistics',
@@ -173,23 +189,24 @@ export function deriveStageGovernanceCards(
       ?? activity?.points.find((point) => point.label.startsWith('服务热'))
       ?? activity?.points.find((point) => point.kind === 'activity')
     const score = 76 + roadPressure * 2 + serviceHeat * 3 + cargoCongestion * 5
-    const recommendation = activityPressureRecommendation({
+    const pressureRecommendation = activityPressureRecommendation({
       roadPressure,
       serviceHeat,
       cargoCongestion,
       targetLabel: target?.label,
     })
+    const recommendation = explainStageRecommendationAvailability(pressureRecommendation.recommendation, snapshot)
     cards.push({
       id: 'governance-activity-pressure',
       title: '城市活动压力',
       detail: `道路压力 ${roadPressure}、服务热度 ${serviceHeat}、货运拥堵 ${cargoCongestion}，说明人流与货流正在压向少数路径。`,
       cause: '居民服务访问、工人通勤和承运人货运在同一区域叠加，可能放大道路拥堵与服务排队。',
-      action: recommendation.action,
-      recommendation: recommendation.recommendation,
+      action: actionWithAvailability(pressureRecommendation.action, recommendation),
+      recommendation,
       score,
       severity: severityFromScore(score),
       overlayMode: 'activity',
-      metricLabel: recommendation.metricLabel,
+      metricLabel: pressureRecommendation.metricLabel,
       target: target && { point: target.position, label: target.label },
     })
   }
@@ -644,6 +661,47 @@ function isRoadPressureLabel(label: string): boolean {
     || label.startsWith('货路')
     || label.startsWith('服路')
     || label.startsWith('通路')
+}
+
+export function explainStageRecommendationAvailability(
+  recommendation: StageGovernanceRecommendation,
+  snapshot: Pick<SimulationSnapshot, 'metrics'>,
+): StageGovernanceRecommendation {
+  if (recommendation.tool !== 'building' || !recommendation.buildingType) return recommendation
+  const definition = BUILDING_DEFINITIONS[recommendation.buildingType]
+  if (!definition) return recommendation
+  const currentStage = deriveRuntimeCityStage(snapshot.metrics)
+  const requiredStage = definition.cityStage ?? 'water-town'
+  const currentStageLabel = CITY_STAGE_LABELS[currentStage]
+  const requiredStageLabel = CITY_STAGE_LABELS[requiredStage]
+  if (isRuntimeBuildingUnlocked(recommendation.buildingType, currentStage)) {
+    return {
+      ...recommendation,
+      availability: {
+        unlocked: true,
+        currentStageLabel,
+        requiredStageLabel,
+      },
+    }
+  }
+  return {
+    label: `先解锁${requiredStageLabel}`,
+    tool: 'inspect',
+    overlayMode: recommendation.overlayMode,
+    availability: {
+      unlocked: false,
+      currentStageLabel,
+      requiredStageLabel,
+      reason: `${definition.name}需要进入${requiredStageLabel}后营造，当前阶段是${currentStageLabel}。`,
+    },
+  }
+}
+
+function actionWithAvailability(action: string, recommendation: StageGovernanceRecommendation): string {
+  if (recommendation.availability?.unlocked === false && recommendation.availability.reason) {
+    return `${recommendation.availability.reason}先查看相关图层，用道路分流或已解锁建筑临时缓解。`
+  }
+  return action
 }
 
 function activityPressureRecommendation(input: {

@@ -40,6 +40,7 @@
 | CITY-ACTIVITY-PRESSURE-01 | 城市活动压力治理卡 | `src/integration/stageAdvisor.ts`, `src/App.tsx` | 已完成 | 活动图层拆出道路压力、服务热度和货运拥堵读数，并能生成可点击治理卡 |
 | CITY-ROAD-PRESSURE-CELLS-01 | 道路格活动压力投射 | `src/integration/stageAdvisor.ts`, `src/App.tsx` | 已完成 | 活动压力读取 agent 剩余路径并投射到真实道路格，显示可定位道路承压点 |
 | CITY-ACTIVITY-RECOMMENDATION-01 | 活动压力分流建议 | `src/integration/stageAdvisor.ts` | 已完成 | 城市活动压力按货拥、服务热和道压分别推荐补仓储、补服务点或铺路分流 |
+| CITY-RECOMMENDATION-UNLOCK-01 | 治理卡推荐阶段可用性 | `src/integration/stageAdvisor.ts`, `src/App.tsx` | 已完成 | 建筑推荐会说明当前阶段/所需阶段，未解锁时降级为查看图层且 UI 禁止切换到未解锁建筑工具 |
 | CITY-STAGE-OVERLAY-SUMMARY-01 | 城市阶段覆盖图层摘要 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 覆盖图层显示住宅、服务缺口、物流热点和道路缺口摘要 |
 | CITY-STAGE-OVERLAY-METRICS-01 | 城市阶段覆盖图层结构化指标 | `src/integration/**` | 已完成 | 覆盖图层输出可供面板读取的结构化指标 |
 | CITY-STAGE-OVERLAY-PANEL-METRICS-01 | 城市阶段面板图层指标 | `src/App.tsx`, `src/styles.css` | 已完成 | 阶段面板显示当前打开图层的结构化指标 |

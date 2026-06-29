@@ -29,6 +29,7 @@ import {
   GameRuntime,
   getRuntimeCityStageProgress,
   getRuntimeBuildingMenu,
+  isRuntimeBuildingUnlocked,
   type BuildTool,
 } from './integration/GameRuntime'
 import {
@@ -270,6 +271,12 @@ export default function App() {
         setToast(`${item.title}：推荐建筑暂未开放，先按图层定位问题。`)
         return
       }
+      const currentStage = deriveRuntimeCityStage(snapshot.metrics)
+      if (!isRuntimeBuildingUnlocked(recommendation.buildingType, currentStage)) {
+        setTool({ kind: 'inspect' })
+        setToast(`${item.title}：${recommendation.availability?.reason ?? '推荐建筑当前阶段未解锁'}先按图层定位问题。`)
+        return
+      }
       chooseTool({ kind: 'building', type: recommendation.buildingType, rotation: 0 })
       setToast(`${item.title}：${recommendation.label}。`)
       return
@@ -500,6 +507,9 @@ export default function App() {
                   <strong>{item.title}</strong>
                   <span>{item.detail}</span>
                   <small>原因：{item.cause}</small>
+                  {item.recommendation.availability?.unlocked === false && item.recommendation.availability.reason && (
+                    <small>阶段限制：{item.recommendation.availability.reason}</small>
+                  )}
                   <em>{item.action}</em>
                   <div className="bottleneck-actions">
                     <button
@@ -680,6 +690,12 @@ interface CityBottleneck {
     tool: 'road' | 'building' | 'inspect'
     buildingType?: string
     overlayMode?: StageAdvisorOverlayMode
+    availability?: {
+      unlocked: boolean
+      currentStageLabel: string
+      requiredStageLabel?: string
+      reason?: string
+    }
   }
   score: number
   severity: BottleneckSeverity

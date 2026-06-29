@@ -4,6 +4,7 @@ import {
   deriveStageAdvisorOverlay,
   deriveStageGovernanceCards,
   deriveStageMapOverlay,
+  explainStageRecommendationAvailability,
 } from './stageAdvisor'
 
 describe('stage advisor overlays', () => {
@@ -343,6 +344,55 @@ describe('stage advisor overlays', () => {
         label: '铺路分流',
         tool: 'road',
         overlayMode: 'activity',
+      },
+    })
+  })
+
+  it('explains locked recommendation buildings and falls back to inspection', () => {
+    const locked = explainStageRecommendationAvailability({
+      label: '营造木作坊',
+      tool: 'building',
+      buildingType: 'woodshop',
+      overlayMode: 'activity',
+    }, makeSnapshot())
+    const unlocked = explainStageRecommendationAvailability({
+      label: '营造木作坊',
+      tool: 'building',
+      buildingType: 'woodshop',
+      overlayMode: 'activity',
+    }, makeSnapshot({
+      metrics: {
+        population: 16,
+        households: 4,
+        employedWorkers: 4,
+        availableJobs: 8,
+        housingCapacity: 48,
+        satisfaction: 80,
+        logisticsEfficiency: 90,
+        cityAttraction: 45,
+        activeDistricts: 2,
+      },
+    }))
+
+    expect(locked).toMatchObject({
+      label: '先解锁商贸镇',
+      tool: 'inspect',
+      overlayMode: 'activity',
+      availability: {
+        unlocked: false,
+        currentStageLabel: '水乡镇',
+        requiredStageLabel: '商贸镇',
+        reason: '木作坊需要进入商贸镇后营造，当前阶段是水乡镇。',
+      },
+    })
+    expect(unlocked).toMatchObject({
+      label: '营造木作坊',
+      tool: 'building',
+      buildingType: 'woodshop',
+      availability: {
+        unlocked: true,
+        currentStageLabel: '商贸镇',
+        requiredStageLabel: '商贸镇',
       },
     })
   })

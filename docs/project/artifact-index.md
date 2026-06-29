@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第四十一轮物流共享路径接入
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/world/movementPath.ts` | 共享路径服务 | 新增严格寻路入口、无路不兜底选项和道路必需规则 |
+| `src/simulation/world/movementPath.test.ts` | 自动测试 | 验证共享路径无路失败和桥路过水 |
+| `src/simulation/economy/logistics.ts` | 物流系统 | RoadRoutePlanner 复用共享路径服务，不再自带分叉 BFS |
+| `src/simulation/economy/economy.test.ts` | 自动测试 | 验证货运不能穿越普通水面或建筑占用格 |
+| `docs/project/task-board.md` | 任务看板 | 标记 LOGISTICS-SHARED-PATH-01 完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录第四十一轮启动、完成和行为边界 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新城市模拟完成度和下一轮默认任务 |
+| `docs/project/qa.md` | 验收记录 | 记录本轮目标测试和全量验证 |
+
 ## 2026-06-28：第三十六轮城市阶段图层指标定位
 
 | 文件 | 产物类型 | 用途 |

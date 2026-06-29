@@ -2,6 +2,9 @@
 
 ## 2026-06-29
 
+- 启动并完成第四十一轮：`LOGISTICS-SHARED-PATH-01`。物流 `RoadRoutePlanner` 不再维护独立简化 BFS，而是复用 `src/simulation/world/movementPath.ts` 的共享移动路径服务；货运必须沿有效道路/桥通行，普通水面与建筑占用格会阻断路径，无路时返回失败并触发既有物流 no-route 后果。
+- 共享移动路径服务新增 `findMovementPath`、`fallback: none` 与 `requireRoad` 选项，保留候选外来人口所需的安全直线 fallback，同时给物流提供严格“无路不兜底”能力。
+- 新增/补强测试覆盖物流不能穿越水面或占用道路、共享路径无路返回失败、桥路可过水；本轮目标测试先红后绿。
 - 启动并完成第四十轮：`DISTRICT-PROSPERITY-RUNTIME-01`。街区繁荣评分不再只依赖建筑数量、等级、邻近和状态，而是接入道路贴近、服务功能建筑和真实物流订单活动；有服务覆盖、道路入口和货物流转的街区会获得更高繁荣和人流表现。
 - 新增测试先红后绿，验证相同建筑聚集下，服务覆盖、道路访问和物流活动会提高街区繁荣与 `footTraffic` 视觉提示。
 - 启动并完成第三十九轮：`CITY-GOVERNANCE-CARDS-01`。`stageAdvisor` 新增 `deriveStageGovernanceCards`，直接复用覆盖图层的服务缺口、道路缺口和物流热点指标生成可排序治理卡；物流热点按订单集中度降序定位，避免把玩家带到次要拥堵点。

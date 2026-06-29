@@ -276,6 +276,17 @@ describe('road logistics', () => {
     )).toBeUndefined()
   })
 
+  it('does not route freight through invalid water or occupied road cells', () => {
+    const planner = new RoadRoutePlanner()
+    const blockedCells = road(0, 3).map((cell) => {
+      if (cell.point.x === 1) return { ...cell, terrain: 'water' as const }
+      if (cell.point.x === 2) return { ...cell, buildingId: 'blocking-building' }
+      return cell
+    })
+
+    expect(planner.findRoute(blockedCells, { x: 0, y: 0 }, { x: 3, y: 0 })).toBeUndefined()
+  })
+
   it('creates an order, reserves stock and transports it one grid cell per update', () => {
     const source = building('granary-1', 'granary', { x: 0, y: 0 }, { food: 8, salt: 5 })
     const destination = building('eatery-1', 'eatery', { x: 4, y: 0 })

@@ -33,6 +33,14 @@
 - `npm test`：30 个测试文件、189 项测试通过。
 - `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
 
+## 2026-06-29 第四十一轮验证
+
+- `vitest run src/simulation/economy/economy.test.ts`：先红后绿，新增测试确认货运不会穿越普通水面或建筑占用道路格。
+- `vitest run src/simulation/world/movementPath.test.ts src/simulation/economy/economy.test.ts`：2 个测试文件、33 项通过，覆盖共享路径严格失败、桥路过水和物流复用。
+- `npm test`：30 个测试文件、192 项测试通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `git diff --check`：通过，无空白或补丁格式问题。
+
 ## 2026-06-27 第十二轮验证
 
 - `pnpm vitest run src/simulation/core/SimulationEngine.test.ts`：12 项通过，覆盖候选抵达、正式入住、低吸引力拒绝、无房离开、迁出和满意度压力。

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { WorldCell } from '../contracts'
-import { buildMovementPath } from './movementPath'
+import { buildMovementPath, findMovementPath } from './movementPath'
 
 describe('shared movement paths', () => {
   it('prefers roads even when a shorter off-road line exists', () => {
@@ -55,6 +55,38 @@ describe('shared movement paths', () => {
       { x: 1, y: 2 },
       { x: 2, y: 2 },
       { x: 2, y: 1 },
+      { x: 2, y: 0 },
+    ])
+  })
+
+  it('can return no route instead of falling back to a straight line', () => {
+    const cells = grid(3, 1, [
+      cell(0, 0, 'land', 'stone'),
+      cell(1, 0, 'water', 'stone'),
+      cell(2, 0, 'land', 'stone'),
+    ])
+
+    expect(findMovementPath({ x: 0, y: 0 }, { x: 2, y: 0 }, cells, {
+      fallback: 'none',
+      requireRoad: true,
+      roadPreference: 'prefer-road',
+    })).toBeUndefined()
+  })
+
+  it('allows bridge roads over water for road-bound movement', () => {
+    const cells = grid(3, 1, [
+      cell(0, 0, 'land', 'stone'),
+      cell(1, 0, 'water', 'bridge'),
+      cell(2, 0, 'land', 'stone'),
+    ])
+
+    expect(findMovementPath({ x: 0, y: 0 }, { x: 2, y: 0 }, cells, {
+      fallback: 'none',
+      requireRoad: true,
+      roadPreference: 'prefer-road',
+    })).toEqual([
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
       { x: 2, y: 0 },
     ])
   })

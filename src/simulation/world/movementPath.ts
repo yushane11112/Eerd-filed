@@ -2,6 +2,8 @@ import type { GridPoint, WorldCell } from '../contracts'
 
 export interface MovementPathOptions {
   readonly roadPreference?: 'none' | 'prefer-road'
+  readonly fallback?: 'none' | 'straight'
+  readonly requireRoad?: boolean
 }
 
 export function buildMovementPath(
@@ -10,16 +12,28 @@ export function buildMovementPath(
   cells: readonly WorldCell[],
   options: MovementPathOptions = {},
 ): GridPoint[] {
+  return findMovementPath(from, to, cells, {
+    ...options,
+    fallback: options.fallback ?? 'straight',
+  }) ?? buildStraightPath(from, to)
+}
+
+export function findMovementPath(
+  from: GridPoint,
+  to: GridPoint,
+  cells: readonly WorldCell[],
+  options: MovementPathOptions = {},
+): GridPoint[] | undefined {
   if (samePoint(from, to)) return [{ ...from }]
   if (cells.length === 0 || options.roadPreference === 'none') {
-    return buildStraightPath(from, to)
+    return options.fallback === 'none' ? undefined : buildStraightPath(from, to)
   }
 
   const cellByKey = new Map(cells.map((cell) => [pointKey(cell.point), cell]))
   const targetKey = pointKey(to)
   const startKey = pointKey(from)
   if (!cellByKey.has(startKey) || !cellByKey.has(targetKey)) {
-    return buildStraightPath(from, to)
+    return options.fallback === 'none' ? undefined : buildStraightPath(from, to)
   }
 
   const distances = new Map<string, number>([[startKey, 0]])
@@ -40,7 +54,7 @@ export function buildMovementPath(
     for (const neighbor of gridNeighbors(current.point)) {
       const neighborKey = pointKey(neighbor)
       const cell = cellByKey.get(neighborKey)
-      if (!cell || !isPassable(cell, from, to)) continue
+      if (!cell || !isPassable(cell, from, to, options)) continue
       const distance = (distances.get(currentKey) ?? 0) + stepCost(cell, to, options)
       if (distance >= (distances.get(neighborKey) ?? Number.POSITIVE_INFINITY)) continue
       distances.set(neighborKey, distance)
@@ -49,19 +63,28 @@ export function buildMovementPath(
     }
   }
 
-  if (!distances.has(targetKey)) return buildStraightPath(from, to)
+  if (!distances.has(targetKey)) {
+    return options.fallback === 'none' ? undefined : buildStraightPath(from, to)
+  }
   const pathKeys = [targetKey]
   while (pathKeys[0] !== startKey) {
     const before = previous.get(pathKeys[0])
-    if (!before) return buildStraightPath(from, to)
+    if (!before) return options.fallback === 'none' ? undefined : buildStraightPath(from, to)
     pathKeys.unshift(before)
   }
   return pathKeys.map(parsePointKey)
 }
 
-function isPassable(cell: WorldCell, from: GridPoint, to: GridPoint): boolean {
-  if (cell.terrain === 'water') return false
-  if (samePoint(cell.point, from) || samePoint(cell.point, to)) return true
+function isPassable(
+  cell: WorldCell,
+  from: GridPoint,
+  to: GridPoint,
+  options: MovementPathOptions,
+): boolean {
+  const isEndpoint = samePoint(cell.point, from) || samePoint(cell.point, to)
+  if (isEndpoint) return true
+  if (cell.terrain === 'water' && cell.road !== 'bridge') return false
+  if (options.requireRoad && !cell.road) return false
   return !cell.buildingId
 }
 

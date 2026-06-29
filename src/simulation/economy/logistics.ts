@@ -20,6 +20,7 @@ import {
   removeInventory,
 } from './inventory'
 import { effectiveBuildingDefinition } from './upgrades'
+import { findMovementPath } from '../world/movementPath'
 
 export interface RoutePlanner {
   findRoute(cells: readonly WorldCell[], from: GridPoint, to: GridPoint): GridPoint[] | undefined
@@ -35,7 +36,6 @@ export interface LogisticsSystemOptions {
   idFactory?: () => EntityId
 }
 
-const pointKey = (point: GridPoint): string => `${point.x},${point.y}`
 const samePoint = (left: GridPoint, right: GridPoint): boolean => left.x === right.x && left.y === right.y
 const resourceOrderKey = (buildingId: EntityId, resource: ResourceKind): string => (
   `${buildingId}:${resource}`
@@ -45,47 +45,11 @@ export class RoadRoutePlanner implements RoutePlanner {
   findRoute(cells: readonly WorldCell[], from: GridPoint, to: GridPoint): GridPoint[] | undefined {
     if (samePoint(from, to)) return [{ ...from }]
 
-    const traversable = new Set(
-      cells
-        .filter((cell) => cell.road || samePoint(cell.point, from) || samePoint(cell.point, to))
-        .map((cell) => pointKey(cell.point)),
-    )
-    traversable.add(pointKey(from))
-    traversable.add(pointKey(to))
-
-    const queue: GridPoint[] = [{ ...from }]
-    const previous = new Map<string, string | undefined>([[pointKey(from), undefined]])
-    const points = new Map<string, GridPoint>([[pointKey(from), { ...from }]])
-    const directions = [[1, 0], [0, 1], [-1, 0], [0, -1]] as const
-
-    for (let index = 0; index < queue.length; index += 1) {
-      const current = queue[index]
-      for (const [dx, dy] of directions) {
-        const next = { x: current.x + dx, y: current.y + dy }
-        const nextKey = pointKey(next)
-        if (!traversable.has(nextKey) || previous.has(nextKey)) continue
-        previous.set(nextKey, pointKey(current))
-        points.set(nextKey, next)
-        if (samePoint(next, to)) return this.reconstruct(previous, points, nextKey)
-        queue.push(next)
-      }
-    }
-
-    return undefined
-  }
-
-  private reconstruct(
-    previous: ReadonlyMap<string, string | undefined>,
-    points: ReadonlyMap<string, GridPoint>,
-    destinationKey: string,
-  ): GridPoint[] {
-    const route: GridPoint[] = []
-    let cursor: string | undefined = destinationKey
-    while (cursor) {
-      route.push({ ...points.get(cursor)! })
-      cursor = previous.get(cursor)
-    }
-    return route.reverse()
+    return findMovementPath(from, to, cells, {
+      fallback: 'none',
+      requireRoad: true,
+      roadPreference: 'prefer-road',
+    })
   }
 }
 

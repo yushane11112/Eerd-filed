@@ -1,4 +1,5 @@
 import type {
+  AgentEntity,
   BuildingDefinition,
   BuildingEntity,
   GridPoint,
@@ -92,7 +93,7 @@ export class ServiceSystem implements SimulationSystem {
 
   update(snapshot: SimulationSnapshot): SimulationEvent[] {
     const events: SimulationEvent[] = []
-    this.advanceServiceVisits(snapshot)
+    events.push(...this.advanceServiceVisits(snapshot))
     const servedNeeds = new Set<string>()
     const unmetNeeds = new Map<string, {
       household: HouseholdState
@@ -147,37 +148,11 @@ export class ServiceSystem implements SimulationSystem {
         const servedHouseholdIds = new Set<string>()
         for (const household of affordableCandidates) {
           if (served >= rule.maxHouseholdsPerTick) break
-          if (rule.resource) {
-            const removed = removeInventory(serviceBuilding, rule.resource, consume)
-            if (!removed.ok) break
-            if (definition.category === 'market') {
-              const taxPaid = roundCurrency(saleValue * snapshot.economy.taxRate)
-              household.income = Math.max(0, household.income - saleValue)
-              snapshot.economy.treasury += taxPaid
-              snapshot.economy.lastTaxIncome += taxPaid
-              events.push({
-                type: 'purchase-completed',
-                buildingId: serviceBuilding.id,
-                householdId: household.id,
-                resource: rule.resource,
-                amount: consume,
-                taxPaid,
-              })
-            }
-          }
-          household.needs[rule.need] = clamp(
-            household.needs[rule.need] + rule.restoreAmount,
-            0,
-            100,
-          )
           served += 1
-          events.push({
-            type: 'service-delivered',
-            buildingId: serviceBuilding.id,
-            householdId: household.id,
-            need: rule.need,
+          this.spawnServiceVisit(snapshot, serviceBuilding, household, rule, {
+            amount: consume,
+            saleValue,
           })
-          this.spawnServiceVisit(snapshot, serviceBuilding, household, rule)
           servedNeeds.add(needKey(household.id, rule.need))
           servedHouseholdIds.add(household.id)
         }
@@ -280,6 +255,10 @@ export class ServiceSystem implements SimulationSystem {
     serviceBuilding: BuildingEntity,
     household: HouseholdState,
     rule: ServiceRule,
+    transaction: {
+      amount: number
+      saleValue: number
+    },
   ): void {
     const home = snapshot.buildings[household.homeBuildingId]
     if (!home) return
@@ -300,10 +279,19 @@ export class ServiceSystem implements SimulationSystem {
       pathIndex: 0,
       activity: serviceActivity(rule),
       activityStartedTick: snapshot.tick,
+      serviceIntent: {
+        buildingId: serviceBuilding.id,
+        need: rule.need,
+        resource: rule.resource,
+        amount: transaction.amount,
+        saleValue: transaction.saleValue,
+        restoreAmount: rule.restoreAmount,
+      },
     }
   }
 
-  private advanceServiceVisits(snapshot: SimulationSnapshot): void {
+  private advanceServiceVisits(snapshot: SimulationSnapshot): SimulationEvent[] {
+    const events: SimulationEvent[] = []
     for (const agent of Object.values(snapshot.agents).sort((left, right) => (
       left.id.localeCompare(right.id)
     ))) {
@@ -318,11 +306,62 @@ export class ServiceSystem implements SimulationSystem {
         delete snapshot.agents[agent.id]
         continue
       }
+      events.push(...this.completeServiceVisit(snapshot, agent))
       agent.activity = 'returning'
       agent.path = [...agent.path].reverse().map((point) => ({ ...point }))
       agent.pathIndex = 0
       agent.activityStartedTick = snapshot.tick
     }
+    return events
+  }
+
+  private completeServiceVisit(
+    snapshot: SimulationSnapshot,
+    agent: AgentEntity,
+  ): SimulationEvent[] {
+    const intent = agent.serviceIntent
+    if (!intent || intent.completed || !agent.householdId) return []
+    const household = snapshot.households[agent.householdId]
+    const serviceBuilding = snapshot.buildings[intent.buildingId]
+    if (!household || !serviceBuilding) return []
+
+    const events: SimulationEvent[] = []
+    if (intent.resource) {
+      const removed = removeInventory(serviceBuilding, intent.resource, intent.amount)
+      if (!removed.ok) {
+        markBlocked(serviceBuilding, `missing-service-resource:${intent.resource}`)
+        return []
+      }
+      if (intent.saleValue > 0) {
+        const taxPaid = roundCurrency(intent.saleValue * snapshot.economy.taxRate)
+        household.income = Math.max(0, household.income - intent.saleValue)
+        snapshot.economy.treasury += taxPaid
+        snapshot.economy.lastTaxIncome += taxPaid
+        events.push({
+          type: 'purchase-completed',
+          buildingId: serviceBuilding.id,
+          householdId: household.id,
+          resource: intent.resource,
+          amount: intent.amount,
+          taxPaid,
+        })
+      }
+    }
+    household.needs[intent.need] = clamp(
+      household.needs[intent.need] + intent.restoreAmount,
+      0,
+      100,
+    )
+    serviceBuilding.status = 'serving'
+    delete serviceBuilding.statusReason
+    intent.completed = true
+    events.push({
+      type: 'service-delivered',
+      buildingId: serviceBuilding.id,
+      householdId: household.id,
+      need: intent.need,
+    })
+    return events
   }
 }
 

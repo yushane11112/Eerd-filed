@@ -116,6 +116,15 @@ export interface AgentEntity {
   role: AgentRole
   householdId?: EntityId
   employerBuildingId?: EntityId
+  serviceIntent?: {
+    buildingId: EntityId
+    need: keyof HouseholdState['needs']
+    resource?: ResourceKind
+    amount: number
+    saleValue: number
+    restoreAmount: number
+    completed?: boolean
+  }
   position: GridPoint
   path: GridPoint[]
   pathIndex: number

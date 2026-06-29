@@ -21,6 +21,7 @@
 | WORKER-COMMUTE-PATH-01 | 工人通勤路径接入 | `src/simulation/core/SimulationEngine.ts` | 已完成 | 工人获得工作岗位后生成共享道路通勤路径，并逐 tick 移动到雇主入口后进入 working 状态 |
 | WORKER-RETURN-HOME-01 | 工人返家循环 | `src/simulation/core/SimulationEngine.ts`, `src/simulation/contracts.ts` | 已完成 | 工人完成固定工作班次后生成共享道路返家路径，逐 tick 回到住宅入口并恢复 home 状态 |
 | SERVICE-VISIT-PATH-01 | 居民服务/购物出行可视化 | `src/simulation/economy/service.ts` | 已完成 | 服务成功时生成居民出行 agent，沿共享道路从住宅到服务建筑并返家，避免同类访问重复刷屏 |
+| SERVICE-ARRIVAL-CHECKOUT-01 | 居民抵达后服务结算 | `src/simulation/economy/service.ts`, `src/simulation/core/SimulationEngine.ts`, `src/simulation/contracts.ts` | 已完成 | 市场购买、药铺/书院/戏台服务在居民抵达建筑后才扣库存、扣收入、加税收和恢复需求 |
 | TAXONOMY-RUNTIME-01 | 可扩展建筑分类运行时 | `src/content/**`, `src/simulation/**`, `src/integration/GameRuntime.ts` | 已完成 | 建筑类别从固定清单转为阶段/功能/年代一致分类 |
 | BUILD-MENU-STAGE-01 | 城建菜单阶段解锁 | `src/content/**`, `src/integration/GameRuntime.ts`, `src/App.tsx` | 已完成 | 城建菜单按城市阶段显示/锁定建筑，运行时也拒绝未解锁放置 |
 | CITY-STAGE-GOALS-01 | 城市阶段晋升提示 | `src/content/**`, `src/App.tsx`, `src/styles.css` | 已完成 | 玩家可看到当前阶段、下一阶段以及人口/吸引力/街区晋升条件 |

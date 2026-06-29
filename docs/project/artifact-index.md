@@ -2,6 +2,20 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第四十五轮居民抵达后服务结算
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 公共契约 | `AgentEntity` 新增 `serviceIntent`，记录居民服务/购物出行抵达后需要完成的结算内容 |
+| `src/simulation/economy/service.ts` | 经济服务系统 | 服务访问改为抵达目标建筑后才扣库存、扣家庭收入、增加税收、恢复需求并返家 |
+| `src/simulation/economy/economy.test.ts` | 自动测试 | 覆盖市场购买、日用品购买、药铺、书院、戏台、服务容量和综合物流-市场闭环的新两段式行为 |
+| `src/simulation/core/SimulationEngine.ts` | 模拟主循环 | 经济/服务系统更新后再迁出；`migrationOutThreshold: 0` 明确为禁用迁出 |
+| `src/qa/stressScenario.ts` | 长稳 QA 基准 | 500 户满规模场景下历史订单灰盒上限校准为 20000，并保留后续订单归档风险 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `SERVICE-ARRIVAL-CHECKOUT-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第四十五轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮服务结算、主循环和长稳阈值调整 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮全量测试、构建和长稳结果 |
+
 ## 2026-06-29：第四十四轮居民服务/购物出行可视化
 
 | 文件 | 产物类型 | 用途 |

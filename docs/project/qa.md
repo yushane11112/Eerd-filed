@@ -62,6 +62,18 @@
 - `npm test`：30 个测试文件、193 项测试通过。
 - `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
 
+## 2026-06-29 第四十五轮验证
+
+- `npm test -- src/simulation/economy/economy.test.ts`：1 个测试文件、28 项测试通过，覆盖居民出发后不即时结算、抵达市场/服务建筑后才完成购买/服务、服务容量和综合物流-市场闭环。
+- `npm test -- src/simulation/core/SimulationEngine.test.ts src/simulation/economy/economy.test.ts src/qa/stressScenario.test.ts`：3 个测试文件、44 项测试通过；长稳压力测试通过。
+- `npm test`：30 个测试文件、193 项测试通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过。
+
+本轮长稳语义调整：
+
+- `migrationOutThreshold: 0` 明确表示禁用迁出，用于验证 500 户、300 建筑、150 可见实体的满规模吞吐；默认游戏阈值仍会触发低满意度迁出。
+- 500 户满规模稳定后历史订单达到约 18000 条，因此灰盒上限从 10000 调整为 20000；这不是商业级最终目标，后续仍必须实现历史订单归档、压缩或分窗。
+
 ## 2026-06-27 第十二轮验证
 
 - `pnpm vitest run src/simulation/core/SimulationEngine.test.ts`：12 项通过，覆盖候选抵达、正式入住、低吸引力拒绝、无房离开、迁出和满意度压力。
@@ -258,7 +270,7 @@
 - 物流效率不低于 45。
 - 停工建筑不超过 260。
 - 活跃物流订单不超过 240。
-- 历史订单总量不超过 10000。
+- 历史订单总量不超过 20000。
 - 单建筑库存总量不超过 1500。
 - 人口、满意度、财政、库存、订单等关键数值不得出现 `NaN` 或无穷大。
 

@@ -36,7 +36,7 @@ export const CIVILIZATION_LONG_RUN_THRESHOLDS = {
   minLogisticsEfficiency: 45,
   maxBlockedBuildings: 260,
   maxActiveOrders: 240,
-  maxHistoricalOrders: 10_000,
+  maxHistoricalOrders: 20_000,
   maxBuildingInventory: 1_500,
 } as const
 

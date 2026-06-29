@@ -122,7 +122,6 @@ export class SimulationEngine {
     const events: SimulationEvent[] = []
 
     this.updateHouseholdNeedsAndSatisfaction()
-    events.push(...this.migrateOutDissatisfiedHouseholds())
     this.advanceWorkerCommutes()
     this.updateWorkerShifts()
     this.matchEmployment()
@@ -137,6 +136,7 @@ export class SimulationEngine {
     for (const system of this.systems) {
       events.push(...system.update(this.state))
     }
+    events.push(...this.migrateOutDissatisfiedHouseholds())
     this.recalculateMetrics()
     return events
   }
@@ -298,6 +298,7 @@ export class SimulationEngine {
   }
 
   private migrateOutDissatisfiedHouseholds(): SimulationEvent[] {
+    if (this.migrationOutThreshold <= 0) return []
     const events: SimulationEvent[] = []
     const leaving = Object.values(this.state.households)
       .filter((household) => household.satisfaction <= this.migrationOutThreshold)

@@ -571,27 +571,15 @@ describe('service system', () => {
       },
     })
 
-    const events = new ServiceSystem({ definitions }).update(state)
+    const system = new ServiceSystem({ definitions })
+    const events = system.update(state)
 
-    expect(events).toContainEqual({
-      type: 'purchase-completed',
-      buildingId: market.id,
-      householdId: 'household',
-      resource: 'food',
-      amount: 1,
-      taxPaid: 0.5,
-    })
-    expect(events).toContainEqual({
-      type: 'service-delivered',
-      buildingId: market.id,
-      householdId: 'household',
-      need: 'food',
-    })
-    expect(state.households.household.needs.food).toBe(36)
-    expect(state.households.household.income).toBe(15)
-    expect(market.inventory.food).toBe(2)
-    expect(state.economy.treasury).toBe(100.5)
-    expect(state.economy.lastTaxIncome).toBe(0.5)
+    expect(events).toHaveLength(0)
+    expect(state.households.household.needs.food).toBe(20)
+    expect(state.households.household.income).toBe(20)
+    expect(market.inventory.food).toBe(3)
+    expect(state.economy.treasury).toBe(100)
+    expect(state.economy.lastTaxIncome).toBe(0)
     expect(market.status).toBe('serving')
     expect(state.agents['service-visit:1:market-1:household:food']).toMatchObject({
       role: 'resident',
@@ -606,10 +594,18 @@ describe('service system', () => {
       pathIndex: 0,
       activity: 'shopping',
       activityStartedTick: 1,
+      serviceIntent: {
+        buildingId: market.id,
+        need: 'food',
+        resource: 'food',
+        amount: 1,
+        saleValue: 5,
+        restoreAmount: 16,
+      },
     })
 
     state.tick = 2
-    new ServiceSystem({ definitions }).update(state)
+    system.update(state)
 
     expect(state.agents['service-visit:1:market-1:household:food']).toMatchObject({
       position: { x: 2, y: 0 },
@@ -619,9 +615,9 @@ describe('service system', () => {
     expect(state.agents['service-visit:2:market-1:household:food']).toBeUndefined()
 
     state.tick = 3
-    new ServiceSystem({ definitions }).update(state)
+    system.update(state)
     state.tick = 4
-    new ServiceSystem({ definitions }).update(state)
+    const arrivalEvents = system.update(state)
 
     expect(state.agents['service-visit:1:market-1:household:food']).toMatchObject({
       position: { x: 0, y: 0 },
@@ -634,13 +630,32 @@ describe('service system', () => {
       pathIndex: 0,
       activity: 'returning',
     })
+    expect(arrivalEvents).toContainEqual({
+      type: 'purchase-completed',
+      buildingId: market.id,
+      householdId: 'household',
+      resource: 'food',
+      amount: 1,
+      taxPaid: 0.5,
+    })
+    expect(arrivalEvents).toContainEqual({
+      type: 'service-delivered',
+      buildingId: market.id,
+      householdId: 'household',
+      need: 'food',
+    })
+    expect(state.households.household.needs.food).toBe(36)
+    expect(state.households.household.income).toBe(15)
+    expect(market.inventory.food).toBe(2)
+    expect(state.economy.treasury).toBe(100.5)
+    expect(state.economy.lastTaxIncome).toBe(0.5)
 
     state.tick = 5
-    new ServiceSystem({ definitions }).update(state)
+    system.update(state)
     state.tick = 6
-    new ServiceSystem({ definitions }).update(state)
+    system.update(state)
     state.tick = 7
-    new ServiceSystem({ definitions }).update(state)
+    system.update(state)
 
     expect(state.agents['service-visit:1:market-1:household:food']).toBeUndefined()
   })
@@ -662,9 +677,23 @@ describe('service system', () => {
       },
     })
 
-    const events = new ServiceSystem({ definitions }).update(state)
+    const system = new ServiceSystem({ definitions })
+    const events = system.update(state)
 
-    expect(events).toContainEqual({
+    expect(events).toHaveLength(0)
+    expect(state.households.household.needs.goods).toBe(20)
+    expect(state.households.household.income).toBe(20)
+    expect(market.inventory.cloth).toBe(2)
+    expect(state.economy.treasury).toBe(100)
+
+    state.tick = 2
+    system.update(state)
+    state.tick = 3
+    system.update(state)
+    state.tick = 4
+    const arrivalEvents = system.update(state)
+
+    expect(arrivalEvents).toContainEqual({
       type: 'purchase-completed',
       buildingId: market.id,
       householdId: 'household',
@@ -672,7 +701,7 @@ describe('service system', () => {
       amount: 1,
       taxPaid: 0.3,
     })
-    expect(events).toContainEqual({
+    expect(arrivalEvents).toContainEqual({
       type: 'service-delivered',
       buildingId: market.id,
       householdId: 'household',
@@ -753,9 +782,21 @@ describe('service system', () => {
       },
     })
 
-    const events = new ServiceSystem({ definitions }).update(state)
+    const system = new ServiceSystem({ definitions })
+    const events = system.update(state)
 
-    expect(events).toContainEqual({
+    expect(events).toHaveLength(0)
+    expect(state.households.household.needs.health).toBe(30)
+    expect(pharmacy.inventory.medicine).toBe(2)
+
+    state.tick = 2
+    system.update(state)
+    state.tick = 3
+    system.update(state)
+    state.tick = 4
+    const arrivalEvents = system.update(state)
+
+    expect(arrivalEvents).toContainEqual({
       type: 'service-delivered',
       buildingId: pharmacy.id,
       householdId: 'household',
@@ -785,9 +826,19 @@ describe('service system', () => {
       },
     })
 
-    const events = new ServiceSystem({ definitions }).update(state)
+    const system = new ServiceSystem({ definitions })
+    const events = system.update(state)
 
-    expect(events).toEqual(expect.arrayContaining([
+    expect(events).toHaveLength(0)
+    expect(state.households.household.needs.education).toBe(25)
+    expect(state.households.household.needs.entertainment).toBe(35)
+
+    const completionEvents = []
+    for (state.tick = 2; state.tick <= 7; state.tick += 1) {
+      completionEvents.push(...system.update(state))
+    }
+
+    expect(completionEvents).toEqual(expect.arrayContaining([
       {
         type: 'service-delivered',
         buildingId: academy.id,
@@ -855,13 +906,15 @@ describe('service system', () => {
 
     const events = new ServiceSystem({ definitions }).update(state)
 
-    expect(events).toHaveLength(6)
-    expect(events.filter((event) => event.type === 'purchase-completed')).toHaveLength(3)
-    expect(state.households.first.needs.food).toBe(26)
-    expect(state.households.second.needs.food).toBe(36)
-    expect(state.households.third.needs.food).toBe(46)
+    expect(events).toHaveLength(0)
+    expect(Object.values(state.agents).filter((agent) => (
+      agent.id.startsWith('service-visit:')
+    ))).toHaveLength(3)
+    expect(state.households.first.needs.food).toBe(10)
+    expect(state.households.second.needs.food).toBe(20)
+    expect(state.households.third.needs.food).toBe(30)
     expect(state.households.fourth.needs.food).toBe(36)
-    expect(market.inventory.food).toBe(7)
+    expect(market.inventory.food).toBe(10)
   })
 
   it('does not serve households across disconnected roads', () => {
@@ -1023,7 +1076,7 @@ describe('integrated economy order', () => {
       householdId: 'family',
       need: 'food',
     })
-    expect(state.households.family.needs.food).toBeGreaterThan(26)
+    expect(state.households.family.needs.food).toBeGreaterThan(10)
     expect(state.households.family.needs.food).toBeLessThanOrEqual(100)
     expect(market.status).toBe('serving')
   })

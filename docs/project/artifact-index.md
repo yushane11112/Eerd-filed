@@ -382,3 +382,15 @@
 | `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第三十七轮进展、UI/UX 完成度、风险和下一轮任务 |
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮 legacy 边界迁移事实 |
 | `docs/project/qa.md` | QA 记录 | 记录本轮验证命令和结果 |
+
+## 2026-06-29：第三十八轮共享移动路径服务
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/world/movementPath.ts` | 共享模拟工具 | 提供道路优先、避开水面/建筑占用且无网格时安全直线 fallback 的移动路径服务 |
+| `src/simulation/world/movementPath.test.ts` | 自动测试 | 固定道路优先、fallback、避开阻挡/水面三类路径行为 |
+| `src/simulation/core/SimulationEngine.ts` | 模拟核心 | 候选外来人口进城路径改为使用共享移动路径服务，移除内部重复寻路实现 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `SHARED-MOVEMENT-PATH-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第三十八轮进展、城市模拟/人口生命周期完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮路径服务抽取事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮验证命令和结果 |

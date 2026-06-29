@@ -2,6 +2,9 @@
 
 ## 2026-06-29
 
+- 启动并完成第三十八轮：`SHARED-MOVEMENT-PATH-01`。新增 `src/simulation/world/movementPath.ts`，把候选外来人口原本内嵌在 `SimulationEngine` 的道路优先寻路抽成共享移动路径服务；服务支持道路偏好、避开水面/建筑占用以及无网格时安全直线 fallback。
+- `SimulationEngine` 的候选外来人口进城路径改为调用共享移动路径服务，删除内部重复寻路函数，为后续真实居民通勤、服务出行和物流路径逐步统一打基础。
+- 新增 `movementPath.test.ts`，覆盖道路优先、无世界格子 fallback、绕开水面/建筑阻挡三类核心行为。
 - 启动并完成第三十七轮：`LEGACY-ARCHIPELAGO-SCOPE-01`。旧群岛 `IslandCanvas` 从正式 `src/components` 目录迁入 `src/legacy/archipelago`，新增 `src/legacy/README.md` 和归档导出边界，明确旧群岛只用于显式 legacy/QA 对照，不再属于正式城市模拟 UI 路径。
 - `src/game/legacy.test.ts` 增加边界测试，验证 `src/components/IslandCanvas.tsx` 不存在且归档组件位于 `src/legacy/archipelago/IslandCanvas.tsx`，防止后续旧原型回流正式组件目录。
 - 更新任务看板、进度仪表盘、产物索引和 QA 记录，下一轮转向金标资产阶段/街区样板、共享路径服务或治理卡。

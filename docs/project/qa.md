@@ -15,6 +15,12 @@
 - `npm test`：29 个测试文件、184 项测试通过。
 - `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
 
+## 2026-06-29 第三十八轮验证
+
+- `vitest run src/simulation/world/movementPath.test.ts src/simulation/core/SimulationEngine.test.ts`：2 个测试文件、16 项通过，覆盖共享移动路径服务和候选外来人口迁入路径兼容。
+- `npm test`：30 个测试文件、187 项测试通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+
 ## 2026-06-27 第十二轮验证
 
 - `pnpm vitest run src/simulation/core/SimulationEngine.test.ts`：12 项通过，覆盖候选抵达、正式入住、低吸引力拒绝、无房离开、迁出和满意度压力。

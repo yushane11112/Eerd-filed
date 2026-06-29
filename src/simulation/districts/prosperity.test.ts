@@ -6,6 +6,7 @@ const definitions: Record<string, BuildingDefinition> = {
   house: definition('house', ['residential-lane'], ['housing']),
   market: definition('market', ['market-street'], ['market', 'employment']),
   granary: definition('granary', ['market-street', 'warehouse-yard'], ['storage', 'employment']),
+  clinic: definition('clinic', ['market-street'], ['service', 'employment']),
 }
 
 describe('district prosperity', () => {
@@ -41,6 +42,41 @@ describe('district prosperity', () => {
       activeDistricts: 2,
       averageDistrictProsperity: expect.any(Number),
     })
+  })
+
+  it('rewards districts for service coverage, road access and real logistics activity', () => {
+    const buildings = {
+      market: building('market', 'market', { x: 5, y: 2 }, 1, 'idle'),
+      granary: building('granary', 'granary', { x: 6, y: 2 }, 1, 'idle'),
+      clinic: building('clinic', 'clinic', { x: 7, y: 2 }, 1, 'idle'),
+      home: building('home', 'house', { x: 8, y: 2 }, 1, 'idle'),
+    }
+    const isolated = deriveDistrictProsperity({ buildings }, definitions)
+      .find((district) => district.kind === 'market-street')
+    const supported = deriveDistrictProsperity({
+      buildings,
+      cells: [
+        { point: { x: 5, y: 3 }, terrain: 'land', elevation: 0, road: 'stone' },
+        { point: { x: 6, y: 3 }, terrain: 'land', elevation: 0, road: 'stone' },
+        { point: { x: 7, y: 3 }, terrain: 'land', elevation: 0, road: 'stone' },
+        { point: { x: 8, y: 3 }, terrain: 'land', elevation: 0, road: 'stone' },
+      ],
+      logisticsOrders: {
+        order: {
+          id: 'order',
+          resource: 'food',
+          amount: 5,
+          sourceBuildingId: 'granary',
+          destinationBuildingId: 'market',
+          priority: 1,
+          state: 'in_transit',
+          carrierId: 'cart',
+        },
+      },
+    }, definitions).find((district) => district.kind === 'market-street')
+
+    expect(supported?.prosperity).toBeGreaterThan((isolated?.prosperity ?? 0) + 10)
+    expect(supported?.visualHints.footTraffic).toBeGreaterThan(isolated?.visualHints.footTraffic ?? 0)
   })
 })
 

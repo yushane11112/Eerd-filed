@@ -406,3 +406,14 @@
 | `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第三十九轮进展、UI/UX 完成度和下一轮任务 |
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮治理卡接入事实 |
 | `docs/project/qa.md` | QA 记录 | 记录本轮验证命令和结果 |
+
+## 2026-06-29：第四十轮街区繁荣真实运行因子
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/districts/prosperity.ts` | 模拟系统 | 街区繁荣评分接入道路贴近、服务建筑和真实物流订单活动 |
+| `src/simulation/districts/prosperity.test.ts` | 自动测试 | 验证相同建筑聚集下，服务覆盖、道路访问和物流活动会提高街区繁荣与人流表现 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `DISTRICT-PROSPERITY-RUNTIME-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第四十轮进展、城市模拟/动态引擎完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮真实运行因子接入事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮验证命令和结果 |

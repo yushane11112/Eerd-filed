@@ -27,6 +27,12 @@
 - `npm test`：30 个测试文件、188 项测试通过。
 - `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
 
+## 2026-06-29 第四十轮验证
+
+- `vitest run src/simulation/districts/prosperity.test.ts`：1 个测试文件、3 项通过，覆盖街区繁荣接入服务覆盖、道路访问和真实物流活动。
+- `npm test`：30 个测试文件、189 项测试通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+
 ## 2026-06-27 第十二轮验证
 
 - `pnpm vitest run src/simulation/core/SimulationEngine.test.ts`：12 项通过，覆盖候选抵达、正式入住、低吸引力拒绝、无房离开、迁出和满意度压力。

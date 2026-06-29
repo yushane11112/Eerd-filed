@@ -2,6 +2,20 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第五十八轮建造菜单成本与缺口
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/content/runtimeBuildings.ts` | 内容/运行时菜单 | 新增 `getRuntimeBuildingMenuState`，根据当前财政和城市仓储输出成本、缺口和可建状态 |
+| `src/content/buildings.test.ts` | 自动测试 | 验证菜单状态显示营造成本、材料缺口和银两缺口 |
+| `src/App.tsx` | 主界面 | 建造菜单按钮显示银两/材料成本，资源不足时禁用并提示缺口 |
+| `src/styles.css` | 界面样式 | 增加建造菜单成本和缺口文本样式 |
+| `src/integration/GameRuntime.ts` | 运行时出口 | 重新导出 `getRuntimeBuildingMenuState` 供 UI 使用 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `BUILD-MENU-COST-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第五十八轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录建造菜单成本接入事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、全量测试和构建结果 |
+
 ## 2026-06-29：第五十七轮正式建筑营造成本
 
 | 文件 | 产物类型 | 用途 |

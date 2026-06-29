@@ -331,14 +331,40 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
 }
 .build-palette > button svg { width: 18px; height: 18px; }
 .build-palette > button span { font-size: 8px; font-weight: 700; }
+.build-palette > button small {
+  max-width: 72px;
+  color: #8a7a58;
+  font-size: 6px;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.build-palette > button em {
+  max-width: 72px;
+  color: #a95541;
+  font-size: 6px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .build-palette > button:hover { background: #eef0df; }
 .build-palette > button.active { color: white; background: #3d7769; box-shadow: 0 7px 15px rgba(47,105,91,.25); }
+.build-palette > button.active small { color: rgba(255, 255, 255, .78); }
 .build-palette > button.locked {
   color: #9b9383;
   background: rgba(223, 219, 200, .45);
   cursor: not-allowed;
 }
 .build-palette > button.locked:hover { background: rgba(223, 219, 200, .45); }
+.build-palette > button.unaffordable {
+  color: #9b7d6d;
+  background: rgba(229, 199, 171, .38);
+  cursor: not-allowed;
+}
 
 .simulation-controls {
   position: absolute;

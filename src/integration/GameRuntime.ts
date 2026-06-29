@@ -13,6 +13,7 @@ import {
   deriveRuntimeCityStage,
   getRuntimeCityStageProgress,
   getRuntimeBuildingMenu,
+  getRuntimeBuildingMenuState,
   isRuntimeBuildingUnlocked,
 } from '../content/runtimeBuildings'
 import {
@@ -87,6 +88,7 @@ export {
   deriveRuntimeCityStage,
   getRuntimeCityStageProgress,
   getRuntimeBuildingMenu,
+  getRuntimeBuildingMenuState,
   isRuntimeBuildingUnlocked,
 }
 

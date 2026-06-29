@@ -29,6 +29,7 @@ import {
   GameRuntime,
   getRuntimeCityStageProgress,
   getRuntimeBuildingMenu,
+  getRuntimeBuildingMenuState,
   isRuntimeBuildingUnlocked,
   type BuildTool,
 } from './integration/GameRuntime'
@@ -126,7 +127,7 @@ export default function App() {
   const bottlenecks = useMemo(() => getCityBottlenecks(snapshot), [snapshot])
   const cityStage = deriveRuntimeCityStage(snapshot.metrics)
   const stageProgress = getRuntimeCityStageProgress(snapshot.metrics)
-  const buildMenu = getRuntimeBuildingMenu(cityStage)
+  const buildMenu = getRuntimeBuildingMenuState(cityStage, snapshot)
   const chooseTool = (next: BuildTool) => {
     setTool(next)
     setSelectedBuildingId(null)
@@ -360,12 +361,17 @@ export default function App() {
             className={[
               tool.kind === 'building' && tool.type === item.type ? 'active' : '',
               item.unlocked ? '' : 'locked',
+              item.unlocked && !item.canBuild ? 'unaffordable' : '',
             ].filter(Boolean).join(' ')}
-            disabled={!item.unlocked}
-            title={item.unlocked ? item.shortName : `需要${item.requiredStageLabel}`}
+            disabled={!item.unlocked || !item.canBuild}
+            title={item.unavailableReason ?? `${item.shortName}：${formatConstructionCost(item.construction.cost)}`}
             onClick={() => {
               if (!item.unlocked) {
                 setToast(`${item.shortName}需要进入${item.requiredStageLabel}后营造。`)
+                return
+              }
+              if (!item.canBuild) {
+                setToast(`${item.shortName}暂不可营造：${item.unavailableReason ?? '资源不足'}。`)
                 return
               }
               chooseTool({ kind: 'building', type: item.type, rotation: 0 })
@@ -379,6 +385,10 @@ export default function App() {
                   ? <Warehouse />
                   : <Building2 />}
             <span>{item.shortName}</span>
+            <small>{formatConstructionCost(item.construction.cost)}</small>
+            {item.unavailableReason && item.unlocked && (
+              <em>{item.unavailableReason}</em>
+            )}
           </button>
         ))}
       </aside>
@@ -683,6 +693,13 @@ function formatResourceList(resources: Partial<Record<string, number>>) {
     .filter((entry): entry is [string, number] => typeof entry[1] === 'number' && entry[1] > 0)
   if (entries.length === 0) return '无'
   return entries.map(([resource, amount]) => `${resourceName(resource)}×${amount}`).join('、')
+}
+
+function formatConstructionCost(cost: { treasury: number; materials: Partial<Record<string, number>> }) {
+  const materials = formatResourceList(cost.materials)
+  return materials === '无'
+    ? `银两${cost.treasury}`
+    : `银两${cost.treasury} · ${materials}`
 }
 
 type BottleneckSeverity = 'high' | 'medium' | 'low'

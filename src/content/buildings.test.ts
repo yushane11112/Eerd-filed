@@ -11,10 +11,12 @@ import {
   deriveRuntimeCityStage,
   getRuntimeCityStageProgress,
   getRuntimeBuildingMenu,
+  getRuntimeBuildingMenuState,
   getRuntimeBuildingDefinition,
   isRuntimeBuildingUnlocked,
   LEGACY_RUNTIME_ASSET_IDS,
 } from './runtimeBuildings'
+import type { ResourceKind, SimulationSnapshot } from '../simulation/contracts'
 
 describe('building catalog', () => {
   it('maps all twenty-eight original build sites into simulation definitions', () => {
@@ -100,6 +102,36 @@ describe('building catalog', () => {
       .toMatchObject({ unlocked: false, requiredStageLabel: '商贸镇' })
   })
 
+  it('quotes construction cost and shortages in the runtime building menu state', () => {
+    const affordable = getRuntimeBuildingMenuState('water-town', menuSnapshot({
+      treasury: 500,
+      storage: { wood: 8, stone: 4 },
+    }))
+    const short = getRuntimeBuildingMenuState('water-town', menuSnapshot({
+      treasury: 70,
+      storage: { wood: 1 },
+    }))
+
+    expect(affordable.find((item) => item.type === 'house')).toMatchObject({
+      unlocked: true,
+      canBuild: true,
+      construction: {
+        cost: { treasury: 80, materials: { wood: 2, stone: 1 } },
+        missingMaterials: {},
+        missingTreasury: 0,
+      },
+    })
+    expect(short.find((item) => item.type === 'house')).toMatchObject({
+      unlocked: true,
+      canBuild: false,
+      unavailableReason: '缺银两10、缺木料1、缺石料1',
+      construction: {
+        missingMaterials: { wood: 1, stone: 1 },
+        missingTreasury: 10,
+      },
+    })
+  })
+
   it('explains the next runtime city stage requirements', () => {
     const progress = getRuntimeCityStageProgress({
       population: 12,
@@ -174,3 +206,31 @@ describe('building catalog', () => {
     ])
   })
 })
+
+function menuSnapshot(options: {
+  treasury: number
+  storage: Partial<Record<ResourceKind, number>>
+}): Pick<SimulationSnapshot, 'buildings' | 'economy'> {
+  return {
+    buildings: {
+      granary: {
+        id: 'granary',
+        type: 'granary',
+        origin: { x: 0, y: 0 },
+        rotation: 0,
+        level: 1,
+        entrance: { x: 1, y: 1 },
+        status: 'idle',
+        workers: [],
+        inventory: options.storage,
+        productionProgress: 0,
+      },
+    },
+    economy: {
+      treasury: options.treasury,
+      taxRate: 0.1,
+      lastTaxIncome: 0,
+      lastMaintenanceCost: 0,
+    },
+  }
+}

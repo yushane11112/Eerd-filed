@@ -148,6 +148,12 @@
 - `npm test`：30 个测试文件、204 项测试通过。
 - `npm run build`：TypeScript 与 Vite 生产构建通过。
 
+## 2026-06-29 第五十八轮验证
+
+- `npm test -- src/content/buildings.test.ts src/integration/GameRuntime.test.ts`：2 个测试文件、18 项通过，覆盖建造菜单成本、缺口和营造成本运行时兼容。
+- `npm test`：30 个测试文件、205 项测试通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过。
+
 ## 2026-06-27 第十二轮验证
 
 - `pnpm vitest run src/simulation/core/SimulationEngine.test.ts`：12 项通过，覆盖候选抵达、正式入住、低吸引力拒绝、无房离开、迁出和满意度压力。

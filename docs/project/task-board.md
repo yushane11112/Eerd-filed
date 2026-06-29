@@ -43,6 +43,7 @@
 | CITY-RECOMMENDATION-UNLOCK-01 | 治理卡推荐阶段可用性 | `src/integration/stageAdvisor.ts`, `src/App.tsx` | 已完成 | 建筑推荐会说明当前阶段/所需阶段，未解锁时降级为查看图层且 UI 禁止切换到未解锁建筑工具 |
 | CITY-RECOMMENDATION-EXECUTION-01 | 治理卡推荐营造可执行性 | `src/integration/stageAdvisor.ts`, `src/App.tsx` | 已完成 | 已解锁建筑推荐会诊断连续空地和入口道路，当前不可放置时 UI 不切换到建筑工具 |
 | CONSTRUCTION-COST-01 | 正式建筑营造成本 | `src/simulation/economy/construction.ts`, `src/integration/GameRuntime.ts`, `src/integration/stageAdvisor.ts` | 已完成 | 建筑放置消耗财政和城市仓储材料，治理卡能诊断材料/银两不足 |
+| BUILD-MENU-COST-01 | 建造菜单成本与缺口 | `src/content/runtimeBuildings.ts`, `src/App.tsx`, `src/styles.css` | 已完成 | 建造菜单显示银两/材料成本、缺口和是否可营造 |
 | CITY-STAGE-OVERLAY-SUMMARY-01 | 城市阶段覆盖图层摘要 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 覆盖图层显示住宅、服务缺口、物流热点和道路缺口摘要 |
 | CITY-STAGE-OVERLAY-METRICS-01 | 城市阶段覆盖图层结构化指标 | `src/integration/**` | 已完成 | 覆盖图层输出可供面板读取的结构化指标 |
 | CITY-STAGE-OVERLAY-PANEL-METRICS-01 | 城市阶段面板图层指标 | `src/App.tsx`, `src/styles.css` | 已完成 | 阶段面板显示当前打开图层的结构化指标 |

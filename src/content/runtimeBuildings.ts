@@ -2,7 +2,9 @@ import type {
   BuildingCityStage,
   BuildingDefinition,
   CityMetrics,
+  SimulationSnapshot,
 } from '../simulation/contracts'
+import { quoteBuildingConstruction } from '../simulation/economy/construction'
 import { BUILDING_CATALOG, CITY_STAGE_ORDER } from './buildings'
 
 type RuntimeBuildingSeed = Pick<
@@ -157,6 +159,32 @@ export function getRuntimeBuildingMenu(stage: BuildingCityStage) {
   }))
 }
 
+export function getRuntimeBuildingMenuState(
+  stage: BuildingCityStage,
+  snapshot: Pick<SimulationSnapshot, 'buildings' | 'economy'>,
+) {
+  return getRuntimeBuildingMenu(stage).map((item) => {
+    const definition = BUILDING_DEFINITIONS[item.type]
+    const quote = quoteBuildingConstruction(
+      item.type,
+      definition,
+      snapshot.economy.treasury,
+      snapshot.buildings,
+      BUILDING_DEFINITIONS,
+    )
+    return {
+      ...item,
+      construction: quote,
+      canBuild: item.unlocked && quote.canAfford,
+      unavailableReason: !item.unlocked
+        ? `需要${item.requiredStageLabel}`
+        : quote.canAfford
+          ? undefined
+          : constructionShortageLabel(quote.missingMaterials, quote.missingTreasury),
+    }
+  })
+}
+
 export function getRuntimeCityStageProgress(metrics: CityMetrics): RuntimeCityStageProgress {
   const stage = deriveRuntimeCityStage(metrics)
   const stageIndex = RUNTIME_STAGE_THRESHOLDS.findIndex((threshold) => threshold.stage === stage)
@@ -205,6 +233,33 @@ export function getRuntimeCityStageProgress(metrics: CityMetrics): RuntimeCitySt
 
 function stageRank(stage: BuildingCityStage): number {
   return CITY_STAGE_ORDER.indexOf(stage)
+}
+
+function constructionShortageLabel(
+  missingMaterials: Partial<Record<string, number>>,
+  missingTreasury: number,
+): string {
+  const parts = [
+    missingTreasury > 0 ? `缺银两${missingTreasury}` : '',
+    ...Object.entries(missingMaterials)
+      .filter((entry): entry is [string, number] => typeof entry[1] === 'number' && entry[1] > 0)
+      .map(([resource, amount]) => `缺${resourceName(resource)}${amount}`),
+  ].filter(Boolean)
+  return parts.join('、') || '资源不足'
+}
+
+function resourceName(resource: string): string {
+  return ({
+    food: '粮食',
+    fish: '鱼获',
+    wood: '木料',
+    stone: '石料',
+    clay: '黏土',
+    brick: '砖瓦',
+    cloth: '布匹',
+    salt: '盐',
+    medicine: '药材',
+  } as Record<string, string>)[resource] ?? resource
 }
 
 function stageThresholdMet(metrics: CityMetrics, threshold: RuntimeStageThreshold): boolean {

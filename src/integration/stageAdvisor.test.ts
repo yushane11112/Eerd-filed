@@ -243,7 +243,38 @@ describe('stage advisor overlays', () => {
         cargoTrips: 1,
         hotspots: 2,
         roadPressure: 3,
+        pressureRoadCells: 0,
         serviceHeat: 1,
+        cargoCongestion: 1,
+      },
+    })
+  })
+
+  it('projects activity pressure onto road cells when paths use the road network', () => {
+    const snapshot = makeSnapshot({
+      cells: [
+        { point: { x: 4, y: 5 }, terrain: 'land', elevation: 0, road: 'stone' },
+        { point: { x: 5, y: 5 }, terrain: 'land', elevation: 0, road: 'stone' },
+        { point: { x: 6, y: 5 }, terrain: 'land', elevation: 0, road: 'stone' },
+      ],
+      agents: {
+        shopper1: serviceAgent('shopper1', { x: 4, y: 5 }),
+        shopper2: serviceAgent('shopper2', { x: 4, y: 5 }),
+        cart1: cargoAgent('cart1', { x: 4, y: 5 }),
+      },
+    })
+
+    expect(deriveStageMapOverlay('activity', snapshot, 16)).toMatchObject({
+      label: '城市活动热力',
+      points: expect.arrayContaining([
+        { kind: 'activity', label: '服路x3', position: { x: 4, y: 5 } },
+        { kind: 'activity', label: '服路x3', position: { x: 6, y: 5 } },
+      ]),
+      summary: ['道压 3', '服务热 2', '货拥 1'],
+      metrics: {
+        roadPressure: 3,
+        pressureRoadCells: 3,
+        serviceHeat: 2,
         cargoCongestion: 1,
       },
     })
@@ -416,7 +447,7 @@ function serviceAgent(id: string, position: { x: number; y: number }): Simulatio
     role: 'resident',
     householdId: 'family',
     position,
-    path: [position, { x: position.x + 2, y: position.y }],
+    path: [position, { x: position.x + 1, y: position.y }, { x: position.x + 2, y: position.y }],
     pathIndex: 0,
     activity: 'shopping',
     serviceIntent: {
@@ -435,7 +466,12 @@ function cargoAgent(id: string, position: { x: number; y: number }): SimulationS
     id,
     role: 'cart',
     position,
-    path: [position, { x: position.x + 3, y: position.y }],
+    path: [
+      position,
+      { x: position.x + 1, y: position.y },
+      { x: position.x + 2, y: position.y },
+      { x: position.x + 3, y: position.y },
+    ],
     pathIndex: 0,
     activity: 'delivering',
     cargoIntent: {

@@ -168,7 +168,8 @@ export function deriveStageGovernanceCards(
   const serviceHeat = activity?.metrics?.serviceHeat ?? 0
   const cargoCongestion = activity?.metrics?.cargoCongestion ?? 0
   if (roadPressure >= 4 || serviceHeat >= 3 || cargoCongestion >= 2) {
-    const target = activity?.points.find((point) => point.label.startsWith('货运热'))
+    const target = activity?.points.find((point) => isRoadPressureLabel(point.label))
+      ?? activity?.points.find((point) => point.label.startsWith('货运热'))
       ?? activity?.points.find((point) => point.label.startsWith('服务热'))
       ?? activity?.points.find((point) => point.kind === 'activity')
     const score = 76 + roadPressure * 2 + serviceHeat * 3 + cargoCongestion * 5
@@ -395,6 +396,16 @@ export function deriveStageMapOverlay(
       commute: number
       cargo: number
     }>()
+    const roadCells = new Set(snapshot.cells
+      .filter((cell) => cell.road)
+      .map((cell) => pointBucket(cell.point)))
+    const roadPressureCells = new Map<string, {
+      position: GridPoint
+      count: number
+      service: number
+      commute: number
+      cargo: number
+    }>()
     for (const agent of activeAgents) {
       const key = pointBucket(agent.position)
       const item = heat.get(key) ?? {
@@ -409,8 +420,33 @@ export function deriveStageMapOverlay(
       else if (agent.cargoIntent) item.cargo += 1
       else if (agent.activity === 'commuting' || agent.activity === 'returning') item.commute += 1
       heat.set(key, item)
+
+      for (const pathPoint of remainingPathPoints(agent)) {
+        const pathKey = pointBucket(pathPoint)
+        if (!roadCells.has(pathKey)) continue
+        const roadItem = roadPressureCells.get(pathKey) ?? {
+          position: { x: Math.round(pathPoint.x), y: Math.round(pathPoint.y) },
+          count: 0,
+          service: 0,
+          commute: 0,
+          cargo: 0,
+        }
+        roadItem.count += 1
+        if (agent.serviceIntent) roadItem.service += 1
+        else if (agent.cargoIntent) roadItem.cargo += 1
+        else if (agent.activity === 'commuting' || agent.activity === 'returning') roadItem.commute += 1
+        roadPressureCells.set(pathKey, roadItem)
+      }
     }
-    const hotspots = [...heat.values()]
+    const pressureRoadPoints = [...roadPressureCells.values()]
+      .sort((left, right) => right.count - left.count || pointKey(left.position).localeCompare(pointKey(right.position)))
+      .slice(0, 4)
+      .map((item) => ({
+        kind: 'activity' as const,
+        label: roadPressureLabel(item),
+        position: item.position,
+      }))
+    const activityHotspots = [...heat.values()]
       .sort((left, right) => right.count - left.count || pointKey(left.position).localeCompare(pointKey(right.position)))
       .slice(0, 6)
       .map((item) => ({
@@ -418,6 +454,10 @@ export function deriveStageMapOverlay(
         label: activityHeatLabel(item),
         position: item.position,
       }))
+    const hotspots = [
+      ...pressureRoadPoints,
+      ...activityHotspots,
+    ]
     const paths = activeAgents
       .filter((agent) => agent.path.length > 0)
       .slice(0, 8)
@@ -438,7 +478,9 @@ export function deriveStageMapOverlay(
       && !agent.cargoIntent
       && (agent.activity === 'commuting' || agent.activity === 'returning')
     )).length
-    const roadPressure = activeAgents.filter((agent) => agent.path.length > 1).length
+    const roadPressure = roadPressureCells.size > 0
+      ? Math.max(...[...roadPressureCells.values()].map((item) => item.count))
+      : activeAgents.filter((agent) => agent.path.length > 1).length
     const serviceHeat = serviceVisits
     const cargoCongestion = cargoTrips
     return compactOverlay(id, '城市活动热力', hotspots, paths, [], [
@@ -452,6 +494,7 @@ export function deriveStageMapOverlay(
       cargoTrips,
       hotspots: hotspots.length,
       roadPressure,
+      pressureRoadCells: roadPressureCells.size,
       serviceHeat,
       cargoCongestion,
     })
@@ -582,6 +625,25 @@ function activityHeatLabel(item: {
   return `活动热x${item.count}`
 }
 
+function roadPressureLabel(item: {
+  count: number
+  service: number
+  commute: number
+  cargo: number
+}): string {
+  if (item.cargo >= item.service && item.cargo >= item.commute && item.cargo > 0) return `货路x${item.count}`
+  if (item.service >= item.commute && item.service > 0) return `服路x${item.count}`
+  if (item.commute > 0) return `通路x${item.count}`
+  return `道压x${item.count}`
+}
+
+function isRoadPressureLabel(label: string): boolean {
+  return label.startsWith('道压')
+    || label.startsWith('货路')
+    || label.startsWith('服路')
+    || label.startsWith('通路')
+}
+
 function agentActivityLabel(agent: Readonly<SimulationSnapshot['agents'][string]>): string {
   if (agent.cargoIntent?.phase === 'pickup') return `${agent.cargoIntent.resource}取货`
   if (agent.cargoIntent?.phase === 'dropoff') return `${agent.cargoIntent.resource}送货`
@@ -589,6 +651,11 @@ function agentActivityLabel(agent: Readonly<SimulationSnapshot['agents'][string]
   if (agent.activity === 'returning') return '返家'
   if (agent.activity === 'commuting') return '通勤'
   return '活动'
+}
+
+function remainingPathPoints(agent: Readonly<SimulationSnapshot['agents'][string]>): GridPoint[] {
+  if (agent.path.length === 0) return []
+  return agent.path.slice(Math.max(0, agent.pathIndex))
 }
 
 function severityFromScore(score: number): StageGovernanceCard['severity'] {

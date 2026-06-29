@@ -960,6 +960,12 @@ function pickStageOverlayPoint(
   if (mode === 'activity') {
     if (label === '货拥') return overlay.points.find((point) => point.label.startsWith('货运热'))
     if (label === '服务热') return overlay.points.find((point) => point.label.startsWith('服务热'))
+    if (label === '道压') return overlay.points.find((point) => (
+      point.label.startsWith('道压')
+      || point.label.startsWith('货路')
+      || point.label.startsWith('服路')
+      || point.label.startsWith('通路')
+    ))
     return overlay.points.find((point) => point.kind === 'activity')
   }
   return label === '缺路'

@@ -2,6 +2,18 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第五十三轮道路格活动压力投射
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 城市顾问数据层 | 读取 agent 剩余路径，将活动压力聚合到真实道路格并输出 `货路/服路/通路/道压` 承压点 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证多条服务/货运路径压到道路格时会生成可定位承压点和压力指标 |
+| `src/App.tsx` | 主界面 | 阶段面板“道压”指标优先定位道路承压点 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `CITY-ROAD-PRESSURE-CELLS-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第五十三轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录道路格活动压力投射的集成事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、全量测试和构建结果 |
+
 ## 2026-06-29：第五十二轮城市活动压力治理
 
 | 文件 | 产物类型 | 用途 |

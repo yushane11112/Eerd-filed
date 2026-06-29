@@ -252,6 +252,32 @@ export default function App() {
     )
   }
 
+  const applyBottleneckRecommendation = (item: CityBottleneck) => {
+    const recommendation = item.recommendation
+    if (recommendation.overlayMode) {
+      const overlay = deriveStageMapOverlay(recommendation.overlayMode, snapshot, Date.now()) ?? null
+      setActiveStageOverlayMode(recommendation.overlayMode)
+      setStageAdvisorOverlay(overlay)
+    }
+    if (recommendation.tool === 'road') {
+      chooseTool({ kind: 'road' })
+      setToast(`${item.title}：${recommendation.label}。`)
+      return
+    }
+    if (recommendation.tool === 'building' && recommendation.buildingType) {
+      if (!BUILDING_DEFINITIONS[recommendation.buildingType]) {
+        setTool({ kind: 'inspect' })
+        setToast(`${item.title}：推荐建筑暂未开放，先按图层定位问题。`)
+        return
+      }
+      chooseTool({ kind: 'building', type: recommendation.buildingType, rotation: 0 })
+      setToast(`${item.title}：${recommendation.label}。`)
+      return
+    }
+    setTool({ kind: 'inspect' })
+    setToast(`${item.title}：${recommendation.label}。`)
+  }
+
   const resolveAmbientStory = (story: AmbientCityStoryItem, shouldFocus = true) => {
     if (story.target && shouldFocus) {
       focusCityTarget(story.target, story.title)
@@ -467,16 +493,30 @@ export default function App() {
               <div className="bottleneck-empty">暂无明显瓶颈，继续扩建前留意物流和居民需求。</div>
             ) : (
               bottlenecks.map((item) => (
-                <button
+                <article
                   key={item.id}
-                  type="button"
                   className={`bottleneck-card severity-${item.severity} ${item.target ? 'is-focusable' : ''}`}
-                  onClick={() => focusCityTarget(item.target, item.title)}
                 >
                   <strong>{item.title}</strong>
                   <span>{item.detail}</span>
+                  <small>原因：{item.cause}</small>
                   <em>{item.action}</em>
-                </button>
+                  <div className="bottleneck-actions">
+                    <button
+                      type="button"
+                      onClick={() => focusCityTarget(item.target, item.title)}
+                    >
+                      定位
+                    </button>
+                    <button
+                      type="button"
+                      className="primary"
+                      onClick={() => applyBottleneckRecommendation(item)}
+                    >
+                      {item.recommendation.label}
+                    </button>
+                  </div>
+                </article>
               ))
             )}
           </div>
@@ -633,7 +673,14 @@ interface CityBottleneck {
   id: string
   title: string
   detail: string
+  cause: string
   action: string
+  recommendation: {
+    label: string
+    tool: 'road' | 'building' | 'inspect'
+    buildingType?: string
+    overlayMode?: StageAdvisorOverlayMode
+  }
   score: number
   severity: BottleneckSeverity
   target?: CityFocusTarget
@@ -650,7 +697,9 @@ function getCityBottlenecks(snapshot: ReturnType<GameRuntime['getSnapshot']>) {
     id: card.id,
     title: card.title,
     detail: card.detail,
+    cause: card.cause,
     action: card.action,
+    recommendation: card.recommendation,
     score: card.score,
     severity: card.severity,
     target: card.target
@@ -675,27 +724,53 @@ function getCityBottlenecks(snapshot: ReturnType<GameRuntime['getSnapshot']>) {
       ? {
           title: '缺工',
           detail: `${count} 座建筑缺少工人，产出会停摆。`,
+          cause: '岗位增长快于住房和迁入速度，建筑拿不到稳定劳动力。',
           action: '先补住房与居民，再扩新岗位。',
+          recommendation: {
+            label: '营造民居',
+            tool: 'building' as const,
+            buildingType: 'house',
+            overlayMode: 'housing' as const,
+          },
           score: 90 + count,
         }
       : reason === 'output-full'
         ? {
             title: '仓满',
             detail: `${count} 座建筑库存顶满，后续产出被堵住。`,
+            cause: '产出建筑缺少仓储缓冲或道路转运，库存堆在原地。',
             action: '增加仓储或道路，把货运出去。',
+            recommendation: {
+              label: '营造仓储',
+              tool: 'building' as const,
+              buildingType: 'granary',
+              overlayMode: 'logistics' as const,
+            },
             score: 78 + count,
           }
         : missingResource
           ? {
               title: '缺料',
               detail: `${count} 座建筑缺少「${resourceName(missingResource)}」。`,
+              cause: '上游产线、仓储库存或道路运输无法把所需材料送达。',
               action: '补对应产线，或检查道路和仓储连接。',
+              recommendation: {
+                label: '检查物流图层',
+                tool: 'inspect' as const,
+                overlayMode: 'logistics' as const,
+              },
               score: 84 + count,
             }
           : {
               title: '建筑停摆',
               detail: `${count} 座建筑：${reasonName(reason)}。`,
+              cause: '该建筑的运行条件没有满足，需要检查入口、库存、岗位或服务范围。',
               action: '点选建筑查看入口、库存与岗位。',
+              recommendation: {
+                label: '打开道路图层',
+                tool: 'inspect' as const,
+                overlayMode: 'roads' as const,
+              },
               score: 60 + count,
             }
     bottlenecks.push({
@@ -721,9 +796,23 @@ function getCityBottlenecks(snapshot: ReturnType<GameRuntime['getSnapshot']>) {
         id: `need-${lowestNeed.need}`,
         title: `${needName(lowestNeed.need)}不足`,
         detail: `居民平均满足度 ${Math.round(lowestNeed.value)}%，满意度会被拖低。`,
+        cause: lowestNeed.need === 'food' || lowestNeed.need === 'goods'
+          ? '市场库存、家庭收入或货物流转不足，居民无法完成稳定消费。'
+          : '服务建筑覆盖、服务库存或道路可达性不足，居民服务访问不稳定。',
         action: lowestNeed.need === 'food' || lowestNeed.need === 'goods'
           ? '优先补市场货源与运输。'
           : '优先补服务建筑与服务库存。',
+        recommendation: lowestNeed.need === 'food' || lowestNeed.need === 'goods'
+          ? {
+              label: '打开物流图层',
+              tool: 'inspect',
+              overlayMode: 'logistics',
+            }
+          : {
+              label: '打开服务图层',
+              tool: 'inspect',
+              overlayMode: 'service',
+            },
         score,
         severity: severityFromScore(score),
         target: weakestHouseholdHome(snapshot),
@@ -739,7 +828,13 @@ function getCityBottlenecks(snapshot: ReturnType<GameRuntime['getSnapshot']>) {
       id: 'logistics',
       title: '物流不畅',
       detail: `物流效率 ${Math.round(snapshot.metrics.logisticsEfficiency)}%，待处理订单 ${waitingOrders} 个。`,
+      cause: '道路连通、仓储缓冲或承运路径不足，订单无法及时完成。',
       action: '补道路连通，避免产地和仓库距离过远。',
+      recommendation: {
+        label: '打开物流图层并铺路',
+        tool: 'road',
+        overlayMode: 'logistics',
+      },
       score,
       severity: severityFromScore(score),
       target: logisticsBottleneckTarget(snapshot),

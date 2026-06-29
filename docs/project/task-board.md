@@ -40,6 +40,7 @@
 | CITY-STAGE-OVERLAY-PANEL-METRICS-01 | 城市阶段面板图层指标 | `src/App.tsx`, `src/styles.css` | 已完成 | 阶段面板显示当前打开图层的结构化指标 |
 | CITY-STAGE-OVERLAY-METRIC-FOCUS-01 | 城市阶段图层指标定位 | `src/App.tsx`, `src/styles.css` | 已完成 | 点击阶段面板图层指标可定位对应地图目标 |
 | CITY-GOVERNANCE-CARDS-01 | 图层指标治理卡 | `src/integration/stageAdvisor.ts`, `src/App.tsx` | 已完成 | 服务缺口、道路缺口和物流热点会生成可排序、可点击的瓶颈治理卡 |
+| CITY-GOVERNANCE-ACTION-01 | 治理卡原因与推荐操作 | `src/integration/stageAdvisor.ts`, `src/App.tsx`, `src/styles.css` | 已完成 | 治理卡显示原因、推荐工具/建筑和图层，并可一键切换定位、铺路或营造工具 |
 | OPTIONAL-MUSIC-ENTRY-01 | 音乐奖励入口降级 | `src/App.tsx`, `src/styles.css` | 已完成 | 听歌从常驻主界面卡片降为默认收起的可选轻奖励入口 |
 | LEGACY-LISTENING-DROPS-01 | 旧听歌掉落原型隔离 | `src/game/**`, `src/simulation/rewards/**` | 已完成 | 旧群岛引擎默认不再由听歌产生普通材料，旧行为仅可显式 legacy 启用 |
 | LEGACY-ARCHIPELAGO-GATE-01 | 旧群岛视图归档开关 | `src/legacy/archipelago/IslandCanvas.tsx`, `src/game/**`, `src/styles.css` | 已完成 | 旧群岛 Pixi 视图默认显示归档提示，只有显式 legacy/QA 参数才启动 |

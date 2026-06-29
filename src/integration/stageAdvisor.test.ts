@@ -212,6 +212,13 @@ describe('stage advisor overlays', () => {
       {
         id: 'governance-logistics-hotspots',
         title: '物流热点拥堵',
+        cause: '订单集中在少数产地、仓储或市场，现有道路与仓储缓冲不足。',
+        recommendation: {
+          label: '打开物流图层并补仓储',
+          tool: 'building',
+          buildingType: 'granary',
+          overlayMode: 'logistics',
+        },
         overlayMode: 'logistics',
         metricLabel: '热点',
         target: { point: { x: 4, y: 5 }, label: '物流热点x3' },
@@ -219,6 +226,11 @@ describe('stage advisor overlays', () => {
       {
         id: 'governance-road-gaps',
         title: '道路入口缺口',
+        recommendation: {
+          label: '打开道路图层并铺路',
+          tool: 'road',
+          overlayMode: 'roads',
+        },
         overlayMode: 'roads',
         metricLabel: '缺路',
         target: { point: { x: 2, y: 3 }, label: '缺路住宅' },
@@ -226,6 +238,12 @@ describe('stage advisor overlays', () => {
       {
         id: 'governance-service-gaps',
         title: '服务覆盖缺口',
+        recommendation: {
+          label: '打开服务图层并营造市场',
+          tool: 'building',
+          buildingType: 'market',
+          overlayMode: 'service',
+        },
         overlayMode: 'service',
         metricLabel: '缺口住宅',
         target: { point: { x: 12, y: 12 }, label: '缺服务' },

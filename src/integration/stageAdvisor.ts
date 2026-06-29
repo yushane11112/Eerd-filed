@@ -46,7 +46,14 @@ export interface StageGovernanceCard {
   id: string
   title: string
   detail: string
+  cause: string
   action: string
+  recommendation: {
+    label: string
+    tool: 'road' | 'building' | 'inspect'
+    buildingType?: string
+    overlayMode?: StageAdvisorOverlayMode
+  }
   score: number
   severity: 'high' | 'medium' | 'low'
   overlayMode: StageAdvisorOverlayMode
@@ -87,7 +94,14 @@ export function deriveStageGovernanceCards(
       id: 'governance-service-gaps',
       title: '服务覆盖缺口',
       detail: `${serviceGaps} 处住宅不在服务范围内，后续会拖低满意度和迁入吸引力。`,
+      cause: '住宅离现有市场、医馆、学塾或文化服务太远，居民无法形成稳定服务访问。',
       action: '优先在缺口附近补市场、医馆、学塾或文化服务。',
+      recommendation: {
+        label: '打开服务图层并营造市场',
+        tool: 'building',
+        buildingType: 'market',
+        overlayMode: 'service',
+      },
       score,
       severity: severityFromScore(score),
       overlayMode: 'service',
@@ -105,7 +119,13 @@ export function deriveStageGovernanceCards(
       id: 'governance-road-gaps',
       title: '道路入口缺口',
       detail: `${roadGaps} 处建筑入口没有道路贴近，通勤、服务和物流都会变慢。`,
+      cause: '建筑入口没有贴近道路，居民、工人和承运人无法稳定走共享路径。',
       action: '先给住宅、仓储、服务和生产入口补齐道路连接。',
+      recommendation: {
+        label: '打开道路图层并铺路',
+        tool: 'road',
+        overlayMode: 'roads',
+      },
       score,
       severity: severityFromScore(score),
       overlayMode: 'roads',
@@ -125,7 +145,14 @@ export function deriveStageGovernanceCards(
       id: 'governance-logistics-hotspots',
       title: '物流热点拥堵',
       detail: `当前有 ${activeOrders} 条未完成订单、${hotspots} 个物流热点，货物流转容易压到少数建筑。`,
+      cause: '订单集中在少数产地、仓储或市场，现有道路与仓储缓冲不足。',
       action: '靠近热点补仓储、优化道路，避免产地和市场单线拥堵。',
+      recommendation: {
+        label: '打开物流图层并补仓储',
+        tool: 'building',
+        buildingType: 'granary',
+        overlayMode: 'logistics',
+      },
       score,
       severity: severityFromScore(score),
       overlayMode: 'logistics',

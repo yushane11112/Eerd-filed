@@ -642,13 +642,11 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   font: inherit;
 }
 .bottleneck-card {
-  cursor: pointer;
+  cursor: default;
 }
-.bottleneck-card:hover,
-.bottleneck-card:focus-visible {
+.bottleneck-card:hover {
   border-color: #bca66b;
   box-shadow: 0 0 0 2px rgba(188,166,107,.18);
-  outline: none;
 }
 .bottleneck-card + .bottleneck-card { margin-top: 6px; }
 .bottleneck-card strong {
@@ -657,6 +655,7 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   font-size: 11px;
 }
 .bottleneck-card span,
+.bottleneck-card small,
 .bottleneck-card em,
 .bottleneck-empty {
   color: #748078;
@@ -667,12 +666,44 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   display: block;
   margin-top: 3px;
 }
+.bottleneck-card small {
+  display: block;
+  margin-top: 5px;
+  color: #677f7b;
+}
 .bottleneck-card em {
   display: block;
   margin-top: 5px;
   color: #9a633e;
   font-style: normal;
   font-weight: 800;
+}
+.bottleneck-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 7px;
+}
+.bottleneck-actions button {
+  border: 1px solid #d7c793;
+  border-radius: 999px;
+  background: rgba(255,255,245,.72);
+  color: #6f5a31;
+  font-size: 8px;
+  font-weight: 800;
+  padding: 4px 7px;
+  cursor: pointer;
+}
+.bottleneck-actions button:hover,
+.bottleneck-actions button:focus-visible {
+  border-color: #a67c45;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(166,124,69,.16);
+}
+.bottleneck-actions button.primary {
+  flex: 1;
+  background: #7f9b6d;
+  border-color: #6f8d5d;
+  color: #fffdf0;
 }
 .bottleneck-card.severity-high {
   border-color: #d99a82;

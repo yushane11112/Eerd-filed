@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第四十七轮治理卡原因与推荐操作
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 城市顾问数据层 | 治理卡新增原因与结构化推荐操作，包含推荐图层、工具和建筑类型 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证服务缺口、道路缺口和物流热点治理卡包含推荐操作 |
+| `src/App.tsx` | 主界面 | 瓶颈面板显示原因，并提供“定位”和“推荐操作”按钮，可切换图层、铺路或营造工具 |
+| `src/styles.css` | 界面样式 | 增加瓶颈卡原因文本与操作按钮样式 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `CITY-GOVERNANCE-ACTION-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第四十七轮进展、UI/UX 完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录治理卡可执行化的集成事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、全量测试和构建结果 |
+
 ## 2026-06-29：第四十六轮服务访问驱动街区热度
 
 | 文件 | 产物类型 | 用途 |

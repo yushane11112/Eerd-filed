@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import {
   isLegacyArchipelagoEnabled,
   isLegacyArchipelagoStaticQa,
@@ -19,5 +21,9 @@ describe('legacy archipelago gate', () => {
     expect(isLegacyArchipelagoEnabled(new URLSearchParams(LEGACY_ARCHIPELAGO_QA_PARAM))).toBe(true)
     expect(isLegacyArchipelagoStaticQa(new URLSearchParams(LEGACY_ARCHIPELAGO_QA_PARAM))).toBe(true)
   })
-})
 
+  it('keeps the archived island renderer out of the main components directory', () => {
+    expect(existsSync(join(process.cwd(), 'src/components/IslandCanvas.tsx'))).toBe(false)
+    expect(existsSync(join(process.cwd(), 'src/legacy/archipelago/IslandCanvas.tsx'))).toBe(true)
+  })
+})

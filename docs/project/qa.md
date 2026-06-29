@@ -9,6 +9,12 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-06-29 第三十七轮验证
+
+- `vitest run src/game/legacy.test.ts`：覆盖旧群岛渲染开关和归档组件路径边界，要求旧 `IslandCanvas` 不再存在于正式 `src/components` 目录。
+- `npm test`：29 个测试文件、184 项测试通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+
 ## 2026-06-27 第十二轮验证
 
 - `pnpm vitest run src/simulation/core/SimulationEngine.test.ts`：12 项通过，覆盖候选抵达、正式入住、低吸引力拒绝、无房离开、迁出和满意度压力。

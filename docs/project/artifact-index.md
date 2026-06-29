@@ -179,7 +179,7 @@
 | --- | --- | --- |
 | `src/game/legacy.ts` | 旧原型边界 | 定义旧群岛视图启用参数和静态 QA 参数 |
 | `src/game/legacy.test.ts` | 自动测试 | 验证旧群岛渲染默认关闭，只能显式启用 |
-| `src/components/IslandCanvas.tsx` | 旧视图组件 | 默认显示归档提示，只有 legacy/QA 参数才启动旧 Pixi 渲染 |
+| `src/legacy/archipelago/IslandCanvas.tsx` | 旧视图组件 | 默认显示归档提示，只有 legacy/QA 参数才启动旧 Pixi 渲染；第三十七轮后已迁出正式 components 目录 |
 | `src/styles.css` | 界面样式 | 增加旧群岛归档提示样式 |
 | `docs/project/task-board.md` | 任务看板 | 标记 LEGACY-ARCHIPELAGO-GATE-01 完成 |
 | `docs/project/integration-log.md` | 集成记录 | 记录第二十二轮启动、完成和验证结果 |
@@ -369,3 +369,16 @@
 | --- | --- | --- |
 | `docs/project/HANDOFF.md` | 项目交接手册 | 说明另一台电脑如何 clone、checkout、测试、恢复新 Codex 对话上下文，以及回到当前电脑如何继续 |
 | `docs/project/README.md` | 项目索引 | 增加 HANDOFF 入口，确保新会话能优先找到接续手册 |
+
+## 2026-06-29：第三十七轮旧群岛 legacy 边界集中
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/legacy/README.md` | legacy 边界说明 | 明确 `src/legacy/**` 只保留归档原型、QA 对照和迁移工具，禁止新主线引用 |
+| `src/legacy/archipelago/IslandCanvas.tsx` | 归档旧视图组件 | 旧群岛 Pixi 视图从正式 `src/components` 目录迁入 legacy 范围 |
+| `src/legacy/archipelago/index.ts` | 归档导出边界 | 仅为显式 legacy/QA 入口暴露旧群岛组件 |
+| `src/game/legacy.test.ts` | 自动测试 | 固定旧群岛渲染默认关闭，并验证旧组件不再位于正式 components 目录 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LEGACY-ARCHIPELAGO-SCOPE-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第三十七轮进展、UI/UX 完成度、风险和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮 legacy 边界迁移事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮验证命令和结果 |

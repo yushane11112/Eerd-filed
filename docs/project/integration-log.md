@@ -1,5 +1,11 @@
 # 集成记录
 
+## 2026-06-29
+
+- 启动并完成第三十七轮：`LEGACY-ARCHIPELAGO-SCOPE-01`。旧群岛 `IslandCanvas` 从正式 `src/components` 目录迁入 `src/legacy/archipelago`，新增 `src/legacy/README.md` 和归档导出边界，明确旧群岛只用于显式 legacy/QA 对照，不再属于正式城市模拟 UI 路径。
+- `src/game/legacy.test.ts` 增加边界测试，验证 `src/components/IslandCanvas.tsx` 不存在且归档组件位于 `src/legacy/archipelago/IslandCanvas.tsx`，防止后续旧原型回流正式组件目录。
+- 更新任务看板、进度仪表盘、产物索引和 QA 记录，下一轮转向金标资产阶段/街区样板、共享路径服务或治理卡。
+
 ## 2026-06-27
 
 - 新增 `HANDOFF.md` 跨电脑/空对话接续手册，明确 GitHub 仓库、当前主控分支、另一台电脑首次 clone/checkout/test/build 命令、新 Codex 对话启动提示词、回到当前电脑继续的 pull/test/build 流程，以及必须保留的项目原则。

@@ -26,6 +26,7 @@ import {
   EconomySystem,
   effectiveBuildingDefinition,
   RoadRoutePlanner,
+  spendBuildingConstructionCost,
   startBuildingUpgradeFromCityStorage,
   upgradeBuildingFromCityStorage,
 } from '../simulation/economy'
@@ -49,6 +50,10 @@ export interface RuntimeActionResult {
   ok: boolean
   message: string
   buildingId?: string
+  construction?: {
+    treasury: number
+    materials: Partial<Record<ResourceKind, number>>
+  }
   upgrade?: {
     level: number
     cost: Partial<Record<ResourceKind, number>>
@@ -261,7 +266,7 @@ export class GameRuntime {
       }
     }
     const id = `${type}-${++this.buildingSequence}`
-    const placement = this.grid.placeBuilding(id, definition, point, rotation, {
+    const placement = this.grid.validateBuildingPlacement(id, definition, point, rotation, {
       requireRoadAccess: true,
     })
     if (!placement.valid || !placement.entrance) {
@@ -274,10 +279,41 @@ export class GameRuntime {
       return { ok: false, message }
     }
     const snapshot = this.engine.snapshot
+    const payment = spendBuildingConstructionCost(
+      type,
+      definition,
+      snapshot.economy.treasury,
+      snapshot.buildings,
+      BUILDING_DEFINITIONS,
+    )
+    if (!payment.ok) {
+      const missingMaterials = formatResourceList(payment.quote.missingMaterials)
+      const missingTreasury = payment.quote.missingTreasury
+      const shortage = [
+        missingTreasury > 0 ? `银两不足${missingTreasury}` : '',
+        missingMaterials === '无' ? '' : `材料不足：${missingMaterials}`,
+      ].filter(Boolean).join('，')
+      return {
+        ok: false,
+        message: shortage || '营造资源不足',
+      }
+    }
+    const committed = this.grid.placeBuilding(id, definition, point, rotation, {
+      requireRoadAccess: true,
+    })
+    if (!committed.valid || !committed.entrance) {
+      return { ok: false, message: '地块状态已变化，无法营造' }
+    }
+    snapshot.economy.treasury = payment.treasury
     snapshot.buildings[id] = createBuilding(id, type, point, placement.entrance, rotation)
     snapshot.cells = this.grid.toCells()
     this.rebuild(snapshot)
-    return { ok: true, message: `${definition.name}已落成并接入城市模拟。`, buildingId: id }
+    return {
+      ok: true,
+      message: `${definition.name}已落成，消耗银两${payment.cost.treasury}、${formatResourceList(payment.cost.materials)}。`,
+      buildingId: id,
+      construction: payment.cost,
+    }
   }
 
   upgradeBuilding(buildingId: string): RuntimeActionResult {

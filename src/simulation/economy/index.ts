@@ -1,4 +1,5 @@
 export * from './EconomySystem'
+export * from './construction'
 export * from './fiscal'
 export * from './inventory'
 export * from './logistics'

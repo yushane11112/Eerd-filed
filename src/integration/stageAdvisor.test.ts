@@ -408,6 +408,10 @@ describe('stage advisor overlays', () => {
         ...landRect(0, 0, 4, 3),
         { point: { x: 1, y: 2 }, terrain: 'land', elevation: 0, road: 'stone' },
       ],
+      buildings: {
+        granary: { ...building('granary', 'granary', { x: 8, y: 8 }), inventory: { wood: 10, stone: 10 } },
+      },
+      economy: { treasury: 500, taxRate: 0.1, lastTaxIncome: 0, lastMaintenanceCost: 0 },
     }))
     const noRoad = explainStageRecommendationAvailability({
       label: '营造集市',
@@ -416,6 +420,22 @@ describe('stage advisor overlays', () => {
       overlayMode: 'service',
     }, makeSnapshot({
       cells: landRect(0, 0, 4, 3),
+      buildings: {
+        granary: { ...building('granary', 'granary', { x: 8, y: 8 }), inventory: { wood: 10, stone: 10 } },
+      },
+      economy: { treasury: 500, taxRate: 0.1, lastTaxIncome: 0, lastMaintenanceCost: 0 },
+    }))
+    const noMaterials = explainStageRecommendationAvailability({
+      label: '营造集市',
+      tool: 'building',
+      buildingType: 'market',
+      overlayMode: 'service',
+    }, makeSnapshot({
+      cells: [
+        ...landRect(0, 0, 4, 3),
+        { point: { x: 1, y: 2 }, terrain: 'land', elevation: 0, road: 'stone' },
+      ],
+      economy: { treasury: 500, taxRate: 0.1, lastTaxIncome: 0, lastMaintenanceCost: 0 },
     }))
 
     expect(ready).toMatchObject({
@@ -435,6 +455,14 @@ describe('stage advisor overlays', () => {
         buildable: false,
         reason: '已有空地但入口未贴近道路，先铺一段连接路再营造。',
         roadAnchors: 0,
+      },
+    })
+    expect(noMaterials).toMatchObject({
+      execution: {
+        buildable: false,
+        reason: '营造资源不足：木料×4、石料×2。',
+        missingMaterials: { wood: 4, stone: 2 },
+        missingTreasury: 0,
       },
     })
   })

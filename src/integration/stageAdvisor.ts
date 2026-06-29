@@ -5,6 +5,7 @@ import {
   deriveRuntimeCityStage,
   isRuntimeBuildingUnlocked,
 } from '../content/runtimeBuildings'
+import { quoteBuildingConstruction } from '../simulation/economy/construction'
 
 export type StageRequirementId = 'population' | 'attraction' | 'activeDistricts'
 export type StageAdvisorOverlayMode = 'housing' | 'service' | 'logistics' | 'roads' | 'activity'
@@ -82,6 +83,8 @@ export interface StageGovernanceRecommendation {
     candidate?: GridPoint
     landCandidates: number
     roadAnchors: number
+    missingMaterials?: Partial<Record<string, number>>
+    missingTreasury?: number
   }
 }
 
@@ -672,7 +675,7 @@ function isRoadPressureLabel(label: string): boolean {
 
 export function explainStageRecommendationAvailability(
   recommendation: StageGovernanceRecommendation,
-  snapshot: Pick<SimulationSnapshot, 'metrics' | 'cells'>,
+  snapshot: Pick<SimulationSnapshot, 'metrics' | 'cells' | 'buildings' | 'economy'>,
 ): StageGovernanceRecommendation {
   if (recommendation.tool !== 'building' || !recommendation.buildingType) return recommendation
   const definition = BUILDING_DEFINITIONS[recommendation.buildingType]
@@ -717,7 +720,7 @@ function actionWithAvailability(action: string, recommendation: StageGovernanceR
 
 function diagnoseBuildingRecommendationExecution(
   buildingType: string,
-  snapshot: Pick<SimulationSnapshot, 'cells'>,
+  snapshot: Pick<SimulationSnapshot, 'cells' | 'buildings' | 'economy'>,
 ): NonNullable<StageGovernanceRecommendation['execution']> {
   const definition = BUILDING_DEFINITIONS[buildingType]
   const roadAnchors = snapshot.cells.filter((cell) => Boolean(cell.road)).length
@@ -727,6 +730,25 @@ function diagnoseBuildingRecommendationExecution(
       reason: '当前快照没有可评估地图地块，先查看图层定位问题。',
       landCandidates: 0,
       roadAnchors,
+    }
+  }
+  const affordability = definition
+    ? quoteBuildingConstruction(
+      buildingType,
+      definition,
+      snapshot.economy.treasury,
+      snapshot.buildings,
+      BUILDING_DEFINITIONS,
+    )
+    : undefined
+  if (affordability && !affordability.canAfford) {
+    return {
+      buildable: false,
+      reason: constructionAffordabilityReason(affordability.missingMaterials, affordability.missingTreasury),
+      landCandidates: 0,
+      roadAnchors,
+      missingMaterials: affordability.missingMaterials,
+      missingTreasury: affordability.missingTreasury,
     }
   }
   const cells = new Map(snapshot.cells.map((cell) => [pointBucket(cell.point), cell]))
@@ -774,6 +796,36 @@ function diagnoseBuildingRecommendationExecution(
     landCandidates,
     roadAnchors,
   }
+}
+
+function constructionAffordabilityReason(
+  missingMaterials: Partial<Record<string, number>>,
+  missingTreasury: number,
+): string {
+  const parts = [
+    missingTreasury > 0 ? `银两不足${missingTreasury}` : '',
+    Object.entries(missingMaterials)
+      .filter((entry): entry is [string, number] => typeof entry[1] === 'number' && entry[1] > 0)
+      .map(([resource, amount]) => `${resourceName(resource)}×${amount}`)
+      .join('、'),
+  ].filter(Boolean)
+  return parts.length > 0
+    ? `营造资源不足：${parts.join('，')}。`
+    : '营造资源不足。'
+}
+
+function resourceName(resource: string): string {
+  return ({
+    food: '粮食',
+    fish: '鱼获',
+    wood: '木料',
+    stone: '石料',
+    clay: '黏土',
+    brick: '砖瓦',
+    cloth: '布匹',
+    salt: '盐',
+    medicine: '药材',
+  } as Record<string, string>)[resource] ?? resource
 }
 
 function hasAdjacentRoad(cells: ReadonlyMap<string, { road?: unknown }>, point: GridPoint): boolean {

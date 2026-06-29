@@ -2,6 +2,21 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第五十七轮正式建筑营造成本
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/economy/construction.ts` | 经济系统 | 新增建筑营造成本、报价、城市仓储材料缺口和扣费逻辑 |
+| `src/simulation/economy/index.ts` | 经济模块出口 | 导出 construction 模块 |
+| `src/integration/GameRuntime.ts` | 运行时集成 | 建筑放置先校验地块，再扣银两/材料，资源不足时拒绝落建筑 |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 验证营造成功扣费、材料不足不落建筑且不扣银两 |
+| `src/integration/stageAdvisor.ts` | 城市顾问数据层 | 治理卡营造条件读取营造成本，显示银两/材料缺口 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证治理卡推荐建筑会显示中文材料缺口 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `CONSTRUCTION-COST-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第五十七轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录正式营造成本集成事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、全量测试和构建结果 |
+
 ## 2026-06-29：第五十六轮治理卡推荐营造可执行性
 
 | 文件 | 产物类型 | 用途 |

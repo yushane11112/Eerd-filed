@@ -17,14 +17,39 @@ describe('GameRuntime integration', () => {
 
   it('places roads and road-connected buildings into the shared snapshot', () => {
     const runtime = new GameRuntime()
+    const before = runtime.getSnapshot()
     expect(runtime.placeRoad({ x: 6, y: 10 }).ok).toBe(true)
     expect(runtime.placeRoad({ x: 6, y: 9 }).ok).toBe(true)
     expect(runtime.placeRoad({ x: 6, y: 8 }).ok).toBe(true)
 
     const result = runtime.placeBuilding('house', { x: 4, y: 8 }, 0)
+    const after = runtime.getSnapshot()
     expect(result.ok).toBe(true)
     expect(result.buildingId).toBeTruthy()
-    expect(runtime.getSnapshot().buildings[result.buildingId!]).toBeDefined()
+    expect(result.construction).toEqual({
+      treasury: 80,
+      materials: { wood: 2, stone: 1 },
+    })
+    expect(after.buildings[result.buildingId!]).toBeDefined()
+    expect(after.economy.treasury).toBe(before.economy.treasury - 80)
+    expect(after.buildings['granary-1'].inventory.wood).toBe((before.buildings['granary-1'].inventory.wood ?? 0) - 2)
+    expect(after.buildings['granary-1'].inventory.stone).toBe((before.buildings['granary-1'].inventory.stone ?? 0) - 1)
+  })
+
+  it('rejects construction when city storage cannot pay the material cost', () => {
+    const runtime = new GameRuntime()
+    const placed = placeManyHouses(runtime, 7)
+    const beforeFailure = runtime.getSnapshot()
+    const result = runtime.placeBuilding('house', { x: 22, y: 16 }, 0)
+    const after = runtime.getSnapshot()
+
+    expect(placed).toBe(7)
+    expect(result).toMatchObject({
+      ok: false,
+      message: '材料不足：木料×2',
+    })
+    expect(after.economy.treasury).toBe(beforeFailure.economy.treasury)
+    expect(Object.values(after.buildings).some((building) => building.origin.x === 22 && building.origin.y === 16)).toBe(false)
   })
 
   it('rejects buildings that are locked behind a later city stage', () => {
@@ -153,3 +178,24 @@ describe('GameRuntime integration', () => {
     expect(afterQuote.buildings['granary-1'].inventory.stone).toBe(2)
   })
 })
+
+function placeManyHouses(runtime: GameRuntime, target: number): number {
+  const origins = [
+    { x: 4, y: 3 },
+    { x: 4, y: 5 },
+    { x: 4, y: 8 },
+    { x: 4, y: 12 },
+    { x: 4, y: 14 },
+    { x: 4, y: 16 },
+    { x: 8, y: 3 },
+  ]
+  let placed = 0
+  for (const origin of origins) {
+    runtime.placeRoad({ x: origin.x + 2, y: origin.y + 1 })
+    const result = runtime.placeBuilding('house', origin, 0)
+    if (result.ok) placed += 1
+    if (placed >= target) break
+  }
+  runtime.placeRoad({ x: 24, y: 17 })
+  return placed
+}

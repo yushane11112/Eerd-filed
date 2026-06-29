@@ -2,6 +2,18 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第五十六轮治理卡推荐营造可执行性
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 城市顾问数据层 | 已解锁建筑推荐继续诊断连续空地和入口道路，并输出营造条件 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证推荐建筑有空地/道路时可执行、无道路入口时给出原因 |
+| `src/App.tsx` | 主界面 | 治理卡显示营造条件，不可放置时点击推荐不会切换到建筑工具 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `CITY-RECOMMENDATION-EXECUTION-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第五十六轮进展、完成度、限制和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录推荐营造可执行性集成事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、全量测试和构建结果 |
+
 ## 2026-06-29：第五十五轮治理卡推荐阶段可用性
 
 | 文件 | 产物类型 | 用途 |

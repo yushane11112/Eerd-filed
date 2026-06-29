@@ -327,7 +327,7 @@ describe('stage advisor overlays', () => {
 
     expect(deriveStageGovernanceCards(serviceSnapshot)[0]).toMatchObject({
       id: 'governance-activity-pressure',
-      action: '在服务热区附近补市场、医馆或文化服务点，减少居民跨区排队。',
+      action: '在服务热区附近补市场、医馆或文化服务点，减少居民跨区排队。 当前快照没有可评估地图地块，先查看图层定位问题。',
       metricLabel: '服务热',
       recommendation: {
         label: '补服务点分流',
@@ -393,6 +393,48 @@ describe('stage advisor overlays', () => {
         unlocked: true,
         currentStageLabel: '商贸镇',
         requiredStageLabel: '商贸镇',
+      },
+    })
+  })
+
+  it('diagnoses whether an unlocked recommendation has land and road access', () => {
+    const ready = explainStageRecommendationAvailability({
+      label: '营造集市',
+      tool: 'building',
+      buildingType: 'market',
+      overlayMode: 'service',
+    }, makeSnapshot({
+      cells: [
+        ...landRect(0, 0, 4, 3),
+        { point: { x: 1, y: 2 }, terrain: 'land', elevation: 0, road: 'stone' },
+      ],
+    }))
+    const noRoad = explainStageRecommendationAvailability({
+      label: '营造集市',
+      tool: 'building',
+      buildingType: 'market',
+      overlayMode: 'service',
+    }, makeSnapshot({
+      cells: landRect(0, 0, 4, 3),
+    }))
+
+    expect(ready).toMatchObject({
+      tool: 'building',
+      buildingType: 'market',
+      execution: {
+        buildable: true,
+        reason: '已找到空地和道路入口，可切换到营造工具试放。',
+        candidate: { x: 0, y: 0 },
+        roadAnchors: 1,
+      },
+    })
+    expect(noRoad).toMatchObject({
+      tool: 'building',
+      buildingType: 'market',
+      execution: {
+        buildable: false,
+        reason: '已有空地但入口未贴近道路，先铺一段连接路再营造。',
+        roadAnchors: 0,
       },
     })
   })
@@ -530,6 +572,17 @@ function building(id: string, type: string, entrance: { x: number; y: number }):
     inventory: {},
     productionProgress: 0,
   }
+}
+
+function landRect(x: number, y: number, width: number, height: number): SimulationSnapshot['cells'] {
+  return Array.from({ length: width * height }, (_, index) => ({
+    point: {
+      x: x + (index % width),
+      y: y + Math.floor(index / width),
+    },
+    terrain: 'land',
+    elevation: 0,
+  }))
 }
 
 function serviceAgent(id: string, position: { x: number; y: number }): SimulationSnapshot['agents'][string] {

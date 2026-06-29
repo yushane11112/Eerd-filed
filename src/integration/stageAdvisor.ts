@@ -76,6 +76,13 @@ export interface StageGovernanceRecommendation {
     requiredStageLabel?: string
     reason?: string
   }
+  execution?: {
+    buildable: boolean
+    reason: string
+    candidate?: GridPoint
+    landCandidates: number
+    roadAnchors: number
+  }
 }
 
 export const STAGE_ADVISOR_OVERLAY_MODES: ReadonlyArray<{
@@ -665,7 +672,7 @@ function isRoadPressureLabel(label: string): boolean {
 
 export function explainStageRecommendationAvailability(
   recommendation: StageGovernanceRecommendation,
-  snapshot: Pick<SimulationSnapshot, 'metrics'>,
+  snapshot: Pick<SimulationSnapshot, 'metrics' | 'cells'>,
 ): StageGovernanceRecommendation {
   if (recommendation.tool !== 'building' || !recommendation.buildingType) return recommendation
   const definition = BUILDING_DEFINITIONS[recommendation.buildingType]
@@ -682,6 +689,7 @@ export function explainStageRecommendationAvailability(
         currentStageLabel,
         requiredStageLabel,
       },
+      execution: diagnoseBuildingRecommendationExecution(recommendation.buildingType, snapshot),
     }
   }
   return {
@@ -701,7 +709,80 @@ function actionWithAvailability(action: string, recommendation: StageGovernanceR
   if (recommendation.availability?.unlocked === false && recommendation.availability.reason) {
     return `${recommendation.availability.reason}先查看相关图层，用道路分流或已解锁建筑临时缓解。`
   }
+  if (recommendation.execution?.buildable === false) {
+    return `${action} ${recommendation.execution.reason}`
+  }
   return action
+}
+
+function diagnoseBuildingRecommendationExecution(
+  buildingType: string,
+  snapshot: Pick<SimulationSnapshot, 'cells'>,
+): NonNullable<StageGovernanceRecommendation['execution']> {
+  const definition = BUILDING_DEFINITIONS[buildingType]
+  const roadAnchors = snapshot.cells.filter((cell) => Boolean(cell.road)).length
+  if (!definition || snapshot.cells.length === 0) {
+    return {
+      buildable: false,
+      reason: '当前快照没有可评估地图地块，先查看图层定位问题。',
+      landCandidates: 0,
+      roadAnchors,
+    }
+  }
+  const cells = new Map(snapshot.cells.map((cell) => [pointBucket(cell.point), cell]))
+  let landCandidates = 0
+  for (const originCell of snapshot.cells) {
+    const origin = originCell.point
+    const footprint = definition.footprint.map((point) => ({
+      x: origin.x + point.x,
+      y: origin.y + point.y,
+    }))
+    const footprintOk = footprint.every((point) => {
+      const cell = cells.get(pointBucket(point))
+      return cell
+        && (cell.terrain === 'land' || cell.terrain === 'shore')
+        && !cell.road
+        && !cell.buildingId
+    })
+    if (!footprintOk) continue
+    landCandidates += 1
+    const entrance = {
+      x: origin.x + definition.entrance.x,
+      y: origin.y + definition.entrance.y,
+    }
+    if (hasAdjacentRoad(cells, entrance)) {
+      return {
+        buildable: true,
+        reason: '已找到空地和道路入口，可切换到营造工具试放。',
+        candidate: origin,
+        landCandidates,
+        roadAnchors,
+      }
+    }
+  }
+  if (landCandidates === 0) {
+    return {
+      buildable: false,
+      reason: '当前没有足够连续空地，先清理占用或扩展道路旁地块。',
+      landCandidates,
+      roadAnchors,
+    }
+  }
+  return {
+    buildable: false,
+    reason: '已有空地但入口未贴近道路，先铺一段连接路再营造。',
+    landCandidates,
+    roadAnchors,
+  }
+}
+
+function hasAdjacentRoad(cells: ReadonlyMap<string, { road?: unknown }>, point: GridPoint): boolean {
+  return [
+    { x: point.x + 1, y: point.y },
+    { x: point.x - 1, y: point.y },
+    { x: point.x, y: point.y + 1 },
+    { x: point.x, y: point.y - 1 },
+  ].some((candidate) => Boolean(cells.get(pointBucket(candidate))?.road))
 }
 
 function activityPressureRecommendation(input: {

@@ -277,6 +277,11 @@ export default function App() {
         setToast(`${item.title}：${recommendation.availability?.reason ?? '推荐建筑当前阶段未解锁'}先按图层定位问题。`)
         return
       }
+      if (recommendation.execution && !recommendation.execution.buildable) {
+        setTool({ kind: 'inspect' })
+        setToast(`${item.title}：${recommendation.execution.reason}`)
+        return
+      }
       chooseTool({ kind: 'building', type: recommendation.buildingType, rotation: 0 })
       setToast(`${item.title}：${recommendation.label}。`)
       return
@@ -510,6 +515,9 @@ export default function App() {
                   {item.recommendation.availability?.unlocked === false && item.recommendation.availability.reason && (
                     <small>阶段限制：{item.recommendation.availability.reason}</small>
                   )}
+                  {item.recommendation.execution && (
+                    <small>营造条件：{item.recommendation.execution.reason}</small>
+                  )}
                   <em>{item.action}</em>
                   <div className="bottleneck-actions">
                     <button
@@ -695,6 +703,13 @@ interface CityBottleneck {
       currentStageLabel: string
       requiredStageLabel?: string
       reason?: string
+    }
+    execution?: {
+      buildable: boolean
+      reason: string
+      candidate?: { x: number; y: number }
+      landCandidates: number
+      roadAnchors: number
     }
   }
   score: number

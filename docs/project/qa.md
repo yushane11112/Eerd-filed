@@ -41,6 +41,13 @@
 - `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
 - `git diff --check`：通过，无空白或补丁格式问题。
 
+## 2026-06-29 第四十二轮验证
+
+- `vitest run src/simulation/core/SimulationEngine.test.ts`：先红后绿，新增测试确认工人就业后会获得共享道路通勤路径，并逐 tick 移动到雇主入口后进入 working 状态。
+- `vitest run src/simulation/world/movementPath.test.ts src/simulation/core/SimulationEngine.test.ts`：2 个测试文件、19 项通过，覆盖共享路径兼容和工人通勤路径。
+- `npm test`：30 个测试文件、193 项测试通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+
 ## 2026-06-27 第十二轮验证
 
 - `pnpm vitest run src/simulation/core/SimulationEngine.test.ts`：12 项通过，覆盖候选抵达、正式入住、低吸引力拒绝、无房离开、迁出和满意度压力。

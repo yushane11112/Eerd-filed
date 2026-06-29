@@ -2,6 +2,17 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第四十二轮工人通勤路径接入
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/core/SimulationEngine.ts` | 核心模拟 | 工人分配岗位后生成共享道路通勤路径，并逐 tick 移动到雇主入口 |
+| `src/simulation/core/SimulationEngine.test.ts` | 自动测试 | 验证工人通勤路径、位置推进和抵达后 working 状态 |
+| `docs/project/task-board.md` | 任务看板 | 标记 WORKER-COMMUTE-PATH-01 完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录第四十二轮启动、完成和行为边界 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新城市模拟、动态引擎和人口生命周期完成度 |
+| `docs/project/qa.md` | 验收记录 | 记录本轮目标测试和全量验证 |
+
 ## 2026-06-29：第四十一轮物流共享路径接入
 
 | 文件 | 产物类型 | 用途 |

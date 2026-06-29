@@ -232,6 +232,82 @@ describe('SimulationEngine', () => {
     })
   })
 
+  it('gives employed workers a visible commute along shared road paths', () => {
+    const home = {
+      ...building('home', 'house'),
+      entrance: { x: 0, y: 1 },
+    }
+    const work = {
+      ...building('work', 'workshop'),
+      entrance: { x: 2, y: 1 },
+    }
+    const snapshot = createInitialSimulationSnapshot({
+      buildings: { home, work },
+    })
+    snapshot.cells = migrationRouteCells()
+    snapshot.households.family = {
+      id: 'family',
+      homeBuildingId: 'home',
+      members: 2,
+      workerIds: ['worker-1'],
+      income: 0,
+      satisfaction: 70,
+      needs: {
+        food: 100,
+        goods: 100,
+        health: 100,
+        education: 100,
+        entertainment: 100,
+      },
+    }
+    snapshot.agents['worker-1'] = {
+      id: 'worker-1',
+      role: 'worker',
+      householdId: 'family',
+      position: { x: 0, y: 1 },
+      path: [],
+      pathIndex: 0,
+      activity: 'home',
+    }
+
+    const engine = new SimulationEngine(snapshot, {
+      buildingDefinitions: definitions,
+      migrationIntervalTicks: 100,
+    })
+
+    engine.step()
+
+    expect(engine.snapshot.agents['worker-1']).toMatchObject({
+      employerBuildingId: 'work',
+      activity: 'commuting',
+      position: { x: 0, y: 1 },
+      path: [
+        { x: 0, y: 1 },
+        { x: 0, y: 2 },
+        { x: 1, y: 2 },
+        { x: 2, y: 2 },
+        { x: 2, y: 1 },
+      ],
+      pathIndex: 0,
+    })
+
+    engine.step()
+
+    expect(engine.snapshot.agents['worker-1']).toMatchObject({
+      activity: 'commuting',
+      position: { x: 0, y: 2 },
+      pathIndex: 1,
+    })
+
+    engine.step(3)
+
+    expect(engine.snapshot.agents['worker-1']).toMatchObject({
+      activity: 'working',
+      position: { x: 2, y: 1 },
+      pathIndex: 4,
+    })
+  })
+
   it('keeps migrants away when city attraction is too low', () => {
     const snapshot = createInitialSimulationSnapshot({
       taxRate: 0.5,

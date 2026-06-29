@@ -2,6 +2,8 @@
 
 ## 2026-06-29
 
+- 启动并完成第四十二轮：`WORKER-COMMUTE-PATH-01`。`SimulationEngine` 的就业匹配不再只给工人打上 `commuting` 标签，而是在分配岗位时调用共享移动路径生成从住宅入口到雇主入口的道路优先路径；后续 tick 会推进工人位置，抵达雇主入口后进入 `working` 状态。
+- 新增测试先红后绿，验证工人通勤会绕开阻挡并走共享道路路径，且位置与 `pathIndex` 会逐 tick 前进；这让现有 `AgentVisual` 的移动动画有真实模拟数据驱动，而不是空路径占位。
 - 启动并完成第四十一轮：`LOGISTICS-SHARED-PATH-01`。物流 `RoadRoutePlanner` 不再维护独立简化 BFS，而是复用 `src/simulation/world/movementPath.ts` 的共享移动路径服务；货运必须沿有效道路/桥通行，普通水面与建筑占用格会阻断路径，无路时返回失败并触发既有物流 no-route 后果。
 - 共享移动路径服务新增 `findMovementPath`、`fallback: none` 与 `requireRoad` 选项，保留候选外来人口所需的安全直线 fallback，同时给物流提供严格“无路不兜底”能力。
 - 新增/补强测试覆盖物流不能穿越水面或占用道路、共享路径无路返回失败、桥路可过水；本轮目标测试先红后绿。

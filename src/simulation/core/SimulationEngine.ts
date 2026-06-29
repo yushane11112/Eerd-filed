@@ -122,6 +122,7 @@ export class SimulationEngine {
 
     this.updateHouseholdNeedsAndSatisfaction()
     events.push(...this.migrateOutDissatisfiedHouseholds())
+    this.advanceWorkerCommutes()
     this.matchEmployment()
     events.push(...this.updateMigrationCandidates())
 
@@ -352,8 +353,53 @@ export class SimulationEngine {
         continue
       }
       worker.employerBuildingId = employer.id
-      worker.activity = 'commuting'
+      this.startWorkerCommute(worker, employer)
       employer.workers.push(worker.id)
+    }
+  }
+
+  private startWorkerCommute(worker: AgentEntity, employer: BuildingEntity): void {
+    const household = worker.householdId
+      ? this.state.households[worker.householdId]
+      : undefined
+    const home = household ? this.state.buildings[household.homeBuildingId] : undefined
+    const origin = home?.entrance ?? worker.position
+    worker.path = buildMovementPath(origin, employer.entrance, this.state.cells, {
+      roadPreference: 'prefer-road',
+    })
+    worker.pathIndex = 0
+    worker.position = { ...(worker.path[0] ?? origin) }
+    worker.activity = samePoint(worker.position, employer.entrance) ? 'working' : 'commuting'
+  }
+
+  private advanceWorkerCommutes(): void {
+    const commutingWorkers = Object.values(this.state.agents)
+      .filter((agent) => agent.role === 'worker' && agent.activity === 'commuting')
+      .sort(byId)
+
+    for (const worker of commutingWorkers) {
+      const employer = worker.employerBuildingId
+        ? this.state.buildings[worker.employerBuildingId]
+        : undefined
+      if (!employer) {
+        worker.activity = 'home'
+        worker.path = []
+        worker.pathIndex = 0
+        continue
+      }
+      if (worker.path.length === 0) {
+        worker.path = buildMovementPath(worker.position, employer.entrance, this.state.cells, {
+          roadPreference: 'prefer-road',
+        })
+        worker.pathIndex = 0
+      }
+      const nextIndex = Math.min(worker.pathIndex + 1, worker.path.length - 1)
+      worker.pathIndex = nextIndex
+      worker.position = { ...worker.path[nextIndex] }
+      if (nextIndex >= worker.path.length - 1 || samePoint(worker.position, employer.entrance)) {
+        worker.activity = 'working'
+        worker.position = { ...employer.entrance }
+      }
     }
   }
 
@@ -592,4 +638,8 @@ function distanceSquared(
   right: { x: number; y: number },
 ): number {
   return (left.x - right.x) ** 2 + (left.y - right.y) ** 2
+}
+
+function samePoint(left: { x: number; y: number }, right: { x: number; y: number }): boolean {
+  return left.x === right.x && left.y === right.y
 }

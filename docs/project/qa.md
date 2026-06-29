@@ -74,6 +74,13 @@
 - `migrationOutThreshold: 0` 明确表示禁用迁出，用于验证 500 户、300 建筑、150 可见实体的满规模吞吐；默认游戏阈值仍会触发低满意度迁出。
 - 500 户满规模稳定后历史订单达到约 18000 条，因此灰盒上限从 10000 调整为 20000；这不是商业级最终目标，后续仍必须实现历史订单归档、压缩或分窗。
 
+## 2026-06-29 第四十六轮验证
+
+- `npm test -- src/simulation/districts/prosperity.test.ts`：1 个测试文件、4 项测试通过，覆盖真实居民服务访问驱动街区繁荣和 footTraffic。
+- `npm test -- src/simulation/districts/prosperity.test.ts src/integration/GameRuntime.test.ts src/rendering/DynamicScene.test.ts src/qa/stressScenario.test.ts`：4 个测试文件、25 项测试通过，覆盖街区繁荣、运行时集成、动态场景兼容和 2400 tick 长稳。
+- `npm test`：30 个测试文件、194 项测试通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过。
+
 ## 2026-06-27 第十二轮验证
 
 - `pnpm vitest run src/simulation/core/SimulationEngine.test.ts`：12 项通过，覆盖候选抵达、正式入住、低吸引力拒绝、无房离开、迁出和满意度压力。

@@ -19,7 +19,7 @@ const DISTRICT_NAMES: Record<string, string> = {
 }
 
 export function deriveDistrictProsperity(
-  snapshot: Pick<SimulationSnapshot, 'buildings'> & Partial<Pick<SimulationSnapshot, 'cells' | 'logisticsOrders'>>,
+  snapshot: Pick<SimulationSnapshot, 'buildings'> & Partial<Pick<SimulationSnapshot, 'agents' | 'cells' | 'logisticsOrders'>>,
   definitions: Readonly<Record<string, BuildingDefinition>>,
 ): DistrictProsperityState[] {
   const grouped = new Map<string, BuildingEntity[]>()
@@ -59,7 +59,7 @@ function toDistrict(
   kind: string,
   buildings: readonly BuildingEntity[],
   definitions: Readonly<Record<string, BuildingDefinition>>,
-  snapshot: Pick<SimulationSnapshot, 'buildings'> & Partial<Pick<SimulationSnapshot, 'cells' | 'logisticsOrders'>>,
+  snapshot: Pick<SimulationSnapshot, 'buildings'> & Partial<Pick<SimulationSnapshot, 'agents' | 'cells' | 'logisticsOrders'>>,
 ): DistrictProsperityState | undefined {
   if (buildings.length === 0) return undefined
   const sortedBuildings = [...buildings].sort((left, right) => left.id.localeCompare(right.id))
@@ -81,6 +81,11 @@ function toDistrict(
     sortedBuildings.map((building) => building.id),
     snapshot.logisticsOrders ?? {},
   ) * 4)
+  const serviceVisitCount = activeServiceVisitCount(
+    sortedBuildings.map((building) => building.id),
+    snapshot.agents ?? {},
+  )
+  const serviceVisitBonus = Math.min(14, serviceVisitCount * 7)
   const prosperity = clamp(
     Math.round(
       sortedBuildings.length * 12
@@ -91,6 +96,7 @@ function toDistrict(
         + roadBonus
         + serviceBonus
         + logisticsBonus
+        + serviceVisitBonus
         - blockedPenalty,
     ),
     0,
@@ -107,7 +113,9 @@ function toDistrict(
     activityLevel: activityLevel(prosperity),
     visualHints: {
       lanterns: prosperity >= 45 ? Math.min(5, Math.ceil(prosperity / 20)) : 0,
-      footTraffic: prosperity >= 35 ? Math.min(6, Math.ceil(prosperity / 18)) : 0,
+      footTraffic: prosperity >= 35
+        ? Math.min(8, Math.ceil(prosperity / 18) + Math.min(2, serviceVisitCount))
+        : 0,
       decoration: prosperity >= 55 ? Math.min(4, Math.ceil((prosperity - 40) / 18)) : 0,
     },
   }
@@ -164,6 +172,21 @@ function activeLogisticsTouchCount(
   ) && (
     ids.has(order.sourceBuildingId)
     || ids.has(order.destinationBuildingId)
+  )).length
+}
+
+function activeServiceVisitCount(
+  buildingIds: readonly string[],
+  agents: NonNullable<SimulationSnapshot['agents']>,
+): number {
+  const ids = new Set(buildingIds)
+  return Object.values(agents).filter((agent) => (
+    agent.role === 'resident'
+    && agent.id.startsWith('service-visit:')
+    && agent.serviceIntent
+    && !agent.serviceIntent.completed
+    && ids.has(agent.serviceIntent.buildingId)
+    && (agent.activity === 'shopping' || agent.activity === 'serving')
   )).length
 }
 

@@ -46,6 +46,7 @@
 | LEGACY-ARCHIPELAGO-SCOPE-01 | 旧群岛原型集中 legacy 边界 | `src/legacy/**`, `src/game/legacy.test.ts`, `docs/project/**` | 已完成 | 旧 IslandCanvas 从正式 components 目录迁入 legacy/archipelago，并有测试防止回流 |
 | DISTRICT-PROSPERITY-01 | 街区繁荣系统 | `src/simulation/**`, `src/rendering/**`, `src/integration/GameRuntime.ts` | 已完成 | 商业街、码头仓区等街区能驱动人流、灯火、装饰 |
 | DISTRICT-PROSPERITY-RUNTIME-01 | 街区繁荣真实运行因子 | `src/simulation/districts/**` | 已完成 | 街区繁荣接入服务覆盖、道路贴近和真实物流活动，不只看建筑聚集 |
+| DISTRICT-SERVICE-VISIT-HEAT-01 | 服务访问驱动街区热度 | `src/simulation/districts/**` | 已完成 | 市场、药铺、书院、戏台等真实居民服务访问会提高对应街区繁荣和人流表现 |
 | CORE-01 | 模拟时钟、家庭、就业 | `src/simulation/core/**` | 已完成 | 9 项模块测试通过 |
 | WORLD-01 | 网格、道路、建造、寻路 | `src/simulation/world/**` | 已完成 | 10 项模块测试通过 |
 | LOG-01 | 生产、库存、订单、物流 | `src/simulation/economy/**` | 已完成 | 9 项模块测试通过 |

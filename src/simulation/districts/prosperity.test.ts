@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { BuildingDefinition, BuildingEntity } from '../contracts'
+import type { AgentEntity, BuildingDefinition, BuildingEntity } from '../contracts'
 import { deriveDistrictProsperity, summarizeDistrictProsperity } from './prosperity'
 
 const definitions: Record<string, BuildingDefinition> = {
@@ -78,6 +78,34 @@ describe('district prosperity', () => {
     expect(supported?.prosperity).toBeGreaterThan((isolated?.prosperity ?? 0) + 10)
     expect(supported?.visualHints.footTraffic).toBeGreaterThan(isolated?.visualHints.footTraffic ?? 0)
   })
+
+  it('turns active resident service visits into district heat and foot traffic', () => {
+    const buildings = {
+      market: building('market', 'market', { x: 5, y: 2 }, 1, 'idle'),
+      granary: building('granary', 'granary', { x: 6, y: 2 }, 1, 'idle'),
+      clinic: building('clinic', 'clinic', { x: 7, y: 2 }, 1, 'idle'),
+    }
+    const quiet = deriveDistrictProsperity({ buildings }, definitions)
+      .find((district) => district.kind === 'market-street')
+    const active = deriveDistrictProsperity({
+      buildings,
+      agents: {
+        'service-visit:1:market:family:food': residentVisit(
+          'service-visit:1:market:family:food',
+          'market',
+          'shopping',
+        ),
+        'service-visit:1:clinic:family:health': residentVisit(
+          'service-visit:1:clinic:family:health',
+          'clinic',
+          'serving',
+        ),
+      },
+    }, definitions).find((district) => district.kind === 'market-street')
+
+    expect(active?.prosperity).toBeGreaterThan((quiet?.prosperity ?? 0) + 10)
+    expect(active?.visualHints.footTraffic).toBeGreaterThan(quiet?.visualHints.footTraffic ?? 0)
+  })
 })
 
 function definition(
@@ -117,5 +145,28 @@ function building(
     workers: [],
     inventory: {},
     productionProgress: 0,
+  }
+}
+
+function residentVisit(
+  id: string,
+  buildingId: string,
+  activity: AgentEntity['activity'],
+): AgentEntity {
+  return {
+    id,
+    role: 'resident',
+    householdId: 'family',
+    position: { x: 4, y: 2 },
+    path: [{ x: 4, y: 2 }, { x: 5, y: 2 }],
+    pathIndex: 0,
+    activity,
+    serviceIntent: {
+      buildingId,
+      need: buildingId === 'market' ? 'food' : 'health',
+      amount: 1,
+      saleValue: buildingId === 'market' ? 5 : 0,
+      restoreAmount: 12,
+    },
   }
 }

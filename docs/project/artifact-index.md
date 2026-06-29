@@ -2,6 +2,17 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第四十六轮服务访问驱动街区热度
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/districts/prosperity.ts` | 街区繁荣系统 | 读取真实居民 `service-visit` agent，将市场/药铺/书院/戏台等服务访问转化为街区繁荣和人流加成 |
+| `src/simulation/districts/prosperity.test.ts` | 自动测试 | 验证相同建筑条件下，活跃居民服务访问会提高街区热度和 footTraffic |
+| `docs/project/task-board.md` | 任务看板 | 记录 `DISTRICT-SERVICE-VISIT-HEAT-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第四十六轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录服务访问驱动街区热度的集成事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、全量测试和构建结果 |
+
 ## 2026-06-29：第四十五轮居民抵达后服务结算
 
 | 文件 | 产物类型 | 用途 |

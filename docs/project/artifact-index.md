@@ -394,3 +394,15 @@
 | `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第三十八轮进展、城市模拟/人口生命周期完成度和下一轮任务 |
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮路径服务抽取事实 |
 | `docs/project/qa.md` | QA 记录 | 记录本轮验证命令和结果 |
+
+## 2026-06-29：第三十九轮图层指标治理卡
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 城市顾问数据层 | 将服务缺口、道路缺口和物流热点等图层结构化指标派生为可排序治理卡 |
+| `src/App.tsx` | 主界面 | 瓶颈面板合并治理卡，点击后可定位到对应服务缺口、道路缺口或物流热点 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证治理卡排序、目标点和图层来源 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `CITY-GOVERNANCE-CARDS-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第三十九轮进展、UI/UX 完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮治理卡接入事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮验证命令和结果 |

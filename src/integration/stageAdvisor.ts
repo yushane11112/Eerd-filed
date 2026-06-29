@@ -42,6 +42,21 @@ export interface StageAdvisorOverlay {
   metrics?: Record<string, number>
 }
 
+export interface StageGovernanceCard {
+  id: string
+  title: string
+  detail: string
+  action: string
+  score: number
+  severity: 'high' | 'medium' | 'low'
+  overlayMode: StageAdvisorOverlayMode
+  metricLabel: string
+  target?: {
+    point: GridPoint
+    label: string
+  }
+}
+
 export const STAGE_ADVISOR_OVERLAY_MODES: ReadonlyArray<{
   mode: StageAdvisorOverlayMode
   label: string
@@ -51,6 +66,78 @@ export const STAGE_ADVISOR_OVERLAY_MODES: ReadonlyArray<{
   { mode: 'logistics', label: '物流' },
   { mode: 'roads', label: '道路' },
 ]
+
+export function deriveStageGovernanceCards(
+  snapshot: Readonly<SimulationSnapshot>,
+): StageGovernanceCard[] {
+  const overlays = Object.fromEntries(
+    STAGE_ADVISOR_OVERLAY_MODES.map((item) => [
+      item.mode,
+      deriveStageMapOverlay(item.mode, snapshot, 0),
+    ]),
+  ) as Partial<Record<StageAdvisorOverlayMode, StageAdvisorOverlay | undefined>>
+  const cards: StageGovernanceCard[] = []
+
+  const service = overlays.service
+  const serviceGaps = service?.metrics?.serviceGaps ?? 0
+  if (serviceGaps > 0) {
+    const target = service?.points.find((point) => point.label === '缺服务')
+    const score = 92 + serviceGaps * 4
+    cards.push({
+      id: 'governance-service-gaps',
+      title: '服务覆盖缺口',
+      detail: `${serviceGaps} 处住宅不在服务范围内，后续会拖低满意度和迁入吸引力。`,
+      action: '优先在缺口附近补市场、医馆、学塾或文化服务。',
+      score,
+      severity: severityFromScore(score),
+      overlayMode: 'service',
+      metricLabel: '缺口住宅',
+      target: target && { point: target.position, label: target.label },
+    })
+  }
+
+  const roads = overlays.roads
+  const roadGaps = roads?.metrics?.roadGaps ?? 0
+  if (roadGaps > 0) {
+    const target = roads?.points.find((point) => point.label.startsWith('缺路'))
+    const score = 88 + roadGaps * 3
+    cards.push({
+      id: 'governance-road-gaps',
+      title: '道路入口缺口',
+      detail: `${roadGaps} 处建筑入口没有道路贴近，通勤、服务和物流都会变慢。`,
+      action: '先给住宅、仓储、服务和生产入口补齐道路连接。',
+      score,
+      severity: severityFromScore(score),
+      overlayMode: 'roads',
+      metricLabel: '缺路',
+      target: target && { point: target.position, label: target.label },
+    })
+  }
+
+  const logistics = overlays.logistics
+  const hotspots = logistics?.metrics?.hotspots ?? 0
+  const activeOrders = logistics?.metrics?.activeOrders ?? 0
+  if (hotspots > 0 || activeOrders >= 3) {
+    const target = logistics?.points.find((point) => point.label.startsWith('物流热点'))
+      ?? logistics?.points.find((point) => point.kind === 'logistics')
+    const score = 82 + hotspots * 8 + activeOrders
+    cards.push({
+      id: 'governance-logistics-hotspots',
+      title: '物流热点拥堵',
+      detail: `当前有 ${activeOrders} 条未完成订单、${hotspots} 个物流热点，货物流转容易压到少数建筑。`,
+      action: '靠近热点补仓储、优化道路，避免产地和市场单线拥堵。',
+      score,
+      severity: severityFromScore(score),
+      overlayMode: 'logistics',
+      metricLabel: hotspots > 0 ? '热点' : '未完成',
+      target: target && { point: target.position, label: target.label },
+    })
+  }
+
+  return cards.sort((left, right) => (
+    right.score - left.score || left.id.localeCompare(right.id)
+  ))
+}
 
 export function deriveStageAdvisorOverlay(
   requirementId: StageRequirementId,
@@ -186,6 +273,7 @@ export function deriveStageMapOverlay(
     })
     const hotspots = Array.from(endpointCounts.entries())
       .filter(([, count]) => count > 1)
+      .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
       .flatMap(([buildingId, count]) => {
         const building = snapshot.buildings[buildingId]
         if (!building) return []
@@ -336,4 +424,10 @@ function roadGapLabel(type: string): string {
   if (definition?.functions?.includes('storage')) return '缺路仓储'
   if (definition?.functions?.some((fn) => fn === 'production' || fn === 'employment')) return '缺路生产'
   return '缺路'
+}
+
+function severityFromScore(score: number): StageGovernanceCard['severity'] {
+  if (score >= 92) return 'high'
+  if (score >= 82) return 'medium'
+  return 'low'
 }

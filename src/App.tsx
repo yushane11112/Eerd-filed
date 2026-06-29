@@ -38,6 +38,7 @@ import {
 } from './integration/cityNotices'
 import {
   deriveStageAdvisorOverlay,
+  deriveStageGovernanceCards,
   deriveStageMapOverlay,
   STAGE_ADVISOR_OVERLAY_MODES,
   type StageAdvisorOverlay,
@@ -645,7 +646,17 @@ interface AmbientCityStoryItem extends AmbientCityStory {
 }
 
 function getCityBottlenecks(snapshot: ReturnType<GameRuntime['getSnapshot']>) {
-  const bottlenecks: CityBottleneck[] = []
+  const bottlenecks: CityBottleneck[] = deriveStageGovernanceCards(snapshot).map((card) => ({
+    id: card.id,
+    title: card.title,
+    detail: card.detail,
+    action: card.action,
+    score: card.score,
+    severity: card.severity,
+    target: card.target
+      ? { kind: 'point', point: card.target.point, label: card.target.label }
+      : undefined,
+  }))
   const buildings = Object.values(snapshot.buildings)
   const reasonCounts = buildings.reduce((counts, building) => {
     if (!building.statusReason || building.statusReason === 'no-service-demand') return counts

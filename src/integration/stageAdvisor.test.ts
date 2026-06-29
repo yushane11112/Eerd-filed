@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { BuildingEntity, SimulationSnapshot } from '../simulation/contracts'
-import { deriveStageAdvisorOverlay, deriveStageMapOverlay } from './stageAdvisor'
+import {
+  deriveStageAdvisorOverlay,
+  deriveStageGovernanceCards,
+  deriveStageMapOverlay,
+} from './stageAdvisor'
 
 describe('stage advisor overlays', () => {
   it('targets housing and waiting migrants for population blockers', () => {
@@ -160,6 +164,73 @@ describe('stage advisor overlays', () => {
       summary: ['道路点 1', '缺路 4'],
       metrics: { roadCells: 1, roadGaps: 4 },
     })
+  })
+
+  it('turns layer metrics into sorted governance cards', () => {
+    const snapshot = makeSnapshot({
+      cells: [
+        { point: { x: 1, y: 1 }, terrain: 'land', elevation: 0, road: 'dirt' },
+      ],
+      buildings: {
+        home: building('home', 'house', { x: 2, y: 3 }),
+        farHome: building('farHome', 'house', { x: 12, y: 12 }),
+        market: building('market', 'market', { x: 4, y: 5 }),
+        granary: building('granary', 'granary', { x: 8, y: 8 }),
+      },
+      logisticsOrders: {
+        order: {
+          id: 'order',
+          resource: 'food',
+          amount: 5,
+          sourceBuildingId: 'granary',
+          destinationBuildingId: 'market',
+          priority: 1,
+          state: 'waiting',
+        },
+        order2: {
+          id: 'order2',
+          resource: 'wood',
+          amount: 2,
+          sourceBuildingId: 'home',
+          destinationBuildingId: 'market',
+          priority: 1,
+          state: 'assigned',
+        },
+        order3: {
+          id: 'order3',
+          resource: 'brick',
+          amount: 3,
+          sourceBuildingId: 'granary',
+          destinationBuildingId: 'market',
+          priority: 1,
+          state: 'waiting',
+        },
+      },
+    })
+
+    expect(deriveStageGovernanceCards(snapshot)).toMatchObject([
+      {
+        id: 'governance-logistics-hotspots',
+        title: '物流热点拥堵',
+        overlayMode: 'logistics',
+        metricLabel: '热点',
+        target: { point: { x: 4, y: 5 }, label: '物流热点x3' },
+      },
+      {
+        id: 'governance-road-gaps',
+        title: '道路入口缺口',
+        overlayMode: 'roads',
+        metricLabel: '缺路',
+        target: { point: { x: 2, y: 3 }, label: '缺路住宅' },
+      },
+      {
+        id: 'governance-service-gaps',
+        title: '服务覆盖缺口',
+        overlayMode: 'service',
+        metricLabel: '缺口住宅',
+        target: { point: { x: 12, y: 12 }, label: '缺服务' },
+      },
+    ])
   })
 })
 

@@ -34,6 +34,7 @@ export interface LogisticsSystemOptions {
   serviceRules?: Readonly<Record<string, ServiceRule>>
   serviceTargetBatches?: number
   idFactory?: () => EntityId
+  completedOrderRetention?: number
 }
 
 const samePoint = (left: GridPoint, right: GridPoint): boolean => left.x === right.x && left.y === right.y
@@ -96,6 +97,7 @@ export class LogisticsSystem implements SimulationSystem {
   private readonly serviceRules: Readonly<Record<string, ServiceRule>>
   private readonly serviceTargetBatches: number
   private readonly idFactory: () => EntityId
+  private readonly completedOrderRetention: number
   private sequence = 0
 
   constructor(options: LogisticsSystemOptions) {
@@ -106,6 +108,7 @@ export class LogisticsSystem implements SimulationSystem {
     this.serviceRules = options.serviceRules ?? {}
     this.serviceTargetBatches = options.serviceTargetBatches ?? 3
     this.idFactory = options.idFactory ?? (() => `logistics-${++this.sequence}`)
+    this.completedOrderRetention = Math.max(0, options.completedOrderRetention ?? 500)
   }
 
   update(snapshot: SimulationSnapshot): SimulationEvent[] {
@@ -113,6 +116,7 @@ export class LogisticsSystem implements SimulationSystem {
     events.push(...this.createOrders(snapshot))
     this.assignWaitingOrders(snapshot)
     this.advanceCarriers(snapshot)
+    this.archiveCompletedOrders(snapshot)
     this.updateEfficiency(snapshot)
     return events
   }
@@ -498,15 +502,46 @@ export class LogisticsSystem implements SimulationSystem {
     }
   }
 
+  private archiveCompletedOrders(snapshot: SimulationSnapshot): void {
+    const completed = Object.values(snapshot.logisticsOrders)
+      .filter((order) => order.state === 'delivered' || order.state === 'cancelled')
+      .sort((left, right) => left.id.localeCompare(right.id))
+    const archiveCount = Math.max(0, completed.length - this.completedOrderRetention)
+    if (archiveCount === 0) return
+
+    snapshot.logisticsArchive ??= {
+      archivedOrders: 0,
+      delivered: 0,
+      cancelled: 0,
+      cancelReasons: {},
+    }
+    for (const order of completed.slice(0, archiveCount)) {
+      snapshot.logisticsArchive.archivedOrders += 1
+      if (order.state === 'delivered') {
+        snapshot.logisticsArchive.delivered += 1
+      } else {
+        snapshot.logisticsArchive.cancelled += 1
+        if (order.cancelReason) {
+          snapshot.logisticsArchive.cancelReasons[order.cancelReason] = (
+            snapshot.logisticsArchive.cancelReasons[order.cancelReason] ?? 0
+          ) + 1
+        }
+      }
+      delete snapshot.logisticsOrders[order.id]
+    }
+  }
+
   private updateEfficiency(snapshot: SimulationSnapshot): void {
     const orders = Object.values(snapshot.logisticsOrders)
+    const archive = snapshot.logisticsArchive
     const delivered = orders.filter((order) => order.state === 'delivered').length
+      + (archive?.delivered ?? 0)
     const cancelled = orders.filter((order) => order.state === 'cancelled')
     const cancelledDestinations = new Set(cancelled.map((order) => order.destinationBuildingId))
     const failedBuildings = Object.values(snapshot.buildings).filter((building) => (
       isLogisticsFailure(building.statusReason) && !cancelledDestinations.has(building.id)
     ))
-    const failed = cancelled.length + failedBuildings.length
+    const failed = cancelled.length + (archive?.cancelled ?? 0) + failedBuildings.length
     snapshot.metrics.logisticsEfficiency = delivered + failed === 0
       ? 100
       : (delivered / (delivered + failed)) * 100

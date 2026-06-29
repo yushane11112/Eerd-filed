@@ -63,6 +63,7 @@ describe('target stress scenario', () => {
     expect(summary.totalOrders).toBeLessThanOrEqual(
       CIVILIZATION_LONG_RUN_THRESHOLDS.maxHistoricalOrders,
     )
+    expect(summary.archivedOrders).toBeGreaterThan(0)
     expect(summary.maxBuildingInventory).toBeLessThanOrEqual(
       CIVILIZATION_LONG_RUN_THRESHOLDS.maxBuildingInventory,
     )

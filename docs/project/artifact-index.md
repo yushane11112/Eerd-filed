@@ -2,6 +2,20 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第四十九轮历史物流订单归档
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 公共契约 | 新增 `LogisticsArchiveState` 与 `SimulationSnapshot.logisticsArchive`，用于汇总归档订单 |
+| `src/simulation/economy/logistics.ts` | 物流系统 | delivered/cancelled 订单按保留窗口进入归档汇总，效率统计读取当前订单与归档历史 |
+| `src/simulation/economy/economy.test.ts` | 自动测试 | 验证历史订单归档、取消原因计数和效率统计保持正确 |
+| `src/qa/stressScenario.ts` | 长稳 QA | 压力摘要新增 `archivedOrders` 和归档数值检查，当前订单表上限收紧到 2000 |
+| `src/qa/stressScenario.test.ts` | 长稳测试 | 断言长稳期间归档确实发生 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LOGISTICS-ORDER-ARCHIVE-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第四十九轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录历史订单归档集成事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、长稳、全量测试和构建结果 |
+
 ## 2026-06-29：第四十八轮承运人货运生命周期
 
 | 文件 | 产物类型 | 用途 |
@@ -47,7 +61,7 @@
 | `src/simulation/economy/service.ts` | 经济服务系统 | 服务访问改为抵达目标建筑后才扣库存、扣家庭收入、增加税收、恢复需求并返家 |
 | `src/simulation/economy/economy.test.ts` | 自动测试 | 覆盖市场购买、日用品购买、药铺、书院、戏台、服务容量和综合物流-市场闭环的新两段式行为 |
 | `src/simulation/core/SimulationEngine.ts` | 模拟主循环 | 经济/服务系统更新后再迁出；`migrationOutThreshold: 0` 明确为禁用迁出 |
-| `src/qa/stressScenario.ts` | 长稳 QA 基准 | 500 户满规模场景下历史订单灰盒上限校准为 20000，并保留后续订单归档风险 |
+| `src/qa/stressScenario.ts` | 长稳 QA 基准 | 500 户满规模场景下历史订单灰盒上限校准为 20000；第四十九轮已进一步引入归档并收紧当前订单表上限 |
 | `docs/project/task-board.md` | 任务看板 | 记录 `SERVICE-ARRIVAL-CHECKOUT-01` 已完成 |
 | `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第四十五轮进展、完成度和下一轮任务 |
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮服务结算、主循环和长稳阈值调整 |

@@ -512,6 +512,55 @@ describe('road logistics', () => {
     expect(destination.statusReason).toBe('logistics-failed:food:destination-capacity')
   })
 
+  it('archives completed logistics history while preserving efficiency statistics', () => {
+    const state = snapshot({
+      logisticsOrders: {
+        'a-cancelled': {
+          id: 'a-cancelled',
+          resource: 'food',
+          amount: 1,
+          sourceBuildingId: 'granary',
+          destinationBuildingId: 'market',
+          priority: 1,
+          state: 'cancelled',
+          cancelReason: 'no-route',
+        },
+        'b-delivered': {
+          id: 'b-delivered',
+          resource: 'food',
+          amount: 1,
+          sourceBuildingId: 'granary',
+          destinationBuildingId: 'market',
+          priority: 1,
+          state: 'delivered',
+        },
+        'c-delivered': {
+          id: 'c-delivered',
+          resource: 'wood',
+          amount: 1,
+          sourceBuildingId: 'granary',
+          destinationBuildingId: 'market',
+          priority: 1,
+          state: 'delivered',
+        },
+      },
+    })
+
+    new LogisticsSystem({
+      definitions,
+      completedOrderRetention: 1,
+    }).update(state)
+
+    expect(Object.keys(state.logisticsOrders)).toEqual(['c-delivered'])
+    expect(state.logisticsArchive).toEqual({
+      archivedOrders: 2,
+      delivered: 1,
+      cancelled: 1,
+      cancelReasons: { 'no-route': 1 },
+    })
+    expect(state.metrics.logisticsEfficiency).toBeCloseTo(2 / 3 * 100)
+  })
+
   it('reserves source stock across simultaneous orders instead of overselling it', () => {
     const source = building('granary-1', 'granary', { x: 0, y: 0 }, { food: 5 })
     const first = building('eatery-1', 'eatery', { x: 3, y: 0 }, { salt: 2 })

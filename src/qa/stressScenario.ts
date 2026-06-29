@@ -36,7 +36,7 @@ export const CIVILIZATION_LONG_RUN_THRESHOLDS = {
   minLogisticsEfficiency: 45,
   maxBlockedBuildings: 260,
   maxActiveOrders: 240,
-  maxHistoricalOrders: 20_000,
+  maxHistoricalOrders: 2_000,
   maxBuildingInventory: 1_500,
 } as const
 
@@ -272,6 +272,7 @@ export interface StressScenarioSummary {
   blockedBuildings: number
   activeOrders: number
   totalOrders: number
+  archivedOrders: number
   maxBuildingInventory: number
   invalidNumericFields: string[]
 }
@@ -288,6 +289,7 @@ export function summarizeStressScenario(snapshot: SimulationSnapshot): StressSce
     blockedBuildings: buildings.filter((building) => building.status === 'blocked').length,
     activeOrders: orders.filter(isActiveOrder).length,
     totalOrders: orders.length,
+    archivedOrders: snapshot.logisticsArchive?.archivedOrders ?? 0,
     maxBuildingInventory: Math.max(0, ...buildings.map(inventoryTotal)),
     invalidNumericFields: invalidNumericFields(snapshot),
   }
@@ -326,6 +328,14 @@ function invalidNumericFields(snapshot: SimulationSnapshot): string[] {
   check('satisfaction', snapshot.metrics.satisfaction)
   check('logisticsEfficiency', snapshot.metrics.logisticsEfficiency)
   check('treasury', snapshot.economy.treasury)
+  if (snapshot.logisticsArchive) {
+    check('logisticsArchive.archivedOrders', snapshot.logisticsArchive.archivedOrders)
+    check('logisticsArchive.delivered', snapshot.logisticsArchive.delivered)
+    check('logisticsArchive.cancelled', snapshot.logisticsArchive.cancelled)
+    for (const [reason, amount] of Object.entries(snapshot.logisticsArchive.cancelReasons)) {
+      check(`logisticsArchive.cancelReasons.${reason}`, amount ?? Number.NaN)
+    }
+  }
 
   for (const household of Object.values(snapshot.households)) {
     check(`households.${household.id}.members`, household.members)

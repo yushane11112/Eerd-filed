@@ -2,6 +2,10 @@
 
 ## 2026-06-29
 
+- 启动并完成第四十九轮：`LOGISTICS-ORDER-ARCHIVE-01`。`SimulationSnapshot` 新增可选 `logisticsArchive`，用于汇总已归档订单数、交付数、取消数和取消原因计数。
+- `LogisticsSystem` 增加有界完成订单保留窗口：默认保留最近 500 条 delivered/cancelled 订单，超出部分进入归档汇总；物流效率统计改为读取当前订单和归档汇总，避免压缩后丢失历史成功/失败比例。
+- 长稳 QA 新增 `archivedOrders` 摘要和数值检查，2400 tick 灰盒基准的当前订单表上限从 20000 收紧到 2000，并断言归档确实发生。
+- 第四十九轮验证通过：经济物流测试、2400 tick 长稳、全量 196 项测试和生产构建均通过。
 - 启动并完成第四十八轮：`LOGISTICS-CARRIER-LIFECYCLE-01`。`AgentEntity` 新增 `cargoIntent`，承运人记录订单、资源、数量、源建筑、目的建筑和 `pickup/dropoff` 阶段。
 - `LogisticsSystem` 在分配订单时给承运人设置取货阶段；取货成功并切换 `in_transit` 后改为送货阶段；交付或取消时清理货运意图。
 - 动态渲染在运输工具上增加轻量货箱符号：取货阶段为空框，送货阶段为实心货箱，让地图能区分空车取货和载货送达。

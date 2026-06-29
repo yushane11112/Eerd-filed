@@ -7,7 +7,7 @@
 - `public/assets/archipelago/terrain-base.png`
 - `public/assets/archipelago/terrain-base-3072.png`
 - `public/assets/townscape/{main,windfield,mistgrove,tide}/stage-{0..4}.png`
-- `src/game/config.ts` 中四岛定位、28 个建设点与五阶段映射
+- `src/legacy/game/config.ts` 中四岛定位、28 个建设点与五阶段映射
 - `src/components/IslandCanvas.tsx` 中现有整图铺满世界并交叉淡化的渲染方式
 
 ### 总结论：现有 townscape 不能作为最终世界美术，必须按统一世界母版重制

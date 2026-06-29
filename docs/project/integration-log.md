@@ -2,6 +2,10 @@
 
 ## 2026-06-29
 
+- 启动并完成第五十轮：`LEGACY-GAME-SCOPE-01`。旧固定岛屿材料/建造/存档引擎从正式 `src/game/**` 迁入 `src/legacy/game/**`；未被正式 UI 使用的 `MaterialRow` 也从 `src/components` 迁入 legacy，正式组件目录不再引用旧材料系统。
+- `src/legacy/archipelago/IslandCanvas.tsx` 改为引用 `src/legacy/game/**`；`src/legacy/README.md` 增加旧 game 引擎归档范围说明。
+- legacy 边界测试新增断言：`src/game` 目录和 `src/components/MaterialRow.tsx` 不得存在，旧引擎与旧材料 UI 只能存在于 `src/legacy/game/**`。
+- 第五十轮验证通过：legacy 边界/旧引擎/旧存档目标测试、全量测试和生产构建均通过。
 - 启动并完成第四十九轮：`LOGISTICS-ORDER-ARCHIVE-01`。`SimulationSnapshot` 新增可选 `logisticsArchive`，用于汇总已归档订单数、交付数、取消数和取消原因计数。
 - `LogisticsSystem` 增加有界完成订单保留窗口：默认保留最近 500 条 delivered/cancelled 订单，超出部分进入归档汇总；物流效率统计改为读取当前订单和归档汇总，避免压缩后丢失历史成功/失败比例。
 - 长稳 QA 新增 `archivedOrders` 摘要和数值检查，2400 tick 灰盒基准的当前订单表上限从 20000 收紧到 2000，并断言归档确实发生。
@@ -40,7 +44,7 @@
 - `SimulationEngine` 的候选外来人口进城路径改为调用共享移动路径服务，删除内部重复寻路函数，为后续真实居民通勤、服务出行和物流路径逐步统一打基础。
 - 新增 `movementPath.test.ts`，覆盖道路优先、无世界格子 fallback、绕开水面/建筑阻挡三类核心行为。
 - 启动并完成第三十七轮：`LEGACY-ARCHIPELAGO-SCOPE-01`。旧群岛 `IslandCanvas` 从正式 `src/components` 目录迁入 `src/legacy/archipelago`，新增 `src/legacy/README.md` 和归档导出边界，明确旧群岛只用于显式 legacy/QA 对照，不再属于正式城市模拟 UI 路径。
-- `src/game/legacy.test.ts` 增加边界测试，验证 `src/components/IslandCanvas.tsx` 不存在且归档组件位于 `src/legacy/archipelago/IslandCanvas.tsx`，防止后续旧原型回流正式组件目录。
+- `src/legacy/game/legacy.test.ts` 增加边界测试，验证 `src/components/IslandCanvas.tsx` 不存在且归档组件位于 `src/legacy/archipelago/IslandCanvas.tsx`，防止后续旧原型回流正式组件目录。
 - 更新任务看板、进度仪表盘、产物索引和 QA 记录，下一轮转向金标资产阶段/街区样板、共享路径服务或治理卡。
 
 ## 2026-06-27
@@ -78,7 +82,7 @@
 - 完成第二十一轮并行生产：旧群岛引擎默认关闭听歌普通材料掉落，初始掉落改为潮汐/访客来源；旧听歌掉落行为保留在显式 `legacyMaterialDrops` 选项下，测试名称同步改为归档兼容语义；当前城市主线继续使用 `simulation/rewards/music.ts` 的稀缺奖励和 `drops.ts` 的普通城市来源。
 - 第二十一轮目标验证通过：旧群岛引擎、音乐稀缺奖励、普通掉落目标测试 23 项通过，TypeScript 检查通过。
 - 启动第二十二轮并行生产：LEGACY-ARCHIPELAGO-GATE-01，给旧 `IslandCanvas` 群岛 Pixi 视图增加显式归档开关。
-- 完成第二十二轮并行生产：新增 `src/game/legacy.ts`，默认禁用旧群岛渲染；`IslandCanvas` 默认显示“旧群岛原型已归档”提示，只有 `?legacy-islands` 或 `?qa-static` 才启动旧渲染/静态验收；新增测试固定开关规则。
+- 完成第二十二轮并行生产：新增 `src/legacy/game/legacy.ts`，默认禁用旧群岛渲染；`IslandCanvas` 默认显示“旧群岛原型已归档”提示，只有 `?legacy-islands` 或 `?qa-static` 才启动旧渲染/静态验收；新增测试固定开关规则。
 - 第二十二轮目标验证通过：旧群岛开关、旧引擎和存档兼容目标测试 16 项通过，TypeScript 检查通过。
 - 启动第二十三轮并行生产：CITY-STAGE-ADVISOR-01，把阶段目标从静态数值推进为可点击顾问。
 - 完成第二十三轮并行生产：阶段条件增加顾问建议；人口缺口点击后切到民居建造，吸引力缺口打开瓶颈面板，街区缺口优先定位已有街区或切到市场建造；阶段面板的条件按钮支持 hover/focus。

@@ -18,3 +18,6 @@ Current archived scopes:
 
 - `archipelago/IslandCanvas.tsx`: old island/archipelago Pixi prototype view,
   disabled by default and kept for visual QA comparison only.
+- `game/**`: old fixed-island material/drop/build-site state machine, storage
+  migration helpers, and static visual QA tests. It must not be imported by the
+  commercial city-simulation mainline.

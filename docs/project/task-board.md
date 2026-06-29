@@ -43,9 +43,10 @@
 | CITY-GOVERNANCE-CARDS-01 | 图层指标治理卡 | `src/integration/stageAdvisor.ts`, `src/App.tsx` | 已完成 | 服务缺口、道路缺口和物流热点会生成可排序、可点击的瓶颈治理卡 |
 | CITY-GOVERNANCE-ACTION-01 | 治理卡原因与推荐操作 | `src/integration/stageAdvisor.ts`, `src/App.tsx`, `src/styles.css` | 已完成 | 治理卡显示原因、推荐工具/建筑和图层，并可一键切换定位、铺路或营造工具 |
 | OPTIONAL-MUSIC-ENTRY-01 | 音乐奖励入口降级 | `src/App.tsx`, `src/styles.css` | 已完成 | 听歌从常驻主界面卡片降为默认收起的可选轻奖励入口 |
-| LEGACY-LISTENING-DROPS-01 | 旧听歌掉落原型隔离 | `src/game/**`, `src/simulation/rewards/**` | 已完成 | 旧群岛引擎默认不再由听歌产生普通材料，旧行为仅可显式 legacy 启用 |
-| LEGACY-ARCHIPELAGO-GATE-01 | 旧群岛视图归档开关 | `src/legacy/archipelago/IslandCanvas.tsx`, `src/game/**`, `src/styles.css` | 已完成 | 旧群岛 Pixi 视图默认显示归档提示，只有显式 legacy/QA 参数才启动 |
-| LEGACY-ARCHIPELAGO-SCOPE-01 | 旧群岛原型集中 legacy 边界 | `src/legacy/**`, `src/game/legacy.test.ts`, `docs/project/**` | 已完成 | 旧 IslandCanvas 从正式 components 目录迁入 legacy/archipelago，并有测试防止回流 |
+| LEGACY-LISTENING-DROPS-01 | 旧听歌掉落原型隔离 | `src/legacy/game/**`, `src/simulation/rewards/**` | 已完成 | 旧群岛引擎默认不再由听歌产生普通材料，旧行为只在 legacy 模块显式启用 |
+| LEGACY-ARCHIPELAGO-GATE-01 | 旧群岛视图归档开关 | `src/legacy/archipelago/IslandCanvas.tsx`, `src/legacy/game/**`, `src/styles.css` | 已完成 | 旧群岛 Pixi 视图默认显示归档提示，只有显式 legacy/QA 参数才启动 |
+| LEGACY-ARCHIPELAGO-SCOPE-01 | 旧群岛原型集中 legacy 边界 | `src/legacy/**`, `src/legacy/game/legacy.test.ts`, `docs/project/**` | 已完成 | 旧 IslandCanvas 从正式 components 目录迁入 legacy/archipelago，并有测试防止回流 |
+| LEGACY-GAME-SCOPE-01 | 旧群岛引擎迁入 legacy | `src/legacy/game/**`, `src/legacy/README.md` | 已完成 | 旧固定岛屿材料/建造/存档引擎和旧材料 UI 从正式 `src/game`、`src/components` 迁入 legacy，并有边界测试防止回流 |
 | DISTRICT-PROSPERITY-01 | 街区繁荣系统 | `src/simulation/**`, `src/rendering/**`, `src/integration/GameRuntime.ts` | 已完成 | 商业街、码头仓区等街区能驱动人流、灯火、装饰 |
 | DISTRICT-PROSPERITY-RUNTIME-01 | 街区繁荣真实运行因子 | `src/simulation/districts/**` | 已完成 | 街区繁荣接入服务覆盖、道路贴近和真实物流活动，不只看建筑聚集 |
 | DISTRICT-SERVICE-VISIT-HEAT-01 | 服务访问驱动街区热度 | `src/simulation/districts/**` | 已完成 | 市场、药铺、书院、戏台等真实居民服务访问会提高对应街区繁荣和人流表现 |

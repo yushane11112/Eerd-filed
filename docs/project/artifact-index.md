@@ -2,6 +2,20 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第五十轮旧群岛引擎迁入 legacy
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/legacy/game/**` | legacy 旧原型 | 归档旧固定岛屿材料、掉落、建造、存档和静态视觉 QA 代码 |
+| `src/legacy/game/MaterialRow.tsx` | legacy UI | 归档旧材料行组件，正式 `src/components` 不再保留旧材料 UI |
+| `src/legacy/archipelago/IslandCanvas.tsx` | legacy 视图 | 改为引用 `src/legacy/game/**`，不再依赖正式 `src/game` 路径 |
+| `src/legacy/game/legacy.test.ts` | 自动测试 | 防止 `src/game` 和正式 `src/components/MaterialRow.tsx` 回流 |
+| `src/legacy/README.md` | legacy 边界说明 | 增加旧 game 引擎归档范围和禁止主线导入说明 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LEGACY-GAME-SCOPE-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第五十轮进展、旧方向风险和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录旧群岛引擎迁入 legacy 的集成事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、全量测试和构建结果 |
+
 ## 2026-06-29：第四十九轮历史物流订单归档
 
 | 文件 | 产物类型 | 用途 |
@@ -289,8 +303,8 @@
 
 | 文件 | 产物类型 | 用途 |
 | --- | --- | --- |
-| `src/game/legacy.ts` | 旧原型边界 | 定义旧群岛视图启用参数和静态 QA 参数 |
-| `src/game/legacy.test.ts` | 自动测试 | 验证旧群岛渲染默认关闭，只能显式启用 |
+| `src/legacy/game/legacy.ts` | 旧原型边界 | 定义旧群岛视图启用参数和静态 QA 参数 |
+| `src/legacy/game/legacy.test.ts` | 自动测试 | 验证旧群岛渲染默认关闭，只能显式启用 |
 | `src/legacy/archipelago/IslandCanvas.tsx` | 旧视图组件 | 默认显示归档提示，只有 legacy/QA 参数才启动旧 Pixi 渲染；第三十七轮后已迁出正式 components 目录 |
 | `src/styles.css` | 界面样式 | 增加旧群岛归档提示样式 |
 | `docs/project/task-board.md` | 任务看板 | 标记 LEGACY-ARCHIPELAGO-GATE-01 完成 |
@@ -302,8 +316,8 @@
 
 | 文件 | 产物类型 | 用途 |
 | --- | --- | --- |
-| `src/game/engine.ts` | 旧原型兼容层 | 默认关闭听歌产生普通材料，保留显式 legacy 选项 |
-| `src/game/engine.test.ts` | 自动测试 | 验证默认听歌不刷普通材料，旧行为只在 legacy 选项下可用 |
+| `src/legacy/game/engine.ts` | 旧原型兼容层 | 默认关闭听歌产生普通材料，保留显式 legacy 选项 |
+| `src/legacy/game/engine.test.ts` | 自动测试 | 验证默认听歌不刷普通材料，旧行为只在 legacy 选项下可用 |
 | `docs/project/task-board.md` | 任务看板 | 标记 LEGACY-LISTENING-DROPS-01 完成 |
 | `docs/project/integration-log.md` | 集成记录 | 记录第二十一轮启动、完成和验证结果 |
 | `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新旧方向风险、UI/UX 完成度和下一轮任务 |
@@ -489,7 +503,7 @@
 | `src/legacy/README.md` | legacy 边界说明 | 明确 `src/legacy/**` 只保留归档原型、QA 对照和迁移工具，禁止新主线引用 |
 | `src/legacy/archipelago/IslandCanvas.tsx` | 归档旧视图组件 | 旧群岛 Pixi 视图从正式 `src/components` 目录迁入 legacy 范围 |
 | `src/legacy/archipelago/index.ts` | 归档导出边界 | 仅为显式 legacy/QA 入口暴露旧群岛组件 |
-| `src/game/legacy.test.ts` | 自动测试 | 固定旧群岛渲染默认关闭，并验证旧组件不再位于正式 components 目录 |
+| `src/legacy/game/legacy.test.ts` | 自动测试 | 固定旧群岛渲染默认关闭，并验证旧组件不再位于正式 components 目录 |
 | `docs/project/task-board.md` | 任务看板 | 记录 `LEGACY-ARCHIPELAGO-SCOPE-01` 已完成 |
 | `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第三十七轮进展、UI/UX 完成度、风险和下一轮任务 |
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮 legacy 边界迁移事实 |

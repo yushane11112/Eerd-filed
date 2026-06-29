@@ -1,5 +1,5 @@
-import { MATERIAL_KINDS, MATERIAL_META } from '../game/config'
-import type { InventoryState } from '../game/types'
+import { MATERIAL_KINDS, MATERIAL_META } from './config'
+import type { InventoryState } from './types'
 
 export function MaterialRow({ inventory }: { inventory: InventoryState }) {
   return <div className="material-row">

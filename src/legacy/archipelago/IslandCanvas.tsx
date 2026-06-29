@@ -5,15 +5,15 @@ import { useEffect, useRef } from 'react'
 import {
   BUILD_SITES, BUILD_SITE_IDS, DISPLAY_SITE_POSITIONS, MATERIAL_META,
   TOWNSCAPE_ASSET_PATHS, WORLD, townscapeStageForIsland,
-} from '../../game/config'
+} from '../game/config'
 import {
   isLegacyArchipelagoEnabled,
   isLegacyArchipelagoStaticQa,
   LEGACY_ARCHIPELAGO_PARAM,
-} from '../../game/legacy'
+} from '../game/legacy'
 import type {
   AmbientEvent, BuildSiteId, BuildSiteProgress, IslandId, SceneTime, WorldDrop,
-} from '../../game/types'
+} from '../game/types'
 
 interface IslandCanvasProps {
   buildSites: Record<BuildSiteId, BuildSiteProgress>

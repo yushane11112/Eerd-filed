@@ -18,6 +18,7 @@
 | POP-MIGRATION-ROAD-PATH-01 | 候选外来人口道路优先寻路 | `src/simulation/core/**` | 已完成 | 有道路网格时优先沿道路/入口进城，无格子时安全退回直线路径 |
 | SHARED-MOVEMENT-PATH-01 | 共享移动路径服务 | `src/simulation/world/**`, `src/simulation/core/SimulationEngine.ts` | 已完成 | 候选外来人口使用可复用道路优先路径服务，后续居民/物流可逐步接入 |
 | LOGISTICS-SHARED-PATH-01 | 物流共享移动路径 | `src/simulation/world/**`, `src/simulation/economy/logistics.ts` | 已完成 | 物流 RoadRoutePlanner 复用共享路径服务，避开水面/建筑占用，并在无路时失败而不是直线穿越 |
+| LOGISTICS-CARRIER-LIFECYCLE-01 | 承运人货运生命周期 | `src/simulation/contracts.ts`, `src/simulation/economy/logistics.ts`, `src/rendering/visuals.ts` | 已完成 | 承运人 agent 记录取货/送货阶段、资源、数量和订单，并在地图上显示取货/载货状态 |
 | WORKER-COMMUTE-PATH-01 | 工人通勤路径接入 | `src/simulation/core/SimulationEngine.ts` | 已完成 | 工人获得工作岗位后生成共享道路通勤路径，并逐 tick 移动到雇主入口后进入 working 状态 |
 | WORKER-RETURN-HOME-01 | 工人返家循环 | `src/simulation/core/SimulationEngine.ts`, `src/simulation/contracts.ts` | 已完成 | 工人完成固定工作班次后生成共享道路返家路径，逐 tick 回到住宅入口并恢复 home 状态 |
 | SERVICE-VISIT-PATH-01 | 居民服务/购物出行可视化 | `src/simulation/economy/service.ts` | 已完成 | 服务成功时生成居民出行 agent，沿共享道路从住宅到服务建筑并返家，避免同类访问重复刷屏 |

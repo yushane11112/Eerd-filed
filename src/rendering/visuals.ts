@@ -1278,6 +1278,12 @@ export class AgentVisual extends BaseVisual {
         .fill({ color: ROLE_COLOR[agent.role] })
       this.body.circle(-width * 0.28, 2 - bob, 3).fill({ color: 0x3f3a34 })
       this.body.circle(width * 0.28, 2 - bob, 3).fill({ color: 0x3f3a34 })
+      if (agent.cargoIntent) {
+        const cargoColor = agent.cargoIntent.phase === 'dropoff' ? 0xd9b45f : 0xf3e6bd
+        this.body.roundRect(-5, -16 - bob, 10, 6, 2)
+          .fill({ color: cargoColor })
+          .stroke({ color: 0x6f5734, width: 1 })
+      }
     } else {
       this.body.circle(0, -12 - bob, 4).fill({ color: 0xe7c6a5 })
       this.body.roundRect(-4, -8 - bob, 8, 12, 3).fill({ color: ROLE_COLOR[agent.role] })

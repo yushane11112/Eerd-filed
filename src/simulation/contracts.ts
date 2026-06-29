@@ -125,6 +125,14 @@ export interface AgentEntity {
     restoreAmount: number
     completed?: boolean
   }
+  cargoIntent?: {
+    orderId: EntityId
+    resource: ResourceKind
+    amount: number
+    sourceBuildingId: EntityId
+    destinationBuildingId: EntityId
+    phase: 'pickup' | 'dropoff'
+  }
   position: GridPoint
   path: GridPoint[]
   pathIndex: number

@@ -344,6 +344,14 @@ export class LogisticsSystem implements SimulationSystem {
       carrier.activity = 'delivering'
       carrier.path = route
       carrier.pathIndex = 0
+      carrier.cargoIntent = {
+        orderId: order.id,
+        resource: order.resource,
+        amount: order.amount,
+        sourceBuildingId: order.sourceBuildingId,
+        destinationBuildingId: order.destinationBuildingId,
+        phase: 'pickup',
+      }
       const destination = snapshot.buildings[order.destinationBuildingId]
       if (destination) this.clearFailure(destination, order.resource)
     }
@@ -405,6 +413,14 @@ export class LogisticsSystem implements SimulationSystem {
     carrier.path = route
     carrier.pathIndex = 0
     carrier.position = { ...route[0] }
+    carrier.cargoIntent = {
+      orderId: order.id,
+      resource: order.resource,
+      amount: order.amount,
+      sourceBuildingId: order.sourceBuildingId,
+      destinationBuildingId: order.destinationBuildingId,
+      phase: 'dropoff',
+    }
   }
 
   private deliver(
@@ -433,6 +449,7 @@ export class LogisticsSystem implements SimulationSystem {
     carrier.activity = 'idle'
     carrier.path = []
     carrier.pathIndex = 0
+    delete carrier.cargoIntent
     this.clearFailure(destination, order.resource)
   }
 
@@ -447,6 +464,7 @@ export class LogisticsSystem implements SimulationSystem {
     carrier.activity = 'idle'
     carrier.path = []
     carrier.pathIndex = 0
+    delete carrier.cargoIntent
   }
 
   private markOrderFailure(order: LogisticsOrder, reason: LogisticsFailureReason): void {

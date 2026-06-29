@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第四十八轮承运人货运生命周期
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 公共契约 | `AgentEntity` 新增 `cargoIntent`，记录承运人订单、资源、数量、源/目的建筑和取货/送货阶段 |
+| `src/simulation/economy/logistics.ts` | 物流系统 | 分配、取货、送货、交付和取消时维护承运人货运意图 |
+| `src/simulation/economy/economy.test.ts` | 自动测试 | 验证承运人取货阶段、送货阶段和交付后清理行为 |
+| `src/rendering/visuals.ts` | 动态渲染 | 运输工具根据 `cargoIntent.phase` 显示取货/载货状态符号 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LOGISTICS-CARRIER-LIFECYCLE-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第四十八轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录承运人货运生命周期的集成事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、长稳、全量测试和构建结果 |
+
 ## 2026-06-29：第四十七轮治理卡原因与推荐操作
 
 | 文件 | 产物类型 | 用途 |

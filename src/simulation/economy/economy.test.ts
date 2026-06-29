@@ -306,6 +306,14 @@ describe('road logistics', () => {
 
     expect(firstEvents).toContainEqual({ type: 'logistics-order-created', orderId: foodOrder.id })
     expect(foodOrder.state).toBe('in_transit')
+    expect(cart.cargoIntent).toEqual({
+      orderId: foodOrder.id,
+      resource: 'food',
+      amount: 4,
+      sourceBuildingId: source.id,
+      destinationBuildingId: destination.id,
+      phase: 'dropoff',
+    })
     expect(source.inventory.food).toBe(4)
     expect(destination.inventory.food).toBeUndefined()
     expect(cart.position).toEqual({ x: 0, y: 0 })
@@ -322,6 +330,44 @@ describe('road logistics', () => {
     expect(foodOrder.state).toBe('delivered')
     expect(destination.inventory.food).toBe(4)
     expect(cart.activity).toBe('idle')
+    expect(cart.cargoIntent).toBeUndefined()
+  })
+
+  it('marks carrier cargo intent as pickup before source arrival', () => {
+    const source = building('granary-1', 'granary', { x: 2, y: 0 }, { food: 8 })
+    const destination = building('eatery-1', 'eatery', { x: 4, y: 0 })
+    const cart = carrier('cart-1', { x: 0, y: 0 })
+    const state = snapshot({
+      buildings: { [source.id]: source, [destination.id]: destination },
+      agents: { [cart.id]: cart },
+      logisticsOrders: {
+        'food-order': {
+          id: 'food-order',
+          resource: 'food',
+          amount: 2,
+          sourceBuildingId: source.id,
+          destinationBuildingId: destination.id,
+          priority: 50,
+          state: 'waiting',
+        },
+      },
+    })
+
+    new LogisticsSystem({ definitions }).update(state)
+
+    expect(state.logisticsOrders['food-order']).toMatchObject({
+      state: 'assigned',
+      carrierId: cart.id,
+    })
+    expect(cart.position).toEqual({ x: 1, y: 0 })
+    expect(cart.cargoIntent).toEqual({
+      orderId: 'food-order',
+      resource: 'food',
+      amount: 2,
+      sourceBuildingId: source.id,
+      destinationBuildingId: destination.id,
+      phase: 'pickup',
+    })
   })
 
   it('does not create an order or move goods across a disconnected road', () => {
@@ -462,6 +508,7 @@ describe('road logistics', () => {
       state: 'in_transit',
       failureReason: 'destination-capacity',
     })
+    expect(cartEntity.cargoIntent).toBeUndefined()
     expect(destination.statusReason).toBe('logistics-failed:food:destination-capacity')
   })
 

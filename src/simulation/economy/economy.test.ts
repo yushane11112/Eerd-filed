@@ -593,6 +593,56 @@ describe('service system', () => {
     expect(state.economy.treasury).toBe(100.5)
     expect(state.economy.lastTaxIncome).toBe(0.5)
     expect(market.status).toBe('serving')
+    expect(state.agents['service-visit:1:market-1:household:food']).toMatchObject({
+      role: 'resident',
+      householdId: 'household',
+      position: { x: 3, y: 0 },
+      path: [
+        { x: 3, y: 0 },
+        { x: 2, y: 0 },
+        { x: 1, y: 0 },
+        { x: 0, y: 0 },
+      ],
+      pathIndex: 0,
+      activity: 'shopping',
+      activityStartedTick: 1,
+    })
+
+    state.tick = 2
+    new ServiceSystem({ definitions }).update(state)
+
+    expect(state.agents['service-visit:1:market-1:household:food']).toMatchObject({
+      position: { x: 2, y: 0 },
+      pathIndex: 1,
+      activity: 'shopping',
+    })
+    expect(state.agents['service-visit:2:market-1:household:food']).toBeUndefined()
+
+    state.tick = 3
+    new ServiceSystem({ definitions }).update(state)
+    state.tick = 4
+    new ServiceSystem({ definitions }).update(state)
+
+    expect(state.agents['service-visit:1:market-1:household:food']).toMatchObject({
+      position: { x: 0, y: 0 },
+      path: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 2, y: 0 },
+        { x: 3, y: 0 },
+      ],
+      pathIndex: 0,
+      activity: 'returning',
+    })
+
+    state.tick = 5
+    new ServiceSystem({ definitions }).update(state)
+    state.tick = 6
+    new ServiceSystem({ definitions }).update(state)
+    state.tick = 7
+    new ServiceSystem({ definitions }).update(state)
+
+    expect(state.agents['service-visit:1:market-1:household:food']).toBeUndefined()
   })
 
   it('sells cloth as market goods and restores the household goods need', () => {

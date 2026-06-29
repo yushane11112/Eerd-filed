@@ -1,6 +1,7 @@
 import type {
   BuildingDefinition,
   BuildingEntity,
+  GridPoint,
   HouseholdState,
   ResourceKind,
   SimulationEvent,
@@ -91,6 +92,7 @@ export class ServiceSystem implements SimulationSystem {
 
   update(snapshot: SimulationSnapshot): SimulationEvent[] {
     const events: SimulationEvent[] = []
+    this.advanceServiceVisits(snapshot)
     const servedNeeds = new Set<string>()
     const unmetNeeds = new Map<string, {
       household: HouseholdState
@@ -175,6 +177,7 @@ export class ServiceSystem implements SimulationSystem {
             householdId: household.id,
             need: rule.need,
           })
+          this.spawnServiceVisit(snapshot, serviceBuilding, household, rule)
           servedNeeds.add(needKey(household.id, rule.need))
           servedHouseholdIds.add(household.id)
         }
@@ -271,6 +274,56 @@ export class ServiceSystem implements SimulationSystem {
       )
     }
   }
+
+  private spawnServiceVisit(
+    snapshot: SimulationSnapshot,
+    serviceBuilding: BuildingEntity,
+    household: HouseholdState,
+    rule: ServiceRule,
+  ): void {
+    const home = snapshot.buildings[household.homeBuildingId]
+    if (!home) return
+    if (hasActiveServiceVisit(snapshot, serviceBuilding.id, household.id, rule.need)) return
+    const path = this.routePlanner.findRoute(
+      snapshot.cells,
+      home.entrance,
+      serviceBuilding.entrance,
+    ) ?? directPath(home.entrance, serviceBuilding.entrance)
+    const id = `service-visit:${snapshot.tick}:${serviceBuilding.id}:${household.id}:${rule.need}`
+    if (snapshot.agents[id]) return
+    snapshot.agents[id] = {
+      id,
+      role: 'resident',
+      householdId: household.id,
+      position: { ...(path[0] ?? home.entrance) },
+      path,
+      pathIndex: 0,
+      activity: serviceActivity(rule),
+      activityStartedTick: snapshot.tick,
+    }
+  }
+
+  private advanceServiceVisits(snapshot: SimulationSnapshot): void {
+    for (const agent of Object.values(snapshot.agents).sort((left, right) => (
+      left.id.localeCompare(right.id)
+    ))) {
+      if (agent.role !== 'resident') continue
+      if (!agent.id.startsWith('service-visit:')) continue
+      if (agent.path.length === 0) continue
+      const nextIndex = Math.min(agent.pathIndex + 1, agent.path.length - 1)
+      agent.pathIndex = nextIndex
+      agent.position = { ...agent.path[nextIndex] }
+      if (nextIndex < agent.path.length - 1) continue
+      if (agent.activity === 'returning') {
+        delete snapshot.agents[agent.id]
+        continue
+      }
+      agent.activity = 'returning'
+      agent.path = [...agent.path].reverse().map((point) => ({ ...point }))
+      agent.pathIndex = 0
+      agent.activityStartedTick = snapshot.tick
+    }
+  }
 }
 
 function markBlocked(building: BuildingEntity, reason: string): void {
@@ -288,4 +341,25 @@ function clamp(value: number, min: number, max: number): number {
 
 function roundCurrency(value: number): number {
   return Math.round(value * 100) / 100
+}
+
+function serviceActivity(rule: ServiceRule): 'shopping' | 'serving' {
+  return rule.resource ? 'shopping' : 'serving'
+}
+
+function directPath(from: GridPoint, to: GridPoint): GridPoint[] {
+  return [{ ...from }, { ...to }]
+}
+
+function hasActiveServiceVisit(
+  snapshot: SimulationSnapshot,
+  buildingId: string,
+  householdId: string,
+  need: NeedKind,
+): boolean {
+  const suffix = `:${buildingId}:${householdId}:${need}`
+  return Object.values(snapshot.agents).some((agent) => (
+    agent.id.startsWith('service-visit:')
+    && agent.id.endsWith(suffix)
+  ))
 }

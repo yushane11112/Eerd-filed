@@ -2,6 +2,17 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第四十四轮居民服务/购物出行可视化
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/economy/service.ts` | 服务系统 | 服务成功时生成居民访问 agent，推进到服务点后返家并清理 |
+| `src/simulation/economy/economy.test.ts` | 自动测试 | 验证服务访问生成、移动、返家、去重和清理 |
+| `docs/project/task-board.md` | 任务看板 | 标记 SERVICE-VISIT-PATH-01 完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录第四十四轮启动、完成、验证和限制 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新城市模拟、动态引擎和人口生命周期完成度 |
+| `docs/project/qa.md` | 验收记录 | 记录本轮目标测试和全量验证 |
+
 ## 2026-06-29：第四十三轮工人返家循环
 
 | 文件 | 产物类型 | 用途 |

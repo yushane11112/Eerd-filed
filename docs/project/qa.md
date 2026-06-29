@@ -55,6 +55,13 @@
 - `npm test`：30 个测试文件、193 项测试通过。
 - `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
 
+## 2026-06-29 第四十四轮验证
+
+- `vitest run src/simulation/economy/economy.test.ts`：先红后绿，新增测试确认服务成功会生成居民购物/服务访问 agent，并沿路径前进、返家和清理。
+- `vitest run src/simulation/economy/economy.test.ts src/rendering/DynamicScene.test.ts src/qa/stressScenario.test.ts`：3 个测试文件、41 项通过，覆盖服务访问、动态场景兼容和 2400 tick 长稳兼容。
+- `npm test`：30 个测试文件、193 项测试通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+
 ## 2026-06-27 第十二轮验证
 
 - `pnpm vitest run src/simulation/core/SimulationEngine.test.ts`：12 项通过，覆盖候选抵达、正式入住、低吸引力拒绝、无房离开、迁出和满意度压力。

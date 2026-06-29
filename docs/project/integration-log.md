@@ -2,6 +2,10 @@
 
 ## 2026-06-29
 
+- 启动并完成第五十一轮：`CITY-ACTIVITY-HEATMAP-01`。阶段图层新增“活动”模式，聚合服务访问、工人通勤/返家、承运人取货/送货等真实 agent 活动。
+- 活动图层输出活动热力点、活动路径、活动/服务/货运/通勤/热点结构化指标，并接入阶段面板指标读数和点击定位。
+- 新增测试覆盖服务访问、通勤和货运三类活动进入热力图层；活动 marker 样式已接入正式 CSS。
+- 第五十一轮验证通过：阶段顾问目标测试、全量 198 项测试和生产构建均通过。
 - 启动并完成第五十轮：`LEGACY-GAME-SCOPE-01`。旧固定岛屿材料/建造/存档引擎从正式 `src/game/**` 迁入 `src/legacy/game/**`；未被正式 UI 使用的 `MaterialRow` 也从 `src/components` 迁入 legacy，正式组件目录不再引用旧材料系统。
 - `src/legacy/archipelago/IslandCanvas.tsx` 改为引用 `src/legacy/game/**`；`src/legacy/README.md` 增加旧 game 引擎归档范围说明。
 - legacy 边界测试新增断言：`src/game` 目录和 `src/components/MaterialRow.tsx` 不得存在，旧引擎与旧材料 UI 只能存在于 `src/legacy/game/**`。

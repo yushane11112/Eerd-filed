@@ -179,6 +179,10 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   background: rgba(89, 100, 91, .84);
   box-shadow: 0 0 0 5px rgba(213, 215, 167, .2), 0 8px 18px rgba(39, 47, 40, .28);
 }
+.stage-overlay-marker--activity {
+  background: rgba(184, 116, 152, .84);
+  box-shadow: 0 0 0 5px rgba(255, 166, 209, .22), 0 8px 18px rgba(77, 38, 58, .28);
+}
 .stage-overlay-marker i {
   position: absolute;
   left: 50%;

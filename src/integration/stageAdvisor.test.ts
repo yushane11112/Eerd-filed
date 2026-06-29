@@ -166,6 +166,86 @@ describe('stage advisor overlays', () => {
     })
   })
 
+  it('derives an activity heat overlay from service visits, commutes and cargo trips', () => {
+    const snapshot = makeSnapshot({
+      agents: {
+        shopper: {
+          id: 'shopper',
+          role: 'resident',
+          householdId: 'family',
+          position: { x: 4, y: 5 },
+          path: [{ x: 4, y: 5 }, { x: 6, y: 5 }],
+          pathIndex: 0,
+          activity: 'shopping',
+          serviceIntent: {
+            buildingId: 'market',
+            need: 'food',
+            resource: 'food',
+            amount: 1,
+            saleValue: 5,
+            restoreAmount: 16,
+          },
+        },
+        worker: {
+          id: 'worker',
+          role: 'worker',
+          householdId: 'family',
+          employerBuildingId: 'granary',
+          position: { x: 4, y: 5 },
+          path: [{ x: 4, y: 5 }, { x: 8, y: 8 }],
+          pathIndex: 0,
+          activity: 'commuting',
+        },
+        cart: {
+          id: 'cart',
+          role: 'cart',
+          position: { x: 8, y: 8 },
+          path: [{ x: 8, y: 8 }, { x: 4, y: 5 }],
+          pathIndex: 0,
+          activity: 'delivering',
+          cargoIntent: {
+            orderId: 'order',
+            resource: 'food',
+            amount: 5,
+            sourceBuildingId: 'granary',
+            destinationBuildingId: 'market',
+            phase: 'dropoff',
+          },
+        },
+      },
+    })
+
+    expect(deriveStageMapOverlay('activity', snapshot, 15)).toMatchObject({
+      label: '城市活动热力',
+      points: expect.arrayContaining([
+        { kind: 'activity', label: '服务热x2', position: { x: 4, y: 5 } },
+        { kind: 'activity', label: '货运热x1', position: { x: 8, y: 8 } },
+      ]),
+      paths: expect.arrayContaining([
+        {
+          kind: 'activity',
+          label: '服务访问',
+          from: { x: 4, y: 5 },
+          to: { x: 6, y: 5 },
+        },
+        {
+          kind: 'activity',
+          label: 'food送货',
+          from: { x: 8, y: 8 },
+          to: { x: 4, y: 5 },
+        },
+      ]),
+      summary: ['活动 3', '服务 1', '货运 1'],
+      metrics: {
+        activeAgents: 3,
+        serviceVisits: 1,
+        commutes: 1,
+        cargoTrips: 1,
+        hotspots: 2,
+      },
+    })
+  })
+
   it('turns layer metrics into sorted governance cards', () => {
     const snapshot = makeSnapshot({
       cells: [

@@ -2,7 +2,7 @@ import type { GridPoint, SimulationSnapshot } from '../simulation/contracts'
 import { BUILDING_DEFINITIONS } from '../content/runtimeBuildings'
 
 export type StageRequirementId = 'population' | 'attraction' | 'activeDistricts'
-export type StageAdvisorOverlayMode = 'housing' | 'service' | 'logistics' | 'roads'
+export type StageAdvisorOverlayMode = 'housing' | 'service' | 'logistics' | 'roads' | 'activity'
 export type StageAdvisorOverlayKind =
   | 'housing'
   | 'migration'
@@ -11,6 +11,7 @@ export type StageAdvisorOverlayKind =
   | 'service'
   | 'logistics'
   | 'road'
+  | 'activity'
 
 export interface StageAdvisorOverlayPoint {
   kind: StageAdvisorOverlayKind
@@ -72,6 +73,7 @@ export const STAGE_ADVISOR_OVERLAY_MODES: ReadonlyArray<{
   { mode: 'service', label: '服务' },
   { mode: 'logistics', label: '物流' },
   { mode: 'roads', label: '道路' },
+  { mode: 'activity', label: '活动' },
 ]
 
 export function deriveStageGovernanceCards(
@@ -348,6 +350,79 @@ export function deriveStageMapOverlay(
     })
   }
 
+  if (mode === 'activity') {
+    const activeAgents = Object.values(snapshot.agents)
+      .filter((agent) => (
+        agent.activity === 'commuting'
+        || agent.activity === 'returning'
+        || agent.activity === 'delivering'
+        || agent.activity === 'shopping'
+        || agent.activity === 'serving'
+      ))
+      .sort((left, right) => left.id.localeCompare(right.id))
+    const heat = new Map<string, {
+      position: GridPoint
+      count: number
+      service: number
+      commute: number
+      cargo: number
+    }>()
+    for (const agent of activeAgents) {
+      const key = pointBucket(agent.position)
+      const item = heat.get(key) ?? {
+        position: { ...agent.position },
+        count: 0,
+        service: 0,
+        commute: 0,
+        cargo: 0,
+      }
+      item.count += 1
+      if (agent.serviceIntent) item.service += 1
+      else if (agent.cargoIntent) item.cargo += 1
+      else if (agent.activity === 'commuting' || agent.activity === 'returning') item.commute += 1
+      heat.set(key, item)
+    }
+    const hotspots = [...heat.values()]
+      .sort((left, right) => right.count - left.count || pointKey(left.position).localeCompare(pointKey(right.position)))
+      .slice(0, 6)
+      .map((item) => ({
+        kind: 'activity' as const,
+        label: activityHeatLabel(item),
+        position: item.position,
+      }))
+    const paths = activeAgents
+      .filter((agent) => agent.path.length > 0)
+      .slice(0, 8)
+      .flatMap((agent) => {
+        const destination = agent.path[agent.path.length - 1]
+        if (!destination) return []
+        return [{
+          kind: 'activity' as const,
+          label: agentActivityLabel(agent),
+          from: agent.position,
+          to: destination,
+        }]
+      })
+    const serviceVisits = activeAgents.filter((agent) => Boolean(agent.serviceIntent)).length
+    const cargoTrips = activeAgents.filter((agent) => Boolean(agent.cargoIntent)).length
+    const commutes = activeAgents.filter((agent) => (
+      !agent.serviceIntent
+      && !agent.cargoIntent
+      && (agent.activity === 'commuting' || agent.activity === 'returning')
+    )).length
+    return compactOverlay(id, '城市活动热力', hotspots, paths, [], [
+      `活动 ${activeAgents.length}`,
+      `服务 ${serviceVisits}`,
+      `货运 ${cargoTrips}`,
+    ], {
+      activeAgents: activeAgents.length,
+      serviceVisits,
+      commutes,
+      cargoTrips,
+      hotspots: hotspots.length,
+    })
+  }
+
   const roadCells = snapshot.cells
     .filter((cell) => cell.road)
     .slice(0, 8)
@@ -451,6 +526,35 @@ function roadGapLabel(type: string): string {
   if (definition?.functions?.includes('storage')) return '缺路仓储'
   if (definition?.functions?.some((fn) => fn === 'production' || fn === 'employment')) return '缺路生产'
   return '缺路'
+}
+
+function pointBucket(point: GridPoint): string {
+  return `${Math.round(point.x)},${Math.round(point.y)}`
+}
+
+function pointKey(point: GridPoint): string {
+  return `${point.x},${point.y}`
+}
+
+function activityHeatLabel(item: {
+  count: number
+  service: number
+  commute: number
+  cargo: number
+}): string {
+  if (item.cargo >= item.service && item.cargo >= item.commute && item.cargo > 0) return `货运热x${item.count}`
+  if (item.service >= item.commute && item.service > 0) return `服务热x${item.count}`
+  if (item.commute > 0) return `通勤热x${item.count}`
+  return `活动热x${item.count}`
+}
+
+function agentActivityLabel(agent: Readonly<SimulationSnapshot['agents'][string]>): string {
+  if (agent.cargoIntent?.phase === 'pickup') return `${agent.cargoIntent.resource}取货`
+  if (agent.cargoIntent?.phase === 'dropoff') return `${agent.cargoIntent.resource}送货`
+  if (agent.serviceIntent) return agent.activity === 'returning' ? '服务返家' : '服务访问'
+  if (agent.activity === 'returning') return '返家'
+  if (agent.activity === 'commuting') return '通勤'
+  return '活动'
 }
 
 function severityFromScore(score: number): StageGovernanceCard['severity'] {

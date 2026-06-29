@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第五十一轮城市活动热力图层
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 城市顾问数据层 | 新增 `activity` 图层，汇总服务访问、通勤、返家和货运活动为热力点、路径和指标 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证服务访问、工人通勤和货运路线会进入活动热力图层 |
+| `src/App.tsx` | 主界面 | 阶段图层按钮和指标读数支持活动图层，并可点击定位活动/货运/服务热点 |
+| `src/styles.css` | 界面样式 | 增加活动图层 marker 样式 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `CITY-ACTIVITY-HEATMAP-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第五十一轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录城市活动热力图层集成事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、全量测试和构建结果 |
+
 ## 2026-06-29：第五十轮旧群岛引擎迁入 legacy
 
 | 文件 | 产物类型 | 用途 |

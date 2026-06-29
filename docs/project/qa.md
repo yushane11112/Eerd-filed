@@ -48,6 +48,13 @@
 - `npm test`：30 个测试文件、193 项测试通过。
 - `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
 
+## 2026-06-29 第四十三轮验证
+
+- `vitest run src/simulation/core/SimulationEngine.test.ts`：先红后绿，扩展工人路径测试为上班、工作、返家、回家完整链路。
+- `vitest run src/simulation/world/movementPath.test.ts src/simulation/economy/economy.test.ts src/rendering/DynamicScene.test.ts src/qa/stressScenario.test.ts`：4 个测试文件、46 项通过，覆盖共享路径、经济物流、动态场景和 2400 tick 长稳兼容。
+- `npm test`：30 个测试文件、193 项测试通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+
 ## 2026-06-27 第十二轮验证
 
 - `pnpm vitest run src/simulation/core/SimulationEngine.test.ts`：12 项通过，覆盖候选抵达、正式入住、低吸引力拒绝、无房离开、迁出和满意度压力。

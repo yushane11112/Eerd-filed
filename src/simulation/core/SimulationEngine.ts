@@ -36,6 +36,7 @@ const MIGRATION_MIN_ATTRACTION = 35
 const MIGRATION_SETTLE_ATTRACTION = 45
 const MIGRATION_LEAVE_ATTRACTION = 20
 const MIGRATION_PATIENCE_TICKS = 3
+const WORK_SHIFT_TICKS = 4
 
 export class SimulationEngine {
   private state: SimulationSnapshot
@@ -123,6 +124,7 @@ export class SimulationEngine {
     this.updateHouseholdNeedsAndSatisfaction()
     events.push(...this.migrateOutDissatisfiedHouseholds())
     this.advanceWorkerCommutes()
+    this.updateWorkerShifts()
     this.matchEmployment()
     events.push(...this.updateMigrationCandidates())
 
@@ -370,25 +372,27 @@ export class SimulationEngine {
     worker.pathIndex = 0
     worker.position = { ...(worker.path[0] ?? origin) }
     worker.activity = samePoint(worker.position, employer.entrance) ? 'working' : 'commuting'
+    worker.activityStartedTick = this.state.tick
   }
 
   private advanceWorkerCommutes(): void {
     const commutingWorkers = Object.values(this.state.agents)
-      .filter((agent) => agent.role === 'worker' && agent.activity === 'commuting')
+      .filter((agent) => (
+        agent.role === 'worker'
+        && (agent.activity === 'commuting' || agent.activity === 'returning')
+      ))
       .sort(byId)
 
     for (const worker of commutingWorkers) {
-      const employer = worker.employerBuildingId
-        ? this.state.buildings[worker.employerBuildingId]
-        : undefined
-      if (!employer) {
+      const destination = this.workerMovementDestination(worker)
+      if (!destination) {
         worker.activity = 'home'
         worker.path = []
         worker.pathIndex = 0
         continue
       }
       if (worker.path.length === 0) {
-        worker.path = buildMovementPath(worker.position, employer.entrance, this.state.cells, {
+        worker.path = buildMovementPath(worker.position, destination, this.state.cells, {
           roadPreference: 'prefer-road',
         })
         worker.pathIndex = 0
@@ -396,11 +400,53 @@ export class SimulationEngine {
       const nextIndex = Math.min(worker.pathIndex + 1, worker.path.length - 1)
       worker.pathIndex = nextIndex
       worker.position = { ...worker.path[nextIndex] }
-      if (nextIndex >= worker.path.length - 1 || samePoint(worker.position, employer.entrance)) {
-        worker.activity = 'working'
-        worker.position = { ...employer.entrance }
+      if (nextIndex >= worker.path.length - 1 || samePoint(worker.position, destination)) {
+        if (worker.activity === 'returning') {
+          worker.activity = 'home'
+        } else {
+          worker.activity = 'working'
+        }
+        worker.position = { ...destination }
+        worker.activityStartedTick = this.state.tick
       }
     }
+  }
+
+  private updateWorkerShifts(): void {
+    const workers = Object.values(this.state.agents)
+      .filter((agent) => agent.role === 'worker' && agent.activity === 'working')
+      .sort(byId)
+
+    for (const worker of workers) {
+      const homeEntrance = this.workerHomeEntrance(worker)
+      if (!homeEntrance) continue
+      if (this.state.tick - (worker.activityStartedTick ?? this.state.tick) < WORK_SHIFT_TICKS) {
+        continue
+      }
+      worker.path = buildMovementPath(worker.position, homeEntrance, this.state.cells, {
+        roadPreference: 'prefer-road',
+      })
+      worker.pathIndex = 0
+      worker.position = { ...(worker.path[0] ?? worker.position) }
+      worker.activity = samePoint(worker.position, homeEntrance) ? 'home' : 'returning'
+      worker.activityStartedTick = this.state.tick
+    }
+  }
+
+  private workerMovementDestination(worker: AgentEntity): { x: number; y: number } | undefined {
+    if (worker.activity === 'returning') return this.workerHomeEntrance(worker)
+    const employer = worker.employerBuildingId
+      ? this.state.buildings[worker.employerBuildingId]
+      : undefined
+    return employer?.entrance
+  }
+
+  private workerHomeEntrance(worker: AgentEntity): { x: number; y: number } | undefined {
+    const household = worker.householdId
+      ? this.state.households[worker.householdId]
+      : undefined
+    const home = household ? this.state.buildings[household.homeBuildingId] : undefined
+    return home?.entrance
   }
 
   private updateHouseholdNeedsAndSatisfaction(): void {

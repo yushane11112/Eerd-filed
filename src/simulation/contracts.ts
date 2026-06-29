@@ -120,6 +120,7 @@ export interface AgentEntity {
   path: GridPoint[]
   pathIndex: number
   activity: AgentActivity
+  activityStartedTick?: Tick
 }
 
 export type LogisticsFailureReason =

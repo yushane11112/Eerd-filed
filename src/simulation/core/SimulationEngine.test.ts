@@ -232,7 +232,7 @@ describe('SimulationEngine', () => {
     })
   })
 
-  it('gives employed workers a visible commute along shared road paths', () => {
+  it('gives employed workers a visible commute and return-home loop along shared road paths', () => {
     const home = {
       ...building('home', 'house'),
       entrance: { x: 0, y: 1 },
@@ -304,6 +304,37 @@ describe('SimulationEngine', () => {
     expect(engine.snapshot.agents['worker-1']).toMatchObject({
       activity: 'working',
       position: { x: 2, y: 1 },
+      pathIndex: 4,
+    })
+
+    engine.step(4)
+
+    expect(engine.snapshot.agents['worker-1']).toMatchObject({
+      activity: 'returning',
+      position: { x: 2, y: 1 },
+      path: [
+        { x: 2, y: 1 },
+        { x: 2, y: 2 },
+        { x: 1, y: 2 },
+        { x: 0, y: 2 },
+        { x: 0, y: 1 },
+      ],
+      pathIndex: 0,
+    })
+
+    engine.step()
+
+    expect(engine.snapshot.agents['worker-1']).toMatchObject({
+      activity: 'returning',
+      position: { x: 2, y: 2 },
+      pathIndex: 1,
+    })
+
+    engine.step(3)
+
+    expect(engine.snapshot.agents['worker-1']).toMatchObject({
+      activity: 'home',
+      position: { x: 0, y: 1 },
       pathIndex: 4,
     })
   })

@@ -2,6 +2,8 @@
 
 ## 2026-06-29
 
+- 启动并完成第四十三轮：`WORKER-RETURN-HOME-01`。`AgentEntity` 新增 `activityStartedTick`，`SimulationEngine` 在工人抵达雇主入口后记录工作开始 tick；工人完成固定工作班次后，会调用共享移动路径生成从雇主入口回住宅入口的返家路径，逐 tick 移动并在抵达后恢复 `home` 状态。
+- 本轮测试先红后绿，把上一轮“上班通勤”扩展为“上班 → working → returning → home”闭环；相关经济、渲染和 2400 tick 长稳目标测试通过。限制：这仍不是完整日夜作息，购物/服务/休闲出行尚未接入。
 - 启动并完成第四十二轮：`WORKER-COMMUTE-PATH-01`。`SimulationEngine` 的就业匹配不再只给工人打上 `commuting` 标签，而是在分配岗位时调用共享移动路径生成从住宅入口到雇主入口的道路优先路径；后续 tick 会推进工人位置，抵达雇主入口后进入 `working` 状态。
 - 新增测试先红后绿，验证工人通勤会绕开阻挡并走共享道路路径，且位置与 `pathIndex` 会逐 tick 前进；这让现有 `AgentVisual` 的移动动画有真实模拟数据驱动，而不是空路径占位。
 - 启动并完成第四十一轮：`LOGISTICS-SHARED-PATH-01`。物流 `RoadRoutePlanner` 不再维护独立简化 BFS，而是复用 `src/simulation/world/movementPath.ts` 的共享移动路径服务；货运必须沿有效道路/桥通行，普通水面与建筑占用格会阻断路径，无路时返回失败并触发既有物流 no-route 后果。

@@ -2,6 +2,18 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第四十三轮工人返家循环
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 公共契约 | AgentEntity 增加 activityStartedTick，支持活动持续时间判断 |
+| `src/simulation/core/SimulationEngine.ts` | 核心模拟 | 工人完成固定工作班次后生成返家路径并回到 home 状态 |
+| `src/simulation/core/SimulationEngine.test.ts` | 自动测试 | 验证上班、工作、返家、回家完整路径循环 |
+| `docs/project/task-board.md` | 任务看板 | 标记 WORKER-RETURN-HOME-01 完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录第四十三轮启动、完成、验证和限制 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新城市模拟、动态引擎和人口生命周期完成度 |
+| `docs/project/qa.md` | 验收记录 | 记录本轮目标测试和全量验证 |
+
 ## 2026-06-29：第四十二轮工人通勤路径接入
 
 | 文件 | 产物类型 | 用途 |

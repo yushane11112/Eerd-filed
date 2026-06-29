@@ -2,6 +2,17 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-29：第五十四轮活动压力分因推荐
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 城市顾问数据层 | 城市活动压力治理卡按货拥、服务热和道压分别推荐补仓储、补服务点或铺路分流 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 覆盖货运拥堵、服务热度和通勤道压三类推荐动作 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `CITY-ACTIVITY-RECOMMENDATION-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第五十四轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录活动压力分因推荐集成事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、全量测试和构建结果 |
+
 ## 2026-06-29：第五十三轮道路格活动压力投射
 
 | 文件 | 产物类型 | 用途 |

@@ -173,21 +173,23 @@ export function deriveStageGovernanceCards(
       ?? activity?.points.find((point) => point.label.startsWith('服务热'))
       ?? activity?.points.find((point) => point.kind === 'activity')
     const score = 76 + roadPressure * 2 + serviceHeat * 3 + cargoCongestion * 5
+    const recommendation = activityPressureRecommendation({
+      roadPressure,
+      serviceHeat,
+      cargoCongestion,
+      targetLabel: target?.label,
+    })
     cards.push({
       id: 'governance-activity-pressure',
       title: '城市活动压力',
       detail: `道路压力 ${roadPressure}、服务热度 ${serviceHeat}、货运拥堵 ${cargoCongestion}，说明人流与货流正在压向少数路径。`,
       cause: '居民服务访问、工人通勤和承运人货运在同一区域叠加，可能放大道路拥堵与服务排队。',
-      action: '先打开活动图层确认热区，再补道路分流、服务点或仓储缓冲。',
-      recommendation: {
-        label: '打开活动图层检查热区',
-        tool: 'inspect',
-        overlayMode: 'activity',
-      },
+      action: recommendation.action,
+      recommendation: recommendation.recommendation,
       score,
       severity: severityFromScore(score),
       overlayMode: 'activity',
-      metricLabel: cargoCongestion >= serviceHeat ? '货拥' : '服务热',
+      metricLabel: recommendation.metricLabel,
       target: target && { point: target.position, label: target.label },
     })
   }
@@ -642,6 +644,50 @@ function isRoadPressureLabel(label: string): boolean {
     || label.startsWith('货路')
     || label.startsWith('服路')
     || label.startsWith('通路')
+}
+
+function activityPressureRecommendation(input: {
+  roadPressure: number
+  serviceHeat: number
+  cargoCongestion: number
+  targetLabel?: string
+}): Pick<StageGovernanceCard, 'action' | 'metricLabel' | 'recommendation'> {
+  if (
+    input.cargoCongestion >= 2
+    && (input.cargoCongestion >= input.serviceHeat || input.targetLabel?.startsWith('货路'))
+  ) {
+    return {
+      action: '在货路热区附近补仓储或调整仓储位置，给产地和市场之间增加缓冲。',
+      metricLabel: '货拥',
+      recommendation: {
+        label: '补仓储缓冲',
+        tool: 'building',
+        buildingType: 'granary',
+        overlayMode: 'activity',
+      },
+    }
+  }
+  if (input.serviceHeat >= 3 || input.targetLabel?.startsWith('服路')) {
+    return {
+      action: '在服务热区附近补市场、医馆或文化服务点，减少居民跨区排队。',
+      metricLabel: '服务热',
+      recommendation: {
+        label: '补服务点分流',
+        tool: 'building',
+        buildingType: 'market',
+        overlayMode: 'activity',
+      },
+    }
+  }
+  return {
+    action: '在道压热区旁补平行道路或短连线，让通勤和返家路线分流。',
+    metricLabel: '道压',
+    recommendation: {
+      label: '铺路分流',
+      tool: 'road',
+      overlayMode: 'activity',
+    },
+  }
 }
 
 function agentActivityLabel(agent: Readonly<SimulationSnapshot['agents'][string]>): string {

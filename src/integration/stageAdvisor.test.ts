@@ -295,8 +295,9 @@ describe('stage advisor overlays', () => {
         id: 'governance-activity-pressure',
         title: '城市活动压力',
         recommendation: {
-          label: '打开活动图层检查热区',
-          tool: 'inspect',
+          label: '补仓储缓冲',
+          tool: 'building',
+          buildingType: 'granary',
           overlayMode: 'activity',
         },
         overlayMode: 'activity',
@@ -304,6 +305,46 @@ describe('stage advisor overlays', () => {
         target: { point: { x: 4, y: 5 }, label: '货运热x4' },
       },
     ])
+  })
+
+  it('recommends service points or roads according to the dominant activity pressure', () => {
+    const serviceSnapshot = makeSnapshot({
+      agents: {
+        shopper1: serviceAgent('shopper1', { x: 4, y: 5 }),
+        shopper2: serviceAgent('shopper2', { x: 4, y: 5 }),
+        shopper3: serviceAgent('shopper3', { x: 4, y: 5 }),
+      },
+    })
+    const roadSnapshot = makeSnapshot({
+      agents: {
+        worker1: commuteAgent('worker1', { x: 4, y: 5 }),
+        worker2: commuteAgent('worker2', { x: 4, y: 5 }),
+        worker3: commuteAgent('worker3', { x: 4, y: 5 }),
+        worker4: commuteAgent('worker4', { x: 4, y: 5 }),
+      },
+    })
+
+    expect(deriveStageGovernanceCards(serviceSnapshot)[0]).toMatchObject({
+      id: 'governance-activity-pressure',
+      action: '在服务热区附近补市场、医馆或文化服务点，减少居民跨区排队。',
+      metricLabel: '服务热',
+      recommendation: {
+        label: '补服务点分流',
+        tool: 'building',
+        buildingType: 'market',
+        overlayMode: 'activity',
+      },
+    })
+    expect(deriveStageGovernanceCards(roadSnapshot)[0]).toMatchObject({
+      id: 'governance-activity-pressure',
+      action: '在道压热区旁补平行道路或短连线，让通勤和返家路线分流。',
+      metricLabel: '道压',
+      recommendation: {
+        label: '铺路分流',
+        tool: 'road',
+        overlayMode: 'activity',
+      },
+    })
   })
 
   it('turns layer metrics into sorted governance cards', () => {
@@ -482,5 +523,22 @@ function cargoAgent(id: string, position: { x: number; y: number }): SimulationS
       destinationBuildingId: 'market',
       phase: 'dropoff',
     },
+  }
+}
+
+function commuteAgent(id: string, position: { x: number; y: number }): SimulationSnapshot['agents'][string] {
+  return {
+    id,
+    role: 'worker',
+    householdId: 'family',
+    employerBuildingId: 'granary',
+    position,
+    path: [
+      position,
+      { x: position.x + 1, y: position.y },
+      { x: position.x + 2, y: position.y },
+    ],
+    pathIndex: 0,
+    activity: 'commuting',
   }
 }

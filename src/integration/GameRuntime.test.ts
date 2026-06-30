@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { GameRuntime } from './GameRuntime'
+import { deriveStageGovernanceCards, deriveStageMapOverlay } from './stageAdvisor'
 
 describe('GameRuntime integration', () => {
   it('boots a connected town with housing, jobs and residents', () => {
@@ -196,6 +197,34 @@ describe('GameRuntime integration', () => {
     expect(roadByKey.get('3,4')).toBe('stone')
     expect(roadByKey.get('0,11')).toBe('bridge')
     expect(roadByKey.get('1,11')).toBeUndefined()
+  })
+
+  it('provides a debug scenario for exercising disconnected road plan governance end to end', () => {
+    const runtime = new GameRuntime({ debugScenario: 'isolated-road-network' })
+    const beforeCards = deriveStageGovernanceCards(runtime.getSnapshot())
+    const roadCard = beforeCards.find((card) => card.id === 'governance-road-disconnected')
+
+    expect(roadCard?.recommendation.roadPlan).toMatchObject({
+      cells: expect.arrayContaining([
+        expect.objectContaining({ point: { x: 6, y: 11 }, kind: 'stone' }),
+      ]),
+      roadCells: expect.any(Number),
+      treasuryCost: expect.any(Number),
+      canAfford: true,
+    })
+
+    const beforeMetrics = deriveRoadMetrics(runtime)
+    const result = runtime.buildRoadPlan({
+      cells: roadCard!.recommendation.roadPlan!.cells.map((cell) => ({
+        point: cell.point,
+        kind: cell.kind,
+      })),
+    })
+    const afterMetrics = deriveRoadMetrics(runtime)
+
+    expect(result.ok).toBe(true)
+    expect(afterMetrics.disconnectedEntrances).toBeLessThan(beforeMetrics.disconnectedEntrances)
+    expect(afterMetrics.isolatedRoadNetworks).toBeLessThan(beforeMetrics.isolatedRoadNetworks)
   })
 
   it('removes roads along a dragged path and reports cells that were not roads', () => {
@@ -513,6 +542,14 @@ describe('GameRuntime integration', () => {
 
 function mutableRuntimeSnapshot(runtime: GameRuntime): ReturnType<GameRuntime['getSnapshot']> {
   return (runtime as unknown as { engine: { state: ReturnType<GameRuntime['getSnapshot']> } }).engine.state
+}
+
+function deriveRoadMetrics(runtime: GameRuntime) {
+  const metrics = deriveStageMapOverlay('roads', runtime.getSnapshot())?.metrics ?? {}
+  return {
+    disconnectedEntrances: metrics.disconnectedEntrances ?? 0,
+    isolatedRoadNetworks: metrics.isolatedRoadNetworks ?? 0,
+  }
 }
 
 function placeManyHouses(runtime: GameRuntime, target: number): number {

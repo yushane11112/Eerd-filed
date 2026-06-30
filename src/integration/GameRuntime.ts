@@ -98,6 +98,13 @@ export interface RoadPlanConstructionInput {
   }>
 }
 
+export type RuntimeDebugScenario = 'isolated-road-network'
+
+export interface GameRuntimeOptions {
+  initialTreasury?: number
+  debugScenario?: RuntimeDebugScenario
+}
+
 export interface BuildingPlacementPreviewCell {
   position: GridPoint
   status: 'footprint' | 'entrance' | 'blocked'
@@ -164,10 +171,13 @@ export class GameRuntime {
   private lastDropTick = 0
   private cityNoticeTracker = new CityNoticeTracker()
 
-  constructor(options: { initialTreasury?: number } = {}) {
+  constructor(options: GameRuntimeOptions = {}) {
     this.grid = new WorldGrid(28, 22, [], 'land')
     this.seedTerrainAndRoads()
     const buildings = this.seedBuildings()
+    if (options.debugScenario === 'isolated-road-network') {
+      this.applyIsolatedRoadNetworkScenario(buildings)
+    }
     const initial = createInitialSimulationSnapshot({
       seed: 20260625,
       buildings,
@@ -862,6 +872,24 @@ export class GameRuntime {
       buildings[id] = createBuilding(id, type, origin, placement.entrance, rotation, inventory)
     }
     return buildings
+  }
+
+  private applyIsolatedRoadNetworkScenario(buildings: Record<string, BuildingEntity>) {
+    this.grid.removeRoad({ x: 6, y: 11 })
+    this.grid.placeRoad({ x: 6, y: 9 }, 'stone')
+    this.grid.placeRoad({ x: 6, y: 10 }, 'stone')
+    this.grid.placeRoad({ x: 6, y: 12 }, 'stone')
+    this.grid.placeRoad({ x: 7, y: 12 }, 'stone')
+
+    const id = 'debug-isolated-house'
+    const type = 'house'
+    const origin = { x: 4, y: 8 }
+    const rotation: QuarterRotation = 0
+    const definition = BUILDING_DEFINITIONS[type]
+    const placement = this.grid.placeBuilding(id, definition, origin, rotation, { requireRoadAccess: true })
+    if (placement.valid && placement.entrance) {
+      buildings[id] = createBuilding(id, type, origin, placement.entrance, rotation)
+    }
   }
 
   private createEngine(snapshot: SimulationSnapshot) {

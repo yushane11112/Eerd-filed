@@ -9,6 +9,18 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-01 第七十六轮验证
+
+- TDD RED：`npx vitest run src/integration/GameRuntime.test.ts -t "debug scenario"` 先失败，原因是 `debugScenario: "isolated-road-network"` 还不能稳定生成带 `roadPlan` 的道路未连通治理卡。
+- TDD RED：`npx vitest run src/ui/runtimeOptions.test.ts` 先失败，原因是 URL 参数解析模块不存在。
+- TDD GREEN：目标测试通过；调试场景会生成 roadPlan，执行后道路图层的 `disconnectedEntrances` 与 `isolatedRoadNetworks` 均下降。
+- 目标回归：`npx vitest run src/integration/GameRuntime.test.ts src/integration/stageAdvisor.test.ts src/ui/runtimeOptions.test.ts src/ui/cityAdvisorUi.test.ts src/integration/cityNotices.test.ts`：5 个测试文件、49 项通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `npm test`：34 个测试文件、229 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 49.20 秒，总耗时约 54.21 秒。
+- 浏览器 E2E：`http://localhost:5173/?debugScenario=isolated-road-network` 横屏打开后，瓶颈面板出现“道路未连通”和“补线计划：道路 1 格，预计银两 6，可直接施工”；点击推荐后 toast 显示“补线施工完成”，财政下降，过期“补线 1 格”overlay 摘要消失，console error 为 0。
+
+限制：浏览器步骤目前仍由本轮手动自动化代码执行，没有沉淀成可复用脚本；下一轮应把调试场景与浏览器验证步骤脚本化。
+
 ## 2026-07-01 第七十五轮验证
 
 - TDD RED：`npx vitest run src/integration/GameRuntime.test.ts -t "mixed road plan"` 先失败，原因是 `runtime.buildRoadPlan` 不存在。

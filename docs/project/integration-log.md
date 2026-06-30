@@ -2,6 +2,13 @@
 
 ## 2026-07-01
 
+- 启动并完成第七十六轮：`ROAD-LINK-E2E-SCENARIO-01`。道路补线闭环获得可控调试/E2E 场景，不再依赖默认城市随机出现孤立路网。
+- `GameRuntime` 新增 `debugScenario: 'isolated-road-network'` 选项：启动时制造一栋入口贴着孤立道路的调试民居，并在主路网旁留下一个明确缺口，使治理系统稳定生成 roadPlan。
+- 新增 `src/ui/runtimeOptions.ts`：`?debugScenario=isolated-road-network` 会创建对应调试运行时；未知调试参数会被忽略。
+- 修复一键施工后的 UI 残留：roadPlan 施工成功后清空 active recommendation，避免地图继续显示“补线 N 格/预计银两”的过期 overlay。
+- 浏览器 E2E 验证：打开 `http://localhost:5173/?debugScenario=isolated-road-network`，瓶颈面板稳定出现“道路未连通”和“补线计划”；点击“打开道路图层并接回主路网”后财政扣费、toast 显示“补线施工完成”，且过期补线摘要被清理，console error 为 0。
+- 限制：当前只是单一调试场景，不是完整 E2E 场景库；下一步应把服务缺口、物流拥堵、财政不足和桥梁缺口也纳入可控场景。
+
 - 启动并完成第七十五轮：`ROAD-LINK-ONE-CLICK-01`。补线施工计划从 UI 摘要推进为运行时可执行动作。
 - `GameRuntime` 新增 `buildRoadPlan`：输入 roadPlan cells 后，一次性执行混合石板路/桥梁施工，逐格校验越界、建筑占用、地形、已有道路和财政。
 - 一键补线会合并统计 `placed/skipped/blocked/invalidTerrain/outOfBounds/unchanged/unaffordable/treasuryCost/missingTreasury`，并额外记录道路与桥梁实际完成格数，避免 UI 误报。

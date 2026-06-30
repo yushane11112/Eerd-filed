@@ -1,0 +1,14 @@
+import { describe, expect, it } from 'vitest'
+import { runtimeOptionsFromSearch } from './runtimeOptions'
+
+describe('runtime URL options', () => {
+  it('enables the isolated road network debug scenario from a query parameter', () => {
+    expect(runtimeOptionsFromSearch('?debugScenario=isolated-road-network')).toEqual({
+      debugScenario: 'isolated-road-network',
+    })
+  })
+
+  it('ignores unknown debug scenarios', () => {
+    expect(runtimeOptionsFromSearch('?debugScenario=unknown')).toEqual({})
+  })
+})

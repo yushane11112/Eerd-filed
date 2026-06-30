@@ -54,6 +54,7 @@ import {
   type FullscreenState,
 } from './ui'
 import { formatRoadPlanSummary } from './ui/cityAdvisorUi'
+import { runtimeOptionsFromSearch } from './ui/runtimeOptions'
 import './styles.css'
 
 const INITIAL_FULLSCREEN: FullscreenState = {
@@ -64,7 +65,7 @@ const INITIAL_FULLSCREEN: FullscreenState = {
 }
 
 export default function App() {
-  const runtime = useMemo(() => new GameRuntime(), [])
+  const runtime = useMemo(() => new GameRuntime(runtimeOptionsFromSearch(window.location.search)), [])
   const snapshot = useSyncExternalStore(runtime.subscribe, runtime.getSnapshot)
   const [tool, setTool] = useState<BuildTool>({ kind: 'inspect' })
   const [toast, setToast] = useState('欢迎回到小耳镇：铺路、建房，让居民真正生活起来。')
@@ -293,6 +294,7 @@ export default function App() {
           })),
         })
         if (result.ok) {
+          setActiveStageRecommendation(null)
           setToast(`${item.title}：${result.message}`)
           return
         }

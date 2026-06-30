@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-01：第七十五轮补线计划一键施工
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/GameRuntime.ts` | 运行时接口 | 新增 `buildRoadPlan`，一次执行混合道路/桥梁施工计划并返回统一统计与反馈 |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 覆盖混合 roadPlan 在财政不足时按顺序完成可支付格、跳过缺钱格，并更新真实路网 |
+| `src/App.tsx` | UI 入口 | 道路治理卡存在 `roadPlan` 时直接执行一键施工，失败时保留施工格提示并切回手动工具 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `ROAD-LINK-ONE-CLICK-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第七十五轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、浏览器 QA 和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、目标测试、全量测试、构建和浏览器验证 |
+| `docs/project/artifact-index.md` | 产物索引 | 记录本轮真实新增/修改文件 |
+
 ## 2026-07-01：第七十四轮补线施工计划 UI 摘要
 
 | 文件 | 产物类型 | 用途 |

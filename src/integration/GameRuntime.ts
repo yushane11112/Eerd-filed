@@ -91,6 +91,13 @@ export interface RuntimeActionResult {
   }
 }
 
+export interface RoadPlanConstructionInput {
+  cells: ReadonlyArray<{
+    point: GridPoint
+    kind: RoadKind
+  }>
+}
+
 export interface BuildingPlacementPreviewCell {
   position: GridPoint
   status: 'footprint' | 'entrance' | 'blocked'
@@ -309,6 +316,87 @@ export class GameRuntime {
 
   placeBridgePath(points: readonly GridPoint[]): RuntimeActionResult {
     return this.placeRoadKindPath(points, 'bridge')
+  }
+
+  buildRoadPlan(plan: RoadPlanConstructionInput): RuntimeActionResult {
+    const visited = new Set<string>()
+    const stats = {
+      placed: 0,
+      skipped: 0,
+      blocked: 0,
+      invalidTerrain: 0,
+      outOfBounds: 0,
+      unchanged: 0,
+      unaffordable: 0,
+      treasuryCost: 0,
+      missingTreasury: 0,
+      roadPlaced: 0,
+      bridgePlaced: 0,
+    }
+    const snapshot = this.engine.snapshot
+    let treasury = snapshot.economy.treasury
+    for (const item of plan.cells) {
+      const rounded = { x: Math.round(item.point.x), y: Math.round(item.point.y) }
+      const roadKind = item.kind
+      const key = `${roadKind}:${pointKey(rounded)}`
+      if (visited.has(key)) continue
+      visited.add(key)
+      const cell = this.grid.getCell(rounded)
+      if (!cell) {
+        stats.skipped += 1
+        stats.outOfBounds += 1
+        continue
+      }
+      if (cell.buildingId) {
+        stats.skipped += 1
+        stats.blocked += 1
+        continue
+      }
+      const validTerrain = roadKind === 'bridge'
+        ? cell.terrain === 'water' || cell.terrain === 'shore'
+        : cell.terrain !== 'water'
+      if (!validTerrain) {
+        stats.skipped += 1
+        stats.invalidTerrain += 1
+        continue
+      }
+      if (cell.road === roadKind) {
+        stats.skipped += 1
+        stats.unchanged += 1
+        continue
+      }
+      const roadCost = roadConstructionCost(roadKind).treasury
+      if (treasury < roadCost) {
+        stats.skipped += 1
+        stats.unaffordable += 1
+        stats.missingTreasury = Math.max(stats.missingTreasury, roadCost - treasury)
+        continue
+      }
+      const result = this.grid.placeRoad(rounded, roadKind)
+      if (result.changed) {
+        stats.placed += 1
+        if (roadKind === 'bridge') stats.bridgePlaced += 1
+        else stats.roadPlaced += 1
+        treasury -= roadCost
+        stats.treasuryCost += roadCost
+        continue
+      }
+      stats.skipped += 1
+      if (result.reason === 'building-occupied') stats.blocked += 1
+      else if (result.reason === 'invalid-terrain') stats.invalidTerrain += 1
+      else if (result.reason === 'out-of-bounds') stats.outOfBounds += 1
+      else stats.unchanged += 1
+    }
+    if (stats.placed > 0) {
+      snapshot.economy.treasury = treasury
+      snapshot.cells = this.grid.toCells()
+      this.rebuild(snapshot)
+    }
+    return {
+      ok: stats.placed > 0,
+      message: roadPlanMessage(stats),
+      roadPath: stats,
+    }
   }
 
   private placeRoadKindPath(points: readonly GridPoint[], roadKind: RoadKind): RuntimeActionResult {
@@ -916,6 +1004,25 @@ function roadPathMessage(
   return roadKind === 'bridge'
     ? `连续架设 ${stats.placed} 格桥路${cost}${skipped}。`
     : `连续铺设 ${stats.placed} 格石板路${cost}${skipped}。`
+}
+
+function roadPlanMessage(stats: NonNullable<RuntimeActionResult['roadPath']> & {
+  roadPlaced?: number
+  bridgePlaced?: number
+}): string {
+  if (stats.placed <= 0) {
+    if ((stats.unaffordable ?? 0) > 0) return `银两不足${stats.missingTreasury ?? 0}，无法执行补线施工。`
+    if (stats.blocked > 0) return '补线路径被建筑占用，无法施工。'
+    if (stats.invalidTerrain > 0) return '补线路径包含不可施工地形。'
+    return '补线计划没有新增道路或桥梁。'
+  }
+  const parts = [
+    (stats.roadPlaced ?? 0) > 0 ? `铺设道路 ${stats.roadPlaced} 格` : '',
+    (stats.bridgePlaced ?? 0) > 0 ? `桥梁 ${stats.bridgePlaced} 格` : '',
+  ].filter(Boolean)
+  const cost = (stats.treasuryCost ?? 0) > 0 ? `，花费银两${stats.treasuryCost}` : ''
+  const skipped = stats.skipped > 0 ? `，跳过 ${stats.skipped} 格` : ''
+  return `补线施工完成：${parts.join('、')}${cost}${skipped}。`
 }
 
 function removeRoadPathMessage(stats: NonNullable<RuntimeActionResult['roadPath']>): string {

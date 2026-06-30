@@ -60,6 +60,7 @@
 | ROAD-LINK-RECOMMENDATION-01 | 道路/桥梁补线建议 | `src/integration/stageAdvisor.ts`, `src/integration/stageAdvisor.test.ts` | 已完成 | 孤立路网会输出到主路网最近边界的建议接路/补桥路径，供地图覆盖层绘制 |
 | ROAD-LINK-CONSTRUCTION-PLAN-01 | 道路/桥梁补线施工计划 | `src/integration/stageAdvisor.ts`, `src/integration/stageAdvisor.test.ts` | 已完成 | 补线治理建议会拆出可施工道路/桥梁格，并给出银两成本、缺口和可支付状态 |
 | ROAD-LINK-PLAN-UI-01 | 补线施工计划 UI 摘要 | `src/App.tsx`, `src/ui/cityAdvisorUi.ts`, `src/integration/stageAdvisor.ts`, `src/styles.css` | 已完成 | 治理卡可显示补线路/桥格数、银两成本和缺口，点击推荐会保留补线 overlay 高亮数据 |
+| ROAD-LINK-ONE-CLICK-01 | 补线计划一键施工 | `src/integration/GameRuntime.ts`, `src/integration/GameRuntime.test.ts`, `src/App.tsx` | 已完成 | 治理卡 roadPlan 可自动执行混合道路/桥梁施工，按财政逐格处理并反馈跳过/缺钱 |
 | CITY-STAGE-OVERLAY-SUMMARY-01 | 城市阶段覆盖图层摘要 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 覆盖图层显示住宅、服务缺口、物流热点和道路缺口摘要 |
 | CITY-STAGE-OVERLAY-METRICS-01 | 城市阶段覆盖图层结构化指标 | `src/integration/**` | 已完成 | 覆盖图层输出可供面板读取的结构化指标 |
 | CITY-STAGE-OVERLAY-PANEL-METRICS-01 | 城市阶段面板图层指标 | `src/App.tsx`, `src/styles.css` | 已完成 | 阶段面板显示当前打开图层的结构化指标 |

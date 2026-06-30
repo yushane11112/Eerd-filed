@@ -9,6 +9,17 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-01 第七十五轮验证
+
+- TDD RED：`npx vitest run src/integration/GameRuntime.test.ts -t "mixed road plan"` 先失败，原因是 `runtime.buildRoadPlan` 不存在。
+- TDD GREEN：同一目标测试通过；覆盖混合 roadPlan 中 1 格石板路、2 格桥梁在 40 银两下只完成 1 路 1 桥，花费 24、跳过 1、缺口 2，且真实地图道路状态正确更新。
+- 目标回归：`npx vitest run src/integration/GameRuntime.test.ts src/integration/stageAdvisor.test.ts src/ui/cityAdvisorUi.test.ts`：3 个测试文件、37 项通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `npm test`：33 个测试文件、226 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 46.13 秒，总耗时约 50.45 秒。
+- 浏览器 QA：`http://localhost:5173/` 横屏打开正常，瓶颈面板可展开，console error 日志为 0。
+
+限制：默认浏览器场景仍没有稳定制造孤立路网，因此 UI 的真实 roadPlan 一键施工点击尚未 E2E 覆盖；下一轮必须补可控孤立路网调试 fixture。
+
 ## 2026-07-01 第七十四轮验证
 
 - TDD RED：`npx vitest run src/ui/cityAdvisorUi.test.ts src/integration/stageAdvisor.test.ts -t "road plan|construction plans|treasury gaps"` 先失败；原因分别是 `cityAdvisorUi` 模块不存在，以及 `withRecommendationExecutionOverlay` 遇到 `roadPlan` 时返回 `undefined`。

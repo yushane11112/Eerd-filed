@@ -2,6 +2,13 @@
 
 ## 2026-07-01
 
+- 启动并完成第七十五轮：`ROAD-LINK-ONE-CLICK-01`。补线施工计划从 UI 摘要推进为运行时可执行动作。
+- `GameRuntime` 新增 `buildRoadPlan`：输入 roadPlan cells 后，一次性执行混合石板路/桥梁施工，逐格校验越界、建筑占用、地形、已有道路和财政。
+- 一键补线会合并统计 `placed/skipped/blocked/invalidTerrain/outOfBounds/unchanged/unaffordable/treasuryCost/missingTreasury`，并额外记录道路与桥梁实际完成格数，避免 UI 误报。
+- `App.tsx` 在道路治理卡存在 `roadPlan` 时会直接调用 `runtime.buildRoadPlan`；施工成功给出完成 toast，失败则保留施工格提示并切换到道路或桥梁工具供玩家手动调整。
+- 浏览器 QA 验证：横屏打开 `http://localhost:5173/`，瓶颈面板可展开，console error 日志为 0。
+- 限制：默认场景没有稳定孤立路网，浏览器层未覆盖真实 roadPlan 卡点击；一键施工精确行为由 `GameRuntime` 单元测试覆盖。下一轮应补可控孤立路网 E2E/调试场景。
+
 - 启动并完成第七十四轮：`ROAD-LINK-PLAN-UI-01`。补线施工计划不再只存在于数据层，瓶颈治理卡可以显示补线路/桥格数、预计银两和财政缺口。
 - 新增 `src/ui/cityAdvisorUi.ts`，集中生成治理卡补线摘要文案，避免继续把 App 文案逻辑堆进 `App.tsx`。
 - `withRecommendationExecutionOverlay` 支持 `roadPlan`：点击道路未连通推荐时，会把待施工道路格和桥梁格注入 overlay cells，分别使用 `planned` 与 `bridge` 状态高亮。

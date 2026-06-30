@@ -168,6 +168,36 @@ describe('GameRuntime integration', () => {
     expect(target?.road).toBeUndefined()
   })
 
+  it('builds a mixed road plan with roads and bridges in one action', () => {
+    const runtime = new GameRuntime({ initialTreasury: 40 })
+
+    const result = runtime.buildRoadPlan({
+      cells: [
+        { point: { x: 3, y: 4 }, kind: 'stone' },
+        { point: { x: 0, y: 11 }, kind: 'bridge' },
+        { point: { x: 1, y: 11 }, kind: 'bridge' },
+      ],
+    })
+    const snapshot = runtime.getSnapshot()
+    const roadByKey = new Map(snapshot.cells.map((cell) => [`${cell.point.x},${cell.point.y}`, cell.road]))
+
+    expect(result).toMatchObject({
+      ok: true,
+      message: '补线施工完成：铺设道路 1 格、桥梁 1 格，花费银两24，跳过 1 格。',
+      roadPath: {
+        placed: 2,
+        skipped: 1,
+        unaffordable: 1,
+        treasuryCost: 24,
+        missingTreasury: 2,
+      },
+    })
+    expect(snapshot.economy.treasury).toBe(16)
+    expect(roadByKey.get('3,4')).toBe('stone')
+    expect(roadByKey.get('0,11')).toBe('bridge')
+    expect(roadByKey.get('1,11')).toBeUndefined()
+  })
+
   it('removes roads along a dragged path and reports cells that were not roads', () => {
     const runtime = new GameRuntime()
     runtime.placeRoadPath([

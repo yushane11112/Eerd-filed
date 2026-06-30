@@ -285,6 +285,21 @@ export default function App() {
     if (overlayWithCandidate) setStageAdvisorOverlay(overlayWithCandidate)
     if (recommendation.tool === 'road') {
       setRecommendedBuildType(null)
+      if (recommendation.roadPlan) {
+        const result = runtime.buildRoadPlan({
+          cells: recommendation.roadPlan.cells.map((cell) => ({
+            point: cell.point,
+            kind: cell.kind,
+          })),
+        })
+        if (result.ok) {
+          setToast(`${item.title}：${result.message}`)
+          return
+        }
+        chooseTool({ kind: recommendation.roadPlan.bridgeCells > recommendation.roadPlan.roadCells ? 'bridge' : 'road' })
+        setToast(`${item.title}：${result.message} 已保留施工格提示，可手动调整。`)
+        return
+      }
       chooseTool({ kind: 'road' })
       setToast(`${item.title}：${recommendation.label}。`)
       return

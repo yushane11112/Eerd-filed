@@ -39,7 +39,7 @@ import {
   spawnRandomOrdinaryDrop,
   type DropSpawnState,
 } from '../simulation/rewards'
-import { WorldGrid, type QuarterRotation } from '../simulation/world'
+import { pointKey, WorldGrid, type PlacementIssue, type QuarterRotation } from '../simulation/world'
 import { CityNoticeTracker, deriveCityNotices, type CityNotice } from './cityNotices'
 
 export type BuildTool =
@@ -63,6 +63,22 @@ export interface RuntimeActionResult {
       jobs: number
     }
   }
+}
+
+export interface BuildingPlacementPreviewCell {
+  position: GridPoint
+  status: 'footprint' | 'entrance' | 'blocked'
+  label: string
+}
+
+export interface BuildingPlacementPreview {
+  type: string
+  rotation: QuarterRotation
+  valid: boolean
+  reason?: string
+  origin: GridPoint
+  entrance?: GridPoint
+  cells: BuildingPlacementPreviewCell[]
 }
 
 export interface BuildingUpgradeQuote {
@@ -255,6 +271,64 @@ export class GameRuntime {
     snapshot.cells = this.grid.toCells()
     this.rebuild(snapshot)
     return { ok: true, message: '石板路已铺好，建筑与物流可沿路连接。' }
+  }
+
+  previewBuildingPlacement(type: string, point: GridPoint, rotation: QuarterRotation): BuildingPlacementPreview {
+    const definition = BUILDING_DEFINITIONS[type]
+    if (!definition) {
+      return {
+        type,
+        rotation,
+        valid: false,
+        reason: '未知建筑类型',
+        origin: { ...point },
+        cells: [],
+      }
+    }
+    const stage = deriveRuntimeCityStage(this.snapshotCache.metrics)
+    if (!isRuntimeBuildingUnlocked(type, stage)) {
+      return {
+        type,
+        rotation,
+        valid: false,
+        reason: `${definition.name}需要进入${CITY_STAGE_LABELS[definition.cityStage ?? 'water-town']}后营造。`,
+        origin: { ...point },
+        cells: [],
+      }
+    }
+    const placement = this.grid.validateBuildingPlacement(`preview-${type}`, definition, point, rotation, {
+      requireRoadAccess: true,
+    })
+    const issueByPoint = new Map(
+      placement.issues
+        .filter((issue) => issue.point)
+        .map((issue) => [pointKey(issue.point!), issue]),
+    )
+    const cells: BuildingPlacementPreviewCell[] = placement.footprint.map((position) => {
+      const issue = issueByPoint.get(pointKey(position))
+      return {
+        position: { ...position },
+        status: issue && issue.reason !== 'no-road-access' ? 'blocked' : 'footprint',
+        label: issue && issue.reason !== 'no-road-access' ? placementIssueLabel(issue) : '占地',
+      }
+    })
+    if (placement.entrance) {
+      const entranceIssue = placement.issues.find((issue) => issue.reason === 'no-road-access')
+      cells.push({
+        position: { ...placement.entrance },
+        status: entranceIssue ? 'blocked' : 'entrance',
+        label: entranceIssue ? '入口未连路' : '入口',
+      })
+    }
+    return {
+      type,
+      rotation,
+      valid: placement.valid,
+      reason: placement.valid ? undefined : placementFailureMessage(placement.issues[0]),
+      origin: { ...point },
+      entrance: placement.entrance ? { ...placement.entrance } : undefined,
+      cells,
+    }
   }
 
   placeBuilding(type: string, point: GridPoint, rotation: QuarterRotation): RuntimeActionResult {
@@ -561,4 +635,21 @@ function formatResourceList(resources: Partial<Record<ResourceKind, number>>): s
   ))
   if (entries.length === 0) return '无'
   return entries.map(([resource, amount]) => `${RESOURCE_NAMES[resource]}×${amount}`).join('、')
+}
+
+function placementFailureMessage(issue: PlacementIssue | undefined): string {
+  if (!issue) return '地块空间不足，无法营造'
+  if (issue.reason === 'no-road-access') return '入口必须紧邻道路'
+  if (issue.reason === 'building-occupied' || issue.reason === 'road-occupied') return '这个位置已被占用'
+  if (issue.reason === 'terrain' || issue.reason === 'out-of-bounds') return '地块空间不足，无法营造'
+  return '地块空间不足，无法营造'
+}
+
+function placementIssueLabel(issue: PlacementIssue): string {
+  if (issue.reason === 'building-occupied') return '已有建筑'
+  if (issue.reason === 'road-occupied') return '已有道路'
+  if (issue.reason === 'terrain') return '地形不符'
+  if (issue.reason === 'out-of-bounds') return '超出地图'
+  if (issue.reason === 'no-road-access') return '入口未连路'
+  return '不可放置'
 }

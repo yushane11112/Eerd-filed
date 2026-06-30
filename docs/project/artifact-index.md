@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-30：第六十一轮建筑工具动态试放预览
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/GameRuntime.ts` | 运行时接口 | 新增 `previewBuildingPlacement`，无副作用输出 footprint、入口、冲突格和中文原因 |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 固定 preview 可营造、道路占用、入口未连路和无副作用行为 |
+| `src/components/SimulationCanvas.tsx` | UI 交互层 | 建筑工具 hover 时调用 Runtime preview 并渲染试放层；R 旋转后重新校验原位置 |
+| `src/styles.css` | 视觉样式 | 新增 placement preview 状态条、有效/无效 footprint 与 blocked cell 样式 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `BUILD-PLACEMENT-PREVIEW-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第六十一轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、浏览器 QA 结论和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、全量测试、构建和浏览器验证结果 |
+
 ## 2026-06-30：第六十轮治理推荐 footprint 预览
 
 | 文件 | 产物类型 | 用途 |

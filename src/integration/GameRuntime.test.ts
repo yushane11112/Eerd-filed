@@ -36,6 +36,45 @@ describe('GameRuntime integration', () => {
     expect(after.buildings['granary-1'].inventory.stone).toBe((before.buildings['granary-1'].inventory.stone ?? 0) - 1)
   })
 
+  it('previews building placement footprint and conflicts without mutating the city', () => {
+    const runtime = new GameRuntime()
+    runtime.placeRoad({ x: 6, y: 10 })
+    runtime.placeRoad({ x: 6, y: 9 })
+    runtime.placeRoad({ x: 6, y: 8 })
+    const before = runtime.getSnapshot()
+
+    const valid = runtime.previewBuildingPlacement('house', { x: 4, y: 8 }, 0)
+    const roadConflict = runtime.previewBuildingPlacement('house', { x: 6, y: 8 }, 0)
+    const noRoad = runtime.previewBuildingPlacement('house', { x: 20, y: 18 }, 0)
+
+    expect(valid).toMatchObject({
+      valid: true,
+      reason: undefined,
+      entrance: { x: 5, y: 9 },
+      cells: [
+        { status: 'footprint', position: { x: 4, y: 8 } },
+        { status: 'footprint', position: { x: 5, y: 8 } },
+        { status: 'footprint', position: { x: 4, y: 9 } },
+        { status: 'footprint', position: { x: 5, y: 9 } },
+        { status: 'entrance', position: { x: 5, y: 9 } },
+      ],
+    })
+    expect(roadConflict).toMatchObject({
+      valid: false,
+      reason: '这个位置已被占用',
+    })
+    expect(roadConflict.cells.some((cell) => cell.status === 'blocked' && cell.position.x === 6 && cell.position.y === 8))
+      .toBe(true)
+    expect(noRoad).toMatchObject({
+      valid: false,
+      reason: '入口必须紧邻道路',
+    })
+    expect(noRoad.cells.some((cell) => cell.status === 'blocked' && cell.label === '入口未连路'))
+      .toBe(true)
+    expect(runtime.getSnapshot().buildings).toEqual(before.buildings)
+    expect(runtime.getSnapshot().economy.treasury).toBe(before.economy.treasury)
+  })
+
   it('rejects construction when city storage cannot pay the material cost', () => {
     const runtime = new GameRuntime()
     const placed = placeManyHouses(runtime, 7)

@@ -2,6 +2,12 @@
 
 ## 2026-06-30
 
+- 启动并完成第六十一轮：`BUILD-PLACEMENT-PREVIEW-01`。建筑工具获得动态试放预览，玩家选择民居/粮仓/集市等建筑后，鼠标移动到地图会显示当前 anchor 的 footprint、入口和冲突格。
+- 新增 `GameRuntime.previewBuildingPlacement`，复用 `WorldGrid.validateBuildingPlacement`，保证试放预览和实际点击放置使用同一套道路、地形、建筑占用和边界规则；preview 不扣银两、不扣仓储材料、不创建建筑。
+- `SimulationCanvas` 新增 `placement-preview-layer`，显示可营造/不可营造状态条，支持 R 旋转后在原位置重新校验；右键仍可取消当前营造工具。
+- 浏览器 QA 验证：选择“民居”后移动到地图，DOM 出现 5 个 preview cell（4 个 footprint + 1 个入口冲突），状态条显示“不可营造 入口必须紧邻道路”，console 无 error/warn。
+- 限制：本轮尚未把已有 `PlacementController` 接入 React 主状态，浏览器 QA 主要覆盖冲突红态；可营造绿态由 Runtime 单元测试覆盖，下一轮需要在浏览器中覆盖绿态、旋转入口和重复放置。
+
 - 启动并完成第六十轮：`GOVERNANCE-PLACEMENT-FOOTPRINT-01`。建筑类治理建议不再只给“建议落点/入口”两个 marker，而是输出真实建筑 `footprint`、入口格和后续可扩展的旋转字段。
 - `StageAdvisorOverlay` 新增 `cells` 数据结构，`SimulationCanvas` 在覆盖层渲染等距菱形占地格；入口格使用单独样式高亮，为后续正式试放、冲突格和旋转确认流打基础。
 - 浏览器 QA 验证：点击“瓶颈 → 打开服务图层并营造市场”后，地图出现 6 个 footprint 格、1 个入口格、2 个 placement marker，建造菜单高亮“集市”，console 无 error/warn。

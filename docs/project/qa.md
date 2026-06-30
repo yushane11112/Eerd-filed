@@ -9,6 +9,16 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-06-30 第六十一轮验证
+
+- TDD RED：`npx vitest run src/integration/GameRuntime.test.ts` 先失败，原因是 `runtime.previewBuildingPlacement` 不存在。
+- TDD GREEN：`npx vitest run src/integration/GameRuntime.test.ts`：1 个测试文件、10 项通过，覆盖建筑试放 preview 输出 footprint、入口、道路占用冲突、入口未连路冲突，并验证 preview 不改变建筑表和财政。
+- `npm test`：30 个测试文件、208 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 51.37 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- 浏览器 QA：`http://127.0.0.1:5173/` 打开正常，无 Vite 报错覆盖层，console 无 error/warn；点击“民居”并移动到地图后，DOM 验证 `.placement-preview-cell` 为 5、footprint 为 4、blocked 为 1，状态条显示“不可营造入口必须紧邻道路”，建造菜单“民居”处于 active。
+
+限制：本轮浏览器 QA 覆盖冲突红态；可营造绿态由 Runtime 测试证明。下一轮需要在浏览器中稳定覆盖绿态、旋转入口和重复放置。
+
 ## 2026-06-30 第六十轮验证
 
 - TDD RED：`npx vitest run src/integration/stageAdvisor.test.ts` 先失败，原因是推荐执行结果尚未输出 `footprint`。

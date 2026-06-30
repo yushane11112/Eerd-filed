@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { DynamicScene, gridToScreen, screenToGrid } from '../rendering'
 import type { CameraState, GridPoint, SimulationSnapshot } from '../simulation/contracts'
 import { CameraController, DragController } from '../ui'
-import type { BuildTool, GameRuntime } from '../integration/GameRuntime'
+import type { BuildingPlacementPreview, BuildTool, GameRuntime } from '../integration/GameRuntime'
 import type { StageAdvisorOverlay } from '../integration/stageAdvisor'
 
 type CameraFocusTarget =
@@ -59,6 +59,7 @@ export function SimulationCanvas({
     viewportHeight: 0,
     fullscreen: false,
   }))
+  const [placementPreview, setPlacementPreview] = useState<BuildingPlacementPreview | null>(null)
   const cameraRef = useRef(new CameraController({
     bounds: WORLD_BOUNDS,
     zoom: { min: 0.48, max: 1.65 },
@@ -157,6 +158,18 @@ export function SimulationCanvas({
   }, [cameraFocusRequest])
 
   useEffect(() => {
+    if (tool.kind !== 'building') {
+      setPlacementPreview(null)
+      return
+    }
+    setPlacementPreview((previous) => (
+      previous
+        ? runtime.previewBuildingPlacement(tool.type, previous.origin, tool.rotation)
+        : previous
+    ))
+  }, [runtime, tool])
+
+  useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() !== 'r') return
       const current = toolRef.current
@@ -196,6 +209,7 @@ export function SimulationCanvas({
     cancelFocusAnimation(focusAnimationRef)
     const point = localPoint(event)
     const grid = rawGridPoint(point)
+    updatePlacementPreview(grid)
     if (hasNearbyDrop(snapshotRef.current, grid, DROP_PICKUP_RADIUS)) {
       sweepRef.current = {
         pointerId: event.pointerId,
@@ -212,6 +226,7 @@ export function SimulationCanvas({
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     const point = localPoint(event)
+    updatePlacementPreview(rawGridPoint(point))
     const sweep = sweepRef.current
     if (sweep?.pointerId === event.pointerId) {
       const grid = rawGridPoint(point)
@@ -268,6 +283,27 @@ export function SimulationCanvas({
     )
   }
 
+  const updatePlacementPreview = (rawPoint: GridPoint) => {
+    const currentTool = toolRef.current
+    if (currentTool.kind !== 'building') {
+      if (placementPreview) setPlacementPreview(null)
+      return
+    }
+    const anchor = { x: Math.round(rawPoint.x), y: Math.round(rawPoint.y) }
+    const preview = runtime.previewBuildingPlacement(currentTool.type, anchor, currentTool.rotation)
+    setPlacementPreview((previous) => (
+      previous
+      && previous.type === preview.type
+      && previous.rotation === preview.rotation
+      && previous.origin.x === preview.origin.x
+      && previous.origin.y === preview.origin.y
+      && previous.valid === preview.valid
+      && previous.reason === preview.reason
+        ? previous
+        : preview
+    ))
+  }
+
   return (
     <div
       ref={hostRef}
@@ -305,6 +341,30 @@ export function SimulationCanvas({
           )
         })}
       </div>
+      {placementPreview && (
+        <div className="placement-preview-layer" aria-hidden="true">
+          <div className={`placement-preview-summary ${placementPreview.valid ? 'valid' : 'invalid'}`}>
+            <strong>{placementPreview.valid ? '可营造' : '不可营造'}</strong>
+            <span>{placementPreview.valid ? '点击确认，R 旋转，右键取消' : placementPreview.reason}</span>
+          </div>
+          {placementPreview.cells.map((cell, index) => {
+            const position = pointToViewport(cell.position, cameraView)
+            return (
+              <span
+                key={`${placementPreview.type}-${placementPreview.rotation}-${placementPreview.origin.x}-${placementPreview.origin.y}-${index}`}
+                className={`stage-overlay-cell stage-overlay-cell--placement stage-overlay-cell--${cell.status} placement-preview-cell ${placementPreview.valid ? 'valid' : 'invalid'}`}
+                style={{
+                  '--stage-cell-x': `${position.x}px`,
+                  '--stage-cell-y': `${position.y}px`,
+                } as React.CSSProperties}
+                title={cell.label}
+              >
+                <i>{cell.label}</i>
+              </span>
+            )
+          })}
+        </div>
+      )}
       {stageAdvisorOverlay && (
         <div className="stage-overlay-layer" aria-hidden="true">
           {stageAdvisorOverlay.summary && (

@@ -1052,6 +1052,37 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   background: #e0e3d4;
   cursor: not-allowed;
 }
+.demolition-card {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #ead2c2;
+  border-radius: 13px;
+  background: rgba(255,239,226,.72);
+}
+.demolition-card span {
+  color: #8a503d;
+  font-size: 10px;
+  font-weight: 900;
+}
+.demolition-card p {
+  margin: 6px 0 0;
+  color: #8b7568;
+  font-size: 8px;
+  line-height: 1.45;
+}
+.demolition-card button {
+  width: 100%;
+  margin-top: 9px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  color: #fff8ee;
+  background: #a4513f;
+  font-size: 9px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.demolition-card button:hover { background: #873f31; }
 .inspector-note { margin: 13px 0 0; color: #7c8982; font-size: 8px; line-height: 1.6; }
 
 .tool-hint {

@@ -9,6 +9,17 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-06-30 第六十七轮验证
+
+- TDD RED：`npx vitest run src/integration/GameRuntime.test.ts -t "demolishes|cancels logistics"` 先失败，原因是 `runtime.demolishBuilding` 不存在。
+- TDD GREEN：同一目标测试通过；新增 Runtime 测试覆盖拆住宅会迁出家庭、移除 household agent、释放地块，以及拆仓储会取消关联物流订单并释放承运人。
+- 目标测试：`npx vitest run src/integration/GameRuntime.test.ts`：1 个测试文件、17 项通过。
+- `npm test`：31 个测试文件、217 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 48.17 秒，总耗时 52.35 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- 浏览器 QA：`http://localhost:5173/` 横屏打开正常，标题为《小耳岛》，页面非空，无 Vite 报错覆盖层，console 无 error/warn。点击地图建筑后详情面板出现“拆除建筑”；点击后详情关闭，人口/住房变为 12/12，toast 显示“已拆除「江南民居」…迁出 4 户…取消 0 条物流”。
+
+限制：尚未验证拆除生产/仓储建筑的浏览器链路；该一致性由 Runtime 测试覆盖。二次确认、退款/回收比例、拆除动画和批量拆除仍未实现。
+
 ## 2026-06-30 第六十六轮验证
 
 - TDD RED：`npx vitest run src/integration/GameRuntime.test.ts -t "roads|road construction|places roads|lays roads"` 先失败，原因是道路铺设不扣财政且余额不足仍可继续铺路。

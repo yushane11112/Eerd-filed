@@ -52,6 +52,7 @@
 | ROAD-DRAG-BUILD-01 | 道路拖拽连续铺设 | `src/integration/GameRuntime.ts`, `src/components/SimulationCanvas.tsx` | 已完成 | 道路工具拖拽调用批量铺路 API，连续修改真实路网并汇总跳过格 |
 | ROAD-DEMOLISH-01 | 道路拆除工具 | `src/integration/GameRuntime.ts`, `src/components/SimulationCanvas.tsx`, `src/App.tsx` | 已完成 | 拆路工具可拖拽批量删除真实道路并汇总无路/越界跳过格，暂不拆建筑 |
 | ROAD-FISCAL-COST-01 | 道路铺设财政成本 | `src/simulation/economy/construction.ts`, `src/integration/GameRuntime.ts`, `src/integration/GameRuntime.test.ts` | 已完成 | 石板路铺设消耗财政，余额不足时只铺可支付路段；已有道路不重复扣费 |
+| BUILDING-DEMOLISH-CONSISTENCY-01 | 建筑拆除一致性 | `src/integration/GameRuntime.ts`, `src/integration/GameRuntime.test.ts`, `src/App.tsx`, `src/styles.css` | 已完成 | 拆除建筑会释放地块、迁出失去住宅的家庭、释放岗位并取消关联物流 |
 | CITY-STAGE-OVERLAY-SUMMARY-01 | 城市阶段覆盖图层摘要 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 覆盖图层显示住宅、服务缺口、物流热点和道路缺口摘要 |
 | CITY-STAGE-OVERLAY-METRICS-01 | 城市阶段覆盖图层结构化指标 | `src/integration/**` | 已完成 | 覆盖图层输出可供面板读取的结构化指标 |
 | CITY-STAGE-OVERLAY-PANEL-METRICS-01 | 城市阶段面板图层指标 | `src/App.tsx`, `src/styles.css` | 已完成 | 阶段面板显示当前打开图层的结构化指标 |

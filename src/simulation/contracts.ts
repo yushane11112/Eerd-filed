@@ -146,6 +146,7 @@ export type LogisticsFailureReason =
   | 'no-source-inventory'
   | 'source-inventory-insufficient'
   | 'destination-capacity'
+  | 'building-demolished'
 
 export interface LogisticsOrder {
   id: EntityId

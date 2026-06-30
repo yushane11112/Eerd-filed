@@ -151,6 +151,88 @@ describe('GameRuntime integration', () => {
     expect(['3,4', '4,4', '5,4'].some((key) => roads.has(key))).toBe(false)
   })
 
+  it('demolishes a house by migrating out its households and freeing occupied cells', () => {
+    const runtime = new GameRuntime()
+    const before = runtime.getSnapshot()
+    const householdIds = Object.values(before.households)
+      .filter((household) => household.homeBuildingId === 'house-1')
+      .map((household) => household.id)
+    const householdAgentIds = Object.values(before.agents)
+      .filter((agent) => agent.householdId && householdIds.includes(agent.householdId))
+      .map((agent) => agent.id)
+
+    expect(householdIds.length).toBeGreaterThan(0)
+
+    const result = runtime.demolishBuilding('house-1')
+    const after = runtime.getSnapshot()
+
+    expect(result).toMatchObject({
+      ok: true,
+      buildingId: 'house-1',
+      demolition: {
+        householdsRemoved: householdIds.length,
+        agentsRemoved: householdAgentIds.length,
+      },
+    })
+    expect(after.buildings['house-1']).toBeUndefined()
+    expect(after.cells.some((cell) => cell.buildingId === 'house-1')).toBe(false)
+    expect(householdIds.every((id) => after.households[id] === undefined)).toBe(true)
+    expect(householdAgentIds.every((id) => after.agents[id] === undefined)).toBe(true)
+    expect(Object.values(after.buildings).every((building) => (
+      building.workers.every((workerId) => !householdAgentIds.includes(workerId))
+    ))).toBe(true)
+  })
+
+  it('cancels logistics and releases carriers when demolishing a referenced building', () => {
+    const runtime = new GameRuntime()
+    const snapshot = mutableRuntimeSnapshot(runtime)
+    snapshot.logisticsOrders['demo-order'] = {
+      id: 'demo-order',
+      resource: 'food',
+      amount: 3,
+      sourceBuildingId: 'granary-1',
+      destinationBuildingId: 'market-1',
+      priority: 10,
+      state: 'assigned',
+      carrierId: 'carrier-1',
+    }
+    snapshot.agents['carrier-1'].activity = 'delivering'
+    snapshot.agents['carrier-1'].cargoIntent = {
+      orderId: 'demo-order',
+      resource: 'food',
+      amount: 3,
+      sourceBuildingId: 'granary-1',
+      destinationBuildingId: 'market-1',
+      phase: 'pickup',
+    }
+
+    const result = runtime.demolishBuilding('granary-1')
+    const after = runtime.getSnapshot()
+
+    expect(result).toMatchObject({
+      ok: true,
+      buildingId: 'granary-1',
+      demolition: {
+        ordersCancelled: 1,
+        carriersReleased: 1,
+      },
+    })
+    expect(after.buildings['granary-1']).toBeUndefined()
+    expect(after.cells.some((cell) => cell.buildingId === 'granary-1')).toBe(false)
+    expect(after.logisticsOrders['demo-order']).toMatchObject({
+      state: 'cancelled',
+      cancelReason: 'building-demolished',
+    })
+    expect(after.logisticsOrders['demo-order']).not.toHaveProperty('failureReason')
+    expect(after.logisticsOrders['demo-order']).not.toHaveProperty('carrierId')
+    expect(after.agents['carrier-1']).toMatchObject({
+      activity: 'idle',
+      path: [],
+      pathIndex: 0,
+    })
+    expect(after.agents['carrier-1']).not.toHaveProperty('cargoIntent')
+  })
+
   it('previews building placement footprint and conflicts without mutating the city', () => {
     const runtime = new GameRuntime()
     runtime.placeRoad({ x: 6, y: 10 })
@@ -350,6 +432,10 @@ describe('GameRuntime integration', () => {
     expect(afterQuote.buildings['granary-1'].inventory.stone).toBe(2)
   })
 })
+
+function mutableRuntimeSnapshot(runtime: GameRuntime): ReturnType<GameRuntime['getSnapshot']> {
+  return (runtime as unknown as { engine: { state: ReturnType<GameRuntime['getSnapshot']> } }).engine.state
+}
 
 function placeManyHouses(runtime: GameRuntime, target: number): number {
   const origins = [

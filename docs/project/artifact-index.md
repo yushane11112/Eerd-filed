@@ -2,6 +2,20 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-30：第六十七轮建筑拆除一致性
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 模拟契约 | `LogisticsFailureReason` 新增 `building-demolished`，表达拆除导致的订单取消 |
+| `src/integration/GameRuntime.ts` | 运行时接口 | 新增 `demolishBuilding`，统一清理建筑、地块、住户、agent、岗位和未完成物流 |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 覆盖拆住宅迁出家庭/释放地块、拆物流引用建筑取消订单/释放承运人 |
+| `src/App.tsx` | UI 入口 | 建筑详情新增“建筑拆除”卡片和拆除按钮 |
+| `src/styles.css` | UI 样式 | 新增拆除卡片的危险操作视觉样式 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `BUILDING-DEMOLISH-CONSISTENCY-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第六十七轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、浏览器 QA 和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、目标测试、全量测试、构建和浏览器验证 |
+
 ## 2026-06-30：第六十六轮道路铺设财政成本
 
 | 文件 | 产物类型 | 用途 |

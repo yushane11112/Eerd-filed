@@ -170,6 +170,14 @@ export default function App() {
     setToast(result.message)
   }
 
+  const demolishSelectedBuilding = () => {
+    if (!selectedBuilding) return
+    const name = selectedDefinition?.name ?? selectedBuilding.id
+    const result = runtime.demolishBuilding(selectedBuilding.id)
+    setToast(result.ok ? `已拆除「${name}」：${result.message}` : result.message)
+    if (result.ok) setSelectedBuildingId(null)
+  }
+
   const focusCityTarget = (target: CityFocusTarget | undefined, fallbackTitle: string) => {
     if (!target) {
       setToast(`${fallbackTitle}：暂无可定位建筑，先观察道路、库存和居民区。`)
@@ -660,6 +668,15 @@ export default function App() {
               </button>
             </div>
           )}
+          <div className="demolition-card">
+            <div>
+              <span>建筑拆除</span>
+              <p>会迁出失去住宅的家庭，释放岗位，并取消关联物流；暂不返还营造成本。</p>
+            </div>
+            <button type="button" onClick={demolishSelectedBuilding}>
+              拆除建筑
+            </button>
+          </div>
           <p className="inspector-note">建筑状态由人口、原料、道路和物流实时驱动。</p>
         </aside>
       )}

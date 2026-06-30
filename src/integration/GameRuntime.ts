@@ -72,6 +72,13 @@ export interface RuntimeActionResult {
     treasury: number
     materials: Partial<Record<ResourceKind, number>>
   }
+  demolition?: {
+    householdsRemoved: number
+    agentsRemoved: number
+    workersReleased: number
+    ordersCancelled: number
+    carriersReleased: number
+  }
   upgrade?: {
     level: number
     cost: Partial<Record<ResourceKind, number>>
@@ -404,6 +411,95 @@ export class GameRuntime {
       ok: stats.removed > 0,
       message: removeRoadPathMessage(stats),
       roadPath: stats,
+    }
+  }
+
+  demolishBuilding(buildingId: string): RuntimeActionResult {
+    const snapshot = this.engine.snapshot
+    const building = snapshot.buildings[buildingId]
+    if (!building) return { ok: false, message: '未找到这座建筑', buildingId }
+
+    const stats = {
+      householdsRemoved: 0,
+      agentsRemoved: 0,
+      workersReleased: 0,
+      ordersCancelled: 0,
+      carriersReleased: 0,
+    }
+    const removedHouseholdIds = new Set<string>()
+    const removedAgentIds = new Set<string>()
+
+    for (const household of Object.values(snapshot.households)) {
+      if (household.homeBuildingId !== buildingId) continue
+      removedHouseholdIds.add(household.id)
+      delete snapshot.households[household.id]
+      stats.householdsRemoved += 1
+    }
+
+    for (const agent of Object.values(snapshot.agents)) {
+      if (agent.householdId && removedHouseholdIds.has(agent.householdId)) {
+        removedAgentIds.add(agent.id)
+        continue
+      }
+      if (agent.serviceIntent?.buildingId === buildingId) {
+        removedAgentIds.add(agent.id)
+        continue
+      }
+      if (agent.employerBuildingId === buildingId) {
+        delete agent.employerBuildingId
+        agent.activity = 'home'
+        agent.path = []
+        agent.pathIndex = 0
+        delete agent.activityStartedTick
+        stats.workersReleased += 1
+      }
+    }
+
+    for (const agentId of removedAgentIds) {
+      delete snapshot.agents[agentId]
+      stats.agentsRemoved += 1
+    }
+
+    for (const remainingBuilding of Object.values(snapshot.buildings)) {
+      remainingBuilding.workers = remainingBuilding.workers.filter((workerId) => !removedAgentIds.has(workerId))
+      if (remainingBuilding.id === buildingId) remainingBuilding.workers = []
+    }
+
+    for (const order of Object.values(snapshot.logisticsOrders)) {
+      if (
+        order.state === 'delivered'
+        || order.state === 'cancelled'
+        || (order.sourceBuildingId !== buildingId && order.destinationBuildingId !== buildingId)
+      ) {
+        continue
+      }
+      if (order.carrierId) {
+        const carrier = snapshot.agents[order.carrierId]
+        if (carrier) {
+          carrier.activity = 'idle'
+          carrier.path = []
+          carrier.pathIndex = 0
+          delete carrier.cargoIntent
+          stats.carriersReleased += 1
+        }
+      }
+      order.state = 'cancelled'
+      order.cancelReason = 'building-demolished'
+      delete order.failureReason
+      delete order.carrierId
+      stats.ordersCancelled += 1
+    }
+
+    this.grid.removeBuilding(buildingId)
+    delete snapshot.buildings[buildingId]
+    snapshot.cells = this.grid.toCells()
+    this.rebuild(snapshot)
+
+    return {
+      ok: true,
+      message: `${buildingId} 已拆除，迁出 ${stats.householdsRemoved} 户，取消 ${stats.ordersCancelled} 条物流。`,
+      buildingId,
+      demolition: stats,
     }
   }
 

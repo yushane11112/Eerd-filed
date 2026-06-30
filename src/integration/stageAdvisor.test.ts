@@ -190,12 +190,19 @@ describe('stage advisor overlays', () => {
       points: expect.arrayContaining([
         { kind: 'road', label: '未连通住宅', position: { x: 0, y: 2 } },
       ]),
+      paths: [{
+        kind: 'road',
+        label: '建议补桥',
+        from: { x: 1, y: 1 },
+        to: { x: 4, y: 1 },
+      }],
       summary: ['道路点 5', '未连通 1', '孤立路网 1'],
       metrics: {
         roadCells: 5,
         roadGaps: 0,
         disconnectedEntrances: 1,
         isolatedRoadNetworks: 1,
+        suggestedRoadLinks: 1,
       },
     })
   })

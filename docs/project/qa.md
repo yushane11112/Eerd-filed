@@ -9,6 +9,17 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-01 第七十二轮验证
+
+- TDD RED：`npx vitest run src/integration/stageAdvisor.test.ts -t "isolated roads|not connected"` 先失败，原因是道路图层能识别未连通入口和孤立路网，但没有输出建议补线 `paths` 或 `suggestedRoadLinks` 指标。
+- TDD GREEN：同一目标测试通过；覆盖孤立路网和主路网之间隔水时，输出 `paths: [{ kind: "road", label: "建议补桥", from: {x:1,y:1}, to: {x:4,y:1} }]`，并记录 `suggestedRoadLinks: 1`。
+- 目标回归：`npx vitest run src/integration/stageAdvisor.test.ts src/integration/cityNotices.test.ts src/components/SimulationCanvas.test.ts` 实际运行现有匹配文件 2 个、23 项通过；当前仓库没有 `SimulationCanvas.test.ts`。
+- `npm test`：32 个测试文件、222 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 44.87 秒，总耗时约 49.12 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- 浏览器 QA：`http://localhost:5173/` 横屏打开正常，标题为《小耳岛》，页面非空，无 Vite 报错覆盖层，console 无 error/warn。点击阶段面板“道路”图层后按钮 active，页面出现“道路连通”和“道路点”读数。
+
+限制：浏览器默认场景没有稳定制造孤立路网，因此浏览器层验证道路图层入口和 overlay 交互健康；建议补桥路径的精确输出由 `stageAdvisor` 单元测试覆盖。后续需要可控 E2E fixture 或调试场景。
+
 ## 2026-06-30 第七十一轮验证
 
 - TDD RED：`npx vitest run src/integration/stageAdvisor.test.ts -t "disconnected road networks"` 先失败，原因是未连通入口/孤立路网存在时，首张治理卡仍是普通 `governance-road-gaps`，没有生成“道路未连通”卡。

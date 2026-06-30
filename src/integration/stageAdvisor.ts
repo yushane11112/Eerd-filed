@@ -601,6 +601,7 @@ export function deriveStageMapOverlay(
       label: roadDisconnectedLabel(building.type),
       position: building.entrance,
     }))
+  const suggestedRoadLinks = suggestRoadNetworkLinks(roadConnectivity, snapshot.cells)
   const isolatedRoadNetworks = Math.max(0, roadConnectivity.components.length - 1)
   const summary = [
     `道路点 ${allRoadCells.length}`,
@@ -612,13 +613,14 @@ export function deriveStageMapOverlay(
     ...roadCells,
     ...roadGaps,
     ...disconnectedEntrances,
-  ], [], [], summary, {
+  ], suggestedRoadLinks, [], summary, {
     roadCells: allRoadCells.length,
     roadGaps: buildingRoadStatus.filter((item) => item.adjacentRoadKeys.length === 0).length,
     disconnectedEntrances: buildingRoadStatus
       .filter((item) => item.adjacentRoadKeys.length > 0 && !item.touchesMainNetwork)
       .length,
     isolatedRoadNetworks,
+    suggestedRoadLinks: suggestedRoadLinks.length,
   })
 }
 
@@ -825,6 +827,74 @@ function adjacentRoadCellKeys(point: GridPoint, roadKeys: ReadonlySet<string>): 
     .filter((key) => roadKeys.has(key))
 }
 
+function suggestRoadNetworkLinks(
+  roadConnectivity: ReturnType<typeof diagnoseRoadConnectivity>,
+  cells: readonly SimulationSnapshot['cells'][number][],
+): StageAdvisorOverlayPath[] {
+  if (roadConnectivity.components.length <= 1) return []
+  const terrainByKey = new Map(cells.map((cell) => [pointKey(cell.point), cell.terrain]))
+  return roadConnectivity.components
+    .slice(1)
+    .flatMap((component) => {
+      const pair = nearestRoadPair(component, roadConnectivity.mainComponentKeys)
+      if (!pair) return []
+      return [{
+        kind: 'road' as const,
+        label: crossesWaterOrShore(pair.from, pair.to, terrainByKey) ? '建议补桥' : '建议接路',
+        from: pair.from,
+        to: pair.to,
+      }]
+    })
+    .slice(0, 4)
+}
+
+function nearestRoadPair(
+  fromKeys: ReadonlySet<string>,
+  toKeys: ReadonlySet<string>,
+): { from: GridPoint; to: GridPoint } | undefined {
+  let best: { from: GridPoint; to: GridPoint; distance: number; key: string } | undefined
+  for (const fromKey of fromKeys) {
+    const from = parseGridPointKey(fromKey)
+    for (const toKey of toKeys) {
+      const to = parseGridPointKey(toKey)
+      const distance = Math.abs(from.x - to.x) + Math.abs(from.y - to.y)
+      const key = `${distance}:${fromKey}->${toKey}`
+      if (!best || distance < best.distance || key.localeCompare(best.key) < 0) {
+        best = { from, to, distance, key }
+      }
+    }
+  }
+  return best && { from: best.from, to: best.to }
+}
+
+function crossesWaterOrShore(
+  from: GridPoint,
+  to: GridPoint,
+  terrainByKey: ReadonlyMap<string, string>,
+): boolean {
+  const path = straightGridLine(from, to)
+  return path
+    .slice(1, -1)
+    .some((point) => {
+      const terrain = terrainByKey.get(pointKey(point))
+      return terrain === 'water' || terrain === 'shore'
+    })
+}
+
+function straightGridLine(from: GridPoint, to: GridPoint): GridPoint[] {
+  const points: GridPoint[] = [{ ...from }]
+  let current = { ...from }
+  while (current.x !== to.x) {
+    current = { x: current.x + Math.sign(to.x - current.x), y: current.y }
+    points.push({ ...current })
+  }
+  while (current.y !== to.y) {
+    current = { x: current.x, y: current.y + Math.sign(to.y - current.y) }
+    points.push({ ...current })
+  }
+  return points
+}
+
 function cardinalNeighborPoints(point: GridPoint): GridPoint[] {
   return [
     { x: point.x + 1, y: point.y },
@@ -836,6 +906,11 @@ function cardinalNeighborPoints(point: GridPoint): GridPoint[] {
 
 function smallestKey(keys: ReadonlySet<string>): string {
   return [...keys].sort((left, right) => left.localeCompare(right))[0] ?? ''
+}
+
+function parseGridPointKey(key: string): GridPoint {
+  const [x, y] = key.split(',').map(Number)
+  return { x, y }
 }
 
 function pointBucket(point: GridPoint): string {

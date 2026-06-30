@@ -74,6 +74,7 @@ export function SimulationCanvas({
   } | null>(null)
   const roadStrokeRef = useRef<{
     pointerId: number
+    mode: 'build' | 'remove'
     lastGrid: GridPoint
     lastMessage: string
   } | null>(null)
@@ -229,11 +230,15 @@ export function SimulationCanvas({
     const point = localPoint(event)
     const grid = rawGridPoint(point)
     updatePlacementPreview(grid)
-    if (toolRef.current.kind === 'road') {
+    if (toolRef.current.kind === 'road' || toolRef.current.kind === 'demolish-road') {
       const anchor = { x: Math.round(grid.x), y: Math.round(grid.y) }
-      const result = runtime.placeRoadPath([anchor])
+      const mode = toolRef.current.kind === 'road' ? 'build' : 'remove'
+      const result = mode === 'build'
+        ? runtime.placeRoadPath([anchor])
+        : runtime.removeRoadPath([anchor])
       roadStrokeRef.current = {
         pointerId: event.pointerId,
+        mode,
         lastGrid: anchor,
         lastMessage: result.message,
       }
@@ -263,9 +268,12 @@ export function SimulationCanvas({
       const grid = gridPoint(point)
       const segment = gridLine(roadStroke.lastGrid, grid)
       if (segment.length > 1) {
-        const result = runtime.placeRoadPath(segment)
+        const result = roadStroke.mode === 'build'
+          ? runtime.placeRoadPath(segment)
+          : runtime.removeRoadPath(segment)
         roadStrokeRef.current = {
           pointerId: event.pointerId,
+          mode: roadStroke.mode,
           lastGrid: grid,
           lastMessage: result.message,
         }
@@ -293,7 +301,11 @@ export function SimulationCanvas({
     if (roadStroke?.pointerId === event.pointerId) {
       const point = gridPoint(localPoint(event))
       const segment = gridLine(roadStroke.lastGrid, point)
-      const result = segment.length > 1 ? runtime.placeRoadPath(segment) : null
+      const result = segment.length > 1
+        ? roadStroke.mode === 'build'
+          ? runtime.placeRoadPath(segment)
+          : runtime.removeRoadPath(segment)
+        : null
       roadStrokeRef.current = null
       onToast(result?.message ?? roadStroke.lastMessage)
       return
@@ -318,6 +330,9 @@ export function SimulationCanvas({
     const currentTool = toolRef.current
     if (currentTool.kind === 'road') {
       const result = runtime.placeRoad(point)
+      onToast(result.message)
+    } else if (currentTool.kind === 'demolish-road') {
+      const result = runtime.removeRoadPath([point])
       onToast(result.message)
     } else if (currentTool.kind === 'building') {
       const controller = placementControllerRef.current

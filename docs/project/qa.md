@@ -9,6 +9,17 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-06-30 第六十五轮验证
+
+- TDD RED：`npx vitest run src/integration/GameRuntime.test.ts -t "removes roads along a dragged path"` 先失败，原因是 `runtime.removeRoadPath` 不存在。
+- TDD GREEN：同一命令通过；新增 Runtime 测试覆盖拆除 3 格已有道路，并对 1 格无路、1 格越界做跳过统计。
+- 目标测试：`npx vitest run src/integration/GameRuntime.test.ts`：1 个测试文件、13 项通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `npm test`：31 个测试文件、213 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 55.98 秒，总耗时 60.95 秒。
+- 浏览器 QA：`http://127.0.0.1:5173/` 打开正常，标题为《小耳岛》，页面非空，无 Vite 报错覆盖层，console 无 error/warn。DOM 出现“拆路”按钮；点击后拖拽地图出现“拆除 1 格道路，跳过 1 格。”反馈，截图显示拆路工具处于选中态。
+
+限制：本轮只验证道路拆除，未实现建筑拆除；浏览器自动拖拽仍只能证明交互入口和单格反馈，多格拆除由 Runtime 测试证明。
+
 ## 2026-06-30 第六十四轮验证
 
 - TDD RED：`npx vitest run src/integration/GameRuntime.test.ts -t "lays roads along a dragged path"` 先失败，原因是 `runtime.placeRoadPath` 不存在。

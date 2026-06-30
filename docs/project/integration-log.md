@@ -2,6 +2,12 @@
 
 ## 2026-06-30
 
+- 启动并完成第六十五轮：`ROAD-DEMOLISH-01`。新增拆路工具，玩家可以在地图上拖拽删除道路，作为完整城市规划工具链的第一步拆除能力。
+- 新增 `GameRuntime.removeRoadPath`：批量删除道路、去重、一次 rebuild，并汇总 `removed/skipped/notRoad/outOfBounds`；路径中没有道路或越界不会导致已删除路段回滚。
+- `BuildTool` 新增 `demolish-road`；城建面板新增“拆路”按钮；`SimulationCanvas` 复用道路拖拽状态，在铺路/拆路之间切换调用 `placeRoadPath` 或 `removeRoadPath`。
+- 浏览器 QA 验证：`http://127.0.0.1:5173/` 打开正常，DOM 出现“拆路”按钮；选择拆路并拖拽地图后出现“拆除 1 格道路，跳过 1 格。”反馈，console 无 error/warn。
+- 限制：本轮明确只拆道路，不拆建筑；建筑拆除必须先设计人口迁出、岗位释放、库存处置、物流订单取消和财政补偿，不能用删除格子的方式硬做。
+
 - 启动并完成第六十四轮：`ROAD-DRAG-BUILD-01`。道路工具从单击铺一格推进为拖拽连续铺设，拖动道路时不再平移相机，而是沿格点路径批量修改真实路网。
 - 新增 `GameRuntime.placeRoadPath`：支持一次传入多个格点，去重后批量铺设石板路，只 rebuild 一次，并汇总 `placed/skipped/blocked/invalidTerrain/outOfBounds/unchanged`，避免遇到建筑或水面时整条路径失败。
 - `SimulationCanvas` 新增道路拖拽状态和格点插值 `gridLine`，快速拖动时会补齐中间格；道路工具优先铺路，不再被材料拾取或相机拖拽抢走输入。

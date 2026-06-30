@@ -65,6 +65,37 @@ describe('GameRuntime integration', () => {
     expect(snapshot.buildings['house-1'].origin).toEqual({ x: 8, y: 9 })
   })
 
+  it('removes roads along a dragged path and reports cells that were not roads', () => {
+    const runtime = new GameRuntime()
+    runtime.placeRoadPath([
+      { x: 3, y: 4 },
+      { x: 4, y: 4 },
+      { x: 5, y: 4 },
+    ])
+
+    const result = runtime.removeRoadPath([
+      { x: 3, y: 4 },
+      { x: 4, y: 4 },
+      { x: 5, y: 4 },
+      { x: 6, y: 4 },
+      { x: 99, y: 99 },
+    ])
+    const snapshot = runtime.getSnapshot()
+    const roads = new Set(snapshot.cells.filter((cell) => cell.road).map((cell) => `${cell.point.x},${cell.point.y}`))
+
+    expect(result).toMatchObject({
+      ok: true,
+      message: '拆除 3 格道路，跳过 2 格。',
+      roadPath: {
+        removed: 3,
+        skipped: 2,
+        notRoad: 1,
+        outOfBounds: 1,
+      },
+    })
+    expect(['3,4', '4,4', '5,4'].some((key) => roads.has(key))).toBe(false)
+  })
+
   it('previews building placement footprint and conflicts without mutating the city', () => {
     const runtime = new GameRuntime()
     runtime.placeRoad({ x: 6, y: 10 })

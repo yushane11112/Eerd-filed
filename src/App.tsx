@@ -137,7 +137,8 @@ export default function App() {
     setTool(next)
     setSelectedBuildingId(null)
     if (next.kind !== 'building') setRecommendedBuildType(null)
-    if (next.kind === 'road') setToast('道路模式：点击地块连续铺设石路。')
+    if (next.kind === 'road') setToast('道路模式：拖拽地块连续铺设石路。')
+    if (next.kind === 'demolish-road') setToast('拆路模式：拖拽道路即可拆除；暂不拆建筑。')
     if (next.kind === 'building') setToast(`营造「${BUILDING_DEFINITIONS[next.type].name}」：点击绿色可建地块。`)
   }
 
@@ -376,6 +377,12 @@ export default function App() {
           onClick={() => chooseTool({ kind: 'road' })}
         >
           <Route /><span>道路</span>
+        </button>
+        <button
+          className={tool.kind === 'demolish-road' ? 'active' : ''}
+          onClick={() => chooseTool({ kind: 'demolish-road' })}
+        >
+          <X /><span>拆路</span>
         </button>
         {buildMenu.map((item) => (
           <button
@@ -659,7 +666,9 @@ export default function App() {
 
       <div className={`tool-hint ${tool.kind !== 'inspect' ? 'visible' : ''}`}>
         {tool.kind === 'road'
-          ? '道路模式 · 点击铺路 · 右键返回查看'
+          ? '道路模式 · 拖拽铺路 · 右键返回查看'
+          : tool.kind === 'demolish-road'
+            ? '拆路模式 · 拖拽拆除道路 · 右键返回查看'
           : tool.kind === 'building'
             ? `${BUILDING_DEFINITIONS[tool.type].name} · R 旋转 · 右键取消`
             : ''}

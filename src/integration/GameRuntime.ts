@@ -47,6 +47,7 @@ import { CityNoticeTracker, deriveCityNotices, type CityNotice } from './cityNot
 export type BuildTool =
   | { kind: 'inspect' }
   | { kind: 'road' }
+  | { kind: 'demolish-road' }
   | { kind: 'building'; type: string; rotation: QuarterRotation }
 
 export interface RuntimeActionResult {
@@ -55,11 +56,13 @@ export interface RuntimeActionResult {
   buildingId?: string
   roadPath?: {
     placed: number
+    removed?: number
     skipped: number
     blocked: number
     invalidTerrain: number
     outOfBounds: number
     unchanged: number
+    notRoad?: number
   }
   construction?: {
     treasury: number
@@ -323,6 +326,45 @@ export class GameRuntime {
     return {
       ok: stats.placed > 0,
       message: roadPathMessage(stats),
+      roadPath: stats,
+    }
+  }
+
+  removeRoadPath(points: readonly GridPoint[]): RuntimeActionResult {
+    const visited = new Set<string>()
+    const stats = {
+      placed: 0,
+      removed: 0,
+      skipped: 0,
+      blocked: 0,
+      invalidTerrain: 0,
+      outOfBounds: 0,
+      unchanged: 0,
+      notRoad: 0,
+    }
+    for (const point of points) {
+      const rounded = { x: Math.round(point.x), y: Math.round(point.y) }
+      const key = pointKey(rounded)
+      if (visited.has(key)) continue
+      visited.add(key)
+      const result = this.grid.removeRoad(rounded)
+      if (result.changed) {
+        stats.removed += 1
+        continue
+      }
+      stats.skipped += 1
+      if (result.reason === 'out-of-bounds') stats.outOfBounds += 1
+      else if (result.reason === 'not-a-road') stats.notRoad += 1
+      else stats.unchanged += 1
+    }
+    if (stats.removed > 0) {
+      const snapshot = this.engine.snapshot
+      snapshot.cells = this.grid.toCells()
+      this.rebuild(snapshot)
+    }
+    return {
+      ok: stats.removed > 0,
+      message: removeRoadPathMessage(stats),
       roadPath: stats,
     }
   }
@@ -721,6 +763,16 @@ function roadPathMessage(stats: NonNullable<RuntimeActionResult['roadPath']>): s
   }
   const skipped = stats.skipped > 0 ? `，跳过 ${stats.skipped} 格` : ''
   return `连续铺设 ${stats.placed} 格石板路${skipped}。`
+}
+
+function removeRoadPathMessage(stats: NonNullable<RuntimeActionResult['roadPath']>): string {
+  const removed = stats.removed ?? 0
+  if (removed <= 0) {
+    if ((stats.outOfBounds ?? 0) > 0) return '这段路径超出地图，无法拆路。'
+    return '这段路径没有可拆除的道路。'
+  }
+  const skipped = stats.skipped > 0 ? `，跳过 ${stats.skipped} 格` : ''
+  return `拆除 ${removed} 格道路${skipped}。`
 }
 
 function placementFailureMessage(issue: PlacementIssue | undefined): string {

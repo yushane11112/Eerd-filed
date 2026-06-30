@@ -2,6 +2,18 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-30：第六十四轮道路拖拽连续铺设
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/GameRuntime.ts` | 运行时接口 | 新增 `placeRoadPath` 批量铺路 API，汇总成功、建筑占用、无效地形、越界和无变化格 |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 覆盖拖拽路径能连续铺设多格，并在遇到建筑占用时保留有效路段 |
+| `src/components/SimulationCanvas.tsx` | UI 交互层 | 道路工具拖拽时调用批量铺路入口，使用 `gridLine` 补齐中间格，不再触发相机平移 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `ROAD-DRAG-BUILD-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第六十四轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、浏览器 QA 和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、目标测试、全量测试、构建和浏览器验证 |
+
 ## 2026-06-30：第六十三轮建筑试放资源门禁
 
 | 文件 | 产物类型 | 用途 |

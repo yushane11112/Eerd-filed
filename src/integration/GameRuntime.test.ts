@@ -36,6 +36,35 @@ describe('GameRuntime integration', () => {
     expect(after.buildings['granary-1'].inventory.stone).toBe((before.buildings['granary-1'].inventory.stone ?? 0) - 1)
   })
 
+  it('lays roads along a dragged path and reports skipped cells without discarding valid segments', () => {
+    const runtime = new GameRuntime()
+
+    const result = runtime.placeRoadPath([
+      { x: 3, y: 4 },
+      { x: 4, y: 4 },
+      { x: 5, y: 4 },
+      { x: 6, y: 4 },
+      { x: 7, y: 4 },
+      { x: 8, y: 9 },
+    ])
+    const snapshot = runtime.getSnapshot()
+    const roadKeys = new Set(snapshot.cells.filter((cell) => cell.road).map((cell) => `${cell.point.x},${cell.point.y}`))
+
+    expect(result).toMatchObject({
+      ok: true,
+      message: '连续铺设 5 格石板路，跳过 1 格。',
+      roadPath: {
+        placed: 5,
+        skipped: 1,
+        blocked: 1,
+        invalidTerrain: 0,
+        outOfBounds: 0,
+      },
+    })
+    expect(['3,4', '4,4', '5,4', '6,4', '7,4'].every((key) => roadKeys.has(key))).toBe(true)
+    expect(snapshot.buildings['house-1'].origin).toEqual({ x: 8, y: 9 })
+  })
+
   it('previews building placement footprint and conflicts without mutating the city', () => {
     const runtime = new GameRuntime()
     runtime.placeRoad({ x: 6, y: 10 })

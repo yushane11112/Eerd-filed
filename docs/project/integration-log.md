@@ -2,6 +2,12 @@
 
 ## 2026-06-30
 
+- 启动并完成第六十四轮：`ROAD-DRAG-BUILD-01`。道路工具从单击铺一格推进为拖拽连续铺设，拖动道路时不再平移相机，而是沿格点路径批量修改真实路网。
+- 新增 `GameRuntime.placeRoadPath`：支持一次传入多个格点，去重后批量铺设石板路，只 rebuild 一次，并汇总 `placed/skipped/blocked/invalidTerrain/outOfBounds/unchanged`，避免遇到建筑或水面时整条路径失败。
+- `SimulationCanvas` 新增道路拖拽状态和格点插值 `gridLine`，快速拖动时会补齐中间格；道路工具优先铺路，不再被材料拾取或相机拖拽抢走输入。
+- 浏览器 QA 验证：本地页面 `http://127.0.0.1:5173/` 可打开，标题为《小耳岛》，无 Vite 报错覆盖层，console 无 error/warn；选择城建面板“道路”后拖拽地图，页面出现“连续铺设 1 格石板路，跳过 1 格。”反馈并保持道路工具选中。
+- 限制：浏览器自动拖拽坐标仍不够稳定，只证明 UI 调用了批量铺路入口；新增格数的精确断言目前由 Runtime 单元测试覆盖，后续需要补专门的坐标级 E2E 或测试钩子。
+
 - 启动并完成第六十三轮：`BUILD-PLACEMENT-AFFORDABILITY-01`。建筑试放预览接入正式营造成本报价，避免“预览可建、点击后才提示材料不足”的错误手感。
 - `GameRuntime.previewBuildingPlacement` 现在在地块/道路/阶段校验之后读取城市财政与仓储材料；当地块本身可放但资源不足时，返回 `valid: false`、中文缺口原因和 `construction` 报价结构。
 - 新增测试覆盖资源不足预览：连续建造耗尽木料后，同一可放置住宅点会在 preview 阶段显示 `材料不足：木料×2`，并保持 footprint cells 可见，便于玩家理解是资源问题而非地块问题。

@@ -53,6 +53,14 @@ export interface RuntimeActionResult {
   ok: boolean
   message: string
   buildingId?: string
+  roadPath?: {
+    placed: number
+    skipped: number
+    blocked: number
+    invalidTerrain: number
+    outOfBounds: number
+    unchanged: number
+  }
   construction?: {
     treasury: number
     materials: Partial<Record<ResourceKind, number>>
@@ -279,6 +287,44 @@ export class GameRuntime {
     snapshot.cells = this.grid.toCells()
     this.rebuild(snapshot)
     return { ok: true, message: '石板路已铺好，建筑与物流可沿路连接。' }
+  }
+
+  placeRoadPath(points: readonly GridPoint[]): RuntimeActionResult {
+    const visited = new Set<string>()
+    const stats = {
+      placed: 0,
+      skipped: 0,
+      blocked: 0,
+      invalidTerrain: 0,
+      outOfBounds: 0,
+      unchanged: 0,
+    }
+    for (const point of points) {
+      const rounded = { x: Math.round(point.x), y: Math.round(point.y) }
+      const key = pointKey(rounded)
+      if (visited.has(key)) continue
+      visited.add(key)
+      const result = this.grid.placeRoad(rounded, 'stone')
+      if (result.changed) {
+        stats.placed += 1
+        continue
+      }
+      stats.skipped += 1
+      if (result.reason === 'building-occupied') stats.blocked += 1
+      else if (result.reason === 'invalid-terrain') stats.invalidTerrain += 1
+      else if (result.reason === 'out-of-bounds') stats.outOfBounds += 1
+      else stats.unchanged += 1
+    }
+    if (stats.placed > 0) {
+      const snapshot = this.engine.snapshot
+      snapshot.cells = this.grid.toCells()
+      this.rebuild(snapshot)
+    }
+    return {
+      ok: stats.placed > 0,
+      message: roadPathMessage(stats),
+      roadPath: stats,
+    }
   }
 
   previewBuildingPlacement(type: string, point: GridPoint, rotation: QuarterRotation): BuildingPlacementPreview {
@@ -665,6 +711,16 @@ function constructionFailureMessage(construction: {
     construction.missingTreasury > 0 ? `银两不足${construction.missingTreasury}` : '',
     missingMaterials === '无' ? '' : `材料不足：${missingMaterials}`,
   ].filter(Boolean).join('，') || '营造资源不足'
+}
+
+function roadPathMessage(stats: NonNullable<RuntimeActionResult['roadPath']>): string {
+  if (stats.placed <= 0) {
+    if (stats.blocked > 0) return '路径被建筑占用，无法铺路。'
+    if (stats.invalidTerrain > 0) return '路径包含水面或不可铺设地形。'
+    return '这段路径没有新增道路。'
+  }
+  const skipped = stats.skipped > 0 ? `，跳过 ${stats.skipped} 格` : ''
+  return `连续铺设 ${stats.placed} 格石板路${skipped}。`
 }
 
 function placementFailureMessage(issue: PlacementIssue | undefined): string {

@@ -72,6 +72,11 @@ export function SimulationCanvas({
     lastScreen: { x: number; y: number }
     lastGrid: GridPoint
   } | null>(null)
+  const roadStrokeRef = useRef<{
+    pointerId: number
+    lastGrid: GridPoint
+    lastMessage: string
+  } | null>(null)
   const focusAnimationRef = useRef<number | null>(null)
 
   snapshotRef.current = snapshot
@@ -224,6 +229,18 @@ export function SimulationCanvas({
     const point = localPoint(event)
     const grid = rawGridPoint(point)
     updatePlacementPreview(grid)
+    if (toolRef.current.kind === 'road') {
+      const anchor = { x: Math.round(grid.x), y: Math.round(grid.y) }
+      const result = runtime.placeRoadPath([anchor])
+      roadStrokeRef.current = {
+        pointerId: event.pointerId,
+        lastGrid: anchor,
+        lastMessage: result.message,
+      }
+      event.currentTarget.setPointerCapture(event.pointerId)
+      if (!result.ok) onToast(result.message)
+      return
+    }
     if (hasNearbyDrop(snapshotRef.current, grid, DROP_PICKUP_RADIUS)) {
       sweepRef.current = {
         pointerId: event.pointerId,
@@ -241,6 +258,20 @@ export function SimulationCanvas({
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     const point = localPoint(event)
     updatePlacementPreview(rawGridPoint(point))
+    const roadStroke = roadStrokeRef.current
+    if (roadStroke?.pointerId === event.pointerId) {
+      const grid = gridPoint(point)
+      const segment = gridLine(roadStroke.lastGrid, grid)
+      if (segment.length > 1) {
+        const result = runtime.placeRoadPath(segment)
+        roadStrokeRef.current = {
+          pointerId: event.pointerId,
+          lastGrid: grid,
+          lastMessage: result.message,
+        }
+      }
+      return
+    }
     const sweep = sweepRef.current
     if (sweep?.pointerId === event.pointerId) {
       const grid = rawGridPoint(point)
@@ -258,6 +289,16 @@ export function SimulationCanvas({
   }
 
   const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    const roadStroke = roadStrokeRef.current
+    if (roadStroke?.pointerId === event.pointerId) {
+      const point = gridPoint(localPoint(event))
+      const segment = gridLine(roadStroke.lastGrid, point)
+      const result = segment.length > 1 ? runtime.placeRoadPath(segment) : null
+      roadStrokeRef.current = null
+      onToast(result?.message ?? roadStroke.lastMessage)
+      return
+    }
+
     const sweep = sweepRef.current
     if (sweep?.pointerId === event.pointerId) {
       const point = localPoint(event)
@@ -351,6 +392,7 @@ export function SimulationCanvas({
       onPointerUp={handlePointerUp}
       onPointerCancel={() => {
         sweepRef.current = null
+        roadStrokeRef.current = null
         dragRef.current.cancel()
       }}
       onWheel={handleWheel}
@@ -527,6 +569,26 @@ function pointToViewport(point: GridPoint, camera: Readonly<CameraState>): { x: 
     x: camera.viewportWidth / 2 + (world.x - camera.x) * camera.zoom,
     y: camera.viewportHeight / 2 + (world.y - camera.y) * camera.zoom,
   }
+}
+
+function gridLine(from: GridPoint, to: GridPoint): GridPoint[] {
+  const dx = to.x - from.x
+  const dy = to.y - from.y
+  const steps = Math.max(Math.abs(dx), Math.abs(dy))
+  if (steps === 0) return [{ ...from }]
+  const points: GridPoint[] = []
+  const seen = new Set<string>()
+  for (let index = 0; index <= steps; index += 1) {
+    const point = {
+      x: Math.round(from.x + (dx * index) / steps),
+      y: Math.round(from.y + (dy * index) / steps),
+    }
+    const key = `${point.x},${point.y}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    points.push(point)
+  }
+  return points
 }
 
 function drawTerrain(graphics: Graphics, snapshot: SimulationSnapshot) {

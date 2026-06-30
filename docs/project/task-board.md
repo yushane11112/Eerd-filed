@@ -49,6 +49,7 @@
 | BUILD-PLACEMENT-PREVIEW-01 | 建筑工具动态试放预览 | `src/integration/GameRuntime.ts`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 选择建筑工具后，地图 hover 显示 footprint、入口和冲突原因，且预览不扣资源不落建筑 |
 | BUILD-PLACEMENT-CONTROLLER-01 | 建筑试放状态机接入 | `src/ui/placement/**`, `src/components/SimulationCanvas.tsx` | 已完成 | 选择、移动、旋转、确认、取消和重复放置由 PlacementController 驱动 |
 | BUILD-PLACEMENT-AFFORDABILITY-01 | 建筑试放资源门禁 | `src/integration/GameRuntime.ts`, `src/integration/GameRuntime.test.ts` | 已完成 | 地块可放但银两/材料不足时，试放预览直接变为不可营造并显示缺口 |
+| ROAD-DRAG-BUILD-01 | 道路拖拽连续铺设 | `src/integration/GameRuntime.ts`, `src/components/SimulationCanvas.tsx` | 已完成 | 道路工具拖拽调用批量铺路 API，连续修改真实路网并汇总跳过格 |
 | CITY-STAGE-OVERLAY-SUMMARY-01 | 城市阶段覆盖图层摘要 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 覆盖图层显示住宅、服务缺口、物流热点和道路缺口摘要 |
 | CITY-STAGE-OVERLAY-METRICS-01 | 城市阶段覆盖图层结构化指标 | `src/integration/**` | 已完成 | 覆盖图层输出可供面板读取的结构化指标 |
 | CITY-STAGE-OVERLAY-PANEL-METRICS-01 | 城市阶段面板图层指标 | `src/App.tsx`, `src/styles.css` | 已完成 | 阶段面板显示当前打开图层的结构化指标 |

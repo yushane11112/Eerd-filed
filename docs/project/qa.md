@@ -9,6 +9,17 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-06-30 第六十四轮验证
+
+- TDD RED：`npx vitest run src/integration/GameRuntime.test.ts -t "lays roads along a dragged path"` 先失败，原因是 `runtime.placeRoadPath` 不存在。
+- TDD GREEN：同一命令通过；新增 Runtime 测试覆盖一条路径连续铺设 5 格石板路，并在遇到已有建筑时跳过 1 格且保留有效路段。
+- 目标测试：`npx vitest run src/integration/GameRuntime.test.ts`：1 个测试文件、12 项通过。
+- `npm test`：31 个测试文件、212 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 52.03 秒，总耗时 56.74 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- 浏览器 QA：启动 `npm run dev -- --host 0.0.0.0` 后访问 `http://127.0.0.1:5173/`，标题为《小耳岛》，页面非空，无 Vite 报错覆盖层，console 无 error/warn。选择城建面板“道路”并拖拽地图后，DOM 出现“连续铺设 1 格石板路，跳过 1 格。”反馈，道路工具保持选中。
+
+限制：浏览器自动拖拽的坐标命中仍不稳定，未能在浏览器层精确断言新增多格道路；多格连续铺设由 Runtime 测试证明。后续需要补坐标级 E2E 钩子或可读的路网调试计数。
+
 ## 2026-06-30 第六十三轮验证
 
 - TDD RED：`npx vitest run src/integration/GameRuntime.test.ts -t "marks otherwise valid placement previews invalid"` 先失败，原因是资源耗尽后 `previewBuildingPlacement` 仍返回 `valid: true` 且没有 `construction` 缺口。

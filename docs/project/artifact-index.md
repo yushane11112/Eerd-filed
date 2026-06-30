@@ -2,6 +2,17 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-30：第六十三轮建筑试放资源门禁
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/GameRuntime.ts` | 运行时接口 | `previewBuildingPlacement` 接入正式营造成本报价，资源不足时返回不可营造、缺口原因和 construction quote |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 覆盖地块可放但仓储材料不足时，preview 在规划阶段即变为 invalid 并保留 footprint |
+| `docs/project/task-board.md` | 任务看板 | 记录 `BUILD-PLACEMENT-AFFORDABILITY-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第六十三轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、限制和集成边界 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN 和目标回归结果 |
+
 ## 2026-06-30：第六十二轮建筑试放状态机接入
 
 | 文件 | 产物类型 | 用途 |

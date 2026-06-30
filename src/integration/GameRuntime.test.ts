@@ -91,6 +91,24 @@ describe('GameRuntime integration', () => {
     expect(Object.values(after.buildings).some((building) => building.origin.x === 22 && building.origin.y === 16)).toBe(false)
   })
 
+  it('marks otherwise valid placement previews invalid when construction resources are missing', () => {
+    const runtime = new GameRuntime()
+    expect(placeManyHouses(runtime, 7)).toBe(7)
+
+    const preview = runtime.previewBuildingPlacement('house', { x: 22, y: 16 }, 0)
+
+    expect(preview).toMatchObject({
+      valid: false,
+      reason: '材料不足：木料×2',
+      construction: {
+        canAfford: false,
+        missingMaterials: { wood: 2 },
+        missingTreasury: 0,
+      },
+    })
+    expect(preview.cells.some((cell) => cell.status === 'footprint')).toBe(true)
+  })
+
   it('rejects buildings that are locked behind a later city stage', () => {
     const runtime = new GameRuntime()
 

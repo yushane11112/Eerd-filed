@@ -27,9 +27,11 @@ import {
   EconomySystem,
   effectiveBuildingDefinition,
   RoadRoutePlanner,
+  quoteBuildingConstruction,
   spendBuildingConstructionCost,
   startBuildingUpgradeFromCityStorage,
   upgradeBuildingFromCityStorage,
+  type BuildingConstructionCost,
 } from '../simulation/economy'
 import {
   createDropSpawnState,
@@ -79,6 +81,12 @@ export interface BuildingPlacementPreview {
   origin: GridPoint
   entrance?: GridPoint
   cells: BuildingPlacementPreviewCell[]
+  construction?: {
+    cost: BuildingConstructionCost
+    canAfford: boolean
+    missingMaterials: Partial<Record<ResourceKind, number>>
+    missingTreasury: number
+  }
 }
 
 export interface BuildingUpgradeQuote {
@@ -320,14 +328,25 @@ export class GameRuntime {
         label: entranceIssue ? '入口未连路' : '入口',
       })
     }
+    const snapshot = this.engine.snapshot
+    const construction = quoteBuildingConstruction(
+      type,
+      definition,
+      snapshot.economy.treasury,
+      snapshot.buildings,
+      BUILDING_DEFINITIONS,
+    )
+    const placementReason = placement.valid ? undefined : placementFailureMessage(placement.issues[0])
+    const constructionReason = construction.canAfford ? undefined : constructionFailureMessage(construction)
     return {
       type,
       rotation,
-      valid: placement.valid,
-      reason: placement.valid ? undefined : placementFailureMessage(placement.issues[0]),
+      valid: placement.valid && construction.canAfford,
+      reason: placementReason ?? constructionReason,
       origin: { ...point },
       entrance: placement.entrance ? { ...placement.entrance } : undefined,
       cells,
+      construction,
     }
   }
 
@@ -635,6 +654,17 @@ function formatResourceList(resources: Partial<Record<ResourceKind, number>>): s
   ))
   if (entries.length === 0) return '无'
   return entries.map(([resource, amount]) => `${RESOURCE_NAMES[resource]}×${amount}`).join('、')
+}
+
+function constructionFailureMessage(construction: {
+  missingMaterials: Partial<Record<ResourceKind, number>>
+  missingTreasury: number
+}): string {
+  const missingMaterials = formatResourceList(construction.missingMaterials)
+  return [
+    construction.missingTreasury > 0 ? `银两不足${construction.missingTreasury}` : '',
+    missingMaterials === '无' ? '' : `材料不足：${missingMaterials}`,
+  ].filter(Boolean).join('，') || '营造资源不足'
 }
 
 function placementFailureMessage(issue: PlacementIssue | undefined): string {

@@ -2,6 +2,11 @@
 
 ## 2026-06-30
 
+- 启动并完成第六十三轮：`BUILD-PLACEMENT-AFFORDABILITY-01`。建筑试放预览接入正式营造成本报价，避免“预览可建、点击后才提示材料不足”的错误手感。
+- `GameRuntime.previewBuildingPlacement` 现在在地块/道路/阶段校验之后读取城市财政与仓储材料；当地块本身可放但资源不足时，返回 `valid: false`、中文缺口原因和 `construction` 报价结构。
+- 新增测试覆盖资源不足预览：连续建造耗尽木料后，同一可放置住宅点会在 preview 阶段显示 `材料不足：木料×2`，并保持 footprint cells 可见，便于玩家理解是资源问题而非地块问题。
+- 限制：本轮仍未完成道路拖拽/连续铺设、拆除模式和浏览器绿态截图验证；资源门禁由运行时与 UI 适配层自动传导，但还缺专门的浏览器自动化复验。
+
 - 启动并完成第六十二轮：`BUILD-PLACEMENT-CONTROLLER-01`。建筑试放主流程开始接入 `PlacementController`，不再由 `SimulationCanvas` 分散维护 move/rotate/confirm/cancel 逻辑。
 - 新增 `src/ui/placement/runtimePlacement.ts`：将 `GameRuntime.previewBuildingPlacement` 包装为 `PlacementValidator`，并能从 `PlacementState` 派生真实 Runtime preview。该适配层有单元测试覆盖可营造、入口未连路和 idle/no-anchor 无 preview。
 - `SimulationCanvas` 内部使用 `PlacementController` 驱动建筑选择、地图移动、R 旋转、点击确认、右键取消和成功后的 resume repeated placement；预览仍由同一 Runtime 规则生成。

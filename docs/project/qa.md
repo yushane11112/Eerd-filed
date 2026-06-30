@@ -9,6 +9,16 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-06-30 第六十三轮验证
+
+- TDD RED：`npx vitest run src/integration/GameRuntime.test.ts -t "marks otherwise valid placement previews invalid"` 先失败，原因是资源耗尽后 `previewBuildingPlacement` 仍返回 `valid: true` 且没有 `construction` 缺口。
+- TDD GREEN：同一命令通过，资源不足住宅试放返回 `valid: false`、`reason: "材料不足：木料×2"`，并保留 footprint cells。
+- 目标回归：`npx vitest run src/integration/GameRuntime.test.ts src/ui/placement/runtimePlacement.test.ts src/ui/placement/placementMachine.test.ts`：3 个测试文件、17 项通过。
+- `npm test`：31 个测试文件、211 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 44.43 秒，总耗时 48.50 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+
+限制：本轮尚未完成浏览器自动化复验；资源不足红态通过运行时 preview 和现有 Runtime placement adapter 传导到 UI，但仍需后续覆盖真实浏览器交互截图。
+
 ## 2026-06-30 第六十二轮验证
 
 - TDD RED：`npx vitest run src/ui/placement/runtimePlacement.test.ts` 先失败，原因是 `./runtimePlacement` 模块不存在。

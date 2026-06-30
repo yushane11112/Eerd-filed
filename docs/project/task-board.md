@@ -56,6 +56,7 @@
 | BRIDGE-BUILD-TOOL-01 | 桥梁专门建造模式 | `src/integration/GameRuntime.ts`, `src/components/SimulationCanvas.tsx`, `src/App.tsx` | 已完成 | 桥梁工具可在水面/岸边拖拽架桥，成本高于普通道路，普通陆地会被拒绝 |
 | BRIDGE-VISUAL-STYLE-01 | 桥梁专属道路视觉 | `src/rendering/roads.ts`, `src/components/SimulationCanvas.tsx`, `src/rendering/roads.test.ts` | 已完成 | 桥梁使用独立填色、描边、桥墩和更宽桥面，不再完全复用普通石板路视觉 |
 | ROAD-CONNECTIVITY-DIAGNOSIS-01 | 道路/桥梁连通诊断 | `src/integration/stageAdvisor.ts`, `src/integration/stageAdvisor.test.ts`, `src/App.tsx` | 已完成 | 道路图层能识别建筑入口贴着孤立路网但未连到主路网，并在阶段面板显示未连通/孤立读数 |
+| ROAD-CONNECTIVITY-GOVERNANCE-01 | 道路未连通治理卡 | `src/integration/stageAdvisor.ts`, `src/integration/stageAdvisor.test.ts` | 已完成 | 未连通入口/孤立路网会生成高优先级治理卡，引导玩家接回主路网 |
 | CITY-STAGE-OVERLAY-SUMMARY-01 | 城市阶段覆盖图层摘要 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 覆盖图层显示住宅、服务缺口、物流热点和道路缺口摘要 |
 | CITY-STAGE-OVERLAY-METRICS-01 | 城市阶段覆盖图层结构化指标 | `src/integration/**` | 已完成 | 覆盖图层输出可供面板读取的结构化指标 |
 | CITY-STAGE-OVERLAY-PANEL-METRICS-01 | 城市阶段面板图层指标 | `src/App.tsx`, `src/styles.css` | 已完成 | 阶段面板显示当前打开图层的结构化指标 |

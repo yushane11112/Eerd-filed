@@ -2,6 +2,18 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-30：第七十一轮道路未连通治理卡
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 城市顾问数据层 | 新增 `governance-road-disconnected`，将未连通入口/孤立路网转成高优先级治理卡 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 覆盖未连通路网治理卡排序、文案、推荐动作和目标点 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `ROAD-CONNECTIVITY-GOVERNANCE-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第七十一轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、浏览器 QA 和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、目标测试、全量测试、构建和浏览器验证 |
+| `docs/project/artifact-index.md` | 产物索引 | 记录本轮真实新增/修改文件 |
+
 ## 2026-06-30：第七十轮道路/桥梁连通诊断
 
 | 文件 | 产物类型 | 用途 |

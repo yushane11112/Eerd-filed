@@ -2,6 +2,12 @@
 
 ## 2026-06-30
 
+- 启动并完成第七十一轮：`ROAD-CONNECTIVITY-GOVERNANCE-01`。道路连通诊断进入瓶颈治理卡，不再只停留在道路图层读数。
+- `deriveStageGovernanceCards` 新增 `governance-road-disconnected`：当道路图层存在 `disconnectedEntrances` 或 `isolatedRoadNetworks` 时，生成“道路未连通”高优先级卡片，目标点优先指向 `未连通*` 覆盖点。
+- 治理卡文案明确区分“入口没路”和“道路/桥梁只铺到局部、没接回主路网”，推荐动作是打开道路图层并接回主路网。
+- 浏览器 QA 验证：横屏打开 `http://localhost:5173/`，瓶颈面板可展开，道路图层可 active，console 无 error/warn；当前默认场景未稳定制造孤立路网，所以未连通卡的精确出现由单元测试覆盖。
+- 限制：本轮仍没有自动给出“该从哪两格之间补桥/补路”的推荐落点；下一步需要把孤立路网边界和主路网最近边界转成可视化桥头/道路补线建议。
+
 - 启动并完成第七十轮：`ROAD-CONNECTIVITY-DIAGNOSIS-01`。道路图层不再只判断建筑入口旁有没有道路，而是判断入口道路是否连到主路网。
 - `deriveStageMapOverlay('roads')` 新增道路连通分量诊断：以最大连通分量作为当前主路网，入口贴着较小孤立路网的建筑会标为“未连通住宅/服务/仓储/生产”。
 - 道路图层指标新增 `disconnectedEntrances` 与 `isolatedRoadNetworks`；阶段面板道路读数会优先显示“道路点/未连通/孤立/缺路”中的关键项，并支持点击“未连通”定位。

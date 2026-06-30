@@ -149,6 +149,30 @@ export function deriveStageGovernanceCards(
   }
 
   const roads = overlays.roads
+  const disconnectedEntrances = roads?.metrics?.disconnectedEntrances ?? 0
+  const isolatedRoadNetworks = roads?.metrics?.isolatedRoadNetworks ?? 0
+  if (disconnectedEntrances > 0 || isolatedRoadNetworks > 0) {
+    const target = roads?.points.find((point) => point.label.startsWith('未连通'))
+    const score = 96 + disconnectedEntrances * 5 + isolatedRoadNetworks * 4
+    const recommendation = explainStageRecommendationAvailability({
+      label: '打开道路图层并接回主路网',
+      tool: 'road',
+      overlayMode: 'roads',
+    }, snapshot)
+    cards.push({
+      id: 'governance-road-disconnected',
+      title: '道路未连通',
+      detail: `${disconnectedEntrances} 处建筑入口贴着孤立路网，${isolatedRoadNetworks} 段道路没有接回主路网。`,
+      cause: '道路或桥梁只铺到局部，没有和主路网形成连续路径，居民、工人和货运会被困在孤岛路段。',
+      action: actionWithAvailability('先用道路或桥梁把孤立路网接回主路网，再扩建新建筑。', recommendation),
+      recommendation,
+      score,
+      severity: severityFromScore(score),
+      overlayMode: 'roads',
+      metricLabel: '未连通',
+      target: target && { point: target.position, label: target.label },
+    })
+  }
   const roadGaps = roads?.metrics?.roadGaps ?? 0
   if (roadGaps > 0) {
     const target = roads?.points.find((point) => point.label.startsWith('缺路'))

@@ -200,6 +200,41 @@ describe('stage advisor overlays', () => {
     })
   })
 
+  it('turns disconnected road networks into a higher-priority governance card than ordinary missing roads', () => {
+    const snapshot = makeSnapshot({
+      cells: [
+        { point: { x: 0, y: 1 }, terrain: 'land', elevation: 0, road: 'stone' },
+        { point: { x: 1, y: 1 }, terrain: 'land', elevation: 0, road: 'stone' },
+        { point: { x: 2, y: 1 }, terrain: 'water', elevation: 0 },
+        { point: { x: 3, y: 1 }, terrain: 'shore', elevation: 0 },
+        { point: { x: 4, y: 1 }, terrain: 'land', elevation: 0, road: 'stone' },
+        { point: { x: 5, y: 1 }, terrain: 'land', elevation: 0, road: 'stone' },
+        { point: { x: 6, y: 1 }, terrain: 'land', elevation: 0, road: 'stone' },
+      ],
+      buildings: {
+        home: building('home', 'house', { x: 0, y: 2 }),
+        market: building('market', 'market', { x: 4, y: 2 }),
+        granary: building('granary', 'granary', { x: 9, y: 9 }),
+      },
+    })
+
+    expect(deriveStageGovernanceCards(snapshot)[0]).toMatchObject({
+      id: 'governance-road-disconnected',
+      title: '道路未连通',
+      detail: '1 处建筑入口贴着孤立路网，1 段道路没有接回主路网。',
+      cause: '道路或桥梁只铺到局部，没有和主路网形成连续路径，居民、工人和货运会被困在孤岛路段。',
+      action: '先用道路或桥梁把孤立路网接回主路网，再扩建新建筑。',
+      recommendation: {
+        label: '打开道路图层并接回主路网',
+        tool: 'road',
+        overlayMode: 'roads',
+      },
+      overlayMode: 'roads',
+      metricLabel: '未连通',
+      target: { point: { x: 0, y: 2 }, label: '未连通住宅' },
+    })
+  })
+
   it('derives an activity heat overlay from service visits, commutes and cargo trips', () => {
     const snapshot = makeSnapshot({
       agents: {

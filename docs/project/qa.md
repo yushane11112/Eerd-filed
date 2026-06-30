@@ -9,6 +9,17 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-06-30 第七十一轮验证
+
+- TDD RED：`npx vitest run src/integration/stageAdvisor.test.ts -t "disconnected road networks"` 先失败，原因是未连通入口/孤立路网存在时，首张治理卡仍是普通 `governance-road-gaps`，没有生成“道路未连通”卡。
+- TDD GREEN：同一目标测试通过；新增 `governance-road-disconnected`，覆盖未连通入口和孤立路网会生成高优先级治理卡、目标点指向 `未连通住宅`、推荐动作打开道路图层并接回主路网。
+- 目标回归：`npx vitest run src/integration/stageAdvisor.test.ts src/integration/cityNotices.test.ts`：2 个测试文件、23 项通过。
+- `npm test`：32 个测试文件、222 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 51.20 秒，总耗时约 55.53 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- 浏览器 QA：`http://localhost:5173/` 横屏打开正常，瓶颈面板可展开，道路图层可 active，页面显示“道路连通/道路点”读数，console 无 error/warn。
+
+限制：浏览器默认场景没有稳定制造未连通路网，因此浏览器层验证治理面板和道路图层交互健康；未连通卡精确排序与文案由 `stageAdvisor` 单元测试覆盖。后续需要可控调试场景或 E2E fixture。
+
 ## 2026-06-30 第七十轮验证
 
 - TDD RED：`npx vitest run src/integration/stageAdvisor.test.ts -t "isolated roads|not connected"` 先失败，原因是道路图层只输出 `道路点/缺路`，没有识别建筑入口贴着孤立路网但未连到主路网。

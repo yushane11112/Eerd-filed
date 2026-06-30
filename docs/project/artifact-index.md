@@ -2,6 +2,18 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-01：第七十三轮道路/桥梁补线施工计划
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 城市顾问数据层 | “道路未连通”治理卡新增 `roadPlan`，输出补线起终点、待施工格、道路/桥梁类型、成本、缺口和可支付状态 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 覆盖隔水孤立路网的补线计划会生成 2 个桥梁格、36 银两成本和 `canAfford: true` |
+| `docs/project/task-board.md` | 任务看板 | 记录 `ROAD-LINK-CONSTRUCTION-PLAN-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第七十三轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、浏览器 QA 和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、目标测试、全量测试、构建和浏览器验证 |
+| `docs/project/artifact-index.md` | 产物索引 | 记录本轮真实新增/修改文件 |
+
 ## 2026-07-01：第七十二轮道路/桥梁补线建议
 
 | 文件 | 产物类型 | 用途 |

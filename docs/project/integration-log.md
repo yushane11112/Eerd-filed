@@ -2,6 +2,12 @@
 
 ## 2026-07-01
 
+- 启动并完成第七十三轮：`ROAD-LINK-CONSTRUCTION-PLAN-01`。道路/桥梁补线不再只是地图路径建议，而是进入治理卡推荐数据，包含可施工格序列和成本预览。
+- `StageGovernanceRecommendation` 新增 `roadPlan`：记录补线起点/终点、每个待新铺格子的坐标、道路类型、单格银两成本、道路格数、桥梁格数、总成本、财政缺口和 `canAfford`。
+- `deriveStageGovernanceCards` 在生成“道路未连通”治理卡时，会读取道路图层第一条建议路径，并将中间缺失格拆成 `stone` 或 `bridge` 施工计划；已存在道路不会重复计费。
+- 浏览器 QA 验证：横屏打开 `http://localhost:5173/`，阶段面板“道路”图层可点击，页面出现“道路连通”和“道路点 56”读数，真实页面交互没有阻塞。
+- 限制：本轮只完成数据层施工计划，还没有把 `roadPlan` 渲染到治理卡 UI，也没有一键施工、桥头吸附或完整绕障路由；当前路径仍是两端之间的直线格序列。
+
 - 启动并完成第七十二轮：`ROAD-LINK-RECOMMENDATION-01`。道路图层不再只标出孤立路网和未连通入口，而是输出一条建议补线/补桥路径。
 - `deriveStageMapOverlay('roads')` 新增 `suggestRoadNetworkLinks`：对每个孤立道路连通分量，寻找其与主路网的最近边界道路格，并输出 `StageAdvisorOverlayPath`。
 - 建议路径会根据两端之间的直线格是否经过水面或岸边标注为“建议补桥”或“建议接路”；地图现有 path overlay 会直接渲染该路径。

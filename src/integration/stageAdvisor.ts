@@ -1,11 +1,11 @@
-import type { GridPoint, SimulationSnapshot } from '../simulation/contracts'
+import type { GridPoint, RoadKind, SimulationSnapshot } from '../simulation/contracts'
 import {
   BUILDING_DEFINITIONS,
   CITY_STAGE_LABELS,
   deriveRuntimeCityStage,
   isRuntimeBuildingUnlocked,
 } from '../content/runtimeBuildings'
-import { quoteBuildingConstruction } from '../simulation/economy/construction'
+import { quoteBuildingConstruction, roadConstructionCost } from '../simulation/economy/construction'
 
 export type StageRequirementId = 'population' | 'attraction' | 'activeDistricts'
 export type StageAdvisorOverlayMode = 'housing' | 'service' | 'logistics' | 'roads' | 'activity'
@@ -98,6 +98,20 @@ export interface StageGovernanceRecommendation {
     missingMaterials?: Partial<Record<string, number>>
     missingTreasury?: number
   }
+  roadPlan?: {
+    from: GridPoint
+    to: GridPoint
+    cells: Array<{
+      point: GridPoint
+      kind: RoadKind
+      treasuryCost: number
+    }>
+    roadCells: number
+    bridgeCells: number
+    treasuryCost: number
+    missingTreasury: number
+    canAfford: boolean
+  }
 }
 
 export const STAGE_ADVISOR_OVERLAY_MODES: ReadonlyArray<{
@@ -159,13 +173,16 @@ export function deriveStageGovernanceCards(
       tool: 'road',
       overlayMode: 'roads',
     }, snapshot)
+    const roadPlan = roads?.paths?.[0]
+      ? roadLinkConstructionPlan(roads.paths[0], snapshot)
+      : undefined
     cards.push({
       id: 'governance-road-disconnected',
       title: '道路未连通',
       detail: `${disconnectedEntrances} 处建筑入口贴着孤立路网，${isolatedRoadNetworks} 段道路没有接回主路网。`,
       cause: '道路或桥梁只铺到局部，没有和主路网形成连续路径，居民、工人和货运会被困在孤岛路段。',
       action: actionWithAvailability('先用道路或桥梁把孤立路网接回主路网，再扩建新建筑。', recommendation),
-      recommendation,
+      recommendation: roadPlan ? { ...recommendation, roadPlan } : recommendation,
       score,
       severity: severityFromScore(score),
       overlayMode: 'roads',
@@ -846,6 +863,39 @@ function suggestRoadNetworkLinks(
       }]
     })
     .slice(0, 4)
+}
+
+function roadLinkConstructionPlan(
+  path: StageAdvisorOverlayPath,
+  snapshot: Pick<SimulationSnapshot, 'cells' | 'economy'>,
+): NonNullable<StageGovernanceRecommendation['roadPlan']> {
+  const cellByKey = new Map(snapshot.cells.map((cell) => [pointKey(cell.point), cell]))
+  const cells = straightGridLine(path.from, path.to)
+    .slice(1, -1)
+    .flatMap((point) => {
+      const cell = cellByKey.get(pointKey(point))
+      if (cell?.road) return []
+      const kind: RoadKind = cell?.terrain === 'water' || cell?.terrain === 'shore'
+        ? 'bridge'
+        : 'stone'
+      return [{
+        point,
+        kind,
+        treasuryCost: roadConstructionCost(kind).treasury,
+      }]
+    })
+  const treasuryCost = cells.reduce((sum, cell) => sum + cell.treasuryCost, 0)
+  const missingTreasury = Math.max(0, treasuryCost - snapshot.economy.treasury)
+  return {
+    from: path.from,
+    to: path.to,
+    cells,
+    roadCells: cells.filter((cell) => cell.kind !== 'bridge').length,
+    bridgeCells: cells.filter((cell) => cell.kind === 'bridge').length,
+    treasuryCost,
+    missingTreasury,
+    canAfford: missingTreasury === 0,
+  }
 }
 
 function nearestRoadPair(

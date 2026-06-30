@@ -9,6 +9,17 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-01 第七十三轮验证
+
+- TDD RED：`npx vitest run src/integration/stageAdvisor.test.ts -t "disconnected road networks"` 先失败，原因是“道路未连通”治理卡只有补线文案和图层推荐，没有 `roadPlan` 施工格序列与成本预览。
+- TDD GREEN：同一目标测试通过；隔水孤立路网到主路网的补线计划输出 2 个桥梁格、总成本 36、财政缺口 0、`canAfford: true`，并保留起点/终点。
+- 目标回归：`npx vitest run src/integration/stageAdvisor.test.ts src/integration/cityNotices.test.ts src/integration/GameRuntime.test.ts`：3 个测试文件、42 项通过。
+- `npm test`：32 个测试文件、222 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 45.98 秒，总耗时约 50.22 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- 浏览器 QA：`http://localhost:5173/` 横屏打开正常，阶段面板“道路”图层按钮存在且可点击；点击后页面出现“道路连通”和“道路点 56”读数，说明真实页面没有被新增推荐数据破坏。
+
+限制：本轮浏览器环境没有拿到整页截图和 console hook，因此浏览器 QA 只算 DOM/交互级冒烟；`roadPlan` 精确内容由 `stageAdvisor` 单元测试覆盖。下一轮必须把 `roadPlan` 接入治理卡 UI，并补可控孤立路网 E2E fixture。
+
 ## 2026-07-01 第七十二轮验证
 
 - TDD RED：`npx vitest run src/integration/stageAdvisor.test.ts -t "isolated roads|not connected"` 先失败，原因是道路图层能识别未连通入口和孤立路网，但没有输出建议补线 `paths` 或 `suggestedRoadLinks` 指标。

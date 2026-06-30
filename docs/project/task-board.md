@@ -58,6 +58,7 @@
 | ROAD-CONNECTIVITY-DIAGNOSIS-01 | 道路/桥梁连通诊断 | `src/integration/stageAdvisor.ts`, `src/integration/stageAdvisor.test.ts`, `src/App.tsx` | 已完成 | 道路图层能识别建筑入口贴着孤立路网但未连到主路网，并在阶段面板显示未连通/孤立读数 |
 | ROAD-CONNECTIVITY-GOVERNANCE-01 | 道路未连通治理卡 | `src/integration/stageAdvisor.ts`, `src/integration/stageAdvisor.test.ts` | 已完成 | 未连通入口/孤立路网会生成高优先级治理卡，引导玩家接回主路网 |
 | ROAD-LINK-RECOMMENDATION-01 | 道路/桥梁补线建议 | `src/integration/stageAdvisor.ts`, `src/integration/stageAdvisor.test.ts` | 已完成 | 孤立路网会输出到主路网最近边界的建议接路/补桥路径，供地图覆盖层绘制 |
+| ROAD-LINK-CONSTRUCTION-PLAN-01 | 道路/桥梁补线施工计划 | `src/integration/stageAdvisor.ts`, `src/integration/stageAdvisor.test.ts` | 已完成 | 补线治理建议会拆出可施工道路/桥梁格，并给出银两成本、缺口和可支付状态 |
 | CITY-STAGE-OVERLAY-SUMMARY-01 | 城市阶段覆盖图层摘要 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 覆盖图层显示住宅、服务缺口、物流热点和道路缺口摘要 |
 | CITY-STAGE-OVERLAY-METRICS-01 | 城市阶段覆盖图层结构化指标 | `src/integration/**` | 已完成 | 覆盖图层输出可供面板读取的结构化指标 |
 | CITY-STAGE-OVERLAY-PANEL-METRICS-01 | 城市阶段面板图层指标 | `src/App.tsx`, `src/styles.css` | 已完成 | 阶段面板显示当前打开图层的结构化指标 |

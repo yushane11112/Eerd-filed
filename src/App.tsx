@@ -1040,8 +1040,10 @@ function formatStageOverlayMetrics(
   }
   return [
     { label: '道路点', value: metrics.roadCells ?? 0 },
+    { label: '未连通', value: metrics.disconnectedEntrances ?? 0 },
+    { label: '孤立', value: metrics.isolatedRoadNetworks ?? 0 },
     { label: '缺路', value: metrics.roadGaps ?? 0 },
-  ]
+  ].filter((item, index) => index === 0 || item.value > 0).slice(0, 3)
 }
 
 function pickStageOverlayPoint(
@@ -1075,9 +1077,9 @@ function pickStageOverlayPoint(
     ))
     return overlay.points.find((point) => point.kind === 'activity')
   }
-  return label === '缺路'
-    ? overlay.points.find((point) => point.label.startsWith('缺路'))
-    : overlay.points.find((point) => point.kind === 'road')
+  if (label === '缺路') return overlay.points.find((point) => point.label.startsWith('缺路'))
+  if (label === '未连通') return overlay.points.find((point) => point.label.startsWith('未连通'))
+  return overlay.points.find((point) => point.kind === 'road')
 }
 
 function averageNeeds(snapshot: ReturnType<GameRuntime['getSnapshot']>) {

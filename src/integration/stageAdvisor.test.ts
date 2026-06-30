@@ -168,6 +168,38 @@ describe('stage advisor overlays', () => {
     })
   })
 
+  it('diagnoses building entrances that touch isolated roads but are not connected to the main road network', () => {
+    const snapshot = makeSnapshot({
+      cells: [
+        { point: { x: 0, y: 1 }, terrain: 'land', elevation: 0, road: 'stone' },
+        { point: { x: 1, y: 1 }, terrain: 'land', elevation: 0, road: 'stone' },
+        { point: { x: 2, y: 1 }, terrain: 'water', elevation: 0 },
+        { point: { x: 3, y: 1 }, terrain: 'shore', elevation: 0 },
+        { point: { x: 4, y: 1 }, terrain: 'land', elevation: 0, road: 'stone' },
+        { point: { x: 5, y: 1 }, terrain: 'land', elevation: 0, road: 'stone' },
+        { point: { x: 6, y: 1 }, terrain: 'land', elevation: 0, road: 'stone' },
+      ],
+      buildings: {
+        home: building('home', 'house', { x: 0, y: 2 }),
+        market: building('market', 'market', { x: 4, y: 2 }),
+      },
+    })
+
+    expect(deriveStageMapOverlay('roads', snapshot, 17)).toMatchObject({
+      label: '道路连通',
+      points: expect.arrayContaining([
+        { kind: 'road', label: '未连通住宅', position: { x: 0, y: 2 } },
+      ]),
+      summary: ['道路点 5', '未连通 1', '孤立路网 1'],
+      metrics: {
+        roadCells: 5,
+        roadGaps: 0,
+        disconnectedEntrances: 1,
+        isolatedRoadNetworks: 1,
+      },
+    })
+  })
+
   it('derives an activity heat overlay from service visits, commutes and cargo trips', () => {
     const snapshot = makeSnapshot({
       agents: {

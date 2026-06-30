@@ -9,6 +9,17 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-06-30 第七十轮验证
+
+- TDD RED：`npx vitest run src/integration/stageAdvisor.test.ts -t "isolated roads|not connected"` 先失败，原因是道路图层只输出 `道路点/缺路`，没有识别建筑入口贴着孤立路网但未连到主路网。
+- TDD GREEN：同一目标测试通过；新增道路连通分量诊断，覆盖右侧主路网被水面断开、住宅入口贴着左侧孤立道路时，输出 `未连通住宅`、`disconnectedEntrances: 1` 和 `isolatedRoadNetworks: 1`。
+- 目标回归：`npx vitest run src/integration/stageAdvisor.test.ts src/integration/GameRuntime.test.ts`：2 个测试文件、32 项通过。
+- `npm test`：32 个测试文件、221 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 52.32 秒，总耗时约 57.26 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- 浏览器 QA：`http://localhost:5173/` 横屏打开正常，标题为《小耳岛》，页面非空，无 Vite 报错覆盖层，console 无 error/warn。点击阶段面板“道路”图层后按钮 active，页面出现“道路连通”和“道路点”读数，地图显示道路标记。
+
+限制：浏览器当前默认场景没有稳定制造“孤立路网”状态，因此浏览器层验证道路图层入口和读数渲染；孤立路网/未连通入口的精确判断由 `stageAdvisor` 单元测试覆盖。后续应增加可控 E2E 调试场景或测试钩子。
+
 ## 2026-06-30 第六十九轮验证
 
 - TDD RED：`npx vitest run src/rendering/roads.test.ts` 先失败，原因是 `src/rendering/roads.ts` 尚不存在，桥梁视觉没有独立样式入口。

@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-30：第七十轮道路/桥梁连通诊断
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 城市顾问数据层 | 道路图层新增道路连通分量诊断、未连通入口点、孤立路网指标 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 覆盖建筑入口贴着孤立道路但未连到主路网时，应输出未连通住宅和孤立路网读数 |
+| `src/App.tsx` | UI 指标层 | 阶段面板道路图层显示未连通/孤立读数，并支持点击未连通定位 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `ROAD-CONNECTIVITY-DIAGNOSIS-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第七十轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、浏览器 QA 和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、目标测试、全量测试、构建和浏览器验证 |
+| `docs/project/artifact-index.md` | 产物索引 | 记录本轮真实新增/修改文件 |
+
 ## 2026-06-30：第六十九轮桥梁专属道路视觉
 
 | 文件 | 产物类型 | 用途 |

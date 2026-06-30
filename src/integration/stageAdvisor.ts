@@ -541,31 +541,60 @@ export function deriveStageMapOverlay(
     })
   }
 
-  const roadCells = snapshot.cells
+  const allRoadCells = snapshot.cells
     .filter((cell) => cell.road)
+  const roadConnectivity = diagnoseRoadConnectivity(allRoadCells)
+  const roadCells = allRoadCells
     .slice(0, 8)
     .map((cell) => ({
       kind: 'road' as const,
       label: cell.road === 'bridge' ? '桥' : '道路',
       position: cell.point,
     }))
-  const roadGaps = Object.values(snapshot.buildings)
-    .filter((building) => !snapshot.cells.some((cell) => cell.road && isNear(cell.point, building.entrance, 1)))
+  const buildingRoadStatus = Object.values(snapshot.buildings)
+    .map((building) => {
+      const adjacentRoadKeys = adjacentRoadCellKeys(building.entrance, roadConnectivity.roadKeys)
+      const touchesMainNetwork = adjacentRoadKeys.some((key) => roadConnectivity.mainComponentKeys.has(key))
+      return {
+        building,
+        adjacentRoadKeys,
+        touchesMainNetwork,
+      }
+    })
+  const roadGaps = buildingRoadStatus
+    .filter((item) => item.adjacentRoadKeys.length === 0)
     .slice(0, 4)
-    .map((building) => ({
+    .map(({ building }) => ({
       kind: 'road' as const,
       label: roadGapLabel(building.type),
       position: building.entrance,
     }))
+  const disconnectedEntrances = buildingRoadStatus
+    .filter((item) => item.adjacentRoadKeys.length > 0 && !item.touchesMainNetwork)
+    .slice(0, 4)
+    .map(({ building }) => ({
+      kind: 'road' as const,
+      label: roadDisconnectedLabel(building.type),
+      position: building.entrance,
+    }))
+  const isolatedRoadNetworks = Math.max(0, roadConnectivity.components.length - 1)
+  const summary = [
+    `道路点 ${allRoadCells.length}`,
+    ...(disconnectedEntrances.length > 0 ? [`未连通 ${disconnectedEntrances.length}`] : []),
+    ...(isolatedRoadNetworks > 0 ? [`孤立路网 ${isolatedRoadNetworks}`] : []),
+    `缺路 ${buildingRoadStatus.filter((item) => item.adjacentRoadKeys.length === 0).length}`,
+  ]
   return compactOverlay(id, '道路连通', [
     ...roadCells,
     ...roadGaps,
-  ], [], [], [
-    `道路点 ${roadCells.length}`,
-    `缺路 ${roadGaps.length}`,
-  ], {
-    roadCells: roadCells.length,
-    roadGaps: roadGaps.length,
+    ...disconnectedEntrances,
+  ], [], [], summary, {
+    roadCells: allRoadCells.length,
+    roadGaps: buildingRoadStatus.filter((item) => item.adjacentRoadKeys.length === 0).length,
+    disconnectedEntrances: buildingRoadStatus
+      .filter((item) => item.adjacentRoadKeys.length > 0 && !item.touchesMainNetwork)
+      .length,
+    isolatedRoadNetworks,
   })
 }
 
@@ -714,6 +743,75 @@ function roadGapLabel(type: string): string {
   if (definition?.functions?.includes('storage')) return '缺路仓储'
   if (definition?.functions?.some((fn) => fn === 'production' || fn === 'employment')) return '缺路生产'
   return '缺路'
+}
+
+function roadDisconnectedLabel(type: string): string {
+  const definition = BUILDING_DEFINITIONS[type]
+  if (type === 'house' || definition?.functions?.includes('housing')) return '未连通住宅'
+  if (definition?.functions?.some((fn) => fn === 'service' || fn === 'market' || fn === 'culture')) return '未连通服务'
+  if (definition?.functions?.includes('storage')) return '未连通仓储'
+  if (definition?.functions?.some((fn) => fn === 'production' || fn === 'employment')) return '未连通生产'
+  return '未连通'
+}
+
+function diagnoseRoadConnectivity(roadCells: ReadonlyArray<SimulationSnapshot['cells'][number]>): {
+  roadKeys: ReadonlySet<string>
+  components: ReadonlyArray<ReadonlySet<string>>
+  mainComponentKeys: ReadonlySet<string>
+} {
+  const roadKeys = new Set(roadCells.map((cell) => pointKey(cell.point)))
+  const visited = new Set<string>()
+  const components: Set<string>[] = []
+  const roadPointByKey = new Map(roadCells.map((cell) => [pointKey(cell.point), cell.point]))
+
+  for (const cell of roadCells) {
+    const startKey = pointKey(cell.point)
+    if (visited.has(startKey)) continue
+    const component = new Set<string>()
+    const queue = [cell.point]
+    visited.add(startKey)
+    while (queue.length > 0) {
+      const current = queue.shift()
+      if (!current) continue
+      component.add(pointKey(current))
+      for (const neighbor of cardinalNeighborPoints(current)) {
+        const neighborKey = pointKey(neighbor)
+        if (!roadKeys.has(neighborKey) || visited.has(neighborKey)) continue
+        visited.add(neighborKey)
+        const roadPoint = roadPointByKey.get(neighborKey)
+        if (roadPoint) queue.push(roadPoint)
+      }
+    }
+    components.push(component)
+  }
+
+  const sortedComponents = components.sort((left, right) => (
+    right.size - left.size || smallestKey(left).localeCompare(smallestKey(right))
+  ))
+  return {
+    roadKeys,
+    components: sortedComponents,
+    mainComponentKeys: sortedComponents[0] ?? new Set<string>(),
+  }
+}
+
+function adjacentRoadCellKeys(point: GridPoint, roadKeys: ReadonlySet<string>): string[] {
+  return cardinalNeighborPoints(point)
+    .map(pointKey)
+    .filter((key) => roadKeys.has(key))
+}
+
+function cardinalNeighborPoints(point: GridPoint): GridPoint[] {
+  return [
+    { x: point.x + 1, y: point.y },
+    { x: point.x - 1, y: point.y },
+    { x: point.x, y: point.y + 1 },
+    { x: point.x, y: point.y - 1 },
+  ]
+}
+
+function smallestKey(keys: ReadonlySet<string>): string {
+  return [...keys].sort((left, right) => left.localeCompare(right))[0] ?? ''
 }
 
 function pointBucket(point: GridPoint): string {

@@ -2,6 +2,12 @@
 
 ## 2026-06-30
 
+- 启动并完成第六十六轮：`ROAD-FISCAL-COST-01`。道路铺设不再免费，石板路每格消耗银两 6，避免玩家用无限道路绕开城市财政约束。
+- `src/simulation/economy/construction.ts` 新增道路成本报价接口：泥路、石板路、桥路分别有独立财政成本，为后续桥梁专门模式和经济表外置打基础。
+- `GameRuntime.placeRoadPath` 接入财政扣款：拖拽路径逐格处理，只对真正新增道路扣费；余额不足时跳过后续新增路格；已有道路、建筑占用、水面和越界仍按各自原因统计，不会重复扣费。
+- 浏览器 QA 验证：横屏打开 `http://localhost:5173/`，页面标题为《小耳岛》，console 无 error/warn；道路工具拖拽后财政从 2400 降到 2394，证明真实 UI 路径已扣除 1 格石板路成本。
+- 限制：本轮只把道路接入财政，不处理桥梁专门工具、道路维护费、拆路退款和道路容量/拥堵收费；这些属于后续城市经济平衡。
+
 - 启动并完成第六十五轮：`ROAD-DEMOLISH-01`。新增拆路工具，玩家可以在地图上拖拽删除道路，作为完整城市规划工具链的第一步拆除能力。
 - 新增 `GameRuntime.removeRoadPath`：批量删除道路、去重、一次 rebuild，并汇总 `removed/skipped/notRoad/outOfBounds`；路径中没有道路或越界不会导致已删除路段回滚。
 - `BuildTool` 新增 `demolish-road`；城建面板新增“拆路”按钮；`SimulationCanvas` 复用道路拖拽状态，在铺路/拆路之间切换调用 `placeRoadPath` 或 `removeRoadPath`。

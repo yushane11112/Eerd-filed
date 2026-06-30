@@ -2,6 +2,7 @@ import type {
   BuildingDefinition,
   BuildingEntity,
   ResourceKind,
+  RoadKind,
 } from '../contracts'
 import { inventoryAmount, removeInventory } from './inventory'
 
@@ -18,12 +19,30 @@ export interface BuildingConstructionQuote {
   canAfford: boolean
 }
 
+export interface RoadConstructionCost {
+  treasury: number
+}
+
+export interface RoadConstructionQuote {
+  kind: RoadKind
+  count: number
+  cost: RoadConstructionCost
+  missingTreasury: number
+  canAfford: boolean
+}
+
 const BASE_CONSTRUCTION_COSTS: Record<string, BuildingConstructionCost> = {
   house: { treasury: 80, materials: { wood: 2, stone: 1 } },
   granary: { treasury: 140, materials: { wood: 3, stone: 2 } },
   riceField: { treasury: 60, materials: { wood: 1 } },
   market: { treasury: 180, materials: { wood: 4, stone: 2 } },
   woodshop: { treasury: 220, materials: { wood: 5, stone: 2, brick: 1 } },
+}
+
+const ROAD_CONSTRUCTION_COSTS: Record<RoadKind, RoadConstructionCost> = {
+  dirt: { treasury: 2 },
+  stone: { treasury: 6 },
+  bridge: { treasury: 18 },
 }
 
 export function buildingConstructionCost(
@@ -39,6 +58,28 @@ export function buildingConstructionCost(
       wood: Math.max(1, Math.ceil(footprintSize / 2)),
       stone: Math.floor(footprintSize / 3),
     },
+  }
+}
+
+export function roadConstructionCost(kind: RoadKind): RoadConstructionCost {
+  return { ...ROAD_CONSTRUCTION_COSTS[kind] }
+}
+
+export function quoteRoadConstruction(
+  kind: RoadKind,
+  count: number,
+  treasury: number,
+): RoadConstructionQuote {
+  const unitCost = roadConstructionCost(kind)
+  const safeCount = Math.max(0, Math.floor(count))
+  const cost = { treasury: unitCost.treasury * safeCount }
+  const missingTreasury = Math.max(0, cost.treasury - treasury)
+  return {
+    kind,
+    count: safeCount,
+    cost,
+    missingTreasury,
+    canAfford: missingTreasury <= 0,
   }
 }
 

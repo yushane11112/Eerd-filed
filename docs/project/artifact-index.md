@@ -2,6 +2,18 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-30：第六十六轮道路铺设财政成本
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/economy/construction.ts` | 经济系统 | 新增道路财政成本与报价接口，区分泥路、石板路和桥路成本 |
+| `src/integration/GameRuntime.ts` | 运行时接口 | `placeRoad`/`placeRoadPath` 接入财政扣款、余额不足跳过和已有道路不重复扣费 |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 覆盖铺路扣银两、拖拽路径按可支付部分铺设、已有道路不要求财政 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `ROAD-FISCAL-COST-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第六十六轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、浏览器 QA 和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、目标测试、全量测试、构建和浏览器验证 |
+
 ## 2026-06-30：第六十五轮道路拆除工具
 
 | 文件 | 产物类型 | 用途 |

@@ -9,6 +9,18 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-06-30 第六十六轮验证
+
+- TDD RED：`npx vitest run src/integration/GameRuntime.test.ts -t "roads|road construction|places roads|lays roads"` 先失败，原因是道路铺设不扣财政且余额不足仍可继续铺路。
+- 边缘 RED：`npx vitest run src/integration/GameRuntime.test.ts -t "existing roads"` 先失败，原因是余额不足时拖过已有道路被误判为 `unaffordable`。
+- TDD GREEN：道路目标测试通过；新增/更新 Runtime 测试覆盖铺路扣银两、拖拽路径按可用财政部分铺设、已有道路不重复扣费。
+- 目标测试：`npx vitest run src/integration/GameRuntime.test.ts`：1 个测试文件、15 项通过。
+- `npm test`：31 个测试文件、215 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 46.62 秒，总耗时 50.71 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- 浏览器 QA：`http://localhost:5173/` 横屏打开正常，标题为《小耳岛》，页面非空，无 Vite 报错覆盖层，console 无 error/warn。选择道路工具并拖拽地图后，财政从 2400 变为 2394，验证真实 UI 路径已扣 1 格石板路成本。
+
+限制：尚未实现桥梁专门工具、道路维护费、拆路退款和道路容量成本；本轮只验证铺设成本进入财政闭环。
+
 ## 2026-06-30 第六十五轮验证
 
 - TDD RED：`npx vitest run src/integration/GameRuntime.test.ts -t "removes roads along a dragged path"` 先失败，原因是 `runtime.removeRoadPath` 不存在。

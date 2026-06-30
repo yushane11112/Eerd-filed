@@ -31,7 +31,7 @@ describe('GameRuntime integration', () => {
       materials: { wood: 2, stone: 1 },
     })
     expect(after.buildings[result.buildingId!]).toBeDefined()
-    expect(after.economy.treasury).toBe(before.economy.treasury - 80)
+    expect(after.economy.treasury).toBe(before.economy.treasury - 18 - 80)
     expect(after.buildings['granary-1'].inventory.wood).toBe((before.buildings['granary-1'].inventory.wood ?? 0) - 2)
     expect(after.buildings['granary-1'].inventory.stone).toBe((before.buildings['granary-1'].inventory.stone ?? 0) - 1)
   })
@@ -52,17 +52,72 @@ describe('GameRuntime integration', () => {
 
     expect(result).toMatchObject({
       ok: true,
-      message: '连续铺设 5 格石板路，跳过 1 格。',
+      message: '连续铺设 5 格石板路，花费银两30，跳过 1 格。',
       roadPath: {
         placed: 5,
         skipped: 1,
         blocked: 1,
         invalidTerrain: 0,
         outOfBounds: 0,
+        treasuryCost: 30,
       },
     })
+    expect(snapshot.economy.treasury).toBe(2370)
     expect(['3,4', '4,4', '5,4', '6,4', '7,4'].every((key) => roadKeys.has(key))).toBe(true)
     expect(snapshot.buildings['house-1'].origin).toEqual({ x: 8, y: 9 })
+  })
+
+  it('limits road construction to the treasury available for the path', () => {
+    const runtime = new GameRuntime({ initialTreasury: 10 })
+
+    const result = runtime.placeRoadPath([
+      { x: 3, y: 4 },
+      { x: 4, y: 4 },
+    ])
+    const snapshot = runtime.getSnapshot()
+    const roads = new Set(snapshot.cells.filter((cell) => cell.road).map((cell) => `${cell.point.x},${cell.point.y}`))
+
+    expect(result).toMatchObject({
+      ok: true,
+      message: '连续铺设 1 格石板路，花费银两6，跳过 1 格。',
+      roadPath: {
+        placed: 1,
+        skipped: 1,
+        unaffordable: 1,
+        treasuryCost: 6,
+        missingTreasury: 2,
+      },
+    })
+    expect(snapshot.economy.treasury).toBe(4)
+    expect(roads.has('3,4')).toBe(true)
+    expect(roads.has('4,4')).toBe(false)
+  })
+
+  it('does not charge or require treasury when dragging over existing roads', () => {
+    const runtime = new GameRuntime({ initialTreasury: 4 })
+
+    const result = runtime.placeRoadPath([
+      { x: 13, y: 11 },
+      { x: 3, y: 4 },
+    ])
+    const snapshot = runtime.getSnapshot()
+    const roads = new Set(snapshot.cells.filter((cell) => cell.road).map((cell) => `${cell.point.x},${cell.point.y}`))
+
+    expect(result).toMatchObject({
+      ok: false,
+      message: '银两不足2，无法铺设道路。',
+      roadPath: {
+        placed: 0,
+        skipped: 2,
+        unchanged: 1,
+        unaffordable: 1,
+        treasuryCost: 0,
+        missingTreasury: 2,
+      },
+    })
+    expect(snapshot.economy.treasury).toBe(4)
+    expect(roads.has('13,11')).toBe(true)
+    expect(roads.has('3,4')).toBe(false)
   })
 
   it('removes roads along a dragged path and reports cells that were not roads', () => {

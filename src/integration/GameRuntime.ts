@@ -28,6 +28,7 @@ import {
   effectiveBuildingDefinition,
   RoadRoutePlanner,
   quoteBuildingConstruction,
+  roadConstructionCost,
   spendBuildingConstructionCost,
   startBuildingUpgradeFromCityStorage,
   upgradeBuildingFromCityStorage,
@@ -63,6 +64,9 @@ export interface RuntimeActionResult {
     outOfBounds: number
     unchanged: number
     notRoad?: number
+    unaffordable?: number
+    treasuryCost?: number
+    missingTreasury?: number
   }
   construction?: {
     treasury: number
@@ -144,14 +148,14 @@ export class GameRuntime {
   private lastDropTick = 0
   private cityNoticeTracker = new CityNoticeTracker()
 
-  constructor() {
+  constructor(options: { initialTreasury?: number } = {}) {
     this.grid = new WorldGrid(28, 22, [], 'land')
     this.seedTerrainAndRoads()
     const buildings = this.seedBuildings()
     const initial = createInitialSimulationSnapshot({
       seed: 20260625,
       buildings,
-      treasury: 2400,
+      treasury: options.initialTreasury ?? 2400,
       dayKey: localDayKey(Date.now()),
     })
     initial.cells = this.grid.toCells()
@@ -282,14 +286,12 @@ export class GameRuntime {
   }
 
   placeRoad(point: GridPoint): RuntimeActionResult {
-    const result = this.grid.placeRoad(point, 'stone')
-    if (!result.changed) {
-      return { ok: false, message: result.reason === 'building-occupied' ? '建筑占用了这个地块' : '这里无法铺路' }
+    const result = this.placeRoadPath([point])
+    if (!result.ok) return result
+    return {
+      ...result,
+      message: `石板路已铺好，消耗银两${result.roadPath?.treasuryCost ?? 0}，建筑与物流可沿路连接。`,
     }
-    const snapshot = this.engine.snapshot
-    snapshot.cells = this.grid.toCells()
-    this.rebuild(snapshot)
-    return { ok: true, message: '石板路已铺好，建筑与物流可沿路连接。' }
   }
 
   placeRoadPath(points: readonly GridPoint[]): RuntimeActionResult {
@@ -301,15 +303,51 @@ export class GameRuntime {
       invalidTerrain: 0,
       outOfBounds: 0,
       unchanged: 0,
+      unaffordable: 0,
+      treasuryCost: 0,
+      missingTreasury: 0,
     }
+    const roadKind = 'stone' as const
+    const roadCost = roadConstructionCost(roadKind).treasury
+    const snapshot = this.engine.snapshot
+    let treasury = snapshot.economy.treasury
     for (const point of points) {
       const rounded = { x: Math.round(point.x), y: Math.round(point.y) }
       const key = pointKey(rounded)
       if (visited.has(key)) continue
       visited.add(key)
-      const result = this.grid.placeRoad(rounded, 'stone')
+      const cell = this.grid.getCell(rounded)
+      if (!cell) {
+        stats.skipped += 1
+        stats.outOfBounds += 1
+        continue
+      }
+      if (cell.buildingId) {
+        stats.skipped += 1
+        stats.blocked += 1
+        continue
+      }
+      if (cell.terrain === 'water') {
+        stats.skipped += 1
+        stats.invalidTerrain += 1
+        continue
+      }
+      if (cell.road === roadKind) {
+        stats.skipped += 1
+        stats.unchanged += 1
+        continue
+      }
+      if (treasury < roadCost) {
+        stats.skipped += 1
+        stats.unaffordable += 1
+        stats.missingTreasury = Math.max(stats.missingTreasury, roadCost - treasury)
+        continue
+      }
+      const result = this.grid.placeRoad(rounded, roadKind)
       if (result.changed) {
         stats.placed += 1
+        treasury -= roadCost
+        stats.treasuryCost += roadCost
         continue
       }
       stats.skipped += 1
@@ -319,7 +357,7 @@ export class GameRuntime {
       else stats.unchanged += 1
     }
     if (stats.placed > 0) {
-      const snapshot = this.engine.snapshot
+      snapshot.economy.treasury = treasury
       snapshot.cells = this.grid.toCells()
       this.rebuild(snapshot)
     }
@@ -757,12 +795,14 @@ function constructionFailureMessage(construction: {
 
 function roadPathMessage(stats: NonNullable<RuntimeActionResult['roadPath']>): string {
   if (stats.placed <= 0) {
+    if ((stats.unaffordable ?? 0) > 0) return `银两不足${stats.missingTreasury ?? 0}，无法铺设道路。`
     if (stats.blocked > 0) return '路径被建筑占用，无法铺路。'
     if (stats.invalidTerrain > 0) return '路径包含水面或不可铺设地形。'
     return '这段路径没有新增道路。'
   }
+  const cost = (stats.treasuryCost ?? 0) > 0 ? `，花费银两${stats.treasuryCost}` : ''
   const skipped = stats.skipped > 0 ? `，跳过 ${stats.skipped} 格` : ''
-  return `连续铺设 ${stats.placed} 格石板路${skipped}。`
+  return `连续铺设 ${stats.placed} 格石板路${cost}${skipped}。`
 }
 
 function removeRoadPathMessage(stats: NonNullable<RuntimeActionResult['roadPath']>): string {

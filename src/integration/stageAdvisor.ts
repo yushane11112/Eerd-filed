@@ -40,12 +40,20 @@ export interface StageAdvisorOverlayArea {
   radius: number
 }
 
+export interface StageAdvisorOverlayCell {
+  kind: StageAdvisorOverlayKind
+  label: string
+  position: GridPoint
+  status: 'footprint' | 'entrance' | 'blocked'
+}
+
 export interface StageAdvisorOverlay {
   id: number
   label: string
   points: StageAdvisorOverlayPoint[]
   paths?: StageAdvisorOverlayPath[]
   areas?: StageAdvisorOverlayArea[]
+  cells?: StageAdvisorOverlayCell[]
   summary?: string[]
   metrics?: Record<string, number>
 }
@@ -83,6 +91,8 @@ export interface StageGovernanceRecommendation {
     reason: string
     candidate?: GridPoint
     entrance?: GridPoint
+    footprint?: GridPoint[]
+    rotation?: 0 | 90 | 180 | 270
     landCandidates: number
     roadAnchors: number
     missingMaterials?: Partial<Record<string, number>>
@@ -566,6 +576,21 @@ export function withRecommendationExecutionOverlay(
 ): StageAdvisorOverlay | undefined {
   const execution = recommendation?.execution
   if (!execution?.candidate) return overlay
+  const cells: StageAdvisorOverlayCell[] = [
+    ...(execution.footprint ?? []).map((position) => ({
+      kind: 'placement' as const,
+      label: '占地',
+      position,
+      status: 'footprint' as const,
+    })),
+    ...(execution.entrance ? [{
+      kind: 'placement' as const,
+      label: '入口',
+      position: execution.entrance,
+      status: 'entrance' as const,
+    }] : []),
+    ...(overlay?.cells ?? []),
+  ]
   const points: StageAdvisorOverlayPoint[] = [
     {
       kind: 'placement',
@@ -590,6 +615,7 @@ export function withRecommendationExecutionOverlay(
       ...(overlay?.summary ?? []),
     ],
     overlay?.metrics ?? {},
+    cells,
   )
 }
 
@@ -601,6 +627,7 @@ function compactOverlay(
   areas: StageAdvisorOverlayArea[] = [],
   summary: string[] = [],
   metrics: Record<string, number> = {},
+  cells: StageAdvisorOverlayCell[] = [],
 ): StageAdvisorOverlay | undefined {
   const seen = new Set<string>()
   const unique = points.filter((point) => {
@@ -623,7 +650,19 @@ function compactOverlay(
     areaSeen.add(key)
     return true
   })
-  if (unique.length === 0 && uniquePaths.length === 0 && uniqueAreas.length === 0) return undefined
+  const cellSeen = new Set<string>()
+  const uniqueCells = cells.filter((cell) => {
+    const key = `${cell.kind}:${cell.status}:${Math.round(cell.position.x * 100) / 100},${Math.round(cell.position.y * 100) / 100}`
+    if (cellSeen.has(key)) return false
+    cellSeen.add(key)
+    return true
+  })
+  if (
+    unique.length === 0
+    && uniquePaths.length === 0
+    && uniqueAreas.length === 0
+    && uniqueCells.length === 0
+  ) return undefined
   const overlay: StageAdvisorOverlay = {
     id,
     label,
@@ -647,6 +686,13 @@ function compactOverlay(
     radius: area.radius,
   }))
   if (limitedAreas.length > 0) overlay.areas = limitedAreas
+  const limitedCells = uniqueCells.slice(0, 24).map((cell) => ({
+    kind: cell.kind,
+    label: cell.label,
+    position: { ...cell.position },
+    status: cell.status,
+  }))
+  if (limitedCells.length > 0) overlay.cells = limitedCells
   const cleanSummary = summary.filter(Boolean).slice(0, 3)
   if (cleanSummary.length > 0) overlay.summary = cleanSummary
   if (Object.keys(metrics).length > 0) overlay.metrics = { ...metrics }
@@ -814,6 +860,8 @@ function diagnoseBuildingRecommendationExecution(
         reason: '已找到空地和道路入口，可切换到营造工具试放。',
         candidate: origin,
         entrance,
+        footprint,
+        rotation: 0,
         landCandidates,
         roadAnchors,
       }

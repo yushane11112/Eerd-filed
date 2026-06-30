@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-30：第六十轮治理推荐 footprint 预览
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 城市顾问数据层 | 推荐建筑执行结果新增真实 `footprint`、入口和旋转占位字段，overlay 新增 `cells` 表达占地/入口/后续冲突格 |
+| `src/components/SimulationCanvas.tsx` | UI 渲染层 | 阶段顾问 overlay 开始渲染占地 cell，不再只有 marker/path/area |
+| `src/styles.css` | 视觉样式 | 新增等距菱形 footprint、入口高亮、阻挡格预留样式与轻脉冲动效 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 固定“营造集市”推荐输出 3×2 footprint、入口 cell 和 overlay cells |
+| `docs/project/task-board.md` | 任务看板 | 记录 `GOVERNANCE-PLACEMENT-FOOTPRINT-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第六十轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、浏览器 QA 结论和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、全量测试、构建和浏览器验证结果 |
+
 ## 2026-06-29：第五十九轮治理卡推荐落点提示
 
 | 文件 | 产物类型 | 用途 |

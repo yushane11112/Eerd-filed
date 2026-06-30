@@ -356,6 +356,22 @@ export function SimulationCanvas({
               </span>
             )
           })}
+          {stageAdvisorOverlay.cells?.map((cell, index) => {
+            const position = pointToViewport(cell.position, cameraView)
+            return (
+              <span
+                key={`${stageAdvisorOverlay.id}-cell-${index}`}
+                className={`stage-overlay-cell stage-overlay-cell--${cell.kind} stage-overlay-cell--${cell.status}`}
+                style={{
+                  '--stage-cell-x': `${position.x}px`,
+                  '--stage-cell-y': `${position.y}px`,
+                } as React.CSSProperties}
+                title={cell.label}
+              >
+                <i>{cell.label}</i>
+              </span>
+            )
+          })}
           {stageAdvisorOverlay.points.map((point, index) => {
             const position = pointToViewport(point.position, cameraView)
             return (

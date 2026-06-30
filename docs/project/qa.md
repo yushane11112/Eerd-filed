@@ -9,6 +9,16 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-06-30 第六十轮验证
+
+- TDD RED：`npx vitest run src/integration/stageAdvisor.test.ts` 先失败，原因是推荐执行结果尚未输出 `footprint`。
+- TDD GREEN：`npx vitest run src/integration/stageAdvisor.test.ts`：1 个测试文件、12 项通过，覆盖建筑类治理推荐输出 3×2 集市 footprint、入口 cell 和 overlay cells。
+- `npm test`：30 个测试文件、207 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 43.95 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- 浏览器 QA：`http://127.0.0.1:5173/` 打开正常，无 Vite 报错覆盖层，console 无 error/warn；点击“瓶颈 → 打开服务图层并营造市场”后，DOM 验证 `.stage-overlay-cell--footprint` 为 6、`.stage-overlay-cell--entrance` 为 1、`.stage-overlay-marker--placement` 为 2，建造菜单高亮“集市”。
+
+限制：本轮验证的是推荐预览链路，不代表完整建造试放系统。冲突格、旋转方向、鼠标跟随预览和确认/取消流尚未实现。
+
 ## 2026-06-29 第三十七轮验证
 
 - `vitest run src/legacy/game/legacy.test.ts`：覆盖旧群岛渲染开关和归档组件路径边界，要求旧 `IslandCanvas`、旧 `MaterialRow` 和旧 `src/game` 不再存在于正式入口目录。

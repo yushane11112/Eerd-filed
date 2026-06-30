@@ -502,6 +502,52 @@ describe('stage advisor overlays', () => {
     })
   })
 
+  it('adds a recommended building footprint and entrance cells to the placement overlay', () => {
+    const recommendation = explainStageRecommendationAvailability({
+      label: '营造集市',
+      tool: 'building',
+      buildingType: 'market',
+      overlayMode: 'service',
+    }, makeSnapshot({
+      cells: [
+        ...landRect(0, 0, 4, 3),
+        { point: { x: 1, y: 2 }, terrain: 'land', elevation: 0, road: 'stone' },
+      ],
+      buildings: {
+        granary: { ...building('granary', 'granary', { x: 8, y: 8 }), inventory: { wood: 10, stone: 10 } },
+      },
+      economy: { treasury: 500, taxRate: 0.1, lastTaxIncome: 0, lastMaintenanceCost: 0 },
+    }))
+
+    const overlay = withRecommendationExecutionOverlay(undefined, recommendation, 22)
+
+    expect(recommendation.execution).toMatchObject({
+      candidate: { x: 0, y: 0 },
+      entrance: { x: 1, y: 1 },
+      footprint: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 2, y: 0 },
+        { x: 0, y: 1 },
+        { x: 1, y: 1 },
+        { x: 2, y: 1 },
+      ],
+    })
+    expect(overlay).toMatchObject({
+      id: 22,
+      label: '推荐营造位置',
+      cells: [
+        { kind: 'placement', label: '占地', status: 'footprint', position: { x: 0, y: 0 } },
+        { kind: 'placement', label: '占地', status: 'footprint', position: { x: 1, y: 0 } },
+        { kind: 'placement', label: '占地', status: 'footprint', position: { x: 2, y: 0 } },
+        { kind: 'placement', label: '占地', status: 'footprint', position: { x: 0, y: 1 } },
+        { kind: 'placement', label: '占地', status: 'footprint', position: { x: 1, y: 1 } },
+        { kind: 'placement', label: '占地', status: 'footprint', position: { x: 2, y: 1 } },
+        { kind: 'placement', label: '入口', status: 'entrance', position: { x: 1, y: 1 } },
+      ],
+    })
+  })
+
   it('turns layer metrics into sorted governance cards', () => {
     const snapshot = makeSnapshot({
       cells: [

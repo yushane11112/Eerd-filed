@@ -9,6 +9,17 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-06-30 第六十八轮验证
+
+- TDD RED：`npx vitest run src/integration/GameRuntime.test.ts -t "bridges|bridge"` 先失败，原因是 `runtime.placeBridgePath` 不存在。
+- TDD GREEN：同一目标测试通过；新增 Runtime 测试覆盖桥梁可铺在水/岸、按 18 银两/格扣费、余额不足跳过，以及普通陆地拒绝架桥且不扣费。
+- 目标测试：`npx vitest run src/integration/GameRuntime.test.ts src/ui/placement/runtimePlacement.test.ts`：2 个测试文件、21 项通过。
+- `npm test`：31 个测试文件、219 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 44.84 秒，总耗时 48.92 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- 浏览器 QA：`http://localhost:5173/` 横屏打开正常，标题为《小耳岛》，页面非空，无 Vite 报错覆盖层，console 无 error/warn。城建面板出现“桥梁 银两18/格”；点击后按钮 active，拖拽水岸后财政下降并保持桥梁工具提示可见。
+
+限制：浏览器层只验证工具入口、选中态、财政变化和无控制台错误；桥梁是否按格落在水/岸由 Runtime 测试精确覆盖。专属桥梁美术、桥头吸附和连通诊断仍未实现。
+
 ## 2026-06-30 第六十七轮验证
 
 - TDD RED：`npx vitest run src/integration/GameRuntime.test.ts -t "demolishes|cancels logistics"` 先失败，原因是 `runtime.demolishBuilding` 不存在。

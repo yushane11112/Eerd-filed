@@ -138,6 +138,7 @@ export default function App() {
     setSelectedBuildingId(null)
     if (next.kind !== 'building') setRecommendedBuildType(null)
     if (next.kind === 'road') setToast('道路模式：拖拽地块连续铺设石路。')
+    if (next.kind === 'bridge') setToast('桥梁模式：拖拽水面或岸边架设桥路，连接两岸交通。')
     if (next.kind === 'demolish-road') setToast('拆路模式：拖拽道路即可拆除；暂不拆建筑。')
     if (next.kind === 'building') setToast(`营造「${BUILDING_DEFINITIONS[next.type].name}」：点击绿色可建地块。`)
   }
@@ -385,6 +386,13 @@ export default function App() {
           onClick={() => chooseTool({ kind: 'road' })}
         >
           <Route /><span>道路</span>
+        </button>
+        <button
+          className={tool.kind === 'bridge' ? 'active' : ''}
+          onClick={() => chooseTool({ kind: 'bridge' })}
+        >
+          <Route /><span>桥梁</span>
+          <small>银两18/格</small>
         </button>
         <button
           className={tool.kind === 'demolish-road' ? 'active' : ''}
@@ -684,6 +692,8 @@ export default function App() {
       <div className={`tool-hint ${tool.kind !== 'inspect' ? 'visible' : ''}`}>
         {tool.kind === 'road'
           ? '道路模式 · 拖拽铺路 · 右键返回查看'
+          : tool.kind === 'bridge'
+            ? '桥梁模式 · 拖拽水面/岸边架桥 · 右键返回查看'
           : tool.kind === 'demolish-road'
             ? '拆路模式 · 拖拽拆除道路 · 右键返回查看'
           : tool.kind === 'building'

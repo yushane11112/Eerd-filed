@@ -2,6 +2,13 @@
 
 ## 2026-06-30
 
+- 启动并完成第六十八轮：`BRIDGE-BUILD-TOOL-01`。水乡城市新增桥梁专门建造模式，跨水交通不再依赖隐含道路规则。
+- `BuildTool` 新增 `bridge`；`GameRuntime` 新增 `placeBridgePath`，复用道路批量建造统计，但使用桥路地形规则和 18 银两/格成本。
+- `SimulationCanvas` 的道路拖拽模式扩展为 `build-road`、`build-bridge`、`remove` 三类，桥梁工具拖拽时调用 `runtime.placeBridgePath`，普通道路/拆路行为保持不变。
+- 主城建面板新增“桥梁”按钮并显示 `银两18/格`，工具提示明确“拖拽水面/岸边架桥”。
+- 浏览器 QA 验证：横屏打开 `http://localhost:5173/`，DOM 出现“桥梁 银两18/格”；选择后按钮 active，拖拽水岸后财政下降，console 无 error/warn。
+- 限制：桥梁视觉仍复用普通道路/占位表现，尚未有专属桥梁美术、桥头吸附、跨水连通诊断或桥梁维护成本。
+
 - 启动并完成第六十七轮：`BUILDING-DEMOLISH-CONSISTENCY-01`。建筑拆除不再是单纯擦除图块，而是进入运行时一致性链路。
 - 新增 `GameRuntime.demolishBuilding`：拆除建筑会释放 `WorldGrid` 占用、删除建筑实体、迁出以该建筑为住宅的家庭、移除其 household agent、释放以该建筑为雇主的工人，并取消源/目的建筑引用该建筑的未完成物流订单。
 - `LogisticsFailureReason` 新增 `building-demolished`，被拆建筑相关订单会进入 cancelled 状态并释放承运人，避免货车继续指向不存在建筑。

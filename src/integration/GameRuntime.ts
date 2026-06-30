@@ -4,6 +4,7 @@ import type {
   MusicCompletionEvent,
   RareResourceKind,
   ResourceKind,
+  RoadKind,
   SimulationSnapshot,
 } from '../simulation/contracts'
 import {
@@ -48,6 +49,7 @@ import { CityNoticeTracker, deriveCityNotices, type CityNotice } from './cityNot
 export type BuildTool =
   | { kind: 'inspect' }
   | { kind: 'road' }
+  | { kind: 'bridge' }
   | { kind: 'demolish-road' }
   | { kind: 'building'; type: string; rotation: QuarterRotation }
 
@@ -302,6 +304,14 @@ export class GameRuntime {
   }
 
   placeRoadPath(points: readonly GridPoint[]): RuntimeActionResult {
+    return this.placeRoadKindPath(points, 'stone')
+  }
+
+  placeBridgePath(points: readonly GridPoint[]): RuntimeActionResult {
+    return this.placeRoadKindPath(points, 'bridge')
+  }
+
+  private placeRoadKindPath(points: readonly GridPoint[], roadKind: RoadKind): RuntimeActionResult {
     const visited = new Set<string>()
     const stats = {
       placed: 0,
@@ -314,7 +324,6 @@ export class GameRuntime {
       treasuryCost: 0,
       missingTreasury: 0,
     }
-    const roadKind = 'stone' as const
     const roadCost = roadConstructionCost(roadKind).treasury
     const snapshot = this.engine.snapshot
     let treasury = snapshot.economy.treasury
@@ -334,7 +343,10 @@ export class GameRuntime {
         stats.blocked += 1
         continue
       }
-      if (cell.terrain === 'water') {
+      const validTerrain = roadKind === 'bridge'
+        ? cell.terrain === 'water' || cell.terrain === 'shore'
+        : cell.terrain !== 'water'
+      if (!validTerrain) {
         stats.skipped += 1
         stats.invalidTerrain += 1
         continue
@@ -370,7 +382,7 @@ export class GameRuntime {
     }
     return {
       ok: stats.placed > 0,
-      message: roadPathMessage(stats),
+      message: roadPathMessage(stats, roadKind),
       roadPath: stats,
     }
   }
@@ -889,16 +901,21 @@ function constructionFailureMessage(construction: {
   ].filter(Boolean).join('，') || '营造资源不足'
 }
 
-function roadPathMessage(stats: NonNullable<RuntimeActionResult['roadPath']>): string {
+function roadPathMessage(
+  stats: NonNullable<RuntimeActionResult['roadPath']>,
+  roadKind: RoadKind,
+): string {
   if (stats.placed <= 0) {
-    if ((stats.unaffordable ?? 0) > 0) return `银两不足${stats.missingTreasury ?? 0}，无法铺设道路。`
-    if (stats.blocked > 0) return '路径被建筑占用，无法铺路。'
-    if (stats.invalidTerrain > 0) return '路径包含水面或不可铺设地形。'
-    return '这段路径没有新增道路。'
+    if ((stats.unaffordable ?? 0) > 0) return `银两不足${stats.missingTreasury ?? 0}，无法${roadKind === 'bridge' ? '架设桥路' : '铺设道路'}。`
+    if (stats.blocked > 0) return roadKind === 'bridge' ? '路径被建筑占用，无法架桥。' : '路径被建筑占用，无法铺路。'
+    if (stats.invalidTerrain > 0) return roadKind === 'bridge' ? '桥路只能架在水面或岸边。' : '路径包含水面或不可铺设地形。'
+    return roadKind === 'bridge' ? '这段路径没有新增桥路。' : '这段路径没有新增道路。'
   }
   const cost = (stats.treasuryCost ?? 0) > 0 ? `，花费银两${stats.treasuryCost}` : ''
   const skipped = stats.skipped > 0 ? `，跳过 ${stats.skipped} 格` : ''
-  return `连续铺设 ${stats.placed} 格石板路${cost}${skipped}。`
+  return roadKind === 'bridge'
+    ? `连续架设 ${stats.placed} 格桥路${cost}${skipped}。`
+    : `连续铺设 ${stats.placed} 格石板路${cost}${skipped}。`
 }
 
 function removeRoadPathMessage(stats: NonNullable<RuntimeActionResult['roadPath']>): string {

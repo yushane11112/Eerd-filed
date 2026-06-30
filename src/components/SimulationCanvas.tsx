@@ -17,6 +17,8 @@ export interface CameraFocusRequest {
   zoom?: number
 }
 
+type RoadStrokeMode = 'build-road' | 'build-bridge' | 'remove'
+
 interface SimulationCanvasProps {
   runtime: GameRuntime
   snapshot: SimulationSnapshot
@@ -74,7 +76,7 @@ export function SimulationCanvas({
   } | null>(null)
   const roadStrokeRef = useRef<{
     pointerId: number
-    mode: 'build' | 'remove'
+    mode: RoadStrokeMode
     lastGrid: GridPoint
     lastMessage: string
   } | null>(null)
@@ -230,12 +232,14 @@ export function SimulationCanvas({
     const point = localPoint(event)
     const grid = rawGridPoint(point)
     updatePlacementPreview(grid)
-    if (toolRef.current.kind === 'road' || toolRef.current.kind === 'demolish-road') {
+    if (toolRef.current.kind === 'road' || toolRef.current.kind === 'bridge' || toolRef.current.kind === 'demolish-road') {
       const anchor = { x: Math.round(grid.x), y: Math.round(grid.y) }
-      const mode = toolRef.current.kind === 'road' ? 'build' : 'remove'
-      const result = mode === 'build'
-        ? runtime.placeRoadPath([anchor])
-        : runtime.removeRoadPath([anchor])
+      const mode = toolRef.current.kind === 'road'
+        ? 'build-road'
+        : toolRef.current.kind === 'bridge'
+          ? 'build-bridge'
+          : 'remove'
+      const result = roadStrokeAction(runtime, mode, [anchor])
       roadStrokeRef.current = {
         pointerId: event.pointerId,
         mode,
@@ -268,9 +272,7 @@ export function SimulationCanvas({
       const grid = gridPoint(point)
       const segment = gridLine(roadStroke.lastGrid, grid)
       if (segment.length > 1) {
-        const result = roadStroke.mode === 'build'
-          ? runtime.placeRoadPath(segment)
-          : runtime.removeRoadPath(segment)
+        const result = roadStrokeAction(runtime, roadStroke.mode, segment)
         roadStrokeRef.current = {
           pointerId: event.pointerId,
           mode: roadStroke.mode,
@@ -302,9 +304,7 @@ export function SimulationCanvas({
       const point = gridPoint(localPoint(event))
       const segment = gridLine(roadStroke.lastGrid, point)
       const result = segment.length > 1
-        ? roadStroke.mode === 'build'
-          ? runtime.placeRoadPath(segment)
-          : runtime.removeRoadPath(segment)
+        ? roadStrokeAction(runtime, roadStroke.mode, segment)
         : null
       roadStrokeRef.current = null
       onToast(result?.message ?? roadStroke.lastMessage)
@@ -330,6 +330,9 @@ export function SimulationCanvas({
     const currentTool = toolRef.current
     if (currentTool.kind === 'road') {
       const result = runtime.placeRoad(point)
+      onToast(result.message)
+    } else if (currentTool.kind === 'bridge') {
+      const result = runtime.placeBridgePath([point])
       onToast(result.message)
     } else if (currentTool.kind === 'demolish-road') {
       const result = runtime.removeRoadPath([point])
@@ -666,6 +669,16 @@ function resolveFocusPoint(
 
   const building = snapshot.buildings[target.buildingId]
   return building ? gridToScreen(building.entrance) : null
+}
+
+function roadStrokeAction(
+  runtime: GameRuntime,
+  mode: RoadStrokeMode,
+  points: readonly GridPoint[],
+) {
+  if (mode === 'build-road') return runtime.placeRoadPath(points)
+  if (mode === 'build-bridge') return runtime.placeBridgePath(points)
+  return runtime.removeRoadPath(points)
 }
 
 function moveCameraToFocus(

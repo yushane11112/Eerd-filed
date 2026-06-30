@@ -120,6 +120,54 @@ describe('GameRuntime integration', () => {
     expect(roads.has('3,4')).toBe(false)
   })
 
+  it('builds bridges across water and shore with dedicated treasury cost', () => {
+    const runtime = new GameRuntime({ initialTreasury: 40 })
+
+    const result = runtime.placeBridgePath([
+      { x: 0, y: 11 },
+      { x: 1, y: 11 },
+      { x: 2, y: 11 },
+    ])
+    const snapshot = runtime.getSnapshot()
+    const bridgeCells = snapshot.cells
+      .filter((cell) => ['0,11', '1,11', '2,11'].includes(`${cell.point.x},${cell.point.y}`))
+
+    expect(result).toMatchObject({
+      ok: true,
+      message: '连续架设 2 格桥路，花费银两36，跳过 1 格。',
+      roadPath: {
+        placed: 2,
+        skipped: 1,
+        unaffordable: 1,
+        missingTreasury: 14,
+        treasuryCost: 36,
+      },
+    })
+    expect(snapshot.economy.treasury).toBe(4)
+    expect(bridgeCells.filter((cell) => cell.road === 'bridge')).toHaveLength(2)
+  })
+
+  it('rejects bridges on ordinary land without charging treasury', () => {
+    const runtime = new GameRuntime({ initialTreasury: 40 })
+
+    const result = runtime.placeBridgePath([{ x: 3, y: 4 }])
+    const snapshot = runtime.getSnapshot()
+    const target = snapshot.cells.find((cell) => cell.point.x === 3 && cell.point.y === 4)
+
+    expect(result).toMatchObject({
+      ok: false,
+      message: '桥路只能架在水面或岸边。',
+      roadPath: {
+        placed: 0,
+        skipped: 1,
+        invalidTerrain: 1,
+        treasuryCost: 0,
+      },
+    })
+    expect(snapshot.economy.treasury).toBe(40)
+    expect(target?.road).toBeUndefined()
+  })
+
   it('removes roads along a dragged path and reports cells that were not roads', () => {
     const runtime = new GameRuntime()
     runtime.placeRoadPath([

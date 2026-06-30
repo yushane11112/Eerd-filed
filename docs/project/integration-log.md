@@ -2,6 +2,12 @@
 
 ## 2026-06-30
 
+- 启动并完成第六十九轮：`BRIDGE-VISUAL-STYLE-01`。桥梁不再完全复用普通石板路视觉，而是抽出道路视觉样式层，给桥路独立桥面色、描边、透明度、桥面宽度和桥墩点。
+- 新增 `src/rendering/roads.ts`，集中定义 `roadVisualStyle`，为后续道路材质、桥梁资产和不同道路等级扩展提供单一入口。
+- `SimulationCanvas` 的地形/道路绘制改为读取道路视觉样式；桥梁格会绘制更宽桥面和桥墩，普通泥路/石板路行为保持原有灰盒表现。
+- 浏览器 QA 验证：横屏打开 `http://localhost:5173/`，选择“桥梁 银两18/格”后按钮 active，拖拽水岸后仍无 console error/warn，并截图确认桥梁模式可见。
+- 限制：本轮只完成程序化灰盒差异，不是正式桥梁美术。还缺桥头吸附、跨水连通诊断、桥梁专属施工动画、桥梁 LOD 和商业级桥梁资产 manifest。
+
 - 启动并完成第六十八轮：`BRIDGE-BUILD-TOOL-01`。水乡城市新增桥梁专门建造模式，跨水交通不再依赖隐含道路规则。
 - `BuildTool` 新增 `bridge`；`GameRuntime` 新增 `placeBridgePath`，复用道路批量建造统计，但使用桥路地形规则和 18 银两/格成本。
 - `SimulationCanvas` 的道路拖拽模式扩展为 `build-road`、`build-bridge`、`remove` 三类，桥梁工具拖拽时调用 `runtime.placeBridgePath`，普通道路/拆路行为保持不变。

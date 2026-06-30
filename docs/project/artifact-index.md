@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-30：第六十九轮桥梁专属道路视觉
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/roads.ts` | 渲染样式层 | 新增 `roadVisualStyle`，集中定义泥路、石板路和桥梁的程序化视觉参数 |
+| `src/rendering/roads.test.ts` | 自动测试 | 固定桥梁样式必须不同于普通石板路，并包含桥墩、桥面宽度和专属描边 |
+| `src/components/SimulationCanvas.tsx` | Pixi 渲染层 | 道路绘制改为读取样式层；桥梁格渲染更宽桥面和桥墩点 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `BRIDGE-VISUAL-STYLE-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第六十九轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、浏览器 QA 和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、目标测试、全量测试、构建和浏览器验证 |
+| `docs/project/artifact-index.md` | 产物索引 | 记录本轮真实新增/修改文件 |
+
 ## 2026-06-30：第六十八轮桥梁专门建造模式
 
 | 文件 | 产物类型 | 用途 |

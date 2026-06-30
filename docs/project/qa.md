@@ -9,6 +9,17 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-06-30 第六十九轮验证
+
+- TDD RED：`npx vitest run src/rendering/roads.test.ts` 先失败，原因是 `src/rendering/roads.ts` 尚不存在，桥梁视觉没有独立样式入口。
+- TDD GREEN：新增 `roadVisualStyle` 后，目标测试通过；覆盖桥梁样式输出 `kind: "bridge"`、专属填色/描边/桥墩色/桥面宽度，并确认桥梁样式不同于普通石板路。
+- 目标测试：`npx vitest run src/rendering/roads.test.ts src/integration/GameRuntime.test.ts -t "bridge|bridges|roadVisualStyle"`：2 个测试文件、3 项通过，17 项按过滤跳过。
+- `npm test`：32 个测试文件、220 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 45.17 秒，总耗时约 49.30 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- 浏览器 QA：`http://localhost:5173/` 横屏打开正常，标题为《小耳岛》，页面非空，无 Vite 报错覆盖层，console 无 error/warn。城建面板出现“桥梁 银两18/格”；点击后按钮 active，拖拽水岸后桥梁模式提示保持可见，截图完成。
+
+限制：截图只能证明真实页面可打开、桥梁工具可选中交互且无运行时错误；桥梁像素级差异由 `roadVisualStyle` 单测和 Pixi 绘制代码保证。正式桥梁美术、施工动画、桥头吸附和连通诊断仍未实现。
+
 ## 2026-06-30 第六十八轮验证
 
 - TDD RED：`npx vitest run src/integration/GameRuntime.test.ts -t "bridges|bridge"` 先失败，原因是 `runtime.placeBridgePath` 不存在。

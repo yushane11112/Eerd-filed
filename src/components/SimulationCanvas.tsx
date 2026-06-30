@@ -1,6 +1,7 @@
 import { Application, Graphics } from 'pixi.js'
 import { useEffect, useRef, useState } from 'react'
 import { DynamicScene, gridToScreen, screenToGrid } from '../rendering'
+import { roadVisualStyle } from '../rendering/roads'
 import type { CameraState, GridPoint, SimulationSnapshot } from '../simulation/contracts'
 import { CameraController, DragController, PlacementController, deriveRuntimePlacementPreview, runtimePlacementValidator } from '../ui'
 import type { BuildingPlacementPreview, BuildTool, GameRuntime } from '../integration/GameRuntime'
@@ -628,15 +629,22 @@ function drawTerrain(graphics: Graphics, snapshot: SimulationSnapshot) {
       ])
       .fill({ color })
     if (cell.road) {
+      const roadStyle = roadVisualStyle(cell.road)
       graphics
         .poly([
           screen.x, screen.y - 10,
-          screen.x + 22, screen.y,
+          screen.x + roadStyle.deckInset, screen.y,
           screen.x, screen.y + 10,
-          screen.x - 22, screen.y,
+          screen.x - roadStyle.deckInset, screen.y,
         ])
-        .fill({ color: cell.road === 'dirt' ? 0xb79262 : 0xbec2b5 })
-        .stroke({ color: 0x887f70, width: 1, alpha: 0.7 })
+        .fill({ color: roadStyle.fill })
+        .stroke({ color: roadStyle.stroke, width: roadStyle.strokeWidth, alpha: roadStyle.alpha })
+      if (roadStyle.kind === 'bridge' && roadStyle.pierColor) {
+        graphics
+          .circle(screen.x - 11, screen.y + 8, 3)
+          .circle(screen.x + 11, screen.y - 8, 3)
+          .fill({ color: roadStyle.pierColor, alpha: 0.82 })
+      }
     }
   }
 }

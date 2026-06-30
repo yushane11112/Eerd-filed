@@ -635,6 +635,37 @@ describe('stage advisor overlays', () => {
     })
   })
 
+  it('adds road plan construction cells to recommendation overlays', () => {
+    const overlay = withRecommendationExecutionOverlay(undefined, {
+      label: '打开道路图层并接回主路网',
+      tool: 'road',
+      overlayMode: 'roads',
+      roadPlan: {
+        from: { x: 1, y: 1 },
+        to: { x: 4, y: 1 },
+        cells: [
+          { point: { x: 2, y: 1 }, kind: 'stone', treasuryCost: 6 },
+          { point: { x: 3, y: 1 }, kind: 'bridge', treasuryCost: 18 },
+        ],
+        roadCells: 1,
+        bridgeCells: 1,
+        treasuryCost: 24,
+        missingTreasury: 0,
+        canAfford: true,
+      },
+    }, 26)
+
+    expect(overlay).toMatchObject({
+      id: 26,
+      label: '推荐补线位置',
+      summary: ['补线 2 格', '预计银两 24'],
+      cells: [
+        { kind: 'road', label: '道路', status: 'planned', position: { x: 2, y: 1 } },
+        { kind: 'road', label: '桥梁', status: 'bridge', position: { x: 3, y: 1 } },
+      ],
+    })
+  })
+
   it('turns layer metrics into sorted governance cards', () => {
     const snapshot = makeSnapshot({
       cells: [

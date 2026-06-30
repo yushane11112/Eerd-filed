@@ -2,6 +2,22 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-01：第七十四轮补线施工计划 UI 摘要
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/ui/cityAdvisorUi.ts` | UI 文案工具 | 格式化 roadPlan 摘要，显示道路/桥梁格数、预计银两和财政缺口 |
+| `src/ui/cityAdvisorUi.test.ts` | 自动测试 | 覆盖补线摘要文案和财政不足提示 |
+| `src/integration/stageAdvisor.ts` | 城市顾问数据层 | `withRecommendationExecutionOverlay` 支持 roadPlan cells，将待施工道路/桥梁格注入地图 overlay |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 覆盖 roadPlan 会生成推荐补线 overlay 和道路/桥梁待施工格 |
+| `src/App.tsx` | UI 入口 | 瓶颈治理卡显示补线计划摘要，并复用公共推荐类型 |
+| `src/styles.css` | UI 样式 | 新增待施工道路格和桥梁格 overlay 样式 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `ROAD-LINK-PLAN-UI-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第七十四轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、浏览器 QA 和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、目标测试、全量测试、构建和浏览器验证 |
+| `docs/project/artifact-index.md` | 产物索引 | 记录本轮真实新增/修改文件 |
+
 ## 2026-07-01：第七十三轮道路/桥梁补线施工计划
 
 | 文件 | 产物类型 | 用途 |

@@ -2,6 +2,13 @@
 
 ## 2026-07-01
 
+- 启动并完成第七十四轮：`ROAD-LINK-PLAN-UI-01`。补线施工计划不再只存在于数据层，瓶颈治理卡可以显示补线路/桥格数、预计银两和财政缺口。
+- 新增 `src/ui/cityAdvisorUi.ts`，集中生成治理卡补线摘要文案，避免继续把 App 文案逻辑堆进 `App.tsx`。
+- `withRecommendationExecutionOverlay` 支持 `roadPlan`：点击道路未连通推荐时，会把待施工道路格和桥梁格注入 overlay cells，分别使用 `planned` 与 `bridge` 状态高亮。
+- `App.tsx` 的 `CityBottleneck.recommendation` 改为复用公共 `StageGovernanceRecommendation` 类型，避免 UI 侧手写窄类型漏掉后续治理卡字段。
+- 浏览器 QA 验证：横屏打开 `http://localhost:5173/`，瓶颈面板可展开，页面显示 3 条瓶颈治理卡，console error 日志为 0。
+- 限制：默认场景没有稳定制造孤立路网，因此浏览器层只验证面板健康；补线摘要和 roadPlan overlay 精确行为由单元测试覆盖。仍未实现一键施工和桥头吸附。
+
 - 启动并完成第七十三轮：`ROAD-LINK-CONSTRUCTION-PLAN-01`。道路/桥梁补线不再只是地图路径建议，而是进入治理卡推荐数据，包含可施工格序列和成本预览。
 - `StageGovernanceRecommendation` 新增 `roadPlan`：记录补线起点/终点、每个待新铺格子的坐标、道路类型、单格银两成本、道路格数、桥梁格数、总成本、财政缺口和 `canAfford`。
 - `deriveStageGovernanceCards` 在生成“道路未连通”治理卡时，会读取道路图层第一条建议路径，并将中间缺失格拆成 `stone` 或 `bridge` 施工计划；已存在道路不会重复计费。

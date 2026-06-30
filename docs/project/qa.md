@@ -9,6 +9,17 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-01 第七十四轮验证
+
+- TDD RED：`npx vitest run src/ui/cityAdvisorUi.test.ts src/integration/stageAdvisor.test.ts -t "road plan|construction plans|treasury gaps"` 先失败；原因分别是 `cityAdvisorUi` 模块不存在，以及 `withRecommendationExecutionOverlay` 遇到 `roadPlan` 时返回 `undefined`。
+- TDD GREEN：同一目标测试通过；覆盖治理卡文案能显示桥梁/道路格数、预计银两和财政缺口，并覆盖 roadPlan 注入 overlay cells，桥梁格使用独立 `bridge` 状态。
+- 目标回归：`npx vitest run src/ui/cityAdvisorUi.test.ts src/integration/stageAdvisor.test.ts src/integration/cityNotices.test.ts src/integration/GameRuntime.test.ts`：4 个测试文件、45 项通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `npm test`：33 个测试文件、225 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 45.88 秒，总耗时约 50.01 秒。
+- 浏览器 QA：`http://localhost:5173/` 横屏刷新后打开瓶颈面板，页面出现“优先处理最影响运转的 3 件事”和 3 条瓶颈治理卡；console error 日志为 0。
+
+限制：默认浏览器场景没有稳定制造孤立路网，因此补线计划 UI 的精确出现由单元测试覆盖；下一轮需要可控孤立路网 fixture 或一键施工 E2E。
+
 ## 2026-07-01 第七十三轮验证
 
 - TDD RED：`npx vitest run src/integration/stageAdvisor.test.ts -t "disconnected road networks"` 先失败，原因是“道路未连通”治理卡只有补线文案和图层推荐，没有 `roadPlan` 施工格序列与成本预览。

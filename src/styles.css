@@ -200,6 +200,22 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   border-color: rgba(255, 190, 154, .9);
   background: rgba(202, 79, 61, .46);
 }
+.stage-overlay-cell--road.stage-overlay-cell--planned {
+  border-color: rgba(255, 248, 203, .9);
+  background: rgba(235, 202, 112, .44);
+  box-shadow: 0 0 0 3px rgba(237, 199, 99, .18), inset 0 0 18px rgba(255, 250, 207, .22);
+  animation: placement-cell-pulse 1.8s ease-in-out infinite;
+}
+.stage-overlay-cell--road.stage-overlay-cell--bridge {
+  border-color: rgba(164, 218, 236, .96);
+  background: rgba(89, 165, 196, .5);
+  box-shadow: 0 0 0 4px rgba(82, 169, 202, .2), inset 0 0 18px rgba(236, 255, 255, .22);
+  animation: placement-cell-pulse 1.8s ease-in-out infinite;
+}
+.stage-overlay-cell--planned i,
+.stage-overlay-cell--bridge i {
+  opacity: 1;
+}
 .placement-preview-cell.valid.stage-overlay-cell--footprint {
   border-color: rgba(236, 255, 205, .88);
   background: rgba(95, 211, 139, .42);

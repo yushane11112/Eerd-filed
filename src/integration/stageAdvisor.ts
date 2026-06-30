@@ -44,7 +44,7 @@ export interface StageAdvisorOverlayCell {
   kind: StageAdvisorOverlayKind
   label: string
   position: GridPoint
-  status: 'footprint' | 'entrance' | 'blocked'
+  status: 'footprint' | 'entrance' | 'blocked' | 'planned' | 'bridge'
 }
 
 export interface StageAdvisorOverlay {
@@ -646,6 +646,32 @@ export function withRecommendationExecutionOverlay(
   recommendation: Readonly<StageGovernanceRecommendation> | undefined,
   id = Date.now(),
 ): StageAdvisorOverlay | undefined {
+  const roadPlan = recommendation?.roadPlan
+  if (roadPlan && roadPlan.cells.length > 0) {
+    const cells: StageAdvisorOverlayCell[] = [
+      ...roadPlan.cells.map((cell) => ({
+        kind: 'road' as const,
+        label: cell.kind === 'bridge' ? '桥梁' : '道路',
+        position: cell.point,
+        status: cell.kind === 'bridge' ? 'bridge' as const : 'planned' as const,
+      })),
+      ...(overlay?.cells ?? []),
+    ]
+    return compactOverlay(
+      id,
+      overlay?.label ?? '推荐补线位置',
+      overlay?.points ?? [],
+      overlay?.paths ?? [],
+      overlay?.areas ?? [],
+      [
+        `补线 ${roadPlan.cells.length} 格`,
+        `预计银两 ${roadPlan.treasuryCost}`,
+        ...(overlay?.summary ?? []),
+      ],
+      overlay?.metrics ?? {},
+      cells,
+    )
+  }
   const execution = recommendation?.execution
   if (!execution?.candidate) return overlay
   const cells: StageAdvisorOverlayCell[] = [

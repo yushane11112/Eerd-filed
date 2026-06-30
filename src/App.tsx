@@ -53,6 +53,7 @@ import {
   FullscreenController,
   type FullscreenState,
 } from './ui'
+import { formatRoadPlanSummary } from './ui/cityAdvisorUi'
 import './styles.css'
 
 const INITIAL_FULLSCREEN: FullscreenState = {
@@ -284,7 +285,6 @@ export default function App() {
     if (overlayWithCandidate) setStageAdvisorOverlay(overlayWithCandidate)
     if (recommendation.tool === 'road') {
       setRecommendedBuildType(null)
-      setActiveStageRecommendation(null)
       chooseTool({ kind: 'road' })
       setToast(`${item.title}：${recommendation.label}。`)
       return
@@ -574,6 +574,9 @@ export default function App() {
                   {item.recommendation.execution && (
                     <small>营造条件：{item.recommendation.execution.reason}</small>
                   )}
+                  {item.recommendation.roadPlan && (
+                    <small>{formatRoadPlanSummary(item.recommendation.roadPlan)}</small>
+                  )}
                   <em>{item.action}</em>
                   <div className="bottleneck-actions">
                     <button
@@ -769,25 +772,7 @@ interface CityBottleneck {
   detail: string
   cause: string
   action: string
-  recommendation: {
-    label: string
-    tool: 'road' | 'building' | 'inspect'
-    buildingType?: string
-    overlayMode?: StageAdvisorOverlayMode
-    availability?: {
-      unlocked: boolean
-      currentStageLabel: string
-      requiredStageLabel?: string
-      reason?: string
-    }
-    execution?: {
-      buildable: boolean
-      reason: string
-      candidate?: { x: number; y: number }
-      landCandidates: number
-      roadAnchors: number
-    }
-  }
+  recommendation: StageGovernanceRecommendation
   score: number
   severity: BottleneckSeverity
   target?: CityFocusTarget

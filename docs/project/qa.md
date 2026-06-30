@@ -9,6 +9,18 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-06-30 第六十二轮验证
+
+- TDD RED：`npx vitest run src/ui/placement/runtimePlacement.test.ts` 先失败，原因是 `./runtimePlacement` 模块不存在。
+- TDD GREEN：`npx vitest run src/ui/placement/runtimePlacement.test.ts`：1 个测试文件、2 项通过，覆盖 Runtime preview 作为 `PlacementValidator` 以及从 placing 状态派生 preview。
+- 目标回归：`npx vitest run src/ui/placement/runtimePlacement.test.ts src/ui/placement/placementMachine.test.ts src/integration/GameRuntime.test.ts`：3 个测试文件、16 项通过。
+- `npm test`：31 个测试文件、210 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 47.32 秒，总耗时 49.37 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- 服务连通性：`curl -I http://127.0.0.1:5173/` 与 `curl -I http://localhost:5173/` 均返回 `HTTP/1.1 200 OK`，Vite 进程监听 5173；用户若看到 `ERR_CONNECTION_REFUSED`，优先刷新页面或改用 `http://127.0.0.1:5173/`。
+- 浏览器 QA：前置回归中 `http://127.0.0.1:5173/` 打开正常，无 Vite 报错覆盖层，console 无 error/warn；选择“民居”后移动地图出现 5 个 preview cell，按 R 后 preview 仍保留，右键取消后工具回到“查看”且 preview cell 清零。本次用户反馈后复验时，Codex 内置浏览器自动化在导航阶段超时，未作为失败判定项目代码的依据。
+
+限制：本轮浏览器 QA 仍主要覆盖冲突红态和状态机交互；可营造绿态、确认成功后连续放置、道路拖拽/连续铺设和拆除入口未完成。
+
 ## 2026-06-30 第六十一轮验证
 
 - TDD RED：`npx vitest run src/integration/GameRuntime.test.ts` 先失败，原因是 `runtime.previewBuildingPlacement` 不存在。

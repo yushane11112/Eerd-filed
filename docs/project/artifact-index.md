@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-06-30：第六十二轮建筑试放状态机接入
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/ui/placement/runtimePlacement.ts` | UI/运行时适配层 | 将 Runtime placement preview 包装为 `PlacementValidator`，并从 `PlacementState` 派生真实预览 |
+| `src/ui/placement/runtimePlacement.test.ts` | 自动测试 | 覆盖 Runtime validator、placing preview、idle/no-anchor 无 preview |
+| `src/ui/index.ts` | UI 导出边界 | 导出 runtime placement 适配层，供组件统一使用 |
+| `src/components/SimulationCanvas.tsx` | UI 交互层 | 建筑试放 move/rotate/confirm/cancel/resume 改为 `PlacementController` 驱动 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `BUILD-PLACEMENT-CONTROLLER-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第六十二轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、浏览器 QA 结论和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、目标回归、全量测试、构建和浏览器验证结果 |
+
 ## 2026-06-30：第六十一轮建筑工具动态试放预览
 
 | 文件 | 产物类型 | 用途 |

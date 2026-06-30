@@ -47,6 +47,7 @@
 | GOVERNANCE-PLACEMENT-FOCUS-01 | 治理卡推荐落点提示 | `src/integration/stageAdvisor.ts`, `src/App.tsx`, `src/styles.css` | 已完成 | 点击建筑类治理建议会在地图标出建议落点和入口，并在建造菜单标出推荐建筑 |
 | GOVERNANCE-PLACEMENT-FOOTPRINT-01 | 治理卡推荐占地预览 | `src/integration/stageAdvisor.ts`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 点击建筑类治理建议会显示真实建筑 footprint、入口格和推荐建筑高亮 |
 | BUILD-PLACEMENT-PREVIEW-01 | 建筑工具动态试放预览 | `src/integration/GameRuntime.ts`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 选择建筑工具后，地图 hover 显示 footprint、入口和冲突原因，且预览不扣资源不落建筑 |
+| BUILD-PLACEMENT-CONTROLLER-01 | 建筑试放状态机接入 | `src/ui/placement/**`, `src/components/SimulationCanvas.tsx` | 已完成 | 选择、移动、旋转、确认、取消和重复放置由 PlacementController 驱动 |
 | CITY-STAGE-OVERLAY-SUMMARY-01 | 城市阶段覆盖图层摘要 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 覆盖图层显示住宅、服务缺口、物流热点和道路缺口摘要 |
 | CITY-STAGE-OVERLAY-METRICS-01 | 城市阶段覆盖图层结构化指标 | `src/integration/**` | 已完成 | 覆盖图层输出可供面板读取的结构化指标 |
 | CITY-STAGE-OVERLAY-PANEL-METRICS-01 | 城市阶段面板图层指标 | `src/App.tsx`, `src/styles.css` | 已完成 | 阶段面板显示当前打开图层的结构化指标 |

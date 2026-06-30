@@ -2,7 +2,7 @@ import { Application, Graphics } from 'pixi.js'
 import { useEffect, useRef, useState } from 'react'
 import { DynamicScene, gridToScreen, screenToGrid } from '../rendering'
 import type { CameraState, GridPoint, SimulationSnapshot } from '../simulation/contracts'
-import { CameraController, DragController } from '../ui'
+import { CameraController, DragController, PlacementController, deriveRuntimePlacementPreview, runtimePlacementValidator } from '../ui'
 import type { BuildingPlacementPreview, BuildTool, GameRuntime } from '../integration/GameRuntime'
 import type { StageAdvisorOverlay } from '../integration/stageAdvisor'
 
@@ -60,6 +60,7 @@ export function SimulationCanvas({
     fullscreen: false,
   }))
   const [placementPreview, setPlacementPreview] = useState<BuildingPlacementPreview | null>(null)
+  const placementControllerRef = useRef<PlacementController | null>(null)
   const cameraRef = useRef(new CameraController({
     bounds: WORLD_BOUNDS,
     zoom: { min: 0.48, max: 1.65 },
@@ -75,6 +76,9 @@ export function SimulationCanvas({
 
   snapshotRef.current = snapshot
   toolRef.current = tool
+  if (!placementControllerRef.current) {
+    placementControllerRef.current = new PlacementController(runtimePlacementValidator(runtime))
+  }
 
   useEffect(() => {
     const host = hostRef.current
@@ -159,14 +163,23 @@ export function SimulationCanvas({
 
   useEffect(() => {
     if (tool.kind !== 'building') {
+      placementControllerRef.current?.dispatch({ type: 'cancel' })
       setPlacementPreview(null)
       return
     }
-    setPlacementPreview((previous) => (
-      previous
-        ? runtime.previewBuildingPlacement(tool.type, previous.origin, tool.rotation)
-        : previous
-    ))
+    const state = placementControllerRef.current?.getState()
+    if (
+      state?.status !== 'placing'
+      || state.buildingType !== tool.type
+      || state.rotation !== tool.rotation
+    ) {
+      placementControllerRef.current?.dispatch({
+        type: 'select',
+        buildingType: tool.type,
+        rotation: tool.rotation,
+      })
+    }
+    syncPlacementPreview()
   }, [runtime, tool])
 
   useEffect(() => {
@@ -174,11 +187,12 @@ export function SimulationCanvas({
       if (event.key.toLowerCase() !== 'r') return
       const current = toolRef.current
       if (current.kind !== 'building') return
-      const rotations = [0, 90, 180, 270] as const
-      const next = rotations[(rotations.indexOf(current.rotation) + 1) % rotations.length]
+      const nextState = placementControllerRef.current?.dispatch({ type: 'rotate' })
+      const next = nextState?.status === 'placing' ? nextState.rotation : current.rotation
       const rotated: BuildTool = { ...current, rotation: next }
       toolRef.current = rotated
       onToolChange(rotated)
+      syncPlacementPreview()
       onToast(`建筑已旋转至 ${next}°（本次放置生效）`)
     }
     window.addEventListener('keydown', handleKey)
@@ -265,9 +279,20 @@ export function SimulationCanvas({
       const result = runtime.placeRoad(point)
       onToast(result.message)
     } else if (currentTool.kind === 'building') {
-      const result = runtime.placeBuilding(currentTool.type, point, currentTool.rotation)
+      const controller = placementControllerRef.current
+      controller?.dispatch({ type: 'move', anchor: point })
+      const confirmed = controller?.dispatch({ type: 'confirm' })
+      if (confirmed?.status !== 'confirmed') {
+        const preview = deriveRuntimePlacementPreview(controller?.getState() ?? { status: 'idle' }, runtime)
+        onToast(preview?.reason ?? '当前位置不可营造')
+        syncPlacementPreview()
+        return
+      }
+      const result = runtime.placeBuilding(confirmed.buildingType, confirmed.anchor, confirmed.rotation)
       onToast(result.message)
       if (result.buildingId) onBuildingSelect(result.buildingId)
+      controller?.dispatch({ type: 'resume' })
+      syncPlacementPreview()
     } else {
       onBuildingSelect(runtime.buildingAt(point) ?? null)
     }
@@ -290,7 +315,14 @@ export function SimulationCanvas({
       return
     }
     const anchor = { x: Math.round(rawPoint.x), y: Math.round(rawPoint.y) }
-    const preview = runtime.previewBuildingPlacement(currentTool.type, anchor, currentTool.rotation)
+    const controller = placementControllerRef.current
+    if (!controller) return
+    const state = controller.dispatch({ type: 'move', anchor })
+    const preview = deriveRuntimePlacementPreview(state, runtime)
+    if (!preview) {
+      setPlacementPreview(null)
+      return
+    }
     setPlacementPreview((previous) => (
       previous
       && previous.type === preview.type
@@ -302,6 +334,12 @@ export function SimulationCanvas({
         ? previous
         : preview
     ))
+  }
+
+  const syncPlacementPreview = () => {
+    const controller = placementControllerRef.current
+    const preview = controller ? deriveRuntimePlacementPreview(controller.getState(), runtime) : null
+    setPlacementPreview(preview)
   }
 
   return (
@@ -319,6 +357,8 @@ export function SimulationCanvas({
       onContextMenu={(event) => {
         event.preventDefault()
         const inspect: BuildTool = { kind: 'inspect' }
+        placementControllerRef.current?.dispatch({ type: 'cancel' })
+        setPlacementPreview(null)
         toolRef.current = inspect
         onToolChange(inspect)
         onToast('已退出当前营造操作')

@@ -2,6 +2,12 @@
 
 ## 2026-06-30
 
+- 启动并完成第六十二轮：`BUILD-PLACEMENT-CONTROLLER-01`。建筑试放主流程开始接入 `PlacementController`，不再由 `SimulationCanvas` 分散维护 move/rotate/confirm/cancel 逻辑。
+- 新增 `src/ui/placement/runtimePlacement.ts`：将 `GameRuntime.previewBuildingPlacement` 包装为 `PlacementValidator`，并能从 `PlacementState` 派生真实 Runtime preview。该适配层有单元测试覆盖可营造、入口未连路和 idle/no-anchor 无 preview。
+- `SimulationCanvas` 内部使用 `PlacementController` 驱动建筑选择、地图移动、R 旋转、点击确认、右键取消和成功后的 resume repeated placement；预览仍由同一 Runtime 规则生成。
+- 浏览器 QA 验证：选择“民居”后移动地图出现 5 个 preview cell；按 R 后 preview 仍保留；右键取消后 active 工具回到“查看”、preview cell 清零；console 无 error/warn。
+- 限制：本轮仍未完成浏览器可营造绿态、确认成功后连续放置、道路拖拽/连续铺设和拆除模式。
+
 - 启动并完成第六十一轮：`BUILD-PLACEMENT-PREVIEW-01`。建筑工具获得动态试放预览，玩家选择民居/粮仓/集市等建筑后，鼠标移动到地图会显示当前 anchor 的 footprint、入口和冲突格。
 - 新增 `GameRuntime.previewBuildingPlacement`，复用 `WorldGrid.validateBuildingPlacement`，保证试放预览和实际点击放置使用同一套道路、地形、建筑占用和边界规则；preview 不扣银两、不扣仓储材料、不创建建筑。
 - `SimulationCanvas` 新增 `placement-preview-layer`，显示可营造/不可营造状态条，支持 R 旋转后在原位置重新校验；右键仍可取消当前营造工具。

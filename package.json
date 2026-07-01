@@ -13,6 +13,7 @@
     "qa:bridge-gaps": "vitest run src/qa/bridgeGapScenarios.test.ts",
     "qa:logistics-hotspots": "vitest run src/qa/logisticsHotspotScenarios.test.ts",
     "qa:service-governance": "vitest run src/qa/serviceGovernanceScenarios.test.ts",
+    "qa:browser-e2e:contract": "vitest run src/qa/browserE2eScenarios.test.ts && vite-node src/qa/browserE2eRunner.ts",
     "asset:validate:self-test": "node tools/asset-validator/self-test.js",
     "asset:validate:gold-fixture": "node tools/asset-validator/asset-validator.js --building tools/asset-validator/fixtures/valid-building-manifest.json --animation tools/asset-validator/fixtures/valid-animation-manifest.json",
     "asset:validate:main-pier": "node tools/asset-validator/asset-validator.js --building docs/project/gold-slice/sample-manifests/main-pier/building-manifest.json --animation docs/project/gold-slice/sample-manifests/main-pier/animation-manifest.json",

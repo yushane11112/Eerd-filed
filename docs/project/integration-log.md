@@ -2,6 +2,12 @@
 
 ## 2026-07-01
 
+- 启动并完成第八十二轮：`BROWSER-E2E-CONTRACT-01`。浏览器 E2E 从分散文档描述推进为项目内可验证场景契约。
+- 新增 `src/qa/browserE2eScenarios.ts`：集中声明 `road-plan-success`、`road-plan-low-treasury`、`bridge-gap`、`logistics-hotspot`、`service-governance` 五个浏览器场景的 URL、必须可见文案和禁止 console 级别。
+- 新增 `src/qa/browserE2eScenarios.test.ts`：固定场景顺序、URL、文案断言和 console error 门禁，防止后续调试入口或卡片文案变更时 E2E 契约悄悄失效。
+- 新增 `src/qa/browserE2eRunner.ts` 与 `npm run qa:browser-e2e:contract`：命令会输出可审计 JSON，列出当前浏览器场景契约。
+- 限制：本轮不是实际浏览器驱动执行器；它不打开页面、不点击治理卡、不捕获真实 console。下一轮必须接入真实浏览器驱动器，否则仍不能替代人工浏览器 QA。
+
 - 启动并完成第八十一轮：`LOGISTICS-HOTSPOT-QA-01`。物流热点治理进入可重复 QA 场景库。
 - `RuntimeDebugScenario` 新增 `logistics-hotspot`：启动预热后重新注入 3 条未完成入货订单，稳定制造同一市场入货端拥堵。
 - `runtimeOptionsFromSearch` 支持 `?debugScenario=logistics-hotspot`，后续浏览器 E2E 可直接打开该固定物流热点场景。

@@ -67,6 +67,7 @@
 | SERVICE-GOVERNANCE-QA-01 | 服务缺口治理 QA 命令 | `src/integration/stageAdvisor.ts`, `src/qa/serviceGovernanceScenarios.ts`, `package.json` | 已完成 | `npm run qa:service-governance` 可验证服务缺口推荐市场落点建成后确实减少缺口 |
 | BRIDGE-GAP-QA-01 | 桥梁缺口治理 QA 命令 | `src/integration/GameRuntime.ts`, `src/ui/runtimeOptions.ts`, `src/qa/bridgeGapScenarios.ts`, `package.json` | 已完成 | `npm run qa:bridge-gaps` 可验证水面断点会生成桥梁施工计划，一键施工后孤立路网下降 |
 | LOGISTICS-HOTSPOT-QA-01 | 物流热点治理 QA 命令 | `src/integration/GameRuntime.ts`, `src/integration/stageAdvisor.ts`, `src/ui/runtimeOptions.ts`, `src/qa/logisticsHotspotScenarios.ts`, `package.json` | 已完成 | `npm run qa:logistics-hotspots` 可验证多条入货订单压向同一市场时生成物流热点治理卡，并优先定位入货端 |
+| BROWSER-E2E-CONTRACT-01 | 浏览器 E2E 场景契约 | `src/qa/browserE2eScenarios.ts`, `src/qa/browserE2eRunner.ts`, `package.json` | 已完成 | `npm run qa:browser-e2e:contract` 可列出并校验 5 个固定治理浏览器场景的 URL、可见文案和 console error 门禁 |
 | CITY-STAGE-OVERLAY-SUMMARY-01 | 城市阶段覆盖图层摘要 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 覆盖图层显示住宅、服务缺口、物流热点和道路缺口摘要 |
 | CITY-STAGE-OVERLAY-METRICS-01 | 城市阶段覆盖图层结构化指标 | `src/integration/**` | 已完成 | 覆盖图层输出可供面板读取的结构化指标 |
 | CITY-STAGE-OVERLAY-PANEL-METRICS-01 | 城市阶段面板图层指标 | `src/App.tsx`, `src/styles.css` | 已完成 | 阶段面板显示当前打开图层的结构化指标 |

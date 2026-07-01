@@ -9,6 +9,17 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-01 第八十二轮验证
+
+- TDD RED：`npx vitest run src/qa/browserE2eScenarios.test.ts` 先失败，原因是 `src/qa/browserE2eScenarios.ts` 不存在。
+- TDD GREEN：新增浏览器 E2E 场景契约后，同一测试通过；固定 5 个场景的 URL、可见文案和 console error 门禁。
+- 新增固定 QA 命令：`npm run qa:browser-e2e:contract`，实际运行 1 个测试文件、2 项通过，并输出 5 个浏览器场景的 JSON 契约。
+- 目标回归：`npm run qa:browser-e2e:contract && npx vitest run src/qa/browserE2eScenarios.test.ts src/ui/runtimeOptions.test.ts src/qa/roadPlanScenarios.test.ts src/qa/bridgeGapScenarios.test.ts src/qa/logisticsHotspotScenarios.test.ts src/qa/serviceGovernanceScenarios.test.ts`：6 个测试文件、11 项通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `npm test`：39 个测试文件、239 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 48.55 秒，总耗时约 52.90 秒。
+
+限制：本轮只是浏览器 E2E 契约，不是实际浏览器驱动执行器；它不能证明 DOM 真的渲染了这些文案，也不能捕获真实 console error。
+
 ## 2026-07-01 第八十一轮验证
 
 - TDD RED：`npx vitest run src/qa/logisticsHotspotScenarios.test.ts` 先失败，原因是 `src/qa/logisticsHotspotScenarios.ts` 不存在。

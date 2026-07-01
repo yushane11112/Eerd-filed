@@ -2,6 +2,20 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-01：第八十二轮浏览器 E2E 场景契约
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/qa/browserE2eScenarios.ts` | 浏览器 E2E 场景契约 | 集中声明 5 个治理场景的 URL、可见文案断言和 console error 门禁 |
+| `src/qa/browserE2eScenarios.test.ts` | 自动测试 | 固定场景清单、URL 和断言，防止契约漂移 |
+| `src/qa/browserE2eRunner.ts` | QA 命令入口 | 输出浏览器 E2E 场景契约 JSON，供后续真实浏览器驱动器复用 |
+| `package.json` | QA 命令入口 | 新增 `npm run qa:browser-e2e:contract` |
+| `docs/project/task-board.md` | 任务看板 | 记录 `BROWSER-E2E-CONTRACT-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第八十二轮进展、QA 完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、验证和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、目标测试和构建 |
+| `docs/project/artifact-index.md` | 产物索引 | 记录本轮真实新增/修改文件 |
+
 ## 2026-07-01：第八十一轮物流热点治理 QA 命令
 
 | 文件 | 产物类型 | 用途 |

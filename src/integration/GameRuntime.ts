@@ -98,7 +98,10 @@ export interface RoadPlanConstructionInput {
   }>
 }
 
-export type RuntimeDebugScenario = 'isolated-road-network' | 'isolated-road-network-low-treasury'
+export type RuntimeDebugScenario =
+  | 'isolated-road-network'
+  | 'isolated-road-network-low-treasury'
+  | 'bridge-gap'
 
 export interface GameRuntimeOptions {
   initialTreasury?: number
@@ -177,6 +180,9 @@ export class GameRuntime {
     const buildings = this.seedBuildings()
     if (isIsolatedRoadNetworkScenario(options.debugScenario)) {
       this.applyIsolatedRoadNetworkScenario(buildings)
+    }
+    if (options.debugScenario === 'bridge-gap') {
+      this.applyBridgeGapScenario()
     }
     const initial = createInitialSimulationSnapshot({
       seed: 20260625,
@@ -890,6 +896,10 @@ export class GameRuntime {
     if (placement.valid && placement.entrance) {
       buildings[id] = createBuilding(id, type, origin, placement.entrance, rotation)
     }
+  }
+
+  private applyBridgeGapScenario() {
+    this.grid.placeRoad({ x: 0, y: 11 }, 'bridge')
   }
 
   private createEngine(snapshot: SimulationSnapshot) {

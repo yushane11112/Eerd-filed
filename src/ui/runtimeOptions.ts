@@ -3,6 +3,7 @@ import type { GameRuntimeOptions } from '../integration/GameRuntime'
 const DEBUG_SCENARIOS = new Set<GameRuntimeOptions['debugScenario']>([
   'isolated-road-network',
   'isolated-road-network-low-treasury',
+  'bridge-gap',
 ])
 
 export function runtimeOptionsFromSearch(search: string): GameRuntimeOptions {

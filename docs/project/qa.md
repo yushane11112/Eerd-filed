@@ -9,6 +9,17 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-01 第八十轮验证
+
+- TDD RED：`npx vitest run src/qa/bridgeGapScenarios.test.ts` 先失败，原因是 `src/qa/bridgeGapScenarios.ts` 不存在。
+- TDD GREEN：新增 `bridge-gap` 场景与 `npm run qa:bridge-gaps` 后，固定验证水面断点产生 2 格桥梁 roadPlan、施工花费 36 银两、施工后孤立路网下降。
+- URL 调试入口：`runtimeOptionsFromSearch('?debugScenario=bridge-gap')` 有独立测试覆盖，避免桥梁场景只存在于运行时无法浏览器打开。
+- 目标回归：`npm run qa:bridge-gaps && npx vitest run src/qa/bridgeGapScenarios.test.ts src/qa/roadPlanScenarios.test.ts src/ui/runtimeOptions.test.ts src/integration/GameRuntime.test.ts src/integration/stageAdvisor.test.ts`：5 个测试文件、43 项通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `npm test`：37 个测试文件、235 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 45.77 秒，总耗时约 51.76 秒。
+
+限制：本轮是运行时/治理 QA 命令，不是浏览器脚本化 E2E；桥头吸附、桥梁施工动画和正式桥梁资产仍未完成。
+
 ## 2026-07-01 第七十九轮验证
 
 - TDD RED：`npx vitest run src/qa/serviceGovernanceScenarios.test.ts` 先失败，原因是 `src/qa/serviceGovernanceScenarios.ts` 不存在。

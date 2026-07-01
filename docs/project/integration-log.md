@@ -2,6 +2,13 @@
 
 ## 2026-07-01
 
+- 启动并完成第八十轮：`BRIDGE-GAP-QA-01`。桥梁缺口治理进入可重复 QA 场景库。
+- `RuntimeDebugScenario` 新增 `bridge-gap`：在默认水岸制造一个隔水孤立桥路端点，使道路治理稳定产出 2 格桥梁 roadPlan。
+- `runtimeOptionsFromSearch` 支持 `?debugScenario=bridge-gap`，后续浏览器 E2E 可直接打开该固定桥梁缺口场景。
+- 新增 `src/qa/bridgeGapScenarios.ts` 与 `src/qa/bridgeGapScenarios.test.ts`：校验水面断点前置道路指标、桥梁格数、成本、执行结果和后置孤立路网下降。
+- 新增 `npm run qa:bridge-gaps`，固定验证“水面断点 → 推荐补桥 → 一键施工 → 孤立路网下降”的链路。
+- 限制：本轮是运行时/治理 QA 命令，不是浏览器脚本化 E2E；桥头吸附、桥梁施工动画和正式桥梁资产仍未完成。
+
 - 启动并完成第七十九轮：`SERVICE-GOVERNANCE-QA-01`。服务缺口治理进入可重复 QA 场景库。
 - 新增 `src/qa/serviceGovernanceScenarios.ts`：从默认城市读取服务缺口治理卡，校验推荐建筑、营造成本、执行结果和服务缺口变化。
 - 新增 `npm run qa:service-governance`，固定验证“服务缺口 → 推荐营造市场 → 市场建成 → 服务缺口下降”的链路。

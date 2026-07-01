@@ -14,6 +14,12 @@ describe('runtime URL options', () => {
     })
   })
 
+  it('enables the bridge gap debug scenario', () => {
+    expect(runtimeOptionsFromSearch('?debugScenario=bridge-gap')).toEqual({
+      debugScenario: 'bridge-gap',
+    })
+  })
+
   it('ignores unknown debug scenarios', () => {
     expect(runtimeOptionsFromSearch('?debugScenario=unknown')).toEqual({})
   })

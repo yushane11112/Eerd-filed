@@ -2,6 +2,13 @@
 
 ## 2026-07-01
 
+- 启动并完成第七十七轮：`ROAD-LINK-LOW-TREASURY-E2E-01`。道路补线 E2E 从“成功施工”扩展到“财政不足失败”场景。
+- `RuntimeDebugScenario` 新增 `isolated-road-network-low-treasury`：复用孤立路网缺口，但初始财政固定为 4，使 roadPlan 需要 6 银两时稳定显示缺口 2。
+- `runtimeOptionsFromSearch` 支持 `?debugScenario=isolated-road-network-low-treasury`，未知参数仍忽略。
+- `GameRuntime` 测试覆盖低财政 roadPlan：治理卡显示 `canAfford: false`、`missingTreasury: 2`；执行补线失败、不扣财政、保留缺钱统计。
+- 浏览器 E2E 验证：低财政 URL 下，卡片显示“还缺银两 2”；点击推荐后 toast 显示“银两不足2，无法执行补线施工”，财政仍为 4，补线 overlay 保留供手动调整，console error 为 0。
+- 限制：浏览器步骤仍是本轮临时代码执行，下一轮需要沉淀成可复用脚本或固定 QA 命令。
+
 - 启动并完成第七十六轮：`ROAD-LINK-E2E-SCENARIO-01`。道路补线闭环获得可控调试/E2E 场景，不再依赖默认城市随机出现孤立路网。
 - `GameRuntime` 新增 `debugScenario: 'isolated-road-network'` 选项：启动时制造一栋入口贴着孤立道路的调试民居，并在主路网旁留下一个明确缺口，使治理系统稳定生成 roadPlan。
 - 新增 `src/ui/runtimeOptions.ts`：`?debugScenario=isolated-road-network` 会创建对应调试运行时；未知调试参数会被忽略。

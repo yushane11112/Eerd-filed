@@ -8,6 +8,12 @@ describe('runtime URL options', () => {
     })
   })
 
+  it('enables the low treasury isolated road network debug scenario', () => {
+    expect(runtimeOptionsFromSearch('?debugScenario=isolated-road-network-low-treasury')).toEqual({
+      debugScenario: 'isolated-road-network-low-treasury',
+    })
+  })
+
   it('ignores unknown debug scenarios', () => {
     expect(runtimeOptionsFromSearch('?debugScenario=unknown')).toEqual({})
   })

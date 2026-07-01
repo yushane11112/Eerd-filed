@@ -62,6 +62,7 @@
 | ROAD-LINK-PLAN-UI-01 | 补线施工计划 UI 摘要 | `src/App.tsx`, `src/ui/cityAdvisorUi.ts`, `src/integration/stageAdvisor.ts`, `src/styles.css` | 已完成 | 治理卡可显示补线路/桥格数、银两成本和缺口，点击推荐会保留补线 overlay 高亮数据 |
 | ROAD-LINK-ONE-CLICK-01 | 补线计划一键施工 | `src/integration/GameRuntime.ts`, `src/integration/GameRuntime.test.ts`, `src/App.tsx` | 已完成 | 治理卡 roadPlan 可自动执行混合道路/桥梁施工，按财政逐格处理并反馈跳过/缺钱 |
 | ROAD-LINK-E2E-SCENARIO-01 | 孤立路网调试/E2E 场景 | `src/integration/GameRuntime.ts`, `src/ui/runtimeOptions.ts`, `src/App.tsx` | 已完成 | URL 可稳定打开孤立路网场景，浏览器覆盖 roadPlan 卡出现、一键施工和补线提示清理 |
+| ROAD-LINK-LOW-TREASURY-E2E-01 | 补线财政不足调试场景 | `src/integration/GameRuntime.ts`, `src/ui/runtimeOptions.ts`, `src/integration/GameRuntime.test.ts` | 已完成 | URL 可稳定打开补线缺钱场景，验证 roadPlan 不可支付、点击失败不扣钱并保留施工提示 |
 | CITY-STAGE-OVERLAY-SUMMARY-01 | 城市阶段覆盖图层摘要 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 覆盖图层显示住宅、服务缺口、物流热点和道路缺口摘要 |
 | CITY-STAGE-OVERLAY-METRICS-01 | 城市阶段覆盖图层结构化指标 | `src/integration/**` | 已完成 | 覆盖图层输出可供面板读取的结构化指标 |
 | CITY-STAGE-OVERLAY-PANEL-METRICS-01 | 城市阶段面板图层指标 | `src/App.tsx`, `src/styles.css` | 已完成 | 阶段面板显示当前打开图层的结构化指标 |

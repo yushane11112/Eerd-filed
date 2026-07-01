@@ -227,6 +227,39 @@ describe('GameRuntime integration', () => {
     expect(afterMetrics.isolatedRoadNetworks).toBeLessThan(beforeMetrics.isolatedRoadNetworks)
   })
 
+  it('provides a low treasury debug scenario for road plan affordability failures', () => {
+    const runtime = new GameRuntime({ debugScenario: 'isolated-road-network-low-treasury' })
+    const roadCard = deriveStageGovernanceCards(runtime.getSnapshot())
+      .find((card) => card.id === 'governance-road-disconnected')
+
+    expect(runtime.getSnapshot().economy.treasury).toBe(4)
+    expect(roadCard?.recommendation.roadPlan).toMatchObject({
+      roadCells: 1,
+      treasuryCost: 6,
+      missingTreasury: 2,
+      canAfford: false,
+    })
+
+    const result = runtime.buildRoadPlan({
+      cells: roadCard!.recommendation.roadPlan!.cells.map((cell) => ({
+        point: cell.point,
+        kind: cell.kind,
+      })),
+    })
+
+    expect(result).toMatchObject({
+      ok: false,
+      message: '银两不足2，无法执行补线施工。',
+      roadPath: {
+        placed: 0,
+        skipped: 1,
+        unaffordable: 1,
+        missingTreasury: 2,
+      },
+    })
+    expect(runtime.getSnapshot().economy.treasury).toBe(4)
+  })
+
   it('removes roads along a dragged path and reports cells that were not roads', () => {
     const runtime = new GameRuntime()
     runtime.placeRoadPath([

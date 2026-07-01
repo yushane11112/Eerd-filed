@@ -2,6 +2,20 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-01：第七十七轮补线财政不足调试场景
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/GameRuntime.ts` | 运行时调试场景 | 新增 `isolated-road-network-low-treasury`，稳定制造不可支付 roadPlan |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 覆盖低财政 roadPlan 显示缺口、执行失败、不扣财政 |
+| `src/ui/runtimeOptions.ts` | UI 启动参数 | URL 支持低财政调试场景 |
+| `src/ui/runtimeOptions.test.ts` | 自动测试 | 覆盖低财政调试场景 URL 参数解析 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `ROAD-LINK-LOW-TREASURY-E2E-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第七十七轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、浏览器 E2E 和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、目标测试、全量测试、构建和浏览器 E2E |
+| `docs/project/artifact-index.md` | 产物索引 | 记录本轮真实新增/修改文件 |
+
 ## 2026-07-01：第七十六轮孤立路网调试/E2E 场景
 
 | 文件 | 产物类型 | 用途 |

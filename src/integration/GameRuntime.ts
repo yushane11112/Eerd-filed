@@ -98,7 +98,7 @@ export interface RoadPlanConstructionInput {
   }>
 }
 
-export type RuntimeDebugScenario = 'isolated-road-network'
+export type RuntimeDebugScenario = 'isolated-road-network' | 'isolated-road-network-low-treasury'
 
 export interface GameRuntimeOptions {
   initialTreasury?: number
@@ -175,13 +175,13 @@ export class GameRuntime {
     this.grid = new WorldGrid(28, 22, [], 'land')
     this.seedTerrainAndRoads()
     const buildings = this.seedBuildings()
-    if (options.debugScenario === 'isolated-road-network') {
+    if (isIsolatedRoadNetworkScenario(options.debugScenario)) {
       this.applyIsolatedRoadNetworkScenario(buildings)
     }
     const initial = createInitialSimulationSnapshot({
       seed: 20260625,
       buildings,
-      treasury: options.initialTreasury ?? 2400,
+      treasury: options.initialTreasury ?? debugScenarioInitialTreasury(options.debugScenario) ?? 2400,
       dayKey: localDayKey(Date.now()),
     })
     initial.cells = this.grid.toCells()
@@ -976,6 +976,15 @@ function createBuilding(
     inventory: { ...inventory },
     productionProgress: 0,
   }
+}
+
+function isIsolatedRoadNetworkScenario(scenario: RuntimeDebugScenario | undefined): boolean {
+  return scenario === 'isolated-road-network' || scenario === 'isolated-road-network-low-treasury'
+}
+
+function debugScenarioInitialTreasury(scenario: RuntimeDebugScenario | undefined): number | undefined {
+  if (scenario === 'isolated-road-network-low-treasury') return 4
+  return undefined
 }
 
 function cloneBuildings(buildings: Record<string, BuildingEntity>): Record<string, BuildingEntity> {

@@ -2,6 +2,21 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-01：第八十三轮真实浏览器 E2E 执行器
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 浏览器 E2E 执行器 | 构建后启动 Vite preview，用 Playwright Chromium 打开场景、检查文案/console，并执行声明的点击动作 |
+| `src/qa/browserE2eScenarios.ts` | 浏览器 E2E 场景契约 | 为 road-plan-success 增加点击动作；修正物流热点 UI 可见文案 |
+| `src/qa/browserE2eScenarios.test.ts` | 自动测试 | 覆盖至少一个真实 interaction，并验证 runner payload 输出 interaction |
+| `src/qa/browserE2eRunner.ts` | 契约输出器 | 导出 `browserE2eContractPayload`，CLI 输出包含 interaction 的 JSON |
+| `package.json`, `package-lock.json` | QA 命令与依赖 | 新增 Playwright devDependency 和 `npm run qa:browser-e2e` |
+| `docs/project/task-board.md` | 任务看板 | 记录 `BROWSER-E2E-RUNNER-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第八十三轮进展、QA 完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、验证和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、真实浏览器 E2E、目标测试和构建 |
+| `docs/project/artifact-index.md` | 产物索引 | 记录本轮真实新增/修改文件 |
+
 ## 2026-07-01：第八十二轮浏览器 E2E 场景契约
 
 | 文件 | 产物类型 | 用途 |

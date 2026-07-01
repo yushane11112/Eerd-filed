@@ -6,6 +6,10 @@ export interface BrowserE2eScenario {
   path: string
   mustContainText: string[]
   forbiddenConsoleLevels: BrowserConsoleLevel[]
+  interaction?: {
+    clickText: string
+    expectToastText: string
+  }
 }
 
 export const BROWSER_E2E_SCENARIOS: BrowserE2eScenario[] = [
@@ -15,6 +19,10 @@ export const BROWSER_E2E_SCENARIOS: BrowserE2eScenario[] = [
     path: '/?debugScenario=isolated-road-network',
     mustContainText: ['道路未连通', '补线计划'],
     forbiddenConsoleLevels: ['error'],
+    interaction: {
+      clickText: '打开道路图层并接回主路网',
+      expectToastText: '补线施工完成',
+    },
   },
   {
     id: 'road-plan-low-treasury',
@@ -34,7 +42,7 @@ export const BROWSER_E2E_SCENARIOS: BrowserE2eScenario[] = [
     id: 'logistics-hotspot',
     title: '物流热点浏览器场景',
     path: '/?debugScenario=logistics-hotspot',
-    mustContainText: ['物流热点拥堵', '物流热点x3'],
+    mustContainText: ['物流热点拥堵', '当前有 3 条未完成订单'],
     forbiddenConsoleLevels: ['error'],
   },
   {
@@ -70,6 +78,14 @@ export function validateBrowserE2eScenarios(
     }
     if (!scenario.forbiddenConsoleLevels.includes('error')) {
       errors.push(`Scenario ${scenario.id} must fail on console errors`)
+    }
+    if (scenario.interaction) {
+      if (!scenario.interaction.clickText.trim()) {
+        errors.push(`Scenario ${scenario.id} interaction clickText is required`)
+      }
+      if (!scenario.interaction.expectToastText.trim()) {
+        errors.push(`Scenario ${scenario.id} interaction expectToastText is required`)
+      }
     }
   }
 

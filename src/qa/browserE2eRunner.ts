@@ -4,6 +4,7 @@ import {
 } from './browserE2eScenarios'
 
 declare const process: {
+  env: Record<string, string | undefined>
   exit(code?: number): never
 }
 
@@ -24,17 +25,23 @@ export function runBrowserE2eContractCheck(): BrowserE2eContractRunResult {
   }
 }
 
-const result = runBrowserE2eContractCheck()
-const payload = {
-  ...result,
-  scenarios: BROWSER_E2E_SCENARIOS.map((scenario) => ({
-    id: scenario.id,
-    title: scenario.title,
-    path: scenario.path,
-    mustContainText: scenario.mustContainText,
-    forbiddenConsoleLevels: scenario.forbiddenConsoleLevels,
-  })),
+export function browserE2eContractPayload() {
+  const result = runBrowserE2eContractCheck()
+  return {
+    ...result,
+    scenarios: BROWSER_E2E_SCENARIOS.map((scenario) => ({
+      id: scenario.id,
+      title: scenario.title,
+      path: scenario.path,
+      mustContainText: scenario.mustContainText,
+      forbiddenConsoleLevels: scenario.forbiddenConsoleLevels,
+      interaction: scenario.interaction ?? null,
+    })),
+  }
 }
 
-console.log(JSON.stringify(payload, null, 2))
-if (!result.ok) process.exit(1)
+if (process.env.BROWSER_E2E_CONTRACT_CLI === '1') {
+  const payload = browserE2eContractPayload()
+  console.log(JSON.stringify(payload, null, 2))
+  if (!payload.ok) process.exit(1)
+}

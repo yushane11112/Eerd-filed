@@ -4,6 +4,7 @@ import {
   browserE2eScenarioById,
   validateBrowserE2eScenarios,
 } from './browserE2eScenarios'
+import { browserE2eContractPayload } from './browserE2eRunner'
 
 describe('browser E2E scenario contract', () => {
   it('covers every fixed governance debug scenario with URL and visible assertions', () => {
@@ -37,7 +38,7 @@ describe('browser E2E scenario contract', () => {
       expect.objectContaining({
         id: 'logistics-hotspot',
         path: '/?debugScenario=logistics-hotspot',
-        mustContainText: expect.arrayContaining(['物流热点拥堵', '物流热点x3']),
+        mustContainText: expect.arrayContaining(['物流热点拥堵', '当前有 3 条未完成订单']),
         forbiddenConsoleLevels: ['error'],
       }),
       expect.objectContaining({
@@ -55,5 +56,27 @@ describe('browser E2E scenario contract', () => {
       path: '/?debugScenario=logistics-hotspot',
     })
     expect(browserE2eScenarioById('missing')).toBeUndefined()
+  })
+
+  it('declares at least one real browser interaction instead of only page text checks', () => {
+    expect(BROWSER_E2E_SCENARIOS.some((scenario) => scenario.interaction)).toBe(true)
+    expect(browserE2eScenarioById('road-plan-success')).toMatchObject({
+      interaction: {
+        clickText: '打开道路图层并接回主路网',
+        expectToastText: '补线施工完成',
+      },
+    })
+  })
+
+  it('exports interaction metadata for real browser runners', () => {
+    expect(browserE2eContractPayload().scenarios).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'road-plan-success',
+        interaction: {
+          clickText: '打开道路图层并接回主路网',
+          expectToastText: '补线施工完成',
+        },
+      }),
+    ]))
   })
 })

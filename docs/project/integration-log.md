@@ -2,6 +2,14 @@
 
 ## 2026-07-01
 
+- 启动并完成第八十三轮：`BROWSER-E2E-RUNNER-01`。浏览器 E2E 从契约清单推进为真实 Chromium 执行器。
+- 新增 `tools/browser-e2e/run-browser-e2e.cjs`：脚本会读取 `browserE2eRunner` 输出的场景契约，启动 Vite preview，使用 Playwright Chromium 逐个打开场景 URL，检查必须可见文案，收集 console/pageerror，并按场景声明执行点击动作。
+- `package.json` 新增 `npm run qa:browser-e2e`，该命令会先构建生产包，再运行真实浏览器 E2E；`BROWSER_E2E_SCENARIO=<id>` 可只跑单个场景。
+- `browserE2eScenarios` 为 `road-plan-success` 增加真实 interaction：点击“打开道路图层并接回主路网”，等待“补线施工完成”toast。
+- 修正物流浏览器契约：UI 实际显示的是“当前有 3 条未完成订单”，不是数据层目标标签“物流热点x3”。
+- 验证：`npm run qa:browser-e2e` 已真实打开 5 个场景，5/5 通过；road-plan-success 完成真实点击，只有 WebGL performance warning，没有 console error。
+- 限制：当前只有 road-plan-success 有点击动作；低财政失败、服务治理、桥梁缺口和物流热点仍主要是可见文案/console 检查。
+
 - 启动并完成第八十二轮：`BROWSER-E2E-CONTRACT-01`。浏览器 E2E 从分散文档描述推进为项目内可验证场景契约。
 - 新增 `src/qa/browserE2eScenarios.ts`：集中声明 `road-plan-success`、`road-plan-low-treasury`、`bridge-gap`、`logistics-hotspot`、`service-governance` 五个浏览器场景的 URL、必须可见文案和禁止 console 级别。
 - 新增 `src/qa/browserE2eScenarios.test.ts`：固定场景顺序、URL、文案断言和 console error 门禁，防止后续调试入口或卡片文案变更时 E2E 契约悄悄失效。

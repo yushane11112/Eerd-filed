@@ -102,6 +102,7 @@ export type RuntimeDebugScenario =
   | 'isolated-road-network'
   | 'isolated-road-network-low-treasury'
   | 'bridge-gap'
+  | 'logistics-hotspot'
 
 export interface GameRuntimeOptions {
   initialTreasury?: number
@@ -199,6 +200,11 @@ export class GameRuntime {
     this.applyDistrictProsperity(initial)
     this.engine = this.createEngine(initial)
     this.engine.step(45)
+    if (options.debugScenario === 'logistics-hotspot') {
+      const debugSnapshot = this.engine.snapshot
+      this.applyLogisticsHotspotScenario(debugSnapshot)
+      this.engine = this.createEngine(debugSnapshot)
+    }
     this.snapshotCache = this.withDistrictProsperity(this.engine.snapshot)
   }
 
@@ -900,6 +906,66 @@ export class GameRuntime {
 
   private applyBridgeGapScenario() {
     this.grid.placeRoad({ x: 0, y: 11 }, 'bridge')
+  }
+
+  private applyLogisticsHotspotScenario(snapshot: SimulationSnapshot) {
+    snapshot.buildings['granary-1'].inventory = {
+      ...snapshot.buildings['granary-1'].inventory,
+      cloth: 12,
+      medicine: 12,
+    }
+    snapshot.logisticsOrders = {
+      'debug-food-inbound': {
+        id: 'debug-food-inbound',
+        resource: 'food',
+        amount: 5,
+        sourceBuildingId: 'granary-1',
+        destinationBuildingId: 'market-1',
+        priority: 90,
+        state: 'waiting',
+      },
+      'debug-cloth-inbound': {
+        id: 'debug-cloth-inbound',
+        resource: 'cloth',
+        amount: 4,
+        sourceBuildingId: 'granary-1',
+        destinationBuildingId: 'market-1',
+        priority: 80,
+        state: 'assigned',
+        carrierId: 'debug-carrier-busy',
+      },
+      'debug-medicine-inbound': {
+        id: 'debug-medicine-inbound',
+        resource: 'medicine',
+        amount: 3,
+        sourceBuildingId: 'granary-1',
+        destinationBuildingId: 'market-1',
+        priority: 70,
+        state: 'waiting',
+      },
+    }
+    snapshot.agents['debug-carrier-busy'] = {
+      id: 'debug-carrier-busy',
+      role: 'cart',
+      position: { x: 12, y: 11 },
+      path: [
+        { x: 12, y: 11 },
+        { x: 11, y: 11 },
+        { x: 10, y: 11 },
+        { x: 10, y: 7 },
+      ],
+      pathIndex: 0,
+      activity: 'delivering',
+      cargoIntent: {
+        orderId: 'debug-cloth-inbound',
+        resource: 'cloth',
+        amount: 4,
+        sourceBuildingId: 'granary-1',
+        destinationBuildingId: 'market-1',
+        phase: 'pickup',
+      },
+    }
+    snapshot.agents['carrier-1'].activity = 'working'
   }
 
   private createEngine(snapshot: SimulationSnapshot) {

@@ -2,6 +2,23 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-01：第八十一轮物流热点治理 QA 命令
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/GameRuntime.ts` | 运行时调试场景 | 新增 `logistics-hotspot`，预热后稳定注入市场入货拥堵订单 |
+| `src/integration/stageAdvisor.ts` | 治理推荐逻辑 | 同等热点压力下优先定位入货端，避免入货拥堵误指源仓 |
+| `src/ui/runtimeOptions.ts` | UI 启动参数 | URL 支持 `?debugScenario=logistics-hotspot` |
+| `src/ui/runtimeOptions.test.ts` | 自动测试 | 覆盖物流热点调试场景 URL 参数解析 |
+| `src/qa/logisticsHotspotScenarios.ts` | QA 场景模块 | 验证未完成订单、热点指标、治理目标和推荐建筑 |
+| `src/qa/logisticsHotspotScenarios.test.ts` | 自动测试 | 固定市场入货物流热点场景的可审计结果 |
+| `package.json` | QA 命令入口 | 新增 `npm run qa:logistics-hotspots` |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LOGISTICS-HOTSPOT-QA-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第八十一轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、验证和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、目标测试和构建 |
+| `docs/project/artifact-index.md` | 产物索引 | 记录本轮真实新增/修改文件 |
+
 ## 2026-07-01：第八十轮桥梁缺口治理 QA 命令
 
 | 文件 | 产物类型 | 用途 |

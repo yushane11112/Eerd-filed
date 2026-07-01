@@ -9,6 +9,18 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-01 第八十一轮验证
+
+- TDD RED：`npx vitest run src/qa/logisticsHotspotScenarios.test.ts` 先失败，原因是 `src/qa/logisticsHotspotScenarios.ts` 不存在。
+- TDD GREEN 前暴露真实问题：物流调试订单若在预热前注入，会被 45 tick 启动预热全部送达；修复为预热后注入并重建运行时引擎。
+- TDD GREEN 前暴露治理质量问题：源仓和市场同为 3 条订单热点时，原排序按 id 偶然定位源仓；修复为同等压力下优先定位入货端。
+- 新增固定 QA 命令：`npm run qa:logistics-hotspots`，实际运行 1 个测试文件、1 项通过。
+- 目标回归：`npx vitest run src/qa/logisticsHotspotScenarios.test.ts src/qa/bridgeGapScenarios.test.ts src/qa/roadPlanScenarios.test.ts src/qa/serviceGovernanceScenarios.test.ts src/integration/stageAdvisor.test.ts src/integration/GameRuntime.test.ts src/ui/runtimeOptions.test.ts`：7 个测试文件、46 项通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `npm test`：38 个测试文件、237 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 46.31 秒，总耗时约 50.48 秒。
+
+限制：物流热点仍只是治理卡/图层诊断，不等于完整仓储容量、货车排队和道路容量模型。
+
 ## 2026-07-01 第八十轮验证
 
 - TDD RED：`npx vitest run src/qa/bridgeGapScenarios.test.ts` 先失败，原因是 `src/qa/bridgeGapScenarios.ts` 不存在。

@@ -2,6 +2,14 @@
 
 ## 2026-07-01
 
+- 启动并完成第八十一轮：`LOGISTICS-HOTSPOT-QA-01`。物流热点治理进入可重复 QA 场景库。
+- `RuntimeDebugScenario` 新增 `logistics-hotspot`：启动预热后重新注入 3 条未完成入货订单，稳定制造同一市场入货端拥堵。
+- `runtimeOptionsFromSearch` 支持 `?debugScenario=logistics-hotspot`，后续浏览器 E2E 可直接打开该固定物流热点场景。
+- 新增 `src/qa/logisticsHotspotScenarios.ts` 与 `src/qa/logisticsHotspotScenarios.test.ts`：校验未完成订单数、热点数、治理卡目标、推荐建筑和订单摘要。
+- `stageAdvisor` 修正物流热点排序：当源仓和收货点压力相同，优先定位入货端，避免“市场入货拥堵”被偶然指向源仓。
+- 新增 `npm run qa:logistics-hotspots`，固定验证“多订单压向市场 → 物流热点治理卡 → 推荐补仓储”的链路。
+- 限制：本轮仍是运行时/治理 QA 命令，不是浏览器脚本化 E2E；仓储容量、货车排队、道路容量和多仓分流仍需后续实装。
+
 - 启动并完成第八十轮：`BRIDGE-GAP-QA-01`。桥梁缺口治理进入可重复 QA 场景库。
 - `RuntimeDebugScenario` 新增 `bridge-gap`：在默认水岸制造一个隔水孤立桥路端点，使道路治理稳定产出 2 格桥梁 roadPlan。
 - `runtimeOptionsFromSearch` 支持 `?debugScenario=bridge-gap`，后续浏览器 E2E 可直接打开该固定桥梁缺口场景。

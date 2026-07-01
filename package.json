@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "qa:road-plans": "vitest run src/qa/roadPlanScenarios.test.ts",
     "qa:bridge-gaps": "vitest run src/qa/bridgeGapScenarios.test.ts",
+    "qa:logistics-hotspots": "vitest run src/qa/logisticsHotspotScenarios.test.ts",
     "qa:service-governance": "vitest run src/qa/serviceGovernanceScenarios.test.ts",
     "asset:validate:self-test": "node tools/asset-validator/self-test.js",
     "asset:validate:gold-fixture": "node tools/asset-validator/asset-validator.js --building tools/asset-validator/fixtures/valid-building-manifest.json --animation tools/asset-validator/fixtures/valid-animation-manifest.json",

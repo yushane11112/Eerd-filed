@@ -406,20 +406,34 @@ export function deriveStageMapOverlay(
   if (mode === 'logistics') {
     const activeOrders = Object.values(snapshot.logisticsOrders)
       .filter((order) => order.state !== 'delivered')
-    const endpointCounts = new Map<string, number>()
+    const endpointCounts = new Map<string, {
+      total: number
+      inbound: number
+      outbound: number
+    }>()
     activeOrders.forEach((order) => {
-      endpointCounts.set(order.sourceBuildingId, (endpointCounts.get(order.sourceBuildingId) ?? 0) + 1)
-      endpointCounts.set(order.destinationBuildingId, (endpointCounts.get(order.destinationBuildingId) ?? 0) + 1)
+      const source = endpointCounts.get(order.sourceBuildingId) ?? { total: 0, inbound: 0, outbound: 0 }
+      source.total += 1
+      source.outbound += 1
+      endpointCounts.set(order.sourceBuildingId, source)
+      const destination = endpointCounts.get(order.destinationBuildingId) ?? { total: 0, inbound: 0, outbound: 0 }
+      destination.total += 1
+      destination.inbound += 1
+      endpointCounts.set(order.destinationBuildingId, destination)
     })
     const hotspots = Array.from(endpointCounts.entries())
-      .filter(([, count]) => count > 1)
-      .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+      .filter(([, count]) => count.total > 1)
+      .sort((left, right) => (
+        right[1].total - left[1].total
+        || right[1].inbound - left[1].inbound
+        || left[0].localeCompare(right[0])
+      ))
       .flatMap(([buildingId, count]) => {
         const building = snapshot.buildings[buildingId]
         if (!building) return []
         return [{
           kind: 'bottleneck' as const,
-          label: `物流热点x${count}`,
+          label: `物流热点x${count.total}`,
           position: building.entrance,
         }]
       })

@@ -20,6 +20,12 @@ describe('runtime URL options', () => {
     })
   })
 
+  it('enables the logistics hotspot debug scenario', () => {
+    expect(runtimeOptionsFromSearch('?debugScenario=logistics-hotspot')).toEqual({
+      debugScenario: 'logistics-hotspot',
+    })
+  })
+
   it('ignores unknown debug scenarios', () => {
     expect(runtimeOptionsFromSearch('?debugScenario=unknown')).toEqual({})
   })

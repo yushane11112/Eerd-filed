@@ -9,6 +9,17 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-01 第七十九轮验证
+
+- TDD RED：`npx vitest run src/qa/serviceGovernanceScenarios.test.ts` 先失败，原因是 `src/qa/serviceGovernanceScenarios.ts` 不存在。
+- TDD GREEN 前暴露真实问题：服务推荐市场可建但建完没有降低服务缺口；修复 `stageAdvisor` 后，同一测试通过。
+- 新增固定 QA 命令：`npm run qa:service-governance`，实际运行 1 个测试文件、1 项通过。
+- 目标回归：`npx vitest run src/qa/serviceGovernanceScenarios.test.ts src/qa/roadPlanScenarios.test.ts src/integration/stageAdvisor.test.ts src/integration/GameRuntime.test.ts`：4 个测试文件、39 项通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `npm test`：36 个测试文件、233 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 47.46 秒，总耗时约 51.59 秒。
+
+限制：服务治理已有运行时 QA 命令，但尚未补浏览器驱动 E2E；下一步仍需要物流拥堵、桥梁缺口和浏览器脚本化。
+
 ## 2026-07-01 第七十八轮验证
 
 - TDD RED：`npx vitest run src/qa/roadPlanScenarios.test.ts` 先失败，原因是 `src/qa/roadPlanScenarios.ts` 还不存在。

@@ -2,6 +2,12 @@
 
 ## 2026-07-01
 
+- 启动并完成第七十九轮：`SERVICE-GOVERNANCE-QA-01`。服务缺口治理进入可重复 QA 场景库。
+- 新增 `src/qa/serviceGovernanceScenarios.ts`：从默认城市读取服务缺口治理卡，校验推荐建筑、营造成本、执行结果和服务缺口变化。
+- 新增 `npm run qa:service-governance`，固定验证“服务缺口 → 推荐营造市场 → 市场建成 → 服务缺口下降”的链路。
+- 修复治理推荐质量问题：原先市场推荐只找“可建地块”，不保证建完减少服务缺口；现在服务缺口治理会优先选择建成后能减少缺口的市场落点，找不到有效落点才退回通用可营造诊断。
+- 限制：本轮覆盖服务缺口治理，但还没有物流拥堵、桥梁缺口和浏览器驱动脚本化。
+
 - 启动并完成第七十八轮：`ROAD-LINK-QA-COMMAND-01`。道路补线成功/失败场景从临时浏览器验证推进为项目内可重复 QA 命令。
 - 新增 `src/qa/roadPlanScenarios.ts`：统一运行 `isolated-road-network` 与 `isolated-road-network-low-treasury` 两个 roadPlan 场景，并输出前置道路指标、财政、roadPlan 成本/缺口、执行结果和后置指标。
 - 新增 `src/qa/roadPlanScenarios.test.ts`：固定成功场景应完成补线并清除未连通/孤立读数，低财政场景应失败、不扣钱且保留未连通/孤立读数。

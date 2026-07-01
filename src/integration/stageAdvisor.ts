@@ -141,12 +141,12 @@ export function deriveStageGovernanceCards(
   if (serviceGaps > 0) {
     const target = service?.points.find((point) => point.label === '缺服务')
     const score = 92 + serviceGaps * 4
-    const recommendation = explainStageRecommendationAvailability({
+    const recommendation = withServiceGapExecution(explainStageRecommendationAvailability({
       label: '打开服务图层并营造市场',
       tool: 'building',
       buildingType: 'market',
       overlayMode: 'service',
-    }, snapshot)
+    }, snapshot), snapshot)
     cards.push({
       id: 'governance-service-gaps',
       title: '服务覆盖缺口',
@@ -1071,6 +1071,89 @@ function actionWithAvailability(action: string, recommendation: StageGovernanceR
     return `${action} ${recommendation.execution.reason}`
   }
   return action
+}
+
+function withServiceGapExecution(
+  recommendation: StageGovernanceRecommendation,
+  snapshot: Pick<SimulationSnapshot, 'cells' | 'buildings' | 'economy'>,
+): StageGovernanceRecommendation {
+  if (recommendation.tool !== 'building' || recommendation.buildingType !== 'market') return recommendation
+  if (recommendation.availability?.unlocked === false) return recommendation
+  const execution = diagnoseServiceGapMarketExecution(snapshot)
+  return { ...recommendation, execution }
+}
+
+function diagnoseServiceGapMarketExecution(
+  snapshot: Pick<SimulationSnapshot, 'cells' | 'buildings' | 'economy'>,
+): NonNullable<StageGovernanceRecommendation['execution']> {
+  const base = diagnoseBuildingRecommendationExecution('market', snapshot)
+  if (!base.buildable) return base
+  const definition = BUILDING_DEFINITIONS.market
+  const cells = new Map(snapshot.cells.map((cell) => [pointBucket(cell.point), cell]))
+  const homes = Object.values(snapshot.buildings).filter((building) => building.type === 'house')
+  const serviceAreas = Object.values(snapshot.buildings)
+    .filter((building) => {
+      const buildingDefinition = BUILDING_DEFINITIONS[building.type]
+      return building.status !== 'blocked'
+        && buildingDefinition?.functions?.some((fn) => fn === 'service' || fn === 'market' || fn === 'culture')
+    })
+    .map((building) => ({
+      center: building.entrance,
+      radius: serviceRadius(building.level),
+    }))
+  const currentGaps = countServiceGaps(homes, serviceAreas)
+  let best: (NonNullable<StageGovernanceRecommendation['execution']> & { gapCount: number; key: string }) | undefined
+  let landCandidates = 0
+  for (const originCell of snapshot.cells) {
+    const origin = originCell.point
+    const footprint = definition.footprint.map((point) => ({
+      x: origin.x + point.x,
+      y: origin.y + point.y,
+    }))
+    const footprintOk = footprint.every((point) => {
+      const cell = cells.get(pointBucket(point))
+      return cell
+        && (cell.terrain === 'land' || cell.terrain === 'shore')
+        && !cell.road
+        && !cell.buildingId
+    })
+    if (!footprintOk) continue
+    landCandidates += 1
+    const entrance = {
+      x: origin.x + definition.entrance.x,
+      y: origin.y + definition.entrance.y,
+    }
+    if (!hasAdjacentRoad(cells, entrance)) continue
+    const gapCount = countServiceGaps(homes, [
+      ...serviceAreas,
+      { center: entrance, radius: serviceRadius(1) },
+    ])
+    const key = `${gapCount}:${pointBucket(origin)}`
+    if (gapCount < currentGaps && (!best || gapCount < best.gapCount || key.localeCompare(best.key) < 0)) {
+      best = {
+        buildable: true,
+        reason: '已找到能减少服务缺口的市场落点，可切换到营造工具试放。',
+        candidate: origin,
+        entrance,
+        footprint,
+        rotation: 0,
+        landCandidates,
+        roadAnchors: base.roadAnchors,
+        gapCount,
+        key,
+      }
+    }
+  }
+  return best ?? base
+}
+
+function countServiceGaps(
+  homes: ReadonlyArray<Pick<SimulationSnapshot['buildings'][string], 'entrance'>>,
+  serviceAreas: ReadonlyArray<{ center: GridPoint; radius: number }>,
+): number {
+  return homes
+    .filter((home) => !serviceAreas.some((area) => isNear(area.center, home.entrance, area.radius)))
+    .length
 }
 
 function diagnoseBuildingRecommendationExecution(

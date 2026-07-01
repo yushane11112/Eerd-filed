@@ -9,6 +9,17 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-01 第七十八轮验证
+
+- TDD RED：`npx vitest run src/qa/roadPlanScenarios.test.ts` 先失败，原因是 `src/qa/roadPlanScenarios.ts` 还不存在。
+- TDD GREEN：同一测试通过；覆盖 `isolated-road-network` 成功施工场景和 `isolated-road-network-low-treasury` 财政不足失败场景的 before/action/after 摘要。
+- 新增固定 QA 命令：`npm run qa:road-plans`，实际运行 1 个测试文件、1 项通过。
+- 目标回归：`npx vitest run src/qa/roadPlanScenarios.test.ts src/integration/GameRuntime.test.ts src/integration/stageAdvisor.test.ts src/ui/runtimeOptions.test.ts`：4 个测试文件、41 项通过。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `npm test`：35 个测试文件、232 项通过；其中 `src/qa/stressScenario.test.ts` 长稳用例通过，耗时约 45.69 秒，总耗时约 50.05 秒。
+
+限制：`qa:road-plans` 是运行时/治理链路场景命令，不是完整浏览器驱动脚本；它补齐可重复 QA 入口，但不能替代后续浏览器 E2E 自动化。
+
 ## 2026-07-01 第七十七轮验证
 
 - TDD RED：`npx vitest run src/integration/GameRuntime.test.ts src/ui/runtimeOptions.test.ts -t "low treasury|runtime URL|debug scenario"` 先失败，原因是低财政调试场景未被识别，财政仍为默认 2400，URL 参数也被忽略。

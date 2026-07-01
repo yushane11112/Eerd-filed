@@ -2,6 +2,12 @@
 
 ## 2026-07-01
 
+- 启动并完成第七十八轮：`ROAD-LINK-QA-COMMAND-01`。道路补线成功/失败场景从临时浏览器验证推进为项目内可重复 QA 命令。
+- 新增 `src/qa/roadPlanScenarios.ts`：统一运行 `isolated-road-network` 与 `isolated-road-network-low-treasury` 两个 roadPlan 场景，并输出前置道路指标、财政、roadPlan 成本/缺口、执行结果和后置指标。
+- 新增 `src/qa/roadPlanScenarios.test.ts`：固定成功场景应完成补线并清除未连通/孤立读数，低财政场景应失败、不扣钱且保留未连通/孤立读数。
+- `package.json` 新增 `npm run qa:road-plans`，为后续 CI 或人工验收提供固定入口。
+- 限制：本轮命令验证的是运行时/治理链路，不是完整浏览器操作。浏览器真实成功/失败路径已由前两轮验证过；下一步应把这些浏览器步骤沉淀为真正脚本化 E2E。
+
 - 启动并完成第七十七轮：`ROAD-LINK-LOW-TREASURY-E2E-01`。道路补线 E2E 从“成功施工”扩展到“财政不足失败”场景。
 - `RuntimeDebugScenario` 新增 `isolated-road-network-low-treasury`：复用孤立路网缺口，但初始财政固定为 4，使 roadPlan 需要 6 银两时稳定显示缺口 2。
 - `runtimeOptionsFromSearch` 支持 `?debugScenario=isolated-road-network-low-treasury`，未知参数仍忽略。

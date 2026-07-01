@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-01：第七十八轮道路补线场景 QA 命令
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/qa/roadPlanScenarios.ts` | QA 场景模块 | 统一运行道路补线成功/失败两个场景，并输出 before/action/after 摘要 |
+| `src/qa/roadPlanScenarios.test.ts` | 自动测试 | 固定 roadPlan 成功施工与财政不足失败场景的可审计结果 |
+| `package.json` | QA 命令入口 | 新增 `npm run qa:road-plans` |
+| `docs/project/task-board.md` | 任务看板 | 记录 `ROAD-LINK-QA-COMMAND-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第七十八轮进展、完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、验证和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、QA 命令、目标测试、全量测试和构建 |
+| `docs/project/artifact-index.md` | 产物索引 | 记录本轮真实新增/修改文件 |
+
 ## 2026-07-01：第七十七轮补线财政不足调试场景
 
 | 文件 | 产物类型 | 用途 |

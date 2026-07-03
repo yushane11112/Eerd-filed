@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-03：第八十八轮 7200 tick 分层文明长跑
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/qa/civilizationLongRun.ts` | 长跑 QA 执行器 | 运行 7200 tick 压力城市，并在 2400/4800/7200 tick 采样稳定性和快照规模 |
+| `src/qa/civilizationLongRunCheck.ts` | QA 命令入口 | 输出长跑 JSON 报告，并在任一阈值不满足时抛错失败 |
+| `package.json` | QA 命令 | 新增 `npm run qa:civilization-long-run` |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LONG-RUN-CIV-QA-02` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第八十八轮进展、QA 完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、验证和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、7200 tick 实测和目标回归 |
+| `docs/project/artifact-index.md` | 产物索引 | 记录本轮真实新增/修改文件 |
+
 ## 2026-07-03：第八十七轮物流热点浏览器交互
 
 | 文件 | 产物类型 | 用途 |

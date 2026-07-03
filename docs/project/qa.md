@@ -9,6 +9,20 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-03 第八十八轮验证
+
+- TDD RED：`npx vite-node src/qa/civilizationLongRunCheck.ts` 先失败，原因是 `src/qa/civilizationLongRun.ts` 不存在；此前曾尝试 `.longrun.ts` 由 Vitest 运行，但失败点是文件名不被默认 include 捕获，已改为独立 `vite-node` QA 检查脚本。
+- TDD GREEN：新增 `runCivilizationLongRunScenario`、7200 tick 常量、2400/4800/7200 分层采样和主快照规模阈值检查。
+- 新增固定 QA 命令：`npm run qa:civilization-long-run`。
+- 7200 tick 长跑实测通过：最终 tick 7200、人口 1750、满意度约 40.39、物流效率 100、停工建筑 161、活跃订单 39、主订单表 539、归档订单 53462、最大建筑库存 855、非法数值 0。
+- 分层快照规模有界：2400/4800/7200 tick 的 households 500、buildings 300、agents 206、logisticsOrders 539、worldDrops 0，未随归档订单增长。
+- 目标回归：`npm run qa:civilization-long-run && npx vitest run src/qa/stressScenario.test.ts` 通过；现有 2400 tick 长稳测试 1 个文件、2 项通过。
+- 全量回归：`npm test`：39 个测试文件、241 项测试通过，其中 2400 tick 多日文明稳定性测试耗时约 53.2 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `git diff --check`：通过。
+
+限制：长跑仍是灰盒压力城市，不等于完整商业关卡容量/排队/道路拥堵压力。
+
 ## 2026-07-03 第八十七轮验证
 
 - TDD RED：`npx vitest run src/qa/browserE2eScenarios.test.ts` 先失败，原因是 `logistics-hotspot` 没有 interaction 元数据。

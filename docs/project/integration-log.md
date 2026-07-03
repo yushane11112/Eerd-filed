@@ -2,6 +2,12 @@
 
 ## 2026-07-03
 
+- 启动并完成第八十八轮：`LONG-RUN-CIV-QA-02`。商业级 30 日长跑不再只是待办，新增可运行的 7200 tick 分层 QA 命令。
+- 新增 `src/qa/civilizationLongRun.ts`：复用 500 户、300 建筑、150 初始可见实体压力城市，按 2400/4800/7200 tick 采样人口、满意度、物流、停工、订单、库存、归档和主快照表规模。
+- 新增 `src/qa/civilizationLongRunCheck.ts` 与 `npm run qa:civilization-long-run`：命令会输出 JSON 报告并在任一层超过阈值时失败。
+- 验证：`npm run qa:civilization-long-run` 通过；最终 tick 7200、人口 1750、满意度约 40.39、物流效率 100、主订单表 539、归档订单 53462、agent 表 206、非法数值 0。
+- 限制：本轮仍是灰盒压力城市，不等于真实商业关卡的服务容量、排队、道路容量和经济平衡压力。
+
 - 启动并完成第八十七轮：`BROWSER-E2E-LOGISTICS-HOTSPOT-01`。物流热点从可见文案检查升级为真实浏览器点击交互。
 - `browserE2eScenarios` 为 `logistics-hotspot` 增加 interaction：点击“打开物流图层并补仓储”，等待“物流热点拥堵：打开物流图层并补仓储。”toast。
 - `browserE2eScenarios.test.ts` 增加契约断言，确保物流热点场景的 interaction 元数据也会输出给真实浏览器 runner。

@@ -9,6 +9,20 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-04 第九十三轮验证
+
+- TDD RED：`npx vitest run src/simulation/economy/constructionTable.test.ts src/simulation/economy/upgrades.test.ts` 先失败；原因是 `DEFAULT_CONSTRUCTION_ECONOMY_TABLE` 缺少 `upgradeCosts`，`construction.ts` 未导出统一的 `buildingUpgradeCost`，非法升级参数未被校验，且自定义经济表不能影响排队升级扣料。
+- TDD GREEN：新增 `ConstructionEconomyTable.upgradeCosts`、统一导出的 `buildingUpgradeCost`，并让 `buildingUpgradeCost`、`upgradeBuildingFromCityStorage` 和 `startBuildingUpgradeFromCityStorage` 支持传入自定义经济表。
+- 兼容验证：默认升级曲线保持旧行为；例如 3 级建筑升 4 级仍消耗木料 4、石料 2。
+- 目标回归：`npx vitest run src/simulation/economy/constructionTable.test.ts src/simulation/economy/upgrades.test.ts`：2 个测试文件、16 项通过。
+- 集成回归：`npx vitest run src/integration/GameRuntime.test.ts src/simulation/economy/economy.test.ts src/simulation/economy/constructionTable.test.ts src/simulation/economy/upgrades.test.ts`：4 个测试文件、70 项通过。
+- 构建修正：首次全量门禁中 `npm test` 已通过 40 个测试文件、252 项测试，但 `npm run build` 暴露 `simulation/economy` 聚合出口中两个 `buildingUpgradeCost` 重名；已将低层经济表函数在聚合出口中别名为 `constructionTableBuildingUpgradeCost`，保留高层升级报价函数名供运行时使用。
+- 全量回归：`npm test` 通过，40 个测试文件、252 项测试；长稳用例耗时约 37.00 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `git diff --check`：通过。
+
+限制：升级成本只是进入统一经济表，仍是统一等级倍数；还不是商业级平衡。后续必须继续拆成按建筑类别、文明阶段、产能、服务容量和投资回收周期分层的成本曲线。
+
 ## 2026-07-03 第八十九轮验证
 
 - TDD RED：`npx vitest run src/simulation/economy/constructionTable.test.ts` 先失败；原因是 `validateConstructionEconomyTable` 不存在，且自定义道路经济表没有影响桥梁报价。

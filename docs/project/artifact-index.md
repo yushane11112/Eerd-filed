@@ -1095,3 +1095,18 @@
 | `docs/project/task-board.md` | 任务看板 | 记录 `LOGISTICS-GOVERNANCE-CAUSE-01` 已完成 |
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮分因治理接入事实 |
 | `docs/project/qa.md` | QA 记录 | 记录本轮 TDD、回归和限制 |
+
+## 2026-07-04：第九十三轮升级成本接入统一经济表
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/economy/construction.ts` | 经济表实现 | `ConstructionEconomyTable` 新增 `upgradeCosts`，导出统一 `buildingUpgradeCost` 并校验升级参数 |
+| `src/simulation/economy/upgrades.ts` | 升级系统 | 升级、城市仓储升级和排队升级支持可选自定义经济表，默认兼容旧曲线 |
+| `src/simulation/economy/index.ts` | 模块出口 | 聚合出口保留高层 `buildingUpgradeCost`，将低层经济表函数别名为 `constructionTableBuildingUpgradeCost`，避免运行时签名冲突 |
+| `src/simulation/economy/constructionTable.test.ts` | 自动测试 | 验证默认升级成本、自定义升级成本和非法升级参数校验 |
+| `src/simulation/economy/upgrades.test.ts` | 自动测试 | 验证自定义经济表会影响排队升级扣料 |
+| `docs/project/economy-balancing.md` | 平衡审计 | 更新经济表范围，移除“升级成本尚未统一”的旧风险 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第九十三轮进展、城市模拟完成度和下一轮任务 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `UPGRADE-ECONOMY-TABLE-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮升级经济表接入事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮 TDD、回归和限制 |

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_CONSTRUCTION_ECONOMY_TABLE,
+  buildingUpgradeCost,
   quoteBuildingConstruction,
   quoteRoadConstruction,
   validateConstructionEconomyTable,
@@ -19,6 +20,14 @@ describe('construction economy table', () => {
       stone: { treasury: 6 },
       bridge: { treasury: 18 },
     })
+    expect(DEFAULT_CONSTRUCTION_ECONOMY_TABLE.upgradeCosts).toEqual({
+      woodPerNextLevel: 1,
+      stonePerTwoNextLevels: 1,
+    })
+    expect(buildingUpgradeCost({ level: 3 }, DEFAULT_CONSTRUCTION_ECONOMY_TABLE)).toEqual({
+      wood: 4,
+      stone: 2,
+    })
   })
 
   it('allows QA and balancing passes to quote from a custom economy table', () => {
@@ -30,6 +39,10 @@ describe('construction economy table', () => {
         dirt: { treasury: 1 },
         stone: { treasury: 8 },
         bridge: { treasury: 24 },
+      },
+      upgradeCosts: {
+        woodPerNextLevel: 2,
+        stonePerTwoNextLevels: 3,
       },
       fallback: {
         baseTreasury: 90,
@@ -60,6 +73,10 @@ describe('construction economy table', () => {
       missingTreasury: 0,
       canAfford: false,
     })
+    expect(buildingUpgradeCost({ level: 2 }, table)).toEqual({
+      wood: 6,
+      stone: 3,
+    })
   })
 
   it('reports invalid economy tables before they can enter production balancing', () => {
@@ -73,6 +90,10 @@ describe('construction economy table', () => {
         stone: { treasury: 6 },
         bridge: { treasury: Number.NaN },
       },
+      upgradeCosts: {
+        woodPerNextLevel: -1,
+        stonePerTwoNextLevels: Number.POSITIVE_INFINITY,
+      },
       fallback: {
         baseTreasury: 50,
         treasuryPerFootprint: 20,
@@ -83,6 +104,8 @@ describe('construction economy table', () => {
       'buildingCosts.house.treasury must be a non-negative finite number',
       'buildingCosts.market.materials.stone must be a non-negative finite number',
       'roadCosts.bridge.treasury must be a non-negative finite number',
+      'upgradeCosts.woodPerNextLevel must be a non-negative finite number',
+      'upgradeCosts.stonePerTwoNextLevels must be a non-negative finite number',
       'fallback.woodPerTwoFootprint must be greater than zero',
       'fallback.stonePerThreeFootprint must be greater than zero',
     ])

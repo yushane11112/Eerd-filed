@@ -4,6 +4,11 @@ import type {
   ResourceKind,
 } from '../contracts'
 import { inventoryAmount, removeInventory } from './inventory'
+import {
+  buildingUpgradeCost as constructionTableBuildingUpgradeCost,
+  DEFAULT_CONSTRUCTION_ECONOMY_TABLE,
+  type ConstructionEconomyTable,
+} from './construction'
 
 export const MIN_BUILDING_LEVEL = 0
 export const MAX_BUILDING_LEVEL = 8
@@ -58,13 +63,11 @@ export interface BuildingUpgradeCompletion {
 export function buildingUpgradeCost(
   building: BuildingEntity,
   definition: BuildingDefinition,
+  table: ConstructionEconomyTable = DEFAULT_CONSTRUCTION_ECONOMY_TABLE,
 ): Partial<Record<ResourceKind, number>> {
   const nextLevel = building.level + 1
   if (nextLevel > maxLevelFor(definition)) return {}
-  return compactCost({
-    wood: nextLevel,
-    stone: Math.floor(nextLevel / 2),
-  })
+  return constructionTableBuildingUpgradeCost(building, table)
 }
 
 export function effectiveBuildingDefinition(
@@ -93,6 +96,7 @@ export function effectiveBuildingDefinition(
 export function upgradeBuildingImmediately(
   building: BuildingEntity,
   definition: BuildingDefinition,
+  table: ConstructionEconomyTable = DEFAULT_CONSTRUCTION_ECONOMY_TABLE,
 ): BuildingUpgradeResult {
   if (!Number.isInteger(building.level) || building.level < MIN_BUILDING_LEVEL) {
     return { ok: false, reason: 'invalid-level' }
@@ -104,7 +108,7 @@ export function upgradeBuildingImmediately(
   }
 
   const previousLevel = building.level
-  const cost = buildingUpgradeCost(building, definition)
+  const cost = buildingUpgradeCost(building, definition, table)
   const missing = missingMaterials(building, cost)
   if (Object.keys(missing).length > 0) {
     return { ok: false, reason: 'insufficient-materials', missing }
@@ -133,6 +137,7 @@ export function upgradeBuildingFromCityStorage(
   definition: BuildingDefinition,
   buildings: Record<string, BuildingEntity>,
   definitions: Record<string, BuildingDefinition>,
+  table: ConstructionEconomyTable = DEFAULT_CONSTRUCTION_ECONOMY_TABLE,
 ): BuildingUpgradeResult {
   if (!Number.isInteger(building.level) || building.level < MIN_BUILDING_LEVEL) {
     return { ok: false, reason: 'invalid-level' }
@@ -144,7 +149,7 @@ export function upgradeBuildingFromCityStorage(
   }
 
   const previousLevel = building.level
-  const cost = buildingUpgradeCost(building, definition)
+  const cost = buildingUpgradeCost(building, definition, table)
   const storageBuildings = cityStorageBuildings(buildings, definitions)
   const missing = missingMaterialsFromCityStorage(storageBuildings, cost)
   if (Object.keys(missing).length > 0) {
@@ -184,6 +189,7 @@ export function startBuildingUpgradeFromCityStorage(
   definition: BuildingDefinition,
   buildings: Record<string, BuildingEntity>,
   definitions: Record<string, BuildingDefinition>,
+  table: ConstructionEconomyTable = DEFAULT_CONSTRUCTION_ECONOMY_TABLE,
 ): BuildingUpgradeStartResult {
   if (!Number.isInteger(building.level) || building.level < MIN_BUILDING_LEVEL) {
     return { ok: false, reason: 'invalid-level' }
@@ -199,7 +205,7 @@ export function startBuildingUpgradeFromCityStorage(
   }
 
   const previousLevel = building.level
-  const cost = buildingUpgradeCost(building, definition)
+  const cost = buildingUpgradeCost(building, definition, table)
   const storageBuildings = cityStorageBuildings(buildings, definitions)
   const missing = missingMaterialsFromCityStorage(storageBuildings, cost)
   if (Object.keys(missing).length > 0) {
@@ -328,12 +334,6 @@ function isCityStorageBuilding(
   definition: BuildingDefinition | undefined,
 ): boolean {
   return definition?.category === 'storage' || building.type === 'granary'
-}
-
-function compactCost(
-  cost: Partial<Record<ResourceKind, number>>,
-): Partial<Record<ResourceKind, number>> {
-  return Object.fromEntries(costEntries(cost)) as Partial<Record<ResourceKind, number>>
 }
 
 function costEntries(

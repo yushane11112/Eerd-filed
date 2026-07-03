@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import type { BuildingDefinition, BuildingEntity } from '../contracts'
 import {
+  type ConstructionEconomyTable,
+} from './construction'
+import {
   effectiveBuildingDefinition,
   advanceBuildingUpgrades,
   startBuildingUpgradeFromCityStorage,
@@ -172,6 +175,45 @@ describe('building upgrades', () => {
     expect(target.status).toBe('upgrading')
     expect(target.productionProgress).toBe(0)
     expect(store.inventory).toEqual({})
+  })
+
+  it('uses a custom construction economy table for queued upgrade costs', () => {
+    const target = building(2, {}, 'house-1', 'house')
+    const store = building(1, { wood: 9, stone: 6 }, 'granary-1')
+    const table: ConstructionEconomyTable = {
+      buildingCosts: {},
+      roadCosts: {
+        dirt: { treasury: 2 },
+        stone: { treasury: 6 },
+        bridge: { treasury: 18 },
+      },
+      upgradeCosts: {
+        woodPerNextLevel: 2,
+        stonePerTwoNextLevels: 3,
+      },
+      fallback: {
+        baseTreasury: 50,
+        treasuryPerFootprint: 20,
+        woodPerTwoFootprint: 2,
+        stonePerThreeFootprint: 3,
+      },
+    }
+
+    const result = startBuildingUpgradeFromCityStorage(
+      target,
+      granaryDefinition,
+      { 'house-1': target, 'granary-1': store },
+      { granary: granaryDefinition },
+      table,
+    )
+
+    expect(result).toMatchObject({
+      ok: true,
+      previousLevel: 2,
+      targetLevel: 3,
+      cost: { wood: 6, stone: 3 },
+    })
+    expect(store.inventory).toEqual({ wood: 3, stone: 3 })
   })
 
   it('advances an upgrading building over multiple ticks before completing level increase', () => {

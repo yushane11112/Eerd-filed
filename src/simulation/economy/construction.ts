@@ -34,6 +34,10 @@ export interface RoadConstructionQuote {
 export interface ConstructionEconomyTable {
   buildingCosts: Record<string, BuildingConstructionCost>
   roadCosts: Record<RoadKind, RoadConstructionCost>
+  upgradeCosts: {
+    woodPerNextLevel: number
+    stonePerTwoNextLevels: number
+  }
   fallback: {
     baseTreasury: number
     treasuryPerFootprint: number
@@ -55,12 +59,28 @@ export const DEFAULT_CONSTRUCTION_ECONOMY_TABLE: ConstructionEconomyTable = {
     stone: { treasury: 6 },
     bridge: { treasury: 18 },
   },
+  upgradeCosts: {
+    woodPerNextLevel: 1,
+    stonePerTwoNextLevels: 1,
+  },
   fallback: {
     baseTreasury: 50,
     treasuryPerFootprint: 20,
     woodPerTwoFootprint: 2,
     stonePerThreeFootprint: 3,
   },
+}
+
+export function buildingUpgradeCost(
+  building: Pick<BuildingEntity, 'level'>,
+  table: ConstructionEconomyTable = DEFAULT_CONSTRUCTION_ECONOMY_TABLE,
+): Partial<Record<ResourceKind, number>> {
+  const nextLevel = Math.max(0, Math.floor(building.level + 1))
+  if (!Number.isFinite(nextLevel) || nextLevel <= 0) return {}
+  return compactCost({
+    wood: nextLevel * table.upgradeCosts.woodPerNextLevel,
+    stone: Math.floor(nextLevel / 2) * table.upgradeCosts.stonePerTwoNextLevels,
+  })
 }
 
 export function buildingConstructionCost(
@@ -175,6 +195,8 @@ export function validateConstructionEconomyTable(table: ConstructionEconomyTable
   for (const kind of ['dirt', 'stone', 'bridge'] as RoadKind[]) {
     validateNonNegative(table.roadCosts[kind]?.treasury, `roadCosts.${kind}.treasury`, errors)
   }
+  validateNonNegative(table.upgradeCosts?.woodPerNextLevel, 'upgradeCosts.woodPerNextLevel', errors)
+  validateNonNegative(table.upgradeCosts?.stonePerTwoNextLevels, 'upgradeCosts.stonePerTwoNextLevels', errors)
   validateNonNegative(table.fallback.baseTreasury, 'fallback.baseTreasury', errors)
   validateNonNegative(table.fallback.treasuryPerFootprint, 'fallback.treasuryPerFootprint', errors)
   validatePositive(table.fallback.woodPerTwoFootprint, 'fallback.woodPerTwoFootprint', errors)
@@ -215,6 +237,12 @@ function cloneCost(cost: BuildingConstructionCost): BuildingConstructionCost {
     treasury: cost.treasury,
     materials: { ...cost.materials },
   }
+}
+
+function compactCost(
+  cost: Partial<Record<ResourceKind, number>>,
+): Partial<Record<ResourceKind, number>> {
+  return Object.fromEntries(costEntries(cost)) as Partial<Record<ResourceKind, number>>
 }
 
 function costEntries(

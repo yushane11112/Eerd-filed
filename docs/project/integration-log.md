@@ -429,3 +429,12 @@
 - 物流分因优先读取当前订单的 `failureReason/cancelReason` 和 `logisticsQueues`，不再让无关建筑残留 `statusReason` 覆盖当前订单热点诊断。
 - `logisticsHotspotScenarios` QA 摘要保留订单失败原因字段，只有真实存在失败原因时输出，便于后续审计。
 - 客观限制：当前建议仍以文案和工具跳转为主，尚未自动生成车船补充、仓储升级、道路计划或生产源定位的具体执行计划。
+
+## 2026-07-04 第九十三轮：升级成本接入统一经济表
+
+- 启动 `UPGRADE-ECONOMY-TABLE-01`：把建筑升级成本从 `upgrades.ts` 私有硬编码推进到 `ConstructionEconomyTable.upgradeCosts`。
+- `DEFAULT_CONSTRUCTION_ECONOMY_TABLE` 新增升级成本参数，默认保持旧曲线：木料 = 下一等级 × 1，石料 = `floor(下一等级 / 2) × 1`。
+- `construction.ts` 导出 `buildingUpgradeCost`，平衡工具可以直接按经济表查询升级材料。
+- `upgradeBuildingImmediately`、`upgradeBuildingFromCityStorage`、`startBuildingUpgradeFromCityStorage` 支持可选自定义经济表；旧调用默认兼容。
+- `validateConstructionEconomyTable` 新增升级参数校验，拒绝负数和非有限数。
+- 客观限制：当前升级表仍是统一倍率，尚未按建筑类型、阶段、产能、服务容量和回本周期拆分。

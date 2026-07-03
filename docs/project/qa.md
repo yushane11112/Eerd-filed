@@ -9,6 +9,19 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-01 第八十四轮验证
+
+- TDD RED：`npx vitest run src/qa/browserE2eScenarios.test.ts` 先失败，原因是 `road-plan-low-treasury` 没有 interaction 元数据。
+- TDD GREEN：为 `road-plan-low-treasury` 增加 interaction，点击“打开道路图层并接回主路网”后等待“银两不足2，无法执行补线施工”。
+- 单场景真实浏览器 E2E：`BROWSER_E2E_SCENARIO=road-plan-low-treasury npm run qa:browser-e2e` 通过，确认失败路径点击动作实际触发 toast。
+- 完整真实浏览器 E2E：`npm run qa:browser-e2e` 运行 5 个场景，5/5 通过；road-plan-success 与 road-plan-low-treasury 均执行真实点击，其他场景完成可见文案和 console error 检查。
+- 目标回归：`npm run qa:browser-e2e:contract && npx vitest run src/qa/browserE2eScenarios.test.ts src/ui/runtimeOptions.test.ts src/qa/roadPlanScenarios.test.ts src/qa/bridgeGapScenarios.test.ts src/qa/logisticsHotspotScenarios.test.ts src/qa/serviceGovernanceScenarios.test.ts`：6 个测试文件、13 项通过。
+- 全量回归：`npm test`：39 个测试文件、241 项测试通过，其中 2400 tick 多日文明稳定性测试耗时约 49.4 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `git diff --check`：通过。
+
+限制：服务治理、桥梁缺口和物流热点还没有真实点击/定位动作断言。
+
 ## 2026-07-01 第八十三轮验证
 
 - TDD RED：`npx vitest run src/qa/browserE2eScenarios.test.ts` 先失败，原因是浏览器 E2E 场景没有任何真实点击 interaction。

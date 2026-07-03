@@ -69,6 +69,7 @@
 | LOGISTICS-HOTSPOT-QA-01 | 物流热点治理 QA 命令 | `src/integration/GameRuntime.ts`, `src/integration/stageAdvisor.ts`, `src/ui/runtimeOptions.ts`, `src/qa/logisticsHotspotScenarios.ts`, `package.json` | 已完成 | `npm run qa:logistics-hotspots` 可验证多条入货订单压向同一市场时生成物流热点治理卡，并优先定位入货端 |
 | BROWSER-E2E-CONTRACT-01 | 浏览器 E2E 场景契约 | `src/qa/browserE2eScenarios.ts`, `src/qa/browserE2eRunner.ts`, `package.json` | 已完成 | `npm run qa:browser-e2e:contract` 可列出并校验 5 个固定治理浏览器场景的 URL、可见文案和 console error 门禁 |
 | BROWSER-E2E-RUNNER-01 | 真实浏览器 E2E 执行器 | `tools/browser-e2e/run-browser-e2e.cjs`, `src/qa/browserE2eScenarios.ts`, `package.json` | 已完成 | `npm run qa:browser-e2e` 会构建、启动 Vite preview、用 Playwright Chromium 打开 5 个场景、检查文案/console，并在 roadPlan 场景点击治理卡 |
+| BROWSER-E2E-LOW-TREASURY-01 | 低财政补线失败浏览器交互 | `src/qa/browserE2eScenarios.ts`, `src/qa/browserE2eScenarios.test.ts` | 已完成 | `qa:browser-e2e` 会在低财政场景点击补线治理卡，并验证“银两不足2，无法执行补线施工”toast |
 | CITY-STAGE-OVERLAY-SUMMARY-01 | 城市阶段覆盖图层摘要 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 覆盖图层显示住宅、服务缺口、物流热点和道路缺口摘要 |
 | CITY-STAGE-OVERLAY-METRICS-01 | 城市阶段覆盖图层结构化指标 | `src/integration/**` | 已完成 | 覆盖图层输出可供面板读取的结构化指标 |
 | CITY-STAGE-OVERLAY-PANEL-METRICS-01 | 城市阶段面板图层指标 | `src/App.tsx`, `src/styles.css` | 已完成 | 阶段面板显示当前打开图层的结构化指标 |

@@ -30,6 +30,10 @@ export const BROWSER_E2E_SCENARIOS: BrowserE2eScenario[] = [
     path: '/?debugScenario=isolated-road-network-low-treasury',
     mustContainText: ['道路未连通', '还缺银两'],
     forbiddenConsoleLevels: ['error'],
+    interaction: {
+      clickText: '打开道路图层并接回主路网',
+      expectToastText: '银两不足2，无法执行补线施工',
+    },
   },
   {
     id: 'bridge-gap',

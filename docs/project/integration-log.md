@@ -2,6 +2,12 @@
 
 ## 2026-07-01
 
+- 启动并完成第八十四轮：`BROWSER-E2E-LOW-TREASURY-01`。低财政补线失败路径从可见文案检查升级为真实浏览器点击交互。
+- `browserE2eScenarios` 为 `road-plan-low-treasury` 增加 interaction：点击“打开道路图层并接回主路网”，等待“银两不足2，无法执行补线施工”toast。
+- `browserE2eScenarios.test.ts` 增加契约断言，确保低财政场景的 interaction 元数据也会输出给真实浏览器 runner。
+- 验证：`BROWSER_E2E_SCENARIO=road-plan-low-treasury npm run qa:browser-e2e` 通过；完整 `npm run qa:browser-e2e` 5/5 通过，road-plan-success 与 road-plan-low-treasury 均执行真实点击。
+- 限制：服务治理、桥梁缺口和物流热点仍主要是可见文案/console 检查，还没有真实点击/定位动作断言。
+
 - 启动并完成第八十三轮：`BROWSER-E2E-RUNNER-01`。浏览器 E2E 从契约清单推进为真实 Chromium 执行器。
 - 新增 `tools/browser-e2e/run-browser-e2e.cjs`：脚本会读取 `browserE2eRunner` 输出的场景契约，启动 Vite preview，使用 Playwright Chromium 逐个打开场景 URL，检查必须可见文案，收集 console/pageerror，并按场景声明执行点击动作。
 - `package.json` 新增 `npm run qa:browser-e2e`，该命令会先构建生产包，再运行真实浏览器 E2E；`BROWSER_E2E_SCENARIO=<id>` 可只跑单个场景。

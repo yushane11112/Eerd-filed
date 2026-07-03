@@ -438,3 +438,12 @@
 - `upgradeBuildingImmediately`、`upgradeBuildingFromCityStorage`、`startBuildingUpgradeFromCityStorage` 支持可选自定义经济表；旧调用默认兼容。
 - `validateConstructionEconomyTable` 新增升级参数校验，拒绝负数和非有限数。
 - 客观限制：当前升级表仍是统一倍率，尚未按建筑类型、阶段、产能、服务容量和回本周期拆分。
+
+## 2026-07-04 第九十四轮：长跑队列压力读数
+
+- 启动 `LONG-RUN-QUEUE-PRESSURE-01`：把服务/物流队列规模纳入 7200 tick 分层长跑报告，而不是只在图层或单测里观察。
+- `CivilizationLongRunLayerSummary` 新增 `queuePressure`，记录 `serviceQueues`、`queuedHouseholds`、`longestServiceWaitTicks`、`logisticsQueues`、`unloadBacklog` 和 `longestUnloadWaitTicks`。
+- `npm run qa:civilization-long-run` 在 2400/4800/7200 tick 校验队列压力字段为有限数，并要求最终层出现服务排队压力。
+- 同一 QA 命令新增 `queuePressureProbe`：用真实 `LogisticsSystem` 构造两个在途订单同 tick 抵达同一目的建筑、卸货能力为 1 的确定性场景，校验 `logisticsQueues` 和 `unloadBacklog` 确实能被报告捕获。
+- 本轮实测 7200 主长跑最终服务队列 43、排队家庭 644、最长服务等待 1 tick；主长跑物流卸货积压仍为 0，探针物流队列 1、卸货积压 1、最长卸货等待 3 tick。
+- 客观限制：物流吞吐压力仍是确定性探针，不是 7200 主城市自然形成的长期拥堵；下一步必须改造订单生成/多资源需求/目的地集中度，让真实长跑也能制造仓储吞吐压力。

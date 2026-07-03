@@ -9,6 +9,19 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-04 第九十四轮验证
+
+- TDD RED：`npx vitest run src/qa/civilizationLongRun.test.ts` 先失败；原因是 `summarizeCivilizationLongRunLayer` 未导出，且长跑层摘要没有 `queuePressure` 字段。
+- TDD GREEN：`CivilizationLongRunLayerSummary` 新增 `queuePressure`，汇总服务队列数量、排队家庭、最长服务等待、物流队列数量、卸货积压和最长卸货等待；同一测试 1 个文件、1 项通过。
+- 叠层 RED：给 `civilizationLongRunCheck.ts` 增加最终卸货积压门禁后，`npm run qa:civilization-long-run` 失败于 `final unload backlog: expected >= 1, got 0`，证明当前 7200 主长跑没有自然形成卸货排队。
+- TDD GREEN：新增 `runCivilizationQueuePressureProbe`，用真实 `LogisticsSystem` 构造两个在途订单同 tick 抵达同一目的建筑、卸货能力为 1 的确定性探针；`npx vitest run src/qa/civilizationLongRun.test.ts`：1 个测试文件、2 项通过。
+- 7200 tick QA：`npm run qa:civilization-long-run` 通过；主长跑最终 tick 7200、人口 1750、满意度约 40.39、服务队列 43、排队家庭 644、最长服务等待 1 tick、主长跑物流卸货积压 0；探针物流队列 1、卸货积压 1、最长卸货等待 3 tick。
+- 全量回归：`npm test` 通过，41 个测试文件、254 项测试；长稳用例耗时约 38.10 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `git diff --check`：通过。
+
+限制：本轮解决的是“长跑报告能看见队列压力”和“QA 命令能验证卸货吞吐模型”，但主 7200 城市仍没有自然产生物流卸货积压。下一步必须把多资源/多订单/目的地集中度纳入长跑主场景，而不是长期依赖探针。
+
 ## 2026-07-04 第九十三轮验证
 
 - TDD RED：`npx vitest run src/simulation/economy/constructionTable.test.ts src/simulation/economy/upgrades.test.ts` 先失败；原因是 `DEFAULT_CONSTRUCTION_ECONOMY_TABLE` 缺少 `upgradeCosts`，`construction.ts` 未导出统一的 `buildingUpgradeCost`，非法升级参数未被校验，且自定义经济表不能影响排队升级扣料。

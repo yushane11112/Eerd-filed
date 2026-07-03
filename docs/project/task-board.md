@@ -73,6 +73,7 @@
 | LOGISTICS-HOTSPOT-QA-01 | 物流热点治理 QA 命令 | `src/integration/GameRuntime.ts`, `src/integration/stageAdvisor.ts`, `src/ui/runtimeOptions.ts`, `src/qa/logisticsHotspotScenarios.ts`, `package.json` | 已完成 | `npm run qa:logistics-hotspots` 可验证多条入货订单压向同一市场时生成物流热点治理卡，并优先定位入货端 |
 | LOGISTICS-GOVERNANCE-CAUSE-01 | 物流治理分因建议 | `src/integration/stageAdvisor.ts`, `src/integration/stageAdvisor.test.ts`, `src/qa/logisticsHotspotScenarios.ts` | 已完成 | 无车、断路、仓满、来源不足、卸货排队分别给出不同治理建议 |
 | LONG-RUN-CIV-QA-02 | 7200 tick 分层文明长跑 | `src/qa/civilizationLongRun.ts`, `src/qa/civilizationLongRunCheck.ts`, `package.json` | 已完成 | `npm run qa:civilization-long-run` 可在 2400/4800/7200 tick 采样稳定性与快照规模，验证 30 日灰盒城市长期有界 |
+| LONG-RUN-QUEUE-PRESSURE-01 | 长跑队列压力读数 | `src/qa/civilizationLongRun.ts`, `src/qa/civilizationLongRunCheck.ts`, `src/qa/civilizationLongRun.test.ts` | 已完成 | 7200 tick 分层报告记录服务/物流队列规模，并在同一 QA 命令中运行真实卸货吞吐探针 |
 | BROWSER-E2E-CONTRACT-01 | 浏览器 E2E 场景契约 | `src/qa/browserE2eScenarios.ts`, `src/qa/browserE2eRunner.ts`, `package.json` | 已完成 | `npm run qa:browser-e2e:contract` 可列出并校验 5 个固定治理浏览器场景的 URL、可见文案和 console error 门禁 |
 | BROWSER-E2E-RUNNER-01 | 真实浏览器 E2E 执行器 | `tools/browser-e2e/run-browser-e2e.cjs`, `src/qa/browserE2eScenarios.ts`, `package.json` | 已完成 | `npm run qa:browser-e2e` 会构建、启动 Vite preview、用 Playwright Chromium 打开 5 个场景、检查文案/console，并在 roadPlan 场景点击治理卡 |
 | BROWSER-E2E-LOW-TREASURY-01 | 低财政补线失败浏览器交互 | `src/qa/browserE2eScenarios.ts`, `src/qa/browserE2eScenarios.test.ts` | 已完成 | `qa:browser-e2e` 会在低财政场景点击补线治理卡，并验证“银两不足2，无法执行补线施工”toast |

@@ -1,6 +1,7 @@
 import { SimulationEngine } from '../simulation/core'
 import { EconomySystem } from '../simulation/economy'
-import type { SimulationSnapshot } from '../simulation/contracts'
+import { LogisticsSystem } from '../simulation/economy/logistics'
+import type { BuildingDefinition, SimulationSnapshot } from '../simulation/contracts'
 import {
   CIVILIZATION_LONG_RUN_THRESHOLDS,
   createStressScenario,
@@ -21,7 +22,17 @@ export const CIVILIZATION_LONG_RUN_SNAPSHOT_LIMITS = {
   worldDrops: 0,
 } as const
 
+export interface CivilizationLongRunQueuePressure {
+  serviceQueues: number
+  queuedHouseholds: number
+  longestServiceWaitTicks: number
+  logisticsQueues: number
+  unloadBacklog: number
+  longestUnloadWaitTicks: number
+}
+
 export interface CivilizationLongRunLayerSummary extends StressScenarioSummary {
+  queuePressure: CivilizationLongRunQueuePressure
   snapshotSizes: {
     households: number
     buildings: number
@@ -35,6 +46,7 @@ export interface CivilizationLongRunReport {
   ticks: number
   layers: CivilizationLongRunLayerSummary[]
   final: CivilizationLongRunLayerSummary
+  queuePressureProbe: CivilizationLongRunLayerSummary
   thresholds: typeof CIVILIZATION_LONG_RUN_THRESHOLDS
   snapshotLimits: typeof CIVILIZATION_LONG_RUN_SNAPSHOT_LIMITS
 }
@@ -69,16 +81,165 @@ export function runCivilizationLongRunScenario(): CivilizationLongRunReport {
     ticks: CIVILIZATION_30_DAY_TICKS,
     layers,
     final,
+    queuePressureProbe: runCivilizationQueuePressureProbe(),
     thresholds: CIVILIZATION_LONG_RUN_THRESHOLDS,
     snapshotLimits: CIVILIZATION_LONG_RUN_SNAPSHOT_LIMITS,
   }
 }
 
-function summarizeCivilizationLongRunLayer(
+export function runCivilizationQueuePressureProbe(): CivilizationLongRunLayerSummary {
+  const definitions: Record<string, BuildingDefinition> = {
+    source: {
+      type: 'source',
+      name: '压力货源',
+      category: 'storage',
+      footprint: [{ x: 0, y: 0 }],
+      entrance: { x: 0, y: 1 },
+      maxLevel: 8,
+      jobs: 0,
+      capacity: 50,
+    },
+    destination: {
+      type: 'destination',
+      name: '压力仓储',
+      category: 'storage',
+      footprint: [{ x: 0, y: 0 }],
+      entrance: { x: 4, y: 1 },
+      maxLevel: 8,
+      jobs: 0,
+      capacity: 50,
+    },
+  }
+  const snapshot: SimulationSnapshot = {
+    version: 6,
+    seed: 20260704,
+    tick: 10,
+    speed: 1,
+    cells: [
+      { point: { x: 0, y: 1 }, terrain: 'land', elevation: 0, road: 'stone' },
+      { point: { x: 4, y: 1 }, terrain: 'land', elevation: 0, road: 'stone' },
+    ],
+    buildings: {
+      source: {
+        id: 'source',
+        type: 'source',
+        origin: { x: 0, y: 0 },
+        entrance: { x: 0, y: 1 },
+        rotation: 0,
+        level: 1,
+        status: 'working',
+        workers: [],
+        inventory: { food: 10 },
+        productionProgress: 0,
+      },
+      destination: {
+        id: 'destination',
+        type: 'destination',
+        origin: { x: 4, y: 0 },
+        entrance: { x: 4, y: 1 },
+        rotation: 0,
+        level: 1,
+        status: 'working',
+        workers: [],
+        inventory: {},
+        productionProgress: 0,
+      },
+    },
+    households: {},
+    agents: {
+      carrierA: {
+        id: 'carrierA',
+        role: 'cart',
+        position: { x: 4, y: 1 },
+        path: [{ x: 4, y: 1 }],
+        pathIndex: 0,
+        activity: 'delivering',
+        cargoIntent: {
+          orderId: 'orderA',
+          resource: 'food',
+          amount: 1,
+          sourceBuildingId: 'source',
+          destinationBuildingId: 'destination',
+          phase: 'dropoff',
+        },
+      },
+      carrierB: {
+        id: 'carrierB',
+        role: 'cart',
+        position: { x: 4, y: 1 },
+        path: [{ x: 4, y: 1 }],
+        pathIndex: 0,
+        activity: 'delivering',
+        cargoIntent: {
+          orderId: 'orderB',
+          resource: 'food',
+          amount: 1,
+          sourceBuildingId: 'source',
+          destinationBuildingId: 'destination',
+          phase: 'dropoff',
+        },
+      },
+    },
+    logisticsOrders: {
+      orderA: {
+        id: 'orderA',
+        resource: 'food',
+        amount: 1,
+        sourceBuildingId: 'source',
+        destinationBuildingId: 'destination',
+        priority: 50,
+        state: 'in_transit',
+        carrierId: 'carrierA',
+      },
+      orderB: {
+        id: 'orderB',
+        resource: 'food',
+        amount: 1,
+        sourceBuildingId: 'source',
+        destinationBuildingId: 'destination',
+        priority: 50,
+        state: 'in_transit',
+        carrierId: 'carrierB',
+        throughputQueuedSinceTick: 7,
+      },
+    },
+    economy: { treasury: 0, taxRate: 0, lastTaxIncome: 0, lastMaintenanceCost: 0 },
+    metrics: {
+      population: 0,
+      households: 0,
+      employedWorkers: 0,
+      availableJobs: 0,
+      housingCapacity: 0,
+      satisfaction: 0,
+      logisticsEfficiency: 100,
+    },
+    worldDrops: [],
+    rareRewards: {
+      missesSinceReward: 0,
+      rewardsToday: 0,
+      dayKey: '2026-07-04',
+      processedEventIds: [],
+      inventory: {},
+    },
+  }
+
+  new LogisticsSystem({
+    definitions,
+    unloadCapacityPerTick: 1,
+    routePlanner: {
+      findRoute: (_cells, from, to) => [from, to],
+    },
+  }).update(snapshot)
+
+  return summarizeCivilizationLongRunLayer(snapshot)
+}
+
+export function summarizeCivilizationLongRunLayer(
   snapshot: SimulationSnapshot,
 ): CivilizationLongRunLayerSummary {
   return {
     ...summarizeStressScenario(snapshot),
+    queuePressure: summarizeQueuePressure(snapshot),
     snapshotSizes: {
       households: Object.keys(snapshot.households).length,
       buildings: Object.keys(snapshot.buildings).length,
@@ -86,5 +247,29 @@ function summarizeCivilizationLongRunLayer(
       logisticsOrders: Object.keys(snapshot.logisticsOrders).length,
       worldDrops: snapshot.worldDrops.length,
     },
+  }
+}
+
+function summarizeQueuePressure(
+  snapshot: SimulationSnapshot,
+): CivilizationLongRunQueuePressure {
+  const serviceQueues = Object.values(snapshot.serviceQueues ?? {})
+    .filter((queue) => queue.waitingCount > 0 || queue.rejectedThisTick > 0)
+  const logisticsQueues = Object.values(snapshot.logisticsQueues ?? {})
+    .filter((queue) => queue.waitingToUnloadCount > 0)
+
+  return {
+    serviceQueues: serviceQueues.length,
+    queuedHouseholds: serviceQueues.reduce((sum, queue) => sum + queue.waitingCount, 0),
+    longestServiceWaitTicks: serviceQueues.reduce(
+      (max, queue) => Math.max(max, queue.longestWaitTicks),
+      0,
+    ),
+    logisticsQueues: logisticsQueues.length,
+    unloadBacklog: logisticsQueues.reduce((sum, queue) => sum + queue.waitingToUnloadCount, 0),
+    longestUnloadWaitTicks: logisticsQueues.reduce(
+      (max, queue) => Math.max(max, queue.longestWaitTicks),
+      0,
+    ),
   }
 }

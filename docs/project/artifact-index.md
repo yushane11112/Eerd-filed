@@ -1110,3 +1110,16 @@
 | `docs/project/task-board.md` | 任务看板 | 记录 `UPGRADE-ECONOMY-TABLE-01` 已完成 |
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮升级经济表接入事实 |
 | `docs/project/qa.md` | QA 记录 | 记录本轮 TDD、回归和限制 |
+
+## 2026-07-04：第九十四轮长跑队列压力读数
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/qa/civilizationLongRun.ts` | 长跑 QA 执行器 | 分层报告新增 `queuePressure`，并输出真实物流卸货吞吐探针 |
+| `src/qa/civilizationLongRunCheck.ts` | QA 命令入口 | 校验队列压力字段为有限数、最终服务排队大于 0、探针物流积压大于 0 |
+| `src/qa/civilizationLongRun.test.ts` | 自动测试 | 固定服务/物流队列汇总逻辑和真实卸货吞吐探针行为 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第九十四轮进展、QA 完成度和下一轮任务 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LONG-RUN-QUEUE-PRESSURE-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮队列压力报告接入事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮 TDD、7200 QA、全量回归和限制 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务，避免新会话重复本轮 |

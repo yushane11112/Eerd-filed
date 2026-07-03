@@ -28,8 +28,17 @@ export function runCivilizationLongRunCheck(): void {
     assertAtMost(layer.snapshotSizes.agents, CIVILIZATION_LONG_RUN_SNAPSHOT_LIMITS.agents, `agent table @${layer.tick}`)
     assertAtMost(layer.snapshotSizes.logisticsOrders, CIVILIZATION_LONG_RUN_SNAPSHOT_LIMITS.logisticsOrders, `order table @${layer.tick}`)
     assertAtMost(layer.snapshotSizes.worldDrops, CIVILIZATION_LONG_RUN_SNAPSHOT_LIMITS.worldDrops, `world drop table @${layer.tick}`)
+    assertFinite(layer.queuePressure.serviceQueues, `service queue count @${layer.tick}`)
+    assertFinite(layer.queuePressure.queuedHouseholds, `queued households @${layer.tick}`)
+    assertFinite(layer.queuePressure.longestServiceWaitTicks, `longest service wait @${layer.tick}`)
+    assertFinite(layer.queuePressure.logisticsQueues, `logistics queue count @${layer.tick}`)
+    assertFinite(layer.queuePressure.unloadBacklog, `unload backlog @${layer.tick}`)
+    assertFinite(layer.queuePressure.longestUnloadWaitTicks, `longest unload wait @${layer.tick}`)
   }
 
+  assertAtLeast(report.final.queuePressure.queuedHouseholds, 1, 'final queued households')
+  assertAtLeast(report.queuePressureProbe.queuePressure.unloadBacklog, 1, 'probe unload backlog')
+  assertAtLeast(report.queuePressureProbe.queuePressure.logisticsQueues, 1, 'probe logistics queues')
   assertAtLeast(report.layers[2].archivedOrders, report.layers[0].archivedOrders + 1, 'archive grows by final layer')
   assertAtLeast(report.final.archivedOrders, 1, 'final archived orders')
   console.log(JSON.stringify(report, null, 2))
@@ -58,6 +67,12 @@ function assertAtLeast(actual: number, minimum: number, label: string): void {
 function assertAtMost(actual: number, maximum: number, label: string): void {
   if (actual > maximum) {
     throw new Error(`${label}: expected <= ${maximum}, got ${actual}`)
+  }
+}
+
+function assertFinite(actual: number, label: string): void {
+  if (!Number.isFinite(actual)) {
+    throw new Error(`${label}: expected finite number, got ${String(actual)}`)
   }
 }
 

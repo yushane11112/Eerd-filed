@@ -41,6 +41,10 @@ export const BROWSER_E2E_SCENARIOS: BrowserE2eScenario[] = [
     path: '/?debugScenario=bridge-gap',
     mustContainText: ['道路未连通', '桥梁 2 格'],
     forbiddenConsoleLevels: ['error'],
+    interaction: {
+      clickText: '打开道路图层并接回主路网',
+      expectToastText: '道路未连通：补线施工完成：桥梁 2 格，花费银两36。',
+    },
   },
   {
     id: 'logistics-hotspot',

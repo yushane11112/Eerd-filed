@@ -38,6 +38,10 @@ describe('browser E2E scenario contract', () => {
         path: '/?debugScenario=bridge-gap',
         mustContainText: expect.arrayContaining(['道路未连通', '桥梁 2 格']),
         forbiddenConsoleLevels: ['error'],
+        interaction: {
+          clickText: '打开道路图层并接回主路网',
+          expectToastText: '道路未连通：补线施工完成：桥梁 2 格，花费银两36。',
+        },
       }),
       expect.objectContaining({
         id: 'logistics-hotspot',
@@ -80,6 +84,12 @@ describe('browser E2E scenario contract', () => {
         expectToastText: '银两不足2，无法执行补线施工',
       },
     })
+    expect(browserE2eScenarioById('bridge-gap')).toMatchObject({
+      interaction: {
+        clickText: '打开道路图层并接回主路网',
+        expectToastText: '道路未连通：补线施工完成：桥梁 2 格，花费银两36。',
+      },
+    })
     expect(browserE2eScenarioById('service-governance')).toMatchObject({
       interaction: {
         clickText: '打开服务图层并营造市场',
@@ -102,6 +112,13 @@ describe('browser E2E scenario contract', () => {
         interaction: {
           clickText: '打开道路图层并接回主路网',
           expectToastText: '银两不足2，无法执行补线施工',
+        },
+      }),
+      expect.objectContaining({
+        id: 'bridge-gap',
+        interaction: {
+          clickText: '打开道路图层并接回主路网',
+          expectToastText: '道路未连通：补线施工完成：桥梁 2 格，花费银两36。',
         },
       }),
       expect.objectContaining({

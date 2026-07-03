@@ -55,6 +55,10 @@ export const BROWSER_E2E_SCENARIOS: BrowserE2eScenario[] = [
     path: '/',
     mustContainText: ['服务覆盖缺口', '打开服务图层并营造市场'],
     forbiddenConsoleLevels: ['error'],
+    interaction: {
+      clickText: '打开服务图层并营造市场',
+      expectToastText: '服务覆盖缺口：打开服务图层并营造市场。',
+    },
   },
 ]
 

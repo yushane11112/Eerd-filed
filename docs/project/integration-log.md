@@ -1,5 +1,13 @@
 # 集成记录
 
+## 2026-07-03
+
+- 启动并完成第八十五轮：`BROWSER-E2E-SERVICE-GOVERNANCE-01`。服务治理从可见文案检查升级为真实浏览器点击交互。
+- `browserE2eScenarios` 为 `service-governance` 增加 interaction：点击“打开服务图层并营造市场”，等待“服务覆盖缺口：打开服务图层并营造市场。”toast。
+- `browserE2eScenarios.test.ts` 增加契约断言，确保服务治理场景的 interaction 元数据也会输出给真实浏览器 runner。
+- 验证：`BROWSER_E2E_SCENARIO=service-governance npm run qa:browser-e2e` 通过；完整 `npm run qa:browser-e2e` 5/5 通过，road-plan-success、road-plan-low-treasury 与 service-governance 均执行真实点击。
+- 限制：桥梁缺口和物流热点仍主要是可见文案/console 检查，还没有真实点击/定位动作断言。
+
 ## 2026-07-01
 
 - 启动并完成第八十四轮：`BROWSER-E2E-LOW-TREASURY-01`。低财政补线失败路径从可见文案检查升级为真实浏览器点击交互。

@@ -50,6 +50,10 @@ describe('browser E2E scenario contract', () => {
         path: '/',
         mustContainText: expect.arrayContaining(['服务覆盖缺口', '打开服务图层并营造市场']),
         forbiddenConsoleLevels: ['error'],
+        interaction: {
+          clickText: '打开服务图层并营造市场',
+          expectToastText: '服务覆盖缺口：打开服务图层并营造市场。',
+        },
       }),
     ]))
   })
@@ -76,6 +80,12 @@ describe('browser E2E scenario contract', () => {
         expectToastText: '银两不足2，无法执行补线施工',
       },
     })
+    expect(browserE2eScenarioById('service-governance')).toMatchObject({
+      interaction: {
+        clickText: '打开服务图层并营造市场',
+        expectToastText: '服务覆盖缺口：打开服务图层并营造市场。',
+      },
+    })
   })
 
   it('exports interaction metadata for real browser runners', () => {
@@ -92,6 +102,13 @@ describe('browser E2E scenario contract', () => {
         interaction: {
           clickText: '打开道路图层并接回主路网',
           expectToastText: '银两不足2，无法执行补线施工',
+        },
+      }),
+      expect.objectContaining({
+        id: 'service-governance',
+        interaction: {
+          clickText: '打开服务图层并营造市场',
+          expectToastText: '服务覆盖缺口：打开服务图层并营造市场。',
         },
       }),
     ]))

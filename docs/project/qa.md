@@ -777,3 +777,19 @@
 
 - `unloadCapacityPerTick` 仍是物流系统参数，尚未由建筑等级、工人数量、仓库/市场/码头类型和道路入口数动态计算。
 - 物流治理卡还没有区分无车、断路、仓满、来源不足和卸货吞吐不足的不同操作建议。
+
+## 2026-07-03 第九十二轮验证
+
+- TDD RED：`npx vitest run src/integration/stageAdvisor.test.ts -t "recommends a specific logistics fix"` 首次失败，5 类物流原因全部仍被旧逻辑归为 `打开物流图层并补仓储`，证明治理建议没有分因能力。
+- TDD GREEN：新增物流分因诊断后，同一目标测试通过，覆盖 `no-carrier`、`no-route`、`destination-capacity`、`source-inventory-insufficient`、`destination-throughput`。
+- 回归修正：`logistics-hotspot` QA 场景被建筑残留 `statusReason` 带偏为来源不足；修正后物流分因只依据当前订单失败原因和 `logisticsQueues`，通用热点场景继续保持补仓储建议。
+- 目标回归：`npx vitest run src/integration/stageAdvisor.test.ts src/qa/logisticsHotspotScenarios.test.ts src/qa/browserE2eScenarios.test.ts src/integration/GameRuntime.test.ts` 通过，4 个测试文件、47 项测试。
+
+- 全量回归：`npm test` 通过，40 个测试文件、251 项测试；长稳用例耗时约 35.83 秒。
+- 生产构建：`npm run build` 通过。
+- 补丁检查：`git diff --check` 通过，无空白错误输出。
+
+当前限制：
+
+- 分因建议仍以卡片文案和工具入口为主，尚未自动生成具体可执行计划。
+- “补充承运人调度”和“检查来源库存”目前是 inspect 级建议，缺少对应的车船生产/调度面板和来源定位交互。

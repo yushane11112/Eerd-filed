@@ -14,7 +14,7 @@ export interface LogisticsHotspotQaScenarioSummary {
     recommendedBuilding?: string
     recommendationTool?: string
   }
-  orders: Array<Pick<LogisticsOrder, 'id' | 'resource' | 'destinationBuildingId' | 'state'>>
+  orders: Array<Pick<LogisticsOrder, 'id' | 'resource' | 'destinationBuildingId' | 'state' | 'failureReason'>>
 }
 
 const LOGISTICS_HOTSPOT_QA_SCENARIOS: Array<{
@@ -53,6 +53,7 @@ export function runLogisticsHotspotQaScenarios(): LogisticsHotspotQaScenarioSumm
           resource: order.resource,
           destinationBuildingId: order.destinationBuildingId,
           state: order.state,
+          ...(order.failureReason ? { failureReason: order.failureReason } : {}),
         })),
     }
   })

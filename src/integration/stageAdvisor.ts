@@ -1,4 +1,9 @@
-import type { GridPoint, RoadKind, SimulationSnapshot } from '../simulation/contracts'
+import type {
+  GridPoint,
+  LogisticsFailureReason,
+  RoadKind,
+  SimulationSnapshot,
+} from '../simulation/contracts'
 import {
   BUILDING_DEFINITIONS,
   CITY_STAGE_LABELS,
@@ -217,27 +222,25 @@ export function deriveStageGovernanceCards(
   const logistics = overlays.logistics
   const hotspots = logistics?.metrics?.hotspots ?? 0
   const activeOrders = logistics?.metrics?.activeOrders ?? 0
+  const logisticsPressure = diagnoseLogisticsGovernance(snapshot, logistics)
   if (hotspots > 0 || activeOrders >= 3) {
-    const target = logistics?.points.find((point) => point.label.startsWith('物流热点'))
+    const target = logistics?.points.find((point) => logisticsPressure.targetLabelPrefix
+      && point.label.startsWith(logisticsPressure.targetLabelPrefix))
+      ?? logistics?.points.find((point) => point.label.startsWith('物流热点'))
       ?? logistics?.points.find((point) => point.kind === 'logistics')
     const score = 82 + hotspots * 8 + activeOrders
-    const recommendation = explainStageRecommendationAvailability({
-      label: '打开物流图层并补仓储',
-      tool: 'building',
-      buildingType: 'granary',
-      overlayMode: 'logistics',
-    }, snapshot)
+    const recommendation = explainStageRecommendationAvailability(logisticsPressure.recommendation, snapshot)
     cards.push({
       id: 'governance-logistics-hotspots',
       title: '物流热点拥堵',
-      detail: `当前有 ${activeOrders} 条未完成订单、${hotspots} 个物流热点，货物流转容易压到少数建筑。`,
-      cause: '订单集中在少数产地、仓储或市场，现有道路与仓储缓冲不足。',
-      action: actionWithAvailability('靠近热点补仓储、优化道路，避免产地和市场单线拥堵。', recommendation),
+      detail: logisticsPressure.detail(activeOrders, hotspots),
+      cause: logisticsPressure.cause,
+      action: actionWithAvailability(logisticsPressure.action, recommendation),
       recommendation,
       score,
       severity: severityFromScore(score),
       overlayMode: 'logistics',
-      metricLabel: hotspots > 0 ? '热点' : '未完成',
+      metricLabel: logisticsPressure.metricLabel,
       target: target && { point: target.position, label: target.label },
     })
   }
@@ -1344,6 +1347,150 @@ function hasAdjacentRoad(cells: ReadonlyMap<string, { road?: unknown }>, point: 
     { x: point.x, y: point.y + 1 },
     { x: point.x, y: point.y - 1 },
   ].some((candidate) => Boolean(cells.get(pointBucket(candidate))?.road))
+}
+
+function diagnoseLogisticsGovernance(
+  snapshot: Readonly<SimulationSnapshot>,
+  overlay?: StageAdvisorOverlay,
+): {
+  metricLabel: string
+  targetLabelPrefix?: string
+  cause: string
+  action: string
+  detail: (activeOrders: number, hotspots: number) => string
+  recommendation: StageGovernanceRecommendation
+} {
+  const dominant = dominantLogisticsFailureReason(snapshot)
+  if ((overlay?.metrics?.unloadBacklog ?? 0) > 0 || dominant === 'destination-throughput') {
+    return {
+      metricLabel: '卸货排队',
+      targetLabelPrefix: '卸货排队',
+      cause: '多辆承运车船同时压到同一市场或仓储，目的建筑卸货口吞吐不足。',
+      action: '在热点附近分流卸货，补仓储缓冲或升级后续卸货能力，避免车船堵在目的地。',
+      detail: (activeOrders, hotspots) => (
+        `当前有 ${activeOrders} 条未完成订单、${hotspots} 个物流热点，且目的建筑出现卸货排队。`
+      ),
+      recommendation: {
+        label: '分流卸货压力',
+        tool: 'building',
+        buildingType: 'granary',
+        overlayMode: 'logistics',
+      },
+    }
+  }
+  if (dominant === 'no-carrier') {
+    return {
+      metricLabel: '缺车',
+      cause: '订单已经生成，但没有空闲车船承运，说明运输实体或调度能力不足。',
+      action: '补充车船、释放被卡住的承运人，或减少远距离订单集中生成。',
+      detail: (activeOrders, hotspots) => (
+        `当前有 ${activeOrders} 条未完成订单、${hotspots} 个物流热点，主要卡在没有空闲承运人。`
+      ),
+      recommendation: {
+        label: '补充承运人调度',
+        tool: 'inspect',
+        overlayMode: 'logistics',
+      },
+    }
+  }
+  if (dominant === 'no-route') {
+    return {
+      metricLabel: '断路',
+      targetLabelPrefix: '失败',
+      cause: '订单两端之间没有可用道路或桥梁路径，承运人无法抵达来源或目的地。',
+      action: '修通道路或补桥，先让来源、仓储和市场连回主路网。',
+      detail: (activeOrders, hotspots) => (
+        `当前有 ${activeOrders} 条未完成订单、${hotspots} 个物流热点，主要卡在道路不连通。`
+      ),
+      recommendation: {
+        label: '打开道路图层并修通线路',
+        tool: 'road',
+        overlayMode: 'logistics',
+      },
+    }
+  }
+  if (dominant === 'destination-capacity') {
+    return {
+      metricLabel: '仓满',
+      targetLabelPrefix: '失败',
+      cause: '货物已经到达或即将到达，但目的建筑库存容量不足。',
+      action: '扩仓、升级仓储容量，或把市场/作坊旁的入货压力分流到其他仓储点。',
+      detail: (activeOrders, hotspots) => (
+        `当前有 ${activeOrders} 条未完成订单、${hotspots} 个物流热点，主要卡在目的建筑容量不足。`
+      ),
+      recommendation: {
+        label: '扩建仓储容量',
+        tool: 'building',
+        buildingType: 'granary',
+        overlayMode: 'logistics',
+      },
+    }
+  }
+  if (dominant === 'source-inventory-insufficient' || dominant === 'no-source-inventory') {
+    return {
+      metricLabel: '缺货源',
+      targetLabelPrefix: '发货',
+      cause: '目的建筑需要货物，但来源库存不足或被已有订单预占。',
+      action: '补生产、增加上游库存，或降低同类目的建筑对同一来源的抢货。',
+      detail: (activeOrders, hotspots) => (
+        `当前有 ${activeOrders} 条未完成订单、${hotspots} 个物流热点，主要卡在来源库存不足。`
+      ),
+      recommendation: {
+        label: '检查来源库存',
+        tool: 'inspect',
+        overlayMode: 'logistics',
+      },
+    }
+  }
+  return {
+    metricLabel: (overlay?.metrics?.hotspots ?? 0) > 0 ? '热点' : '未完成',
+    targetLabelPrefix: '物流热点',
+    cause: '订单集中在少数产地、仓储或市场，现有道路与仓储缓冲不足。',
+    action: '靠近热点补仓储、优化道路，避免产地和市场单线拥堵。',
+    detail: (activeOrders, hotspots) => (
+      `当前有 ${activeOrders} 条未完成订单、${hotspots} 个物流热点，货物流转容易压到少数建筑。`
+    ),
+    recommendation: {
+      label: '打开物流图层并补仓储',
+      tool: 'building',
+      buildingType: 'granary',
+      overlayMode: 'logistics',
+    },
+  }
+}
+
+function dominantLogisticsFailureReason(
+  snapshot: Readonly<SimulationSnapshot>,
+): LogisticsFailureReason | undefined {
+  const counts = new Map<LogisticsFailureReason, number>()
+  for (const order of Object.values(snapshot.logisticsOrders)) {
+    const reason = order.failureReason ?? order.cancelReason
+    if (reason) counts.set(reason, (counts.get(reason) ?? 0) + 1)
+  }
+  return dominantReasonFromCounts(counts)
+}
+
+function dominantReasonFromCounts(
+  counts: ReadonlyMap<LogisticsFailureReason, number>,
+): LogisticsFailureReason | undefined {
+  return [...counts.entries()]
+    .sort((left, right) => (
+      right[1] - left[1]
+      || logisticsReasonPriority(left[0]) - logisticsReasonPriority(right[0])
+      || left[0].localeCompare(right[0])
+    ))[0]?.[0]
+}
+
+function logisticsReasonPriority(reason: LogisticsFailureReason): number {
+  return ({
+    'destination-throughput': 0,
+    'destination-capacity': 1,
+    'no-route': 2,
+    'no-carrier': 3,
+    'source-inventory-insufficient': 4,
+    'no-source-inventory': 5,
+    'building-demolished': 6,
+  } satisfies Record<LogisticsFailureReason, number>)[reason]
 }
 
 function activityPressureRecommendation(input: {

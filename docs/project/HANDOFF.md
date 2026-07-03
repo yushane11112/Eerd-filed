@@ -126,9 +126,9 @@ npm run build
 
 以 `docs/project/progress-dashboard.md` 为准。当前方向是：
 
-1. 将物流治理卡从“补仓储”推进为区分无车、断路、仓满、卸货排队、来源不足的分因建议。
-2. 将建筑升级成本纳入 `ConstructionEconomyTable`，统一新建和升级曲线。
-3. 将 7200 tick 长跑接入更严格的服务排队/仓储吞吐压力场景，并记录 `serviceQueues/logisticsQueues` 规模。
+1. 将建筑升级成本纳入 `ConstructionEconomyTable`，统一新建和升级曲线。
+2. 将 7200 tick 长跑接入更严格的服务排队/仓储吞吐压力场景，并记录 `serviceQueues/logisticsQueues` 规模。
+3. 将物流分因建议接入更明确的可执行操作，例如车船补充、仓储升级、道路计划或生产源定位，而不是只停留在文案。
 4. 继续建立商业级美术资产量产门禁，推进更多 L0–L8 完整样例。
 5. 扩展浏览器 E2E 到更多城市管理动作，而不是重复覆盖已固定的 5 个治理场景。
 

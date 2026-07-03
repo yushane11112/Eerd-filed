@@ -780,6 +780,102 @@ describe('stage advisor overlays', () => {
       },
     ])
   })
+
+  it.each([
+    {
+      reason: 'no-carrier' as const,
+      label: '补充承运人调度',
+      tool: 'inspect' as const,
+      metricLabel: '缺车',
+      actionIncludes: '补充车船',
+    },
+    {
+      reason: 'no-route' as const,
+      label: '打开道路图层并修通线路',
+      tool: 'road' as const,
+      metricLabel: '断路',
+      actionIncludes: '修通道路',
+    },
+    {
+      reason: 'destination-capacity' as const,
+      label: '扩建仓储容量',
+      tool: 'building' as const,
+      buildingType: 'granary',
+      metricLabel: '仓满',
+      actionIncludes: '扩仓',
+    },
+    {
+      reason: 'source-inventory-insufficient' as const,
+      label: '检查来源库存',
+      tool: 'inspect' as const,
+      metricLabel: '缺货源',
+      actionIncludes: '补生产',
+    },
+    {
+      reason: 'destination-throughput' as const,
+      label: '分流卸货压力',
+      tool: 'building' as const,
+      buildingType: 'granary',
+      metricLabel: '卸货排队',
+      actionIncludes: '分流卸货',
+    },
+  ])('recommends a specific logistics fix for $reason', ({
+    reason,
+    label,
+    tool,
+    buildingType,
+    metricLabel,
+    actionIncludes,
+  }) => {
+    const snapshot = makeSnapshot({
+      buildings: {
+        source: building('source', 'granary', { x: 2, y: 2 }),
+        market: building('market', 'market', { x: 4, y: 5 }),
+      },
+      logisticsOrders: Object.fromEntries([1, 2, 3].map((index) => [
+        `order-${index}`,
+        {
+          id: `order-${index}`,
+          resource: 'food',
+          amount: 1,
+          sourceBuildingId: 'source',
+          destinationBuildingId: 'market',
+          priority: 10,
+          state: 'waiting',
+          failureReason: reason,
+          ...(reason === 'destination-throughput' ? { state: 'in_transit' as const } : {}),
+        },
+      ])),
+      ...(reason === 'destination-throughput'
+        ? {
+            logisticsQueues: {
+              market: {
+                buildingId: 'market',
+                unloadCapacityPerTick: 1,
+                unloadedThisTick: 1,
+                waitingToUnloadCount: 3,
+                longestWaitTicks: 5,
+                waitingOrderIds: ['order-1', 'order-2', 'order-3'],
+              },
+            },
+          }
+        : {}),
+    })
+
+    const card = deriveStageGovernanceCards(snapshot)
+      .find((item) => item.id === 'governance-logistics-hotspots')
+
+    expect(card).toMatchObject({
+      recommendation: {
+        label,
+        tool,
+        ...(buildingType ? { buildingType } : {}),
+        overlayMode: 'logistics',
+      },
+      metricLabel,
+    })
+    expect(card?.action).toContain(actionIncludes)
+  })
 })
 
 function makeSnapshot(overrides: Partial<SimulationSnapshot> = {}): SimulationSnapshot {

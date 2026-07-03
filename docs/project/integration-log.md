@@ -421,3 +421,11 @@
 - `LogisticsSystem` 新增 `unloadCapacityPerTick`，同 tick 多辆车到达同一目的建筑时只允许有限订单卸货，其余订单保持 `in_transit` 并等待下 tick。
 - 物流图层读取 `logisticsQueues`，显示 `卸货排队xN`，并输出 `unloadBacklog` 与 `longestUnloadWait` 指标。
 - 客观限制：卸货能力目前是系统参数，还未绑定建筑等级、仓储工人、道路入口数量和港口/车船类型。
+
+## 2026-07-03 第九十二轮：物流治理分因建议
+
+- 启动 `LOGISTICS-GOVERNANCE-CAUSE-01`：把物流治理卡从统一“补仓储”推进为按失败原因解释。
+- `deriveStageGovernanceCards` 新增物流分因诊断：`no-carrier` 推荐补充承运人调度，`no-route` 推荐修通线路，`destination-capacity` 推荐扩建仓储容量，`source-inventory-insufficient/no-source-inventory` 推荐检查来源库存，`destination-throughput` 推荐分流卸货压力。
+- 物流分因优先读取当前订单的 `failureReason/cancelReason` 和 `logisticsQueues`，不再让无关建筑残留 `statusReason` 覆盖当前订单热点诊断。
+- `logisticsHotspotScenarios` QA 摘要保留订单失败原因字段，只有真实存在失败原因时输出，便于后续审计。
+- 客观限制：当前建议仍以文案和工具跳转为主，尚未自动生成车船补充、仓储升级、道路计划或生产源定位的具体执行计划。

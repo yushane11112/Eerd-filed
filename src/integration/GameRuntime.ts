@@ -911,6 +911,7 @@ export class GameRuntime {
   private applyLogisticsHotspotScenario(snapshot: SimulationSnapshot) {
     snapshot.buildings['granary-1'].inventory = {
       ...snapshot.buildings['granary-1'].inventory,
+      food: 20,
       cloth: 12,
       medicine: 12,
     }

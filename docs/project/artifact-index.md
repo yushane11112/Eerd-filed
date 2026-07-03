@@ -1082,3 +1082,16 @@
 | `docs/project/task-board.md` | 任务看板 | 记录 `LOGISTICS-UNLOAD-QUEUE-01` 已完成 |
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮卸货吞吐与物流积压接入事实 |
 | `docs/project/qa.md` | QA 记录 | 记录本轮 TDD、回归和限制 |
+
+## 2026-07-03：第九十二轮物流治理分因建议
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 城市顾问数据层 | 物流治理卡按无车、断路、仓满、来源不足、卸货排队输出不同建议 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 固定 5 类物流失败原因的推荐工具、标签、指标和行动文案 |
+| `src/qa/logisticsHotspotScenarios.ts` | QA 场景摘要 | 物流热点 QA 摘要可审计订单失败原因，避免只看聚合卡片 |
+| `src/integration/GameRuntime.ts` | 调试场景数据 | 物流热点场景补足食物库存，避免误把通用热点场景识别为来源不足 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第九十二轮进展、UI 完成度和下一轮任务 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LOGISTICS-GOVERNANCE-CAUSE-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮分因治理接入事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮 TDD、回归和限制 |

@@ -9,6 +9,18 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-03 第八十九轮验证
+
+- TDD RED：`npx vitest run src/simulation/economy/constructionTable.test.ts` 先失败；原因是 `validateConstructionEconomyTable` 不存在，且自定义道路经济表没有影响桥梁报价。
+- TDD GREEN：新增 `ConstructionEconomyTable`、`DEFAULT_CONSTRUCTION_ECONOMY_TABLE`、`validateConstructionEconomyTable`，并让建筑/道路报价函数支持传入自定义经济表。
+- 兼容验证：默认市场仍为银两 180、木料×4、石料×2；默认道路仍为泥路 2、石板路 6、桥路 18。
+- 目标回归：`npx vitest run src/simulation/economy/constructionTable.test.ts src/content/buildings.test.ts src/integration/GameRuntime.test.ts src/qa/serviceGovernanceScenarios.test.ts`：4 个测试文件、35 项通过。
+- 全量回归：`npm test`：40 个测试文件、244 项测试通过，其中 2400 tick 多日文明稳定性测试耗时约 52.7 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `git diff --check`：通过。
+
+限制：经济表只是可调化，尚未把升级成本、服务容量、排队、仓储吞吐和道路维护纳入统一平衡。
+
 ## 2026-07-03 第八十八轮验证
 
 - TDD RED：`npx vite-node src/qa/civilizationLongRunCheck.ts` 先失败，原因是 `src/qa/civilizationLongRun.ts` 不存在；此前曾尝试 `.longrun.ts` 由 Vitest 运行，但失败点是文件名不被默认 include 捕获，已改为独立 `vite-node` QA 检查脚本。

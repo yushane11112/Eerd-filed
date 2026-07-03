@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-03：第八十九轮可调营造经济表
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/economy/construction.ts` | 经济系统 | 导出默认营造经济表、表校验器，并支持自定义表报价 |
+| `src/simulation/economy/constructionTable.test.ts` | 自动测试 | 覆盖默认表兼容、自定义表报价和非法表校验 |
+| `docs/project/economy-balancing.md` | 平衡审计 | 记录当前经济表、已完成门禁、商业级平衡缺口和后续任务 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `CONSTRUCTION-ECONOMY-TABLE-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第八十九轮进展、城市模拟完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、验证和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN 和目标回归 |
+| `docs/project/artifact-index.md` | 产物索引 | 记录本轮真实新增/修改文件 |
+
 ## 2026-07-03：第八十八轮 7200 tick 分层文明长跑
 
 | 文件 | 产物类型 | 用途 |

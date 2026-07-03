@@ -43,6 +43,7 @@
 | CITY-RECOMMENDATION-UNLOCK-01 | 治理卡推荐阶段可用性 | `src/integration/stageAdvisor.ts`, `src/App.tsx` | 已完成 | 建筑推荐会说明当前阶段/所需阶段，未解锁时降级为查看图层且 UI 禁止切换到未解锁建筑工具 |
 | CITY-RECOMMENDATION-EXECUTION-01 | 治理卡推荐营造可执行性 | `src/integration/stageAdvisor.ts`, `src/App.tsx` | 已完成 | 已解锁建筑推荐会诊断连续空地和入口道路，当前不可放置时 UI 不切换到建筑工具 |
 | CONSTRUCTION-COST-01 | 正式建筑营造成本 | `src/simulation/economy/construction.ts`, `src/integration/GameRuntime.ts`, `src/integration/stageAdvisor.ts` | 已完成 | 建筑放置消耗财政和城市仓储材料，治理卡能诊断材料/银两不足 |
+| CONSTRUCTION-ECONOMY-TABLE-01 | 可调营造经济表 | `src/simulation/economy/construction.ts`, `src/simulation/economy/constructionTable.test.ts`, `docs/project/economy-balancing.md` | 已完成 | 默认营造成本表可导出、可校验、可替换，默认数值保持兼容并补平衡审计 |
 | BUILD-MENU-COST-01 | 建造菜单成本与缺口 | `src/content/runtimeBuildings.ts`, `src/App.tsx`, `src/styles.css` | 已完成 | 建造菜单显示银两/材料成本、缺口和是否可营造 |
 | GOVERNANCE-PLACEMENT-FOCUS-01 | 治理卡推荐落点提示 | `src/integration/stageAdvisor.ts`, `src/App.tsx`, `src/styles.css` | 已完成 | 点击建筑类治理建议会在地图标出建议落点和入口，并在建造菜单标出推荐建筑 |
 | GOVERNANCE-PLACEMENT-FOOTPRINT-01 | 治理卡推荐占地预览 | `src/integration/stageAdvisor.ts`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 点击建筑类治理建议会显示真实建筑 footprint、入口格和推荐建筑高亮 |

@@ -31,46 +31,69 @@ export interface RoadConstructionQuote {
   canAfford: boolean
 }
 
-const BASE_CONSTRUCTION_COSTS: Record<string, BuildingConstructionCost> = {
-  house: { treasury: 80, materials: { wood: 2, stone: 1 } },
-  granary: { treasury: 140, materials: { wood: 3, stone: 2 } },
-  riceField: { treasury: 60, materials: { wood: 1 } },
-  market: { treasury: 180, materials: { wood: 4, stone: 2 } },
-  woodshop: { treasury: 220, materials: { wood: 5, stone: 2, brick: 1 } },
+export interface ConstructionEconomyTable {
+  buildingCosts: Record<string, BuildingConstructionCost>
+  roadCosts: Record<RoadKind, RoadConstructionCost>
+  fallback: {
+    baseTreasury: number
+    treasuryPerFootprint: number
+    woodPerTwoFootprint: number
+    stonePerThreeFootprint: number
+  }
 }
 
-const ROAD_CONSTRUCTION_COSTS: Record<RoadKind, RoadConstructionCost> = {
-  dirt: { treasury: 2 },
-  stone: { treasury: 6 },
-  bridge: { treasury: 18 },
+export const DEFAULT_CONSTRUCTION_ECONOMY_TABLE: ConstructionEconomyTable = {
+  buildingCosts: {
+    house: { treasury: 80, materials: { wood: 2, stone: 1 } },
+    granary: { treasury: 140, materials: { wood: 3, stone: 2 } },
+    riceField: { treasury: 60, materials: { wood: 1 } },
+    market: { treasury: 180, materials: { wood: 4, stone: 2 } },
+    woodshop: { treasury: 220, materials: { wood: 5, stone: 2, brick: 1 } },
+  },
+  roadCosts: {
+    dirt: { treasury: 2 },
+    stone: { treasury: 6 },
+    bridge: { treasury: 18 },
+  },
+  fallback: {
+    baseTreasury: 50,
+    treasuryPerFootprint: 20,
+    woodPerTwoFootprint: 2,
+    stonePerThreeFootprint: 3,
+  },
 }
 
 export function buildingConstructionCost(
   type: string,
   definition?: BuildingDefinition,
+  table: ConstructionEconomyTable = DEFAULT_CONSTRUCTION_ECONOMY_TABLE,
 ): BuildingConstructionCost {
-  const base = BASE_CONSTRUCTION_COSTS[type]
+  const base = table.buildingCosts[type]
   if (base) return cloneCost(base)
   const footprintSize = definition?.footprint.length ?? 1
   return {
-    treasury: 50 + footprintSize * 20,
+    treasury: table.fallback.baseTreasury + footprintSize * table.fallback.treasuryPerFootprint,
     materials: {
-      wood: Math.max(1, Math.ceil(footprintSize / 2)),
-      stone: Math.floor(footprintSize / 3),
+      wood: Math.max(1, Math.ceil(footprintSize / table.fallback.woodPerTwoFootprint)),
+      stone: Math.floor(footprintSize / table.fallback.stonePerThreeFootprint),
     },
   }
 }
 
-export function roadConstructionCost(kind: RoadKind): RoadConstructionCost {
-  return { ...ROAD_CONSTRUCTION_COSTS[kind] }
+export function roadConstructionCost(
+  kind: RoadKind,
+  table: ConstructionEconomyTable = DEFAULT_CONSTRUCTION_ECONOMY_TABLE,
+): RoadConstructionCost {
+  return { ...table.roadCosts[kind] }
 }
 
 export function quoteRoadConstruction(
   kind: RoadKind,
   count: number,
   treasury: number,
+  table: ConstructionEconomyTable = DEFAULT_CONSTRUCTION_ECONOMY_TABLE,
 ): RoadConstructionQuote {
-  const unitCost = roadConstructionCost(kind)
+  const unitCost = roadConstructionCost(kind, table)
   const safeCount = Math.max(0, Math.floor(count))
   const cost = { treasury: unitCost.treasury * safeCount }
   const missingTreasury = Math.max(0, cost.treasury - treasury)
@@ -89,8 +112,9 @@ export function quoteBuildingConstruction(
   treasury: number,
   buildings: Record<string, BuildingEntity>,
   definitions: Record<string, BuildingDefinition>,
+  table: ConstructionEconomyTable = DEFAULT_CONSTRUCTION_ECONOMY_TABLE,
 ): BuildingConstructionQuote {
-  const cost = buildingConstructionCost(type, definition)
+  const cost = buildingConstructionCost(type, definition, table)
   const storageBuildings = cityStorageBuildings(buildings, definitions)
   const missingMaterials = missingMaterialsFromCityStorage(storageBuildings, cost.materials)
   const missingTreasury = Math.max(0, cost.treasury - treasury)
@@ -109,6 +133,7 @@ export function spendBuildingConstructionCost(
   treasury: number,
   buildings: Record<string, BuildingEntity>,
   definitions: Record<string, BuildingDefinition>,
+  table: ConstructionEconomyTable = DEFAULT_CONSTRUCTION_ECONOMY_TABLE,
 ): {
   ok: true
   treasury: number
@@ -117,7 +142,7 @@ export function spendBuildingConstructionCost(
   ok: false
   quote: BuildingConstructionQuote
 } {
-  const quote = quoteBuildingConstruction(type, definition, treasury, buildings, definitions)
+  const quote = quoteBuildingConstruction(type, definition, treasury, buildings, definitions, table)
   if (!quote.canAfford) return { ok: false, quote }
   const storageBuildings = cityStorageBuildings(buildings, definitions)
   for (const [resource, amount] of costEntries(quote.cost.materials)) {
@@ -137,6 +162,24 @@ export function spendBuildingConstructionCost(
     treasury: treasury - quote.cost.treasury,
     cost: quote.cost,
   }
+}
+
+export function validateConstructionEconomyTable(table: ConstructionEconomyTable): string[] {
+  const errors: string[] = []
+  for (const [type, cost] of Object.entries(table.buildingCosts)) {
+    validateNonNegative(cost.treasury, `buildingCosts.${type}.treasury`, errors)
+    for (const [resource, amount] of Object.entries(cost.materials)) {
+      validateNonNegative(amount, `buildingCosts.${type}.materials.${resource}`, errors)
+    }
+  }
+  for (const kind of ['dirt', 'stone', 'bridge'] as RoadKind[]) {
+    validateNonNegative(table.roadCosts[kind]?.treasury, `roadCosts.${kind}.treasury`, errors)
+  }
+  validateNonNegative(table.fallback.baseTreasury, 'fallback.baseTreasury', errors)
+  validateNonNegative(table.fallback.treasuryPerFootprint, 'fallback.treasuryPerFootprint', errors)
+  validatePositive(table.fallback.woodPerTwoFootprint, 'fallback.woodPerTwoFootprint', errors)
+  validatePositive(table.fallback.stonePerThreeFootprint, 'fallback.stonePerThreeFootprint', errors)
+  return errors
 }
 
 function cityStorageBuildings(
@@ -180,4 +223,16 @@ function costEntries(
   return Object.entries(cost).filter((entry): entry is [ResourceKind, number] => (
     typeof entry[1] === 'number' && entry[1] > 0
   ))
+}
+
+function validateNonNegative(value: number | undefined, label: string, errors: string[]): void {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+    errors.push(`${label} must be a non-negative finite number`)
+  }
+}
+
+function validatePositive(value: number | undefined, label: string, errors: string[]): void {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    errors.push(`${label} must be greater than zero`)
+  }
 }

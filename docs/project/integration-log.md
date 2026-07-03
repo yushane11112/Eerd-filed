@@ -2,6 +2,12 @@
 
 ## 2026-07-03
 
+- 启动并完成第八十九轮：`CONSTRUCTION-ECONOMY-TABLE-01`。营造成本从 `construction.ts` 私有硬编码推进为可导出、可校验、可替换的经济表。
+- `DEFAULT_CONSTRUCTION_ECONOMY_TABLE` 保留当前首版数值：民居 80、粮仓 140、稻田 60、市场 180、木作坊 220；泥路 2、石板路 6、桥路 18。
+- `quoteBuildingConstruction`、`spendBuildingConstructionCost`、`quoteRoadConstruction` 支持传入自定义 `ConstructionEconomyTable`，供后续 QA、关卡和平衡工具替换数值。
+- 新增 `validateConstructionEconomyTable` 和 `src/simulation/economy/constructionTable.test.ts`，覆盖默认表合法性、自定义表报价和非法表诊断。
+- 新增 `docs/project/economy-balancing.md`，明确当前只是“可调结构”，不是最终商业经济；后续仍需接入升级成本、服务容量、排队、仓储吞吐和道路维护。
+
 - 启动并完成第八十八轮：`LONG-RUN-CIV-QA-02`。商业级 30 日长跑不再只是待办，新增可运行的 7200 tick 分层 QA 命令。
 - 新增 `src/qa/civilizationLongRun.ts`：复用 500 户、300 建筑、150 初始可见实体压力城市，按 2400/4800/7200 tick 采样人口、满意度、物流、停工、订单、库存、归档和主快照表规模。
 - 新增 `src/qa/civilizationLongRunCheck.ts` 与 `npm run qa:civilization-long-run`：命令会输出 JSON 报告并在任一层超过阈值时失败。

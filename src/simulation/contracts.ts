@@ -168,6 +168,23 @@ export interface LogisticsArchiveState {
   cancelReasons: Partial<Record<LogisticsFailureReason, number>>
 }
 
+export interface ServiceQueueEntry {
+  householdId: EntityId
+  queuedSinceTick: Tick
+  waitTicks: number
+}
+
+export interface ServiceQueueState {
+  buildingId: EntityId
+  need: keyof HouseholdState['needs']
+  capacityPerTick: number
+  servedThisTick: number
+  rejectedThisTick: number
+  waitingCount: number
+  longestWaitTicks: number
+  waiting: ServiceQueueEntry[]
+}
+
 export interface EconomyState {
   treasury: number
   taxRate: number
@@ -282,6 +299,7 @@ export interface SimulationSnapshot {
   agents: Record<EntityId, AgentEntity>
   logisticsOrders: Record<EntityId, LogisticsOrder>
   logisticsArchive?: LogisticsArchiveState
+  serviceQueues?: Record<EntityId, ServiceQueueState>
   economy: EconomyState
   metrics: CityMetrics
   districts?: DistrictProsperityState[]

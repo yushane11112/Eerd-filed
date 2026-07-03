@@ -1013,6 +1013,122 @@ describe('service system', () => {
     expect(market.inventory.food).toBe(10)
   })
 
+  it('records excess service demand as a persistent queue with wait pressure', () => {
+    const market = building('market-1', 'market', { x: 0, y: 0 }, { food: 10 })
+    market.workers = ['worker-1']
+    const homes = [
+      building('house-1', 'house', { x: 2, y: 0 }),
+      building('house-2', 'house', { x: 3, y: 0 }),
+      building('house-3', 'house', { x: 4, y: 0 }),
+      building('house-4', 'house', { x: 5, y: 0 }),
+    ]
+    const state = snapshot({
+      tick: 10,
+      buildings: {
+        [market.id]: market,
+        ...Object.fromEntries(homes.map((home) => [home.id, home])),
+      },
+      households: {
+        first: household('first', homes[0].id, {
+          food: 10,
+          goods: 95,
+          health: 70,
+          education: 70,
+          entertainment: 70,
+        }),
+        second: household('second', homes[1].id, {
+          food: 20,
+          goods: 95,
+          health: 70,
+          education: 70,
+          entertainment: 70,
+        }),
+        third: household('third', homes[2].id, {
+          food: 30,
+          goods: 95,
+          health: 70,
+          education: 70,
+          entertainment: 70,
+        }),
+        fourth: household('fourth', homes[3].id, {
+          food: 40,
+          goods: 95,
+          health: 70,
+          education: 70,
+          entertainment: 70,
+        }),
+      },
+    })
+    const system = new ServiceSystem({
+      definitions,
+      rules: {
+        market: {
+          need: 'food',
+          resource: 'food',
+          amountPerHousehold: 1,
+          saleValuePerHousehold: 5,
+          restoreAmount: 16,
+          maxHouseholdsPerTick: 1,
+          unmetNeedPenalty: 4,
+          unmetSatisfactionPenalty: 2,
+        },
+      },
+    })
+
+    system.update(state)
+
+    expect(Object.values(state.agents).filter((agent) => (
+      agent.id.startsWith('service-visit:')
+    )).map((agent) => agent.householdId)).toEqual(['first'])
+    expect(state.serviceQueues?.['market-1:food']).toMatchObject({
+      buildingId: 'market-1',
+      need: 'food',
+      capacityPerTick: 1,
+      servedThisTick: 1,
+      rejectedThisTick: 0,
+      waitingCount: 3,
+      longestWaitTicks: 0,
+      waiting: [
+        { householdId: 'second', queuedSinceTick: 10, waitTicks: 0 },
+        { householdId: 'third', queuedSinceTick: 10, waitTicks: 0 },
+        { householdId: 'fourth', queuedSinceTick: 10, waitTicks: 0 },
+      ],
+    })
+    expect(state.households.second.satisfaction).toBe(48)
+
+    state.tick = 11
+    system.update(state)
+
+    expect(Object.values(state.agents).filter((agent) => (
+      agent.id.startsWith('service-visit:')
+    )).map((agent) => agent.householdId).sort()).toEqual(['first', 'second'])
+    expect(state.serviceQueues?.['market-1:food']).toMatchObject({
+      servedThisTick: 1,
+      waitingCount: 2,
+      longestWaitTicks: 1,
+      waiting: [
+        { householdId: 'third', queuedSinceTick: 10, waitTicks: 1 },
+        { householdId: 'fourth', queuedSinceTick: 10, waitTicks: 1 },
+      ],
+    })
+
+    state.tick = 12
+    system.update(state)
+
+    expect(Object.values(state.agents).filter((agent) => (
+      agent.id.startsWith('service-visit:')
+    )).map((agent) => agent.householdId).sort()).toEqual(['first', 'second'])
+    expect(state.serviceQueues?.['market-1:food']).toMatchObject({
+      servedThisTick: 0,
+      waitingCount: 2,
+      longestWaitTicks: 2,
+      waiting: [
+        { householdId: 'third', queuedSinceTick: 10, waitTicks: 2 },
+        { householdId: 'fourth', queuedSinceTick: 10, waitTicks: 2 },
+      ],
+    })
+  })
+
   it('does not serve households across disconnected roads', () => {
     const market = building('market-1', 'market', { x: 0, y: 0 }, { food: 3 })
     market.workers = ['worker-1']

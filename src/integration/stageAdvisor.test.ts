@@ -112,6 +112,20 @@ describe('stage advisor overlays', () => {
           state: 'assigned',
         },
       },
+      serviceQueues: {
+        'market:food': {
+          buildingId: 'market',
+          need: 'food',
+          capacityPerTick: 1,
+          servedThisTick: 1,
+          rejectedThisTick: 0,
+          waitingCount: 1,
+          longestWaitTicks: 3,
+          waiting: [
+            { householdId: 'family', queuedSinceTick: 9, waitTicks: 3 },
+          ],
+        },
+      },
     })
 
     expect(deriveStageMapOverlay('housing', snapshot, 11)).toMatchObject({
@@ -136,8 +150,11 @@ describe('stage advisor overlays', () => {
         radius: 4,
       }],
       summary: ['服务点 1', '缺口住宅 1'],
-      metrics: { servicePoints: 1, serviceGaps: 1 },
+      metrics: { servicePoints: 1, serviceGaps: 1, queuedHouseholds: 1, longestServiceWait: 3 },
     })
+    expect(deriveStageMapOverlay('service', snapshot, 12)?.points).toEqual(expect.arrayContaining([
+      { kind: 'bottleneck', label: '排队x1', position: { x: 4, y: 5 } },
+    ]))
     expect(deriveStageMapOverlay('logistics', snapshot, 13)).toMatchObject({
       label: '物流线路',
       points: expect.arrayContaining([

@@ -1054,3 +1054,17 @@
 | `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第四十轮进展、城市模拟/动态引擎完成度和下一轮任务 |
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮真实运行因子接入事实 |
 | `docs/project/qa.md` | QA 记录 | 记录本轮验证命令和结果 |
+
+## 2026-07-03：第九十轮服务容量与排队状态
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 模拟契约 | 新增 `ServiceQueueEntry`、`ServiceQueueState` 和 `SimulationSnapshot.serviceQueues` |
+| `src/simulation/economy/service.ts` | 服务模拟系统 | 记录服务吞吐、排队家庭、等待 tick，并避免已派出服务访问重复占用容量/重复扣分 |
+| `src/simulation/economy/economy.test.ts` | 自动测试 | 固定服务容量、排队持久化和等待压力行为 |
+| `src/integration/stageAdvisor.ts` | 治理图层 | 服务图层显示排队热点并输出队列指标 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证服务图层能读取 `serviceQueues` 并标出 `排队xN` |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第九十轮进展、完成度和下一轮任务 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `SERVICE-QUEUE-CAPACITY-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮服务容量与排队状态接入事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮测试、构建和限制 |

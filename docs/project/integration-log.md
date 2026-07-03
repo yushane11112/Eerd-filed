@@ -404,3 +404,11 @@
 - 完成第十轮并行生产：市场消费会扣库存、产生购买事件并增加税收；建筑升级优先从城市仓储确定性扣料；长稳性能热点定位到物流订单全表扫描并通过 active order 索引优化；`main-homes` 补齐 L0–L8 并可通过单样例 strict gate。
 - 启动第十一轮并行生产：HOUSEHOLD-CASH-GOODS-01、UPGRADE-CONSTRUCTION-QUEUE-01、UPGRADE-UI-ENTRY-01、FULL-LEVEL-EATERY-SAMPLE-01，分别推进家庭收入约束与日用品消费、升级施工进度、建筑详情升级入口和第二个 L0–L8 完整样例。
 - 完成第十一轮并行生产：市场支持 food 与 cloth-as-goods 消费并检查家庭收入；升级从瞬时换级推进为 `upgrading` 状态和 tick 进度；建筑详情新增升级成本/缺口/触发入口；`main-eatery` 补齐 L0–L8 并可通过 strict gate，剩余未补齐样例为 `main-pier`。
+
+## 2026-07-03 第九十轮：服务容量与排队状态
+
+- 启动 `SERVICE-QUEUE-CAPACITY-01`：把服务系统从“超过容量就隐式扣需求/满意度”推进为可观察排队状态。
+- `SimulationSnapshot` 新增 `serviceQueues`，记录服务建筑、需求类型、每 tick 容量、当 tick 已接待、拒绝数、等待家庭和最长等待 tick。
+- `ServiceSystem` 修正容量边界：已经派出的居民服务访问不再继续占用当 tick 服务容量，也不再被重复算作未满足需求压力。
+- 服务图层读取 `serviceQueues`，在地图上显示 `排队xN` 热点，并输出 `queuedHouseholds` 与 `longestServiceWait` 指标。
+- 客观限制：这仍只是服务队列的最小真实机制；尚未引入建筑内部处理时间、员工效率差异、服务优先级策略和仓储装卸吞吐。

@@ -21,6 +21,7 @@ export interface ServiceRule {
   saleValuePerHousehold?: number
   restoreAmount: number
   maxHouseholdsPerTick: number
+  maxConcurrentVisits?: number
   unmetNeedPenalty?: number
   unmetSatisfactionPenalty?: number
 }
@@ -79,6 +80,8 @@ const DEFAULT_MARKET_GOODS_RULE: ServiceRule = {
   unmetSatisfactionPenalty: 1.5,
 }
 
+const MAX_TRACKED_QUEUE_ENTRIES = 12
+
 export class ServiceSystem implements SimulationSystem {
   readonly id = 'economy.service'
   private readonly definitions: Readonly<Record<string, BuildingDefinition>>
@@ -94,6 +97,9 @@ export class ServiceSystem implements SimulationSystem {
   update(snapshot: SimulationSnapshot): SimulationEvent[] {
     const events: SimulationEvent[] = []
     events.push(...this.advanceServiceVisits(snapshot))
+    const activeVisits = indexActiveServiceVisits(snapshot)
+    snapshot.serviceQueues ??= {}
+    const touchedQueues = new Set<string>()
     const servedNeeds = new Set<string>()
     const unmetNeeds = new Map<string, {
       household: HouseholdState
@@ -108,16 +114,28 @@ export class ServiceSystem implements SimulationSystem {
       if (!definition) continue
 
       for (const rule of this.rulesFor(serviceBuilding)) {
+        const queueId = serviceQueueId(serviceBuilding.id, rule.need)
+        touchedQueues.add(queueId)
         const demandingHouseholds = this.demandingHouseholds(snapshot, rule)
         const candidates = this.reachableHouseholds(snapshot, serviceBuilding, rule)
         if (serviceBuilding.workers.length === 0) {
           markBlocked(serviceBuilding, 'no-workers')
+          this.recordServiceQueue(snapshot, serviceBuilding, rule, {
+            servedThisTick: 0,
+            rejectedThisTick: candidates.length,
+            waiting: [],
+          })
           this.markUnmet(unmetNeeds, candidates, rule)
           continue
         }
         if (candidates.length === 0) {
           if (demandingHouseholds.length === 0) continue
           markBlocked(serviceBuilding, 'no-service-route')
+          this.recordServiceQueue(snapshot, serviceBuilding, rule, {
+            servedThisTick: 0,
+            rejectedThisTick: demandingHouseholds.length,
+            waiting: [],
+          })
           if (demandingHouseholds.length > 0) {
             this.markUnmet(unmetNeeds, demandingHouseholds, rule)
           }
@@ -126,6 +144,11 @@ export class ServiceSystem implements SimulationSystem {
         const consume = rule.amountPerHousehold ?? 1
         if (rule.resource && inventoryAmount(serviceBuilding, rule.resource) < consume) {
           markBlocked(serviceBuilding, `missing-service-resource:${rule.resource}`)
+          this.recordServiceQueue(snapshot, serviceBuilding, rule, {
+            servedThisTick: 0,
+            rejectedThisTick: candidates.length,
+            waiting: [],
+          })
           this.markUnmet(unmetNeeds, candidates, rule)
           continue
         }
@@ -140,19 +163,36 @@ export class ServiceSystem implements SimulationSystem {
             serviceBuilding,
             `insufficient-household-income:${rule.resource ?? rule.need}`,
           )
+          this.recordServiceQueue(snapshot, serviceBuilding, rule, {
+            servedThisTick: 0,
+            rejectedThisTick: candidates.length,
+            waiting: [],
+          })
           this.markUnmet(unmetNeeds, candidates, rule)
           continue
         }
 
         let served = 0
         const servedHouseholdIds = new Set<string>()
+        const activeVisitCount = activeVisits.counts.get(serviceQueueId(serviceBuilding.id, rule.need)) ?? 0
+        const maxConcurrentVisits = rule.maxConcurrentVisits ?? rule.maxHouseholdsPerTick * 2
+        const remainingConcurrentSlots = Math.max(0, maxConcurrentVisits - activeVisitCount)
+        const dispatchCapacity = Math.min(rule.maxHouseholdsPerTick, remainingConcurrentSlots)
+        const queueCandidates = affordableCandidates.filter((household) => (
+          !activeVisits.keys.has(activeServiceVisitKey(serviceBuilding.id, household.id, rule.need))
+        ))
         for (const household of affordableCandidates) {
-          if (served >= rule.maxHouseholdsPerTick) break
-          served += 1
-          this.spawnServiceVisit(snapshot, serviceBuilding, household, rule, {
+          const visitKey = activeServiceVisitKey(serviceBuilding.id, household.id, rule.need)
+          if (activeVisits.keys.has(visitKey)) {
+            continue
+          }
+          if (served >= dispatchCapacity) break
+          const didSpawn = this.spawnServiceVisit(snapshot, serviceBuilding, household, rule, activeVisits, {
             amount: consume,
             saleValue,
           })
+          if (!didSpawn) continue
+          served += 1
           servedNeeds.add(needKey(household.id, rule.need))
           servedHouseholdIds.add(household.id)
         }
@@ -164,13 +204,24 @@ export class ServiceSystem implements SimulationSystem {
         if (served < candidates.length) {
           this.markUnmet(
             unmetNeeds,
-            candidates.filter((household) => !servedHouseholdIds.has(household.id)),
+            candidates.filter((household) => (
+              !servedHouseholdIds.has(household.id)
+              && !activeVisits.keys.has(activeServiceVisitKey(serviceBuilding.id, household.id, rule.need))
+            )),
             rule,
           )
         }
+        this.recordServiceQueue(snapshot, serviceBuilding, rule, {
+          servedThisTick: served,
+          rejectedThisTick: Math.max(0, candidates.length - affordableCandidates.length),
+          waiting: queueCandidates.filter((household) => !servedHouseholdIds.has(household.id)),
+        })
       }
     }
 
+    for (const queueId of Object.keys(snapshot.serviceQueues)) {
+      if (!touchedQueues.has(queueId)) delete snapshot.serviceQueues[queueId]
+    }
     this.applyUnmetNeedPressure(unmetNeeds, servedNeeds)
     return events
   }
@@ -255,21 +306,23 @@ export class ServiceSystem implements SimulationSystem {
     serviceBuilding: BuildingEntity,
     household: HouseholdState,
     rule: ServiceRule,
+    activeVisits: ActiveServiceVisitIndex,
     transaction: {
       amount: number
       saleValue: number
     },
-  ): void {
+  ): boolean {
     const home = snapshot.buildings[household.homeBuildingId]
-    if (!home) return
-    if (hasActiveServiceVisit(snapshot, serviceBuilding.id, household.id, rule.need)) return
+    if (!home) return false
+    const visitKey = activeServiceVisitKey(serviceBuilding.id, household.id, rule.need)
+    if (activeVisits.keys.has(visitKey)) return false
     const path = this.routePlanner.findRoute(
       snapshot.cells,
       home.entrance,
       serviceBuilding.entrance,
     ) ?? directPath(home.entrance, serviceBuilding.entrance)
     const id = `service-visit:${snapshot.tick}:${serviceBuilding.id}:${household.id}:${rule.need}`
-    if (snapshot.agents[id]) return
+    if (snapshot.agents[id]) return false
     snapshot.agents[id] = {
       id,
       role: 'resident',
@@ -287,6 +340,53 @@ export class ServiceSystem implements SimulationSystem {
         saleValue: transaction.saleValue,
         restoreAmount: rule.restoreAmount,
       },
+    }
+    activeVisits.keys.add(visitKey)
+    const queueId = serviceQueueId(serviceBuilding.id, rule.need)
+    activeVisits.counts.set(queueId, (activeVisits.counts.get(queueId) ?? 0) + 1)
+    return true
+  }
+
+  private recordServiceQueue(
+    snapshot: SimulationSnapshot,
+    serviceBuilding: BuildingEntity,
+    rule: ServiceRule,
+    state: {
+      servedThisTick: number
+      rejectedThisTick: number
+      waiting: readonly HouseholdState[]
+    },
+  ): void {
+    snapshot.serviceQueues ??= {}
+    const id = serviceQueueId(serviceBuilding.id, rule.need)
+    const previousEntries = new Map(
+      snapshot.serviceQueues[id]?.waiting.map((entry) => [
+        entry.householdId,
+        entry.queuedSinceTick,
+      ]) ?? [],
+    )
+    const trackedWaiting = state.waiting.slice(0, MAX_TRACKED_QUEUE_ENTRIES)
+    const waiting = trackedWaiting.map((household) => {
+      const queuedSinceTick = previousEntries.get(household.id) ?? snapshot.tick
+      return {
+        householdId: household.id,
+        queuedSinceTick,
+        waitTicks: Math.max(0, snapshot.tick - queuedSinceTick),
+      }
+    })
+    const longestWaitTicks = state.waiting.reduce((max, household) => {
+      const queuedSinceTick = previousEntries.get(household.id) ?? snapshot.tick
+      return Math.max(max, Math.max(0, snapshot.tick - queuedSinceTick))
+    }, 0)
+    snapshot.serviceQueues[id] = {
+      buildingId: serviceBuilding.id,
+      need: rule.need,
+      capacityPerTick: rule.maxHouseholdsPerTick,
+      servedThisTick: state.servedThisTick,
+      rejectedThisTick: state.rejectedThisTick,
+      waitingCount: state.waiting.length,
+      longestWaitTicks,
+      waiting,
     }
   }
 
@@ -374,6 +474,10 @@ function needKey(householdId: string, need: NeedKind): string {
   return `${householdId}:${need}`
 }
 
+function serviceQueueId(buildingId: string, need: NeedKind): string {
+  return `${buildingId}:${need}`
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
 }
@@ -390,15 +494,30 @@ function directPath(from: GridPoint, to: GridPoint): GridPoint[] {
   return [{ ...from }, { ...to }]
 }
 
-function hasActiveServiceVisit(
-  snapshot: SimulationSnapshot,
+interface ActiveServiceVisitIndex {
+  keys: Set<string>
+  counts: Map<string, number>
+}
+
+function indexActiveServiceVisits(snapshot: SimulationSnapshot): ActiveServiceVisitIndex {
+  const keys = new Set<string>()
+  const counts = new Map<string, number>()
+  for (const agent of Object.values(snapshot.agents)) {
+    if (!agent.id.startsWith('service-visit:')) continue
+    const intent = agent.serviceIntent
+    if (!intent || !agent.householdId) continue
+    const key = activeServiceVisitKey(intent.buildingId, agent.householdId, intent.need)
+    const queueId = serviceQueueId(intent.buildingId, intent.need)
+    keys.add(key)
+    counts.set(queueId, (counts.get(queueId) ?? 0) + 1)
+  }
+  return { keys, counts }
+}
+
+function activeServiceVisitKey(
   buildingId: string,
   householdId: string,
   need: NeedKind,
-): boolean {
-  const suffix = `:${buildingId}:${householdId}:${need}`
-  return Object.values(snapshot.agents).some((agent) => (
-    agent.id.startsWith('service-visit:')
-    && agent.id.endsWith(suffix)
-  ))
+): string {
+  return `${buildingId}:${householdId}:${need}`
 }

@@ -387,6 +387,29 @@ export function deriveStageMapOverlay(
         label: '缺服务',
         position: building.entrance,
       }))
+    const serviceQueues = Object.values(snapshot.serviceQueues ?? {})
+      .filter((queue) => queue.waitingCount > 0)
+      .sort((left, right) => (
+        right.waitingCount - left.waitingCount
+        || right.longestWaitTicks - left.longestWaitTicks
+        || left.buildingId.localeCompare(right.buildingId)
+      ))
+    const queuedHouseholds = serviceQueues.reduce((total, queue) => total + queue.waitingCount, 0)
+    const longestServiceWait = serviceQueues.reduce(
+      (max, queue) => Math.max(max, queue.longestWaitTicks),
+      0,
+    )
+    const serviceQueuePoints = serviceQueues
+      .slice(0, 4)
+      .flatMap((queue) => {
+        const building = snapshot.buildings[queue.buildingId]
+        if (!building) return []
+        return [{
+          kind: 'bottleneck' as const,
+          label: `排队x${queue.waitingCount}`,
+          position: building.entrance,
+        }]
+      })
     return compactOverlay(id, '服务范围', [
       ...serviceBuildings.map((building) => ({
         kind: 'service' as const,
@@ -394,12 +417,15 @@ export function deriveStageMapOverlay(
         position: building.entrance,
       })),
       ...uncoveredHomes,
+      ...serviceQueuePoints,
     ], [], serviceAreas, [
       `服务点 ${serviceBuildings.length}`,
       `缺口住宅 ${uncoveredHomes.length}`,
     ], {
       servicePoints: serviceBuildings.length,
       serviceGaps: uncoveredHomes.length,
+      queuedHouseholds,
+      longestServiceWait,
     })
   }
 

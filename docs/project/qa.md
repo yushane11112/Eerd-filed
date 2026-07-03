@@ -740,3 +740,23 @@
 
 - 历史订单已有 `logisticsArchive` 归档；仍需继续验证更长窗口下归档汇总、效率统计和 UI 诊断都保持稳定。
 - `assignWaitingOrders()`、`advanceCarriers()`、`updateEfficiency()` 仍会枚举订单集合；当前 2400 tick 已可接受，但更长窗口或更大城市仍需要分层 benchmark。
+
+## 2026-07-03 第九十轮验证
+
+- TDD RED：`npx vitest run src/simulation/economy/economy.test.ts -t "records excess service demand"` 首次失败于 `state.serviceQueues?.['market-1:food']` 为 `undefined`，证明旧系统没有可观察服务队列。
+- TDD GREEN：补充 `ServiceQueueState`、`SimulationSnapshot.serviceQueues` 和 `ServiceSystem` 排队记录后，同一目标测试通过。
+- 回归修正：全经济测试首次暴露已派出服务访问仍被重复算作未满足需求压力；修正后 `npx vitest run src/simulation/economy/economy.test.ts` 通过，31 项测试全部通过。
+- 叠层 RED/GREEN：`npx vitest run src/integration/stageAdvisor.test.ts -t "derives switchable housing"` 首次失败于服务图层缺少 `queuedHouseholds/longestServiceWait`，接入 `serviceQueues` 后通过。
+
+- 目标回归：`npx vitest run src/simulation/economy/economy.test.ts src/integration/stageAdvisor.test.ts` 通过，2 个测试文件、46 项测试。
+- 压力回归：`npx vitest run src/qa/stressScenario.test.ts` 通过，2 项测试；长稳用例耗时约 36.68 秒。
+- 7200 tick 分层长跑：`npm run qa:civilization-long-run` 通过，最终人口 1750、满意度约 40.39、物流效率 100、停工 161、活跃订单 39、订单表 539、归档 53462、可见 agent 206、无非法数值。
+- 全量回归：`npm test` 通过，40 个测试文件、245 项测试。
+- 生产构建：`npm run build` 通过。
+- 补丁检查：`git diff --check` 通过，无空白错误输出。
+
+当前限制：
+
+- 服务队列已可观察，但仍未模拟建筑内部处理时间、员工效率差异、服务优先级策略。
+- 仓储容量目前主要表现为库存容量和物流订单，尚未形成装卸吞吐、仓库排队和订单积压诊断。
+- 本轮服务队列让 2400 tick 长稳用例耗时处于约 36–37 秒级，虽未超出当前门禁，但相比理想灰盒速度偏慢；后续必须继续优化服务候选筛选、路线缓存和队列统计，而不是继续在主循环堆全量扫描。

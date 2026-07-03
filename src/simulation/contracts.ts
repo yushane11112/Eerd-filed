@@ -146,6 +146,7 @@ export type LogisticsFailureReason =
   | 'no-source-inventory'
   | 'source-inventory-insufficient'
   | 'destination-capacity'
+  | 'destination-throughput'
   | 'building-demolished'
 
 export interface LogisticsOrder {
@@ -159,6 +160,7 @@ export interface LogisticsOrder {
   carrierId?: EntityId
   cancelReason?: LogisticsFailureReason
   failureReason?: LogisticsFailureReason
+  throughputQueuedSinceTick?: Tick
 }
 
 export interface LogisticsArchiveState {
@@ -166,6 +168,15 @@ export interface LogisticsArchiveState {
   delivered: number
   cancelled: number
   cancelReasons: Partial<Record<LogisticsFailureReason, number>>
+}
+
+export interface LogisticsQueueState {
+  buildingId: EntityId
+  unloadCapacityPerTick: number
+  unloadedThisTick: number
+  waitingToUnloadCount: number
+  longestWaitTicks: number
+  waitingOrderIds: EntityId[]
 }
 
 export interface ServiceQueueEntry {
@@ -299,6 +310,7 @@ export interface SimulationSnapshot {
   agents: Record<EntityId, AgentEntity>
   logisticsOrders: Record<EntityId, LogisticsOrder>
   logisticsArchive?: LogisticsArchiveState
+  logisticsQueues?: Record<EntityId, LogisticsQueueState>
   serviceQueues?: Record<EntityId, ServiceQueueState>
   economy: EconomyState
   metrics: CityMetrics

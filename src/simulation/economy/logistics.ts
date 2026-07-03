@@ -33,6 +33,7 @@ export interface LogisticsSystemOptions {
   inputTargetBatches?: number
   serviceRules?: Readonly<Record<string, ServiceRule>>
   serviceTargetBatches?: number
+  unloadCapacityPerTick?: number
   idFactory?: () => EntityId
   completedOrderRetention?: number
 }
@@ -88,6 +89,11 @@ interface ActiveOrderIndexes {
   sourceResourceReserved: Map<string, number>
 }
 
+interface UnloadThroughputState {
+  unloadedByDestination: Map<EntityId, number>
+  touchedDestinations: Set<EntityId>
+}
+
 export class LogisticsSystem implements SimulationSystem {
   readonly id = 'economy.logistics'
   private readonly definitions: Readonly<Record<string, BuildingDefinition>>
@@ -96,6 +102,7 @@ export class LogisticsSystem implements SimulationSystem {
   private readonly inputTargetBatches: number
   private readonly serviceRules: Readonly<Record<string, ServiceRule>>
   private readonly serviceTargetBatches: number
+  private readonly unloadCapacityPerTick: number
   private readonly idFactory: () => EntityId
   private readonly completedOrderRetention: number
   private sequence = 0
@@ -107,15 +114,20 @@ export class LogisticsSystem implements SimulationSystem {
     this.inputTargetBatches = options.inputTargetBatches ?? 2
     this.serviceRules = options.serviceRules ?? {}
     this.serviceTargetBatches = options.serviceTargetBatches ?? 3
+    this.unloadCapacityPerTick = Math.max(1, Math.floor(options.unloadCapacityPerTick ?? 3))
     this.idFactory = options.idFactory ?? (() => `logistics-${++this.sequence}`)
     this.completedOrderRetention = Math.max(0, options.completedOrderRetention ?? 500)
   }
 
   update(snapshot: SimulationSnapshot): SimulationEvent[] {
     const events: SimulationEvent[] = []
+    snapshot.logisticsQueues ??= {}
     events.push(...this.createOrders(snapshot))
     this.assignWaitingOrders(snapshot)
-    this.advanceCarriers(snapshot)
+    this.advanceCarriers(snapshot, {
+      unloadedByDestination: new Map(),
+      touchedDestinations: new Set(),
+    })
     this.archiveCompletedOrders(snapshot)
     this.updateEfficiency(snapshot)
     return events
@@ -361,7 +373,10 @@ export class LogisticsSystem implements SimulationSystem {
     }
   }
 
-  private advanceCarriers(snapshot: SimulationSnapshot): void {
+  private advanceCarriers(
+    snapshot: SimulationSnapshot,
+    unloadState: UnloadThroughputState,
+  ): void {
     const orders = Object.values(snapshot.logisticsOrders)
       .filter((order) => order.state === 'assigned' || order.state === 'in_transit')
       .sort((a, b) => a.id.localeCompare(b.id))
@@ -382,7 +397,13 @@ export class LogisticsSystem implements SimulationSystem {
       if (carrier.pathIndex < carrier.path.length - 1) continue
 
       if (order.state === 'assigned') this.pickUp(snapshot, order, carrier)
-      else this.deliver(snapshot, order, carrier)
+      else this.deliver(snapshot, order, carrier, unloadState)
+    }
+
+    for (const buildingId of Object.keys(snapshot.logisticsQueues ?? {})) {
+      if (!unloadState.touchedDestinations.has(buildingId)) {
+        delete snapshot.logisticsQueues?.[buildingId]
+      }
     }
   }
 
@@ -431,9 +452,18 @@ export class LogisticsSystem implements SimulationSystem {
     snapshot: SimulationSnapshot,
     order: LogisticsOrder,
     carrier: AgentEntity,
+    unloadState: UnloadThroughputState,
   ): void {
     const destination = snapshot.buildings[order.destinationBuildingId]
     if (!destination) {
+      return
+    }
+    const unloadedThisTick = unloadState.unloadedByDestination.get(destination.id) ?? 0
+    if (unloadedThisTick >= this.unloadCapacityPerTick) {
+      order.throughputQueuedSinceTick ??= snapshot.tick
+      this.markFailure(destination, order.resource, 'destination-throughput')
+      this.markOrderFailure(order, 'destination-throughput')
+      this.recordLogisticsQueue(snapshot, destination, unloadState)
       return
     }
     if (!addInventory(
@@ -448,6 +478,7 @@ export class LogisticsSystem implements SimulationSystem {
       return
     }
 
+    unloadState.unloadedByDestination.set(destination.id, unloadedThisTick + 1)
     order.state = 'delivered'
     this.clearOrderFailure(order)
     carrier.activity = 'idle'
@@ -455,6 +486,36 @@ export class LogisticsSystem implements SimulationSystem {
     carrier.pathIndex = 0
     delete carrier.cargoIntent
     this.clearFailure(destination, order.resource)
+    this.recordLogisticsQueue(snapshot, destination, unloadState)
+  }
+
+  private recordLogisticsQueue(
+    snapshot: SimulationSnapshot,
+    destination: BuildingEntity,
+    unloadState: UnloadThroughputState,
+  ): void {
+    snapshot.logisticsQueues ??= {}
+    unloadState.touchedDestinations.add(destination.id)
+    const waitingOrders = Object.values(snapshot.logisticsOrders)
+      .filter((order) => (
+        order.destinationBuildingId === destination.id
+        && order.state === 'in_transit'
+        && order.failureReason === 'destination-throughput'
+      ))
+      .sort((left, right) => (
+        (left.throughputQueuedSinceTick ?? snapshot.tick) - (right.throughputQueuedSinceTick ?? snapshot.tick)
+        || left.id.localeCompare(right.id)
+      ))
+    snapshot.logisticsQueues[destination.id] = {
+      buildingId: destination.id,
+      unloadCapacityPerTick: this.unloadCapacityPerTick,
+      unloadedThisTick: unloadState.unloadedByDestination.get(destination.id) ?? 0,
+      waitingToUnloadCount: waitingOrders.length,
+      longestWaitTicks: waitingOrders.reduce((max, order) => (
+        Math.max(max, Math.max(0, snapshot.tick - (order.throughputQueuedSinceTick ?? snapshot.tick)))
+      ), 0),
+      waitingOrderIds: waitingOrders.slice(0, 12).map((order) => order.id),
+    }
   }
 
   private cancel(
@@ -482,6 +543,7 @@ export class LogisticsSystem implements SimulationSystem {
 
   private clearOrderFailure(order: LogisticsOrder): void {
     delete order.failureReason
+    delete order.throughputQueuedSinceTick
   }
 
   private markFailure(

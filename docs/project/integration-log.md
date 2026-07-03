@@ -412,3 +412,12 @@
 - `ServiceSystem` 修正容量边界：已经派出的居民服务访问不再继续占用当 tick 服务容量，也不再被重复算作未满足需求压力。
 - 服务图层读取 `serviceQueues`，在地图上显示 `排队xN` 热点，并输出 `queuedHouseholds` 与 `longestServiceWait` 指标。
 - 客观限制：这仍只是服务队列的最小真实机制；尚未引入建筑内部处理时间、员工效率差异、服务优先级策略和仓储装卸吞吐。
+
+## 2026-07-03 第九十一轮：目的建筑卸货吞吐与物流积压
+
+- 启动 `LOGISTICS-UNLOAD-QUEUE-01`：把物流热点从订单数量诊断推进为目的建筑卸货能力诊断。
+- `LogisticsOrder` 新增 `throughputQueuedSinceTick`，`LogisticsFailureReason` 新增 `destination-throughput`。
+- `SimulationSnapshot` 新增 `logisticsQueues`，记录目的建筑每 tick 卸货能力、已卸货数量、等待卸货订单数、最长等待 tick 和前 12 个等待订单样本。
+- `LogisticsSystem` 新增 `unloadCapacityPerTick`，同 tick 多辆车到达同一目的建筑时只允许有限订单卸货，其余订单保持 `in_transit` 并等待下 tick。
+- 物流图层读取 `logisticsQueues`，显示 `卸货排队xN`，并输出 `unloadBacklog` 与 `longestUnloadWait` 指标。
+- 客观限制：卸货能力目前是系统参数，还未绑定建筑等级、仓储工人、道路入口数量和港口/车船类型。

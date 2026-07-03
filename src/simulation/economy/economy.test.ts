@@ -512,6 +512,105 @@ describe('road logistics', () => {
     expect(destination.statusReason).toBe('logistics-failed:food:destination-capacity')
   })
 
+  it('limits same-tick unloading throughput and records destination backlog', () => {
+    const firstSource = building('granary-1', 'granary', { x: 0, y: 0 })
+    const secondSource = building('granary-2', 'granary', { x: 0, y: 0 })
+    const destination = building('market-1', 'market', { x: 1, y: 0 })
+    const firstCart = carrier('cart-1', { x: 1, y: 0 })
+    firstCart.activity = 'delivering'
+    firstCart.path = [{ x: 1, y: 0 }]
+    firstCart.cargoIntent = {
+      orderId: 'first-order',
+      resource: 'food',
+      amount: 1,
+      sourceBuildingId: firstSource.id,
+      destinationBuildingId: destination.id,
+      phase: 'dropoff',
+    }
+    const secondCart = carrier('cart-2', { x: 1, y: 0 })
+    secondCart.activity = 'delivering'
+    secondCart.path = [{ x: 1, y: 0 }]
+    secondCart.cargoIntent = {
+      orderId: 'second-order',
+      resource: 'food',
+      amount: 1,
+      sourceBuildingId: secondSource.id,
+      destinationBuildingId: destination.id,
+      phase: 'dropoff',
+    }
+    const state = snapshot({
+      tick: 20,
+      buildings: {
+        [firstSource.id]: firstSource,
+        [secondSource.id]: secondSource,
+        [destination.id]: destination,
+      },
+      agents: {
+        [firstCart.id]: firstCart,
+        [secondCart.id]: secondCart,
+      },
+      logisticsOrders: {
+        'first-order': {
+          id: 'first-order',
+          resource: 'food',
+          amount: 1,
+          sourceBuildingId: firstSource.id,
+          destinationBuildingId: destination.id,
+          priority: 50,
+          state: 'in_transit',
+          carrierId: firstCart.id,
+        },
+        'second-order': {
+          id: 'second-order',
+          resource: 'food',
+          amount: 1,
+          sourceBuildingId: secondSource.id,
+          destinationBuildingId: destination.id,
+          priority: 50,
+          state: 'in_transit',
+          carrierId: secondCart.id,
+        },
+      },
+    })
+
+    new LogisticsSystem({
+      definitions,
+      unloadCapacityPerTick: 1,
+    }).update(state)
+
+    expect(state.logisticsOrders['first-order']).toMatchObject({ state: 'delivered' })
+    expect(state.logisticsOrders['second-order']).toMatchObject({
+      state: 'in_transit',
+      failureReason: 'destination-throughput',
+      throughputQueuedSinceTick: 20,
+    })
+    expect(destination.inventory.food).toBe(1)
+    expect(secondCart.activity).toBe('delivering')
+    expect(state.logisticsQueues?.['market-1']).toMatchObject({
+      buildingId: 'market-1',
+      unloadCapacityPerTick: 1,
+      unloadedThisTick: 1,
+      waitingToUnloadCount: 1,
+      longestWaitTicks: 0,
+      waitingOrderIds: ['second-order'],
+    })
+
+    state.tick = 21
+    new LogisticsSystem({
+      definitions,
+      unloadCapacityPerTick: 1,
+    }).update(state)
+
+    expect(state.logisticsOrders['second-order']).toMatchObject({ state: 'delivered' })
+    expect(destination.inventory.food).toBe(2)
+    expect(state.logisticsQueues?.['market-1']).toMatchObject({
+      unloadedThisTick: 1,
+      waitingToUnloadCount: 0,
+      longestWaitTicks: 0,
+      waitingOrderIds: [],
+    })
+  })
+
   it('archives completed logistics history while preserving efficiency statistics', () => {
     const state = snapshot({
       logisticsOrders: {

@@ -463,6 +463,29 @@ export function deriveStageMapOverlay(
           position: building.entrance,
         }]
       })
+    const unloadQueues = Object.values(snapshot.logisticsQueues ?? {})
+      .filter((queue) => queue.waitingToUnloadCount > 0)
+      .sort((left, right) => (
+        right.waitingToUnloadCount - left.waitingToUnloadCount
+        || right.longestWaitTicks - left.longestWaitTicks
+        || left.buildingId.localeCompare(right.buildingId)
+      ))
+    const unloadQueuePoints = unloadQueues
+      .slice(0, 4)
+      .flatMap((queue) => {
+        const building = snapshot.buildings[queue.buildingId]
+        if (!building) return []
+        return [{
+          kind: 'bottleneck' as const,
+          label: `卸货排队x${queue.waitingToUnloadCount}`,
+          position: building.entrance,
+        }]
+      })
+    const unloadBacklog = unloadQueues.reduce((total, queue) => total + queue.waitingToUnloadCount, 0)
+    const longestUnloadWait = unloadQueues.reduce(
+      (max, queue) => Math.max(max, queue.longestWaitTicks),
+      0,
+    )
     return compactOverlay(id, '物流线路', [
       ...activeOrders.flatMap((order) => {
       const source = snapshot.buildings[order.sourceBuildingId]
@@ -481,6 +504,7 @@ export function deriveStageMapOverlay(
       ]
       return points.filter((point): point is StageAdvisorOverlayPoint => Boolean(point))
       }),
+      ...unloadQueuePoints,
       ...hotspots,
     ], activeOrders.flatMap((order) => {
       const source = snapshot.buildings[order.sourceBuildingId]
@@ -498,7 +522,9 @@ export function deriveStageMapOverlay(
     ], {
       activeOrders: activeOrders.length,
       hotspots: hotspots.length,
-    })
+      unloadBacklog,
+      longestUnloadWait,
+    }, [], true)
   }
 
   if (mode === 'activity') {
@@ -766,10 +792,12 @@ function compactOverlay(
   summary: string[] = [],
   metrics: Record<string, number> = {},
   cells: StageAdvisorOverlayCell[] = [],
+  keepDistinctLabelsAtSamePoint = false,
 ): StageAdvisorOverlay | undefined {
   const seen = new Set<string>()
   const unique = points.filter((point) => {
-    const key = `${point.kind}:${Math.round(point.position.x * 100) / 100},${Math.round(point.position.y * 100) / 100}`
+    const labelPart = keepDistinctLabelsAtSamePoint ? `${point.label}:` : ''
+    const key = `${point.kind}:${labelPart}${Math.round(point.position.x * 100) / 100},${Math.round(point.position.y * 100) / 100}`
     if (seen.has(key)) return false
     seen.add(key)
     return true

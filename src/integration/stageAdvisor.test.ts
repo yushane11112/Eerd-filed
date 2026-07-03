@@ -112,6 +112,16 @@ describe('stage advisor overlays', () => {
           state: 'assigned',
         },
       },
+      logisticsQueues: {
+        market: {
+          buildingId: 'market',
+          unloadCapacityPerTick: 1,
+          unloadedThisTick: 1,
+          waitingToUnloadCount: 2,
+          longestWaitTicks: 4,
+          waitingOrderIds: ['order', 'order2'],
+        },
+      },
       serviceQueues: {
         'market:food': {
           buildingId: 'market',
@@ -171,8 +181,11 @@ describe('stage advisor overlays', () => {
         },
       ]),
       summary: ['未完成 2', '热点 1'],
-      metrics: { activeOrders: 2, hotspots: 1 },
+      metrics: { activeOrders: 2, hotspots: 1, unloadBacklog: 2, longestUnloadWait: 4 },
     })
+    expect(deriveStageMapOverlay('logistics', snapshot, 13)?.points).toEqual(expect.arrayContaining([
+      { kind: 'bottleneck', label: '卸货排队x2', position: { x: 4, y: 5 } },
+    ]))
     expect(deriveStageMapOverlay('roads', snapshot, 14)).toMatchObject({
       label: '道路连通',
       points: expect.arrayContaining([

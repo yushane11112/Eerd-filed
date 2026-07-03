@@ -1068,3 +1068,17 @@
 | `docs/project/task-board.md` | 任务看板 | 记录 `SERVICE-QUEUE-CAPACITY-01` 已完成 |
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮服务容量与排队状态接入事实 |
 | `docs/project/qa.md` | QA 记录 | 记录本轮测试、构建和限制 |
+
+## 2026-07-03：第九十一轮目的建筑卸货吞吐与物流积压
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 模拟契约 | 新增 `destination-throughput`、`throughputQueuedSinceTick` 和 `LogisticsQueueState` |
+| `src/simulation/economy/logistics.ts` | 物流模拟系统 | 增加 `unloadCapacityPerTick`，限制同 tick 目的建筑卸货量，并记录等待卸货队列 |
+| `src/simulation/economy/economy.test.ts` | 自动测试 | 固定两辆车同 tick 到达同一建筑时的卸货吞吐、等待、下一 tick 继续卸货行为 |
+| `src/integration/stageAdvisor.ts` | 治理图层 | 物流图层显示 `卸货排队xN`，输出卸货积压与最长等待指标 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证物流图层能读取 `logisticsQueues` 并保留热点/卸货排队双重诊断 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第九十一轮进展、完成度和下一轮任务 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LOGISTICS-UNLOAD-QUEUE-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮卸货吞吐与物流积压接入事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮 TDD、回归和限制 |

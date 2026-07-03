@@ -760,3 +760,20 @@
 - 服务队列已可观察，但仍未模拟建筑内部处理时间、员工效率差异、服务优先级策略。
 - 仓储容量目前主要表现为库存容量和物流订单，尚未形成装卸吞吐、仓库排队和订单积压诊断。
 - 本轮服务队列让 2400 tick 长稳用例耗时处于约 36–37 秒级，虽未超出当前门禁，但相比理想灰盒速度偏慢；后续必须继续优化服务候选筛选、路线缓存和队列统计，而不是继续在主循环堆全量扫描。
+
+## 2026-07-03 第九十一轮验证
+
+- TDD RED：`npx vitest run src/simulation/economy/economy.test.ts -t "limits same-tick unloading"` 首次失败于第二个订单也被立即标记为 `delivered`，证明旧物流系统没有目的建筑卸货吞吐限制。
+- TDD GREEN：补充 `destination-throughput`、`LogisticsQueueState`、`unloadCapacityPerTick` 与卸货队列记录后，同一目标测试通过。
+- 叠层 RED/GREEN：`npx vitest run src/integration/stageAdvisor.test.ts -t "derives switchable housing"` 首次失败于物流图层缺少 `unloadBacklog/longestUnloadWait`，接入 `logisticsQueues` 后通过。
+- 回归修正：物流图层允许同点位保留“物流热点”和“卸货排队”双重诊断，但该行为只收窄在物流图层，避免吸引力图层重复显示同建筑多标签噪声。
+- 目标回归：`npx vitest run src/simulation/economy/economy.test.ts src/integration/stageAdvisor.test.ts src/qa/logisticsHotspotScenarios.test.ts src/integration/GameRuntime.test.ts` 通过，4 个测试文件、70 项测试。
+
+- 全量回归：`npm test` 通过，40 个测试文件、246 项测试；长稳用例耗时约 35.61 秒。
+- 生产构建：`npm run build` 通过。
+- 补丁检查：`git diff --check` 通过，无空白错误输出。
+
+当前限制：
+
+- `unloadCapacityPerTick` 仍是物流系统参数，尚未由建筑等级、工人数量、仓库/市场/码头类型和道路入口数动态计算。
+- 物流治理卡还没有区分无车、断路、仓满、来源不足和卸货吞吐不足的不同操作建议。

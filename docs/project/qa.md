@@ -9,6 +9,19 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-03 第八十七轮验证
+
+- TDD RED：`npx vitest run src/qa/browserE2eScenarios.test.ts` 先失败，原因是 `logistics-hotspot` 没有 interaction 元数据。
+- TDD GREEN：为 `logistics-hotspot` 增加 interaction，点击“打开物流图层并补仓储”后等待“物流热点拥堵：打开物流图层并补仓储。”。
+- 单场景真实浏览器 E2E：`BROWSER_E2E_SCENARIO=logistics-hotspot npm run qa:browser-e2e` 通过，确认物流热点推荐动作实际触发 toast。
+- 完整真实浏览器 E2E：`npm run qa:browser-e2e` 运行 5 个场景，5/5 通过；road-plan-success、road-plan-low-treasury、bridge-gap、logistics-hotspot 与 service-governance 均执行真实点击。
+- 目标回归：`npm run qa:browser-e2e:contract && npx vitest run src/qa/browserE2eScenarios.test.ts src/ui/runtimeOptions.test.ts src/qa/roadPlanScenarios.test.ts src/qa/bridgeGapScenarios.test.ts src/qa/logisticsHotspotScenarios.test.ts src/qa/serviceGovernanceScenarios.test.ts`：6 个测试文件、13 项通过。
+- 全量回归：`npm test`：39 个测试文件、241 项测试通过，其中 2400 tick 多日文明稳定性测试耗时约 50.7 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `git diff --check`：通过。
+
+限制：物流热点真实点击只证明推荐动作进入建造/图层流程，不证明仓储容量、排队和道路容量模型完整。
+
 ## 2026-07-03 第八十六轮验证
 
 - TDD RED：`npx vitest run src/qa/browserE2eScenarios.test.ts` 先失败，原因是 `bridge-gap` 没有 interaction 元数据。

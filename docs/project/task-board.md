@@ -72,6 +72,7 @@
 | BROWSER-E2E-LOW-TREASURY-01 | 低财政补线失败浏览器交互 | `src/qa/browserE2eScenarios.ts`, `src/qa/browserE2eScenarios.test.ts` | 已完成 | `qa:browser-e2e` 会在低财政场景点击补线治理卡，并验证“银两不足2，无法执行补线施工”toast |
 | BROWSER-E2E-SERVICE-GOVERNANCE-01 | 服务治理浏览器交互 | `src/qa/browserE2eScenarios.ts`, `src/qa/browserE2eScenarios.test.ts` | 已完成 | `qa:browser-e2e` 会在服务治理场景点击“打开服务图层并营造市场”，并验证对应 toast |
 | BROWSER-E2E-BRIDGE-GAP-01 | 桥梁缺口浏览器交互 | `src/qa/browserE2eScenarios.ts`, `src/qa/browserE2eScenarios.test.ts` | 已完成 | `qa:browser-e2e` 会在桥梁缺口场景点击补线治理卡，并验证“桥梁 2 格，花费银两36”toast |
+| BROWSER-E2E-LOGISTICS-HOTSPOT-01 | 物流热点浏览器交互 | `src/qa/browserE2eScenarios.ts`, `src/qa/browserE2eScenarios.test.ts` | 已完成 | `qa:browser-e2e` 会在物流热点场景点击“打开物流图层并补仓储”，并验证对应 toast |
 | CITY-STAGE-OVERLAY-SUMMARY-01 | 城市阶段覆盖图层摘要 | `src/integration/**`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 覆盖图层显示住宅、服务缺口、物流热点和道路缺口摘要 |
 | CITY-STAGE-OVERLAY-METRICS-01 | 城市阶段覆盖图层结构化指标 | `src/integration/**` | 已完成 | 覆盖图层输出可供面板读取的结构化指标 |
 | CITY-STAGE-OVERLAY-PANEL-METRICS-01 | 城市阶段面板图层指标 | `src/App.tsx`, `src/styles.css` | 已完成 | 阶段面板显示当前打开图层的结构化指标 |

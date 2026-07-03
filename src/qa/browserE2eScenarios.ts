@@ -52,6 +52,10 @@ export const BROWSER_E2E_SCENARIOS: BrowserE2eScenario[] = [
     path: '/?debugScenario=logistics-hotspot',
     mustContainText: ['物流热点拥堵', '当前有 3 条未完成订单'],
     forbiddenConsoleLevels: ['error'],
+    interaction: {
+      clickText: '打开物流图层并补仓储',
+      expectToastText: '物流热点拥堵：打开物流图层并补仓储。',
+    },
   },
   {
     id: 'service-governance',

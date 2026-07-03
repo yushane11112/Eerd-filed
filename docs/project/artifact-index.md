@@ -2,6 +2,18 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-03：第八十七轮物流热点浏览器交互
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/qa/browserE2eScenarios.ts` | 浏览器 E2E 场景契约 | 为 logistics-hotspot 增加点击物流治理卡和 toast 断言 |
+| `src/qa/browserE2eScenarios.test.ts` | 自动测试 | 固定物流热点场景 interaction 元数据，确保 runner payload 可读取 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `BROWSER-E2E-LOGISTICS-HOTSPOT-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第八十七轮进展、UI/QA 完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现、验证和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录 TDD RED/GREEN、真实浏览器 E2E、目标测试和构建 |
+| `docs/project/artifact-index.md` | 产物索引 | 记录本轮真实新增/修改文件 |
+
 ## 2026-07-03：第八十六轮桥梁缺口浏览器交互
 
 | 文件 | 产物类型 | 用途 |

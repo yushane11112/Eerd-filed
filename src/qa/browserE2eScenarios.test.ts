@@ -48,6 +48,10 @@ describe('browser E2E scenario contract', () => {
         path: '/?debugScenario=logistics-hotspot',
         mustContainText: expect.arrayContaining(['物流热点拥堵', '当前有 3 条未完成订单']),
         forbiddenConsoleLevels: ['error'],
+        interaction: {
+          clickText: '打开物流图层并补仓储',
+          expectToastText: '物流热点拥堵：打开物流图层并补仓储。',
+        },
       }),
       expect.objectContaining({
         id: 'service-governance',
@@ -90,6 +94,12 @@ describe('browser E2E scenario contract', () => {
         expectToastText: '道路未连通：补线施工完成：桥梁 2 格，花费银两36。',
       },
     })
+    expect(browserE2eScenarioById('logistics-hotspot')).toMatchObject({
+      interaction: {
+        clickText: '打开物流图层并补仓储',
+        expectToastText: '物流热点拥堵：打开物流图层并补仓储。',
+      },
+    })
     expect(browserE2eScenarioById('service-governance')).toMatchObject({
       interaction: {
         clickText: '打开服务图层并营造市场',
@@ -119,6 +129,13 @@ describe('browser E2E scenario contract', () => {
         interaction: {
           clickText: '打开道路图层并接回主路网',
           expectToastText: '道路未连通：补线施工完成：桥梁 2 格，花费银两36。',
+        },
+      }),
+      expect.objectContaining({
+        id: 'logistics-hotspot',
+        interaction: {
+          clickText: '打开物流图层并补仓储',
+          expectToastText: '物流热点拥堵：打开物流图层并补仓储。',
         },
       }),
       expect.objectContaining({

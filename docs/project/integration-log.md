@@ -2,6 +2,12 @@
 
 ## 2026-07-03
 
+- 启动并完成第八十七轮：`BROWSER-E2E-LOGISTICS-HOTSPOT-01`。物流热点从可见文案检查升级为真实浏览器点击交互。
+- `browserE2eScenarios` 为 `logistics-hotspot` 增加 interaction：点击“打开物流图层并补仓储”，等待“物流热点拥堵：打开物流图层并补仓储。”toast。
+- `browserE2eScenarios.test.ts` 增加契约断言，确保物流热点场景的 interaction 元数据也会输出给真实浏览器 runner。
+- 验证：`BROWSER_E2E_SCENARIO=logistics-hotspot npm run qa:browser-e2e` 通过；完整 `npm run qa:browser-e2e` 5/5 通过，五个固定治理浏览器场景均执行真实点击。
+- 限制：本轮仍只证明推荐动作触发，不等于完整仓储容量、货车排队和道路容量模型。
+
 - 启动并完成第八十六轮：`BROWSER-E2E-BRIDGE-GAP-01`。桥梁缺口从可见文案检查升级为真实浏览器点击交互。
 - `browserE2eScenarios` 为 `bridge-gap` 增加 interaction：点击“打开道路图层并接回主路网”，等待“道路未连通：补线施工完成：桥梁 2 格，花费银两36。”toast。
 - `browserE2eScenarios.test.ts` 增加契约断言，确保桥梁缺口场景的 interaction 元数据也会输出给真实浏览器 runner。

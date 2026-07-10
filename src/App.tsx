@@ -594,6 +594,9 @@ export default function App() {
                   {item.recommendation.roadPlan && (
                     <small>{formatRoadPlanSummary(item.recommendation.roadPlan)}</small>
                   )}
+                  {item.recommendation.logisticsPlan && (
+                    <small>{formatLogisticsPlanSummary(item.recommendation.logisticsPlan)}</small>
+                  )}
                   <em>{item.action}</em>
                   <div className="bottleneck-actions">
                     <button
@@ -779,6 +782,26 @@ function formatConstructionCost(cost: { treasury: number; materials: Partial<Rec
   return materials === '无'
     ? `银两${cost.treasury}`
     : `银两${cost.treasury} · ${materials}`
+}
+
+function formatLogisticsPlanSummary(
+  plan: NonNullable<StageGovernanceRecommendation['logisticsPlan']>,
+) {
+  const title = ({
+    'add-carrier-dispatch': '执行计划：补承运调度',
+    'build-road-link': '执行计划：修通物流线路',
+    'expand-storage': '执行计划：扩仓分流',
+    'inspect-source-stock': '执行计划：定位货源库存',
+    'split-unload': '执行计划：分流卸货口',
+    'add-buffer-storage': '执行计划：补仓储缓冲',
+  } as Record<typeof plan.kind, string>)[plan.kind]
+  const parts = [
+    `${plan.orderIds.length} 单`,
+    plan.resource ? resourceName(plan.resource) : '',
+    plan.sourceBuildingId ? `源 ${plan.sourceBuildingId}` : '',
+    plan.destinationBuildingId ? `到 ${plan.destinationBuildingId}` : '',
+  ].filter(Boolean)
+  return parts.length > 0 ? `${title}｜${parts.join(' · ')}` : title
 }
 
 type BottleneckSeverity = 'high' | 'medium' | 'low'

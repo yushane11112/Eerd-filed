@@ -788,6 +788,7 @@ describe('stage advisor overlays', () => {
       tool: 'inspect' as const,
       metricLabel: '缺车',
       actionIncludes: '补充车船',
+      planKind: 'add-carrier-dispatch' as const,
     },
     {
       reason: 'no-route' as const,
@@ -795,6 +796,7 @@ describe('stage advisor overlays', () => {
       tool: 'road' as const,
       metricLabel: '断路',
       actionIncludes: '修通道路',
+      planKind: 'build-road-link' as const,
     },
     {
       reason: 'destination-capacity' as const,
@@ -803,6 +805,7 @@ describe('stage advisor overlays', () => {
       buildingType: 'granary',
       metricLabel: '仓满',
       actionIncludes: '扩仓',
+      planKind: 'expand-storage' as const,
     },
     {
       reason: 'source-inventory-insufficient' as const,
@@ -810,6 +813,7 @@ describe('stage advisor overlays', () => {
       tool: 'inspect' as const,
       metricLabel: '缺货源',
       actionIncludes: '补生产',
+      planKind: 'inspect-source-stock' as const,
     },
     {
       reason: 'destination-throughput' as const,
@@ -818,6 +822,7 @@ describe('stage advisor overlays', () => {
       buildingType: 'granary',
       metricLabel: '卸货排队',
       actionIncludes: '分流卸货',
+      planKind: 'split-unload' as const,
     },
   ])('recommends a specific logistics fix for $reason', ({
     reason,
@@ -826,6 +831,7 @@ describe('stage advisor overlays', () => {
     buildingType,
     metricLabel,
     actionIncludes,
+    planKind,
   }) => {
     const snapshot = makeSnapshot({
       buildings: {
@@ -871,6 +877,13 @@ describe('stage advisor overlays', () => {
         tool,
         ...(buildingType ? { buildingType } : {}),
         overlayMode: 'logistics',
+        logisticsPlan: {
+          kind: planKind,
+          orderIds: ['order-1', 'order-2', 'order-3'],
+          sourceBuildingId: 'source',
+          destinationBuildingId: 'market',
+          resource: 'food',
+        },
       },
       metricLabel,
     })

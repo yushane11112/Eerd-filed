@@ -85,6 +85,7 @@ export interface StageGovernanceRecommendation {
   tool: 'road' | 'building' | 'inspect'
   buildingType?: string
   overlayMode?: StageAdvisorOverlayMode
+  logisticsPlan?: LogisticsExecutionPlan
   availability?: {
     unlocked: boolean
     currentStageLabel: string
@@ -117,6 +118,20 @@ export interface StageGovernanceRecommendation {
     missingTreasury: number
     canAfford: boolean
   }
+}
+
+export interface LogisticsExecutionPlan {
+  kind:
+    | 'add-carrier-dispatch'
+    | 'build-road-link'
+    | 'expand-storage'
+    | 'inspect-source-stock'
+    | 'split-unload'
+    | 'add-buffer-storage'
+  orderIds: string[]
+  sourceBuildingId?: string
+  destinationBuildingId?: string
+  resource?: string
 }
 
 export const STAGE_ADVISOR_OVERLAY_MODES: ReadonlyArray<{
@@ -1375,6 +1390,7 @@ function diagnoseLogisticsGovernance(
         tool: 'building',
         buildingType: 'granary',
         overlayMode: 'logistics',
+        logisticsPlan: logisticsExecutionPlan(snapshot, 'split-unload', dominant),
       },
     }
   }
@@ -1390,6 +1406,7 @@ function diagnoseLogisticsGovernance(
         label: '补充承运人调度',
         tool: 'inspect',
         overlayMode: 'logistics',
+        logisticsPlan: logisticsExecutionPlan(snapshot, 'add-carrier-dispatch', dominant),
       },
     }
   }
@@ -1406,6 +1423,7 @@ function diagnoseLogisticsGovernance(
         label: '打开道路图层并修通线路',
         tool: 'road',
         overlayMode: 'logistics',
+        logisticsPlan: logisticsExecutionPlan(snapshot, 'build-road-link', dominant),
       },
     }
   }
@@ -1423,6 +1441,7 @@ function diagnoseLogisticsGovernance(
         tool: 'building',
         buildingType: 'granary',
         overlayMode: 'logistics',
+        logisticsPlan: logisticsExecutionPlan(snapshot, 'expand-storage', dominant),
       },
     }
   }
@@ -1439,6 +1458,7 @@ function diagnoseLogisticsGovernance(
         label: '检查来源库存',
         tool: 'inspect',
         overlayMode: 'logistics',
+        logisticsPlan: logisticsExecutionPlan(snapshot, 'inspect-source-stock', dominant),
       },
     }
   }
@@ -1455,7 +1475,29 @@ function diagnoseLogisticsGovernance(
       tool: 'building',
       buildingType: 'granary',
       overlayMode: 'logistics',
+      logisticsPlan: logisticsExecutionPlan(snapshot, 'add-buffer-storage', dominant),
     },
+  }
+}
+
+function logisticsExecutionPlan(
+  snapshot: Readonly<SimulationSnapshot>,
+  kind: LogisticsExecutionPlan['kind'],
+  reason: LogisticsFailureReason | undefined,
+): LogisticsExecutionPlan {
+  const orders = Object.values(snapshot.logisticsOrders)
+    .filter((order) => {
+      if (!reason) return order.state === 'waiting' || order.state === 'assigned' || order.state === 'in_transit'
+      return (order.failureReason ?? order.cancelReason) === reason
+    })
+    .sort((left, right) => left.id.localeCompare(right.id))
+  const first = orders[0]
+  return {
+    kind,
+    orderIds: orders.slice(0, 12).map((order) => order.id),
+    sourceBuildingId: first?.sourceBuildingId,
+    destinationBuildingId: first?.destinationBuildingId,
+    resource: first?.resource,
   }
 }
 

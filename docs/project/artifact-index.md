@@ -1136,3 +1136,16 @@
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮主长跑物流压力接入事实 |
 | `docs/project/qa.md` | QA 记录 | 记录本轮 RED、调参失败、7200 QA、全量回归和限制 |
 | `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务，避免新会话重复本轮 |
+
+## 2026-07-10：第九十六轮物流治理结构化执行计划
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 治理数据层 | `StageGovernanceRecommendation` 新增 `logisticsPlan`，五类物流分因输出结构化执行计划 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证每类物流失败原因都携带计划类型、订单样本、来源、目的地和资源 |
+| `src/App.tsx` | 城市治理 UI | 治理卡显示物流执行计划摘要，暴露订单数、资源、来源和目的地 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第九十六轮进展、UI 完成度和下一轮任务 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LOGISTICS-EXECUTION-PLAN-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮结构化计划接入事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮 RED、目标回归、构建和限制 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务，避免新会话重复本轮 |

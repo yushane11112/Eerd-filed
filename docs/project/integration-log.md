@@ -456,3 +456,11 @@
 - 压力货车完成卸货后会被 QA 负载系统清理，避免 agent 表随 7200 tick 线性膨胀。
 - `civilizationLongRunCheck` 将主长跑最终 `unloadBacklog >= 1` 纳入硬门禁；本轮实测 2400/4800/7200 三层均为 `logisticsQueues=2`、`unloadBacklog=2`、最长卸货等待 1 tick。
 - 客观限制：当前仍是 QA 负载生成器制造集中到货，不是由真实产业链自然演化出的多资源拥堵；商业级下一步应把卸货能力绑定建筑等级、工人、入口数量、港口类型和城市道路容量。
+
+## 2026-07-10 第九十六轮：物流治理结构化执行计划
+
+- 启动 `LOGISTICS-EXECUTION-PLAN-01`：把物流分因治理从自然语言建议推进为可被运行时和 UI 消费的结构化计划。
+- `StageGovernanceRecommendation` 新增 `logisticsPlan`，包含计划类型、订单样本、来源建筑、目的建筑和资源。
+- 五类物流分因均输出计划：`no-carrier -> add-carrier-dispatch`，`no-route -> build-road-link`，`destination-capacity -> expand-storage`，`source-inventory-insufficient/no-source-inventory -> inspect-source-stock`，`destination-throughput -> split-unload`。
+- 城市治理卡显示物流计划摘要，玩家可以看到涉及订单数、资源、来源和目的地，而不是只看到“补仓储/看图层”的泛化文案。
+- 客观限制：本轮还没有把所有 `logisticsPlan` 接入一键运行时动作；下一步要让计划驱动来源定位、目的地定位、道路计划生成、补仓储候选和承运调度入口。

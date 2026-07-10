@@ -9,6 +9,17 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-10 第九十六轮验证
+
+- TDD RED：`npx vitest run src/integration/stageAdvisor.test.ts -t "recommends a specific logistics fix"` 先失败；5 类物流分因治理卡均缺少 `recommendation.logisticsPlan`，证明上一轮仍主要停留在文案和工具入口。
+- TDD GREEN：`StageGovernanceRecommendation` 新增 `logisticsPlan`，覆盖缺车、断路、仓满、缺货源和卸货排队五类计划；同一目标测试通过，1 个测试文件、5 项测试。
+- 目标回归：`npx vitest run src/integration/stageAdvisor.test.ts src/qa/logisticsHotspotScenarios.test.ts src/qa/browserE2eScenarios.test.ts` 通过，3 个测试文件、25 项测试。
+- 全量回归：`npm test` 通过，41 个测试文件、254 项测试；长稳用例耗时约 36.56 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `git diff --check`：通过。
+
+限制：结构化计划只是把治理建议变成可消费数据，并在 UI 中展示摘要；它还没有全部接入一键执行。下一步需要把 `logisticsPlan` 驱动到来源/目的地定位、道路计划生成、补仓储候选和承运调度入口。
+
 ## 2026-07-10 第九十五轮验证
 
 - TDD RED：给 `civilizationLongRunCheck.ts` 增加主长跑最终 `unloadBacklog >= 1` 后，`npm run qa:civilization-long-run` 失败于 `final unload backlog: expected >= 1, got 0`，证明第九十四轮仍只是探针有物流积压，主 7200 城市没有。

@@ -844,3 +844,17 @@
 
 - 分因建议仍以卡片文案和工具入口为主，尚未自动生成具体可执行计划。
 - “补充承运人调度”和“检查来源库存”目前是 inspect 级建议，缺少对应的车船生产/调度面板和来源定位交互。
+
+## 2026-07-10 第九十七轮验证
+
+- 目标 GREEN：`npx vitest run src/integration/stageAdvisor.test.ts -t "recommends a specific logistics fix"` 通过，5 类物流失败原因均携带 `focusRole` 和 `focusBuildingId`。
+- 相关回归：`npx vitest run src/integration/stageAdvisor.test.ts src/qa/logisticsHotspotScenarios.test.ts src/qa/browserE2eScenarios.test.ts` 通过，3 个测试文件、25 项测试。
+- 全量回归：`npm test` 通过，41 个测试文件、254 项测试。
+- 生产构建：`npm run build` 通过。
+- 补丁检查：`git diff --check` 通过，无空白错误输出。
+
+当前限制：
+
+- `logisticsPlan` 已可定位来源/目的相关建筑，但尚未自动生成 `build-road-link` 的道路计划。
+- `add-carrier-dispatch` 仍没有正式承运调度入口；需要先定义承运容量、车船来源和财政/材料成本。
+- `expand-storage` / `add-buffer-storage` 仍没有从计划直接生成候选仓储 footprint；下一轮应复用现有营造推荐执行链路。

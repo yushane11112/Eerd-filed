@@ -789,6 +789,8 @@ describe('stage advisor overlays', () => {
       metricLabel: '缺车',
       actionIncludes: '补充车船',
       planKind: 'add-carrier-dispatch' as const,
+      focusRole: 'source' as const,
+      focusBuildingId: 'source',
     },
     {
       reason: 'no-route' as const,
@@ -797,6 +799,8 @@ describe('stage advisor overlays', () => {
       metricLabel: '断路',
       actionIncludes: '修通道路',
       planKind: 'build-road-link' as const,
+      focusRole: 'route' as const,
+      focusBuildingId: 'market',
     },
     {
       reason: 'destination-capacity' as const,
@@ -806,6 +810,8 @@ describe('stage advisor overlays', () => {
       metricLabel: '仓满',
       actionIncludes: '扩仓',
       planKind: 'expand-storage' as const,
+      focusRole: 'destination' as const,
+      focusBuildingId: 'market',
     },
     {
       reason: 'source-inventory-insufficient' as const,
@@ -814,6 +820,8 @@ describe('stage advisor overlays', () => {
       metricLabel: '缺货源',
       actionIncludes: '补生产',
       planKind: 'inspect-source-stock' as const,
+      focusRole: 'source' as const,
+      focusBuildingId: 'source',
     },
     {
       reason: 'destination-throughput' as const,
@@ -823,6 +831,8 @@ describe('stage advisor overlays', () => {
       metricLabel: '卸货排队',
       actionIncludes: '分流卸货',
       planKind: 'split-unload' as const,
+      focusRole: 'destination' as const,
+      focusBuildingId: 'market',
     },
   ])('recommends a specific logistics fix for $reason', ({
     reason,
@@ -832,6 +842,8 @@ describe('stage advisor overlays', () => {
     metricLabel,
     actionIncludes,
     planKind,
+    focusRole,
+    focusBuildingId,
   }) => {
     const snapshot = makeSnapshot({
       buildings: {
@@ -883,6 +895,8 @@ describe('stage advisor overlays', () => {
           sourceBuildingId: 'source',
           destinationBuildingId: 'market',
           resource: 'food',
+          focusRole,
+          focusBuildingId,
         },
       },
       metricLabel,

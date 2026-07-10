@@ -1149,3 +1149,16 @@
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮结构化计划接入事实 |
 | `docs/project/qa.md` | QA 记录 | 记录本轮 RED、目标回归、构建和限制 |
 | `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务，避免新会话重复本轮 |
+
+## 2026-07-10：第九十七轮物流执行计划聚焦目标
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 治理数据层 | `LogisticsExecutionPlan` 新增 `focusRole/focusBuildingId`，为后续自动执行动作提供聚焦契约 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证五类物流失败原因的计划聚焦角色和聚焦建筑 |
+| `src/App.tsx` | 城市治理 UI | 治理卡定位与 inspect 类执行优先选中物流计划中的真实相关建筑 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第九十七轮进展、UI 完成度和下一轮任务 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LOGISTICS-EXECUTION-FOCUS-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮计划聚焦入口接入事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮定向测试、相关回归、全量回归、构建和限制 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务，避免新会话重复本轮 |

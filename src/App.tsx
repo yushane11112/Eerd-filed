@@ -337,6 +337,11 @@ export default function App() {
     setTool({ kind: 'inspect' })
     setRecommendedBuildType(null)
     setActiveStageRecommendation(null)
+    const logisticsTarget = logisticsPlanFocusTarget(snapshot, recommendation)
+    if (logisticsTarget) {
+      focusCityTarget(logisticsTarget, item.title)
+      return
+    }
     setToast(`${item.title}：${recommendation.label}。`)
   }
 
@@ -834,9 +839,10 @@ function getCityBottlenecks(snapshot: ReturnType<GameRuntime['getSnapshot']>) {
     recommendation: card.recommendation,
     score: card.score,
     severity: card.severity,
-    target: card.target
+    target: logisticsPlanFocusTarget(snapshot, card.recommendation)
+      ?? (card.target
       ? { kind: 'point', point: card.target.point, label: card.target.label }
-      : undefined,
+      : undefined),
   }))
   const buildings = Object.values(snapshot.buildings)
   const reasonCounts = buildings.reduce((counts, building) => {
@@ -1002,6 +1008,24 @@ function logisticsBottleneckTarget(snapshot: ReturnType<GameRuntime['getSnapshot
   const centralRoad = snapshot.cells.find((cell) => cell.road && cell.point.x === 13)
     ?? snapshot.cells.find((cell) => cell.road)
   return centralRoad ? { kind: 'point', point: centralRoad.point, label: '道路网络' } : undefined
+}
+
+function logisticsPlanFocusTarget(
+  snapshot: ReturnType<GameRuntime['getSnapshot']>,
+  recommendation: StageGovernanceRecommendation,
+): CityFocusTarget | undefined {
+  const plan = recommendation.logisticsPlan
+  if (!plan) return undefined
+  if (plan.focusBuildingId && snapshot.buildings[plan.focusBuildingId]) {
+    return { kind: 'building', buildingId: plan.focusBuildingId }
+  }
+  const fallbackBuildingId = plan.focusRole === 'source'
+    ? plan.sourceBuildingId
+    : plan.destinationBuildingId ?? plan.sourceBuildingId
+  if (fallbackBuildingId && snapshot.buildings[fallbackBuildingId]) {
+    return { kind: 'building', buildingId: fallbackBuildingId }
+  }
+  return undefined
 }
 
 function severityFromScore(score: number): BottleneckSeverity {

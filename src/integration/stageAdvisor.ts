@@ -132,6 +132,8 @@ export interface LogisticsExecutionPlan {
   sourceBuildingId?: string
   destinationBuildingId?: string
   resource?: string
+  focusRole: 'source' | 'destination' | 'route' | 'buffer'
+  focusBuildingId?: string
 }
 
 export const STAGE_ADVISOR_OVERLAY_MODES: ReadonlyArray<{
@@ -1492,13 +1494,30 @@ function logisticsExecutionPlan(
     })
     .sort((left, right) => left.id.localeCompare(right.id))
   const first = orders[0]
+  const focusRole = logisticsExecutionFocusRole(kind)
+  const focusBuildingId = focusRole === 'source'
+    ? first?.sourceBuildingId
+    : focusRole === 'destination' || focusRole === 'buffer'
+      ? first?.destinationBuildingId ?? first?.sourceBuildingId
+      : first?.destinationBuildingId ?? first?.sourceBuildingId
   return {
     kind,
     orderIds: orders.slice(0, 12).map((order) => order.id),
     sourceBuildingId: first?.sourceBuildingId,
     destinationBuildingId: first?.destinationBuildingId,
     resource: first?.resource,
+    focusRole,
+    focusBuildingId,
   }
+}
+
+function logisticsExecutionFocusRole(
+  kind: LogisticsExecutionPlan['kind'],
+): LogisticsExecutionPlan['focusRole'] {
+  if (kind === 'inspect-source-stock' || kind === 'add-carrier-dispatch') return 'source'
+  if (kind === 'build-road-link') return 'route'
+  if (kind === 'add-buffer-storage') return 'buffer'
+  return 'destination'
 }
 
 function dominantLogisticsFailureReason(

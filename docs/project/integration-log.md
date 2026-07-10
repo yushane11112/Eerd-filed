@@ -464,3 +464,10 @@
 - 五类物流分因均输出计划：`no-carrier -> add-carrier-dispatch`，`no-route -> build-road-link`，`destination-capacity -> expand-storage`，`source-inventory-insufficient/no-source-inventory -> inspect-source-stock`，`destination-throughput -> split-unload`。
 - 城市治理卡显示物流计划摘要，玩家可以看到涉及订单数、资源、来源和目的地，而不是只看到“补仓储/看图层”的泛化文案。
 - 客观限制：本轮还没有把所有 `logisticsPlan` 接入一键运行时动作；下一步要让计划驱动来源定位、目的地定位、道路计划生成、补仓储候选和承运调度入口。
+
+## 2026-07-10 第九十七轮：物流执行计划聚焦目标
+
+- 启动 `LOGISTICS-EXECUTION-FOCUS-01`：把结构化物流计划从“可读摘要”推进为“可定位执行入口”。
+- `LogisticsExecutionPlan` 新增 `focusRole` 与 `focusBuildingId`：缺车/缺源优先聚焦发货端，仓满/卸货排队优先聚焦目的端，断路标记为线路聚焦，补缓冲标记为缓冲仓聚焦。
+- 城市治理列表会优先用 `logisticsPlan` 的聚焦建筑作为“定位”目标；inspect 类物流执行会直接选中相关建筑，而不是只打开泛化图层。
+- 客观限制：本轮仍没有自动生成新道路、自动补仓储、自动派车或打开来源库存详情面板；这些需要继续接入 `GameRuntime` 的正式动作，而不能只靠 UI 文案。

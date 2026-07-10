@@ -168,3 +168,4 @@
 | UPGRADE-CONSTRUCTION-QUEUE-01 | 建筑升级施工队列 | `src/simulation/economy/upgrades.ts`, `src/integration/GameRuntime.ts` | 已完成 | 升级进入 `upgrading` 并随 tick 完成，而非瞬时换级 |
 | UPGRADE-UI-ENTRY-01 | 建筑详情升级入口 | `src/App.tsx`, `src/styles.css`, `src/integration/GameRuntime.ts` | 已完成 | 玩家可查看成本/缺口并触发升级，UI 保持简洁 |
 | FULL-LEVEL-EATERY-SAMPLE-01 | 第二个 L0–L8 完整金标样例 | `docs/project/gold-slice/sample-manifests/**`, `package.json` | 已完成 | `main-eatery` 可通过 strict L0–L8 校验 |
+| LOGISTICS-EXECUTION-FOCUS-01 | 物流执行计划聚焦目标 | `src/integration/stageAdvisor.ts`, `src/App.tsx` | 已完成 | 物流计划声明来源/目的地/线路/缓冲聚焦角色，治理卡可定位真实相关建筑 |

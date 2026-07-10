@@ -447,3 +447,12 @@
 - 同一 QA 命令新增 `queuePressureProbe`：用真实 `LogisticsSystem` 构造两个在途订单同 tick 抵达同一目的建筑、卸货能力为 1 的确定性场景，校验 `logisticsQueues` 和 `unloadBacklog` 确实能被报告捕获。
 - 本轮实测 7200 主长跑最终服务队列 43、排队家庭 644、最长服务等待 1 tick；主长跑物流卸货积压仍为 0，探针物流队列 1、卸货积压 1、最长卸货等待 3 tick。
 - 客观限制：物流吞吐压力仍是确定性探针，不是 7200 主城市自然形成的长期拥堵；下一步必须改造订单生成/多资源需求/目的地集中度，让真实长跑也能制造仓储吞吐压力。
+
+## 2026-07-10 第九十五轮：主长跑物流卸货压力
+
+- 启动 `LONG-RUN-LOGISTICS-PRESSURE-01`：把卸货积压从确定性探针推进到 7200 tick 主长跑报告。
+- `EconomySystemOptions` 新增 `serviceTargetBatches` 与 `unloadCapacityPerTick` 透传，长跑可以通过统一经济系统配置物流卸货能力，而不是绕开组合系统直接实例化 `LogisticsSystem`。
+- `runCivilizationLongRunScenario` 新增 `LongRunLogisticsPressureSystem`，每 120 tick 向同一个食肆注入两条真实 `in_transit` 订单和两辆 cart agent，再由正式 `LogisticsSystem` 按 `unloadCapacityPerTick=1` 处理，形成真实 `logisticsQueues`。
+- 压力货车完成卸货后会被 QA 负载系统清理，避免 agent 表随 7200 tick 线性膨胀。
+- `civilizationLongRunCheck` 将主长跑最终 `unloadBacklog >= 1` 纳入硬门禁；本轮实测 2400/4800/7200 三层均为 `logisticsQueues=2`、`unloadBacklog=2`、最长卸货等待 1 tick。
+- 客观限制：当前仍是 QA 负载生成器制造集中到货，不是由真实产业链自然演化出的多资源拥堵；商业级下一步应把卸货能力绑定建筑等级、工人、入口数量、港口类型和城市道路容量。

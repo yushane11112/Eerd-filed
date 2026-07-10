@@ -1,7 +1,13 @@
 import { SimulationEngine } from '../simulation/core'
 import { EconomySystem } from '../simulation/economy'
 import { LogisticsSystem } from '../simulation/economy/logistics'
-import type { BuildingDefinition, SimulationSnapshot } from '../simulation/contracts'
+import type {
+  BuildingDefinition,
+  ResourceKind,
+  SimulationEvent,
+  SimulationSnapshot,
+  SimulationSystem,
+} from '../simulation/contracts'
 import {
   CIVILIZATION_LONG_RUN_THRESHOLDS,
   createStressScenario,
@@ -57,12 +63,14 @@ export function runCivilizationLongRunScenario(): CivilizationLongRunReport {
     migrationIntervalTicks: CIVILIZATION_30_DAY_TICKS + 1,
     migrationOutThreshold: 0,
     systems: [
+      new LongRunLogisticsPressureSystem(),
       new EconomySystem({
         definitions: stressScenarioDefinitions,
         routePlanner: {
           findRoute: (_cells, from, to) => [from, to],
         },
         serviceRules: stressScenarioServiceRules,
+        unloadCapacityPerTick: 1,
         settlementIntervalTicks: 300,
       }),
     ],
@@ -84,6 +92,65 @@ export function runCivilizationLongRunScenario(): CivilizationLongRunReport {
     queuePressureProbe: runCivilizationQueuePressureProbe(),
     thresholds: CIVILIZATION_LONG_RUN_THRESHOLDS,
     snapshotLimits: CIVILIZATION_LONG_RUN_SNAPSHOT_LIMITS,
+  }
+}
+
+class LongRunLogisticsPressureSystem implements SimulationSystem {
+  readonly id = 'qa.long-run-logistics-pressure'
+  private readonly intervalTicks = 120
+  private readonly resources: readonly ResourceKind[] = ['food', 'wood']
+
+  update(snapshot: SimulationSnapshot): SimulationEvent[] {
+    this.cleanupCompletedPressureCarriers(snapshot)
+    if (snapshot.tick <= 0 || snapshot.tick % this.intervalTicks !== 0) return []
+    const destination = Object.values(snapshot.buildings)
+      .find((building) => building.type === 'main-eatery')
+    if (!destination) return []
+    const source = Object.values(snapshot.buildings)
+      .find((building) => building.type === 'main-granary')
+    if (!source) return []
+
+    this.resources.forEach((resource, index) => {
+      const orderId = `long-run-pressure-order:${snapshot.tick}:${index}`
+      const carrierId = `long-run-pressure-carrier:${snapshot.tick}:${index}`
+      if (snapshot.logisticsOrders[orderId] || snapshot.agents[carrierId]) return
+      snapshot.logisticsOrders[orderId] = {
+        id: orderId,
+        resource,
+        amount: 1,
+        sourceBuildingId: source.id,
+        destinationBuildingId: destination.id,
+        priority: 120,
+        state: 'in_transit',
+        carrierId,
+        throughputQueuedSinceTick: snapshot.tick - 1,
+      }
+      snapshot.agents[carrierId] = {
+        id: carrierId,
+        role: 'cart',
+        position: { ...destination.entrance },
+        path: [{ ...destination.entrance }],
+        pathIndex: 0,
+        activity: 'delivering',
+        cargoIntent: {
+          orderId,
+          resource,
+          amount: 1,
+          sourceBuildingId: source.id,
+          destinationBuildingId: destination.id,
+          phase: 'dropoff',
+        },
+      }
+    })
+    return []
+  }
+
+  private cleanupCompletedPressureCarriers(snapshot: SimulationSnapshot): void {
+    for (const [agentId, agent] of Object.entries(snapshot.agents)) {
+      if (!agentId.startsWith('long-run-pressure-carrier:')) continue
+      if (agent.activity !== 'idle') continue
+      delete snapshot.agents[agentId]
+    }
   }
 }
 

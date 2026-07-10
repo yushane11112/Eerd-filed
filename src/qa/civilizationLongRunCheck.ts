@@ -37,6 +37,7 @@ export function runCivilizationLongRunCheck(): void {
   }
 
   assertAtLeast(report.final.queuePressure.queuedHouseholds, 1, 'final queued households')
+  assertAtLeast(report.final.queuePressure.unloadBacklog, 1, 'final unload backlog')
   assertAtLeast(report.queuePressureProbe.queuePressure.unloadBacklog, 1, 'probe unload backlog')
   assertAtLeast(report.queuePressureProbe.queuePressure.logisticsQueues, 1, 'probe logistics queues')
   assertAtLeast(report.layers[2].archivedOrders, report.layers[0].archivedOrders + 1, 'archive grows by final layer')

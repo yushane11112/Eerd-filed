@@ -1123,3 +1123,16 @@
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮队列压力报告接入事实 |
 | `docs/project/qa.md` | QA 记录 | 记录本轮 TDD、7200 QA、全量回归和限制 |
 | `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务，避免新会话重复本轮 |
+
+## 2026-07-10：第九十五轮主长跑物流卸货压力
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/economy/EconomySystem.ts` | 组合经济系统接口 | 透传 `serviceTargetBatches` 与 `unloadCapacityPerTick`，让长跑通过正式经济系统配置物流吞吐 |
+| `src/qa/civilizationLongRun.ts` | 长跑 QA 执行器 | 新增 `LongRunLogisticsPressureSystem`，定期注入真实在途订单和货车并清理完成货车 |
+| `src/qa/civilizationLongRunCheck.ts` | QA 命令入口 | 将主长跑最终 `unloadBacklog >= 1` 纳入硬门禁 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第九十五轮进展、城市模拟/QA 完成度和下一轮任务 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LONG-RUN-LOGISTICS-PRESSURE-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮主长跑物流压力接入事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮 RED、调参失败、7200 QA、全量回归和限制 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务，避免新会话重复本轮 |

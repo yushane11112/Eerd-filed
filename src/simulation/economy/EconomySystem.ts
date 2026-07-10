@@ -15,6 +15,8 @@ export interface EconomySystemOptions {
   routePlanner?: RoutePlanner
   maxShipment?: number
   inputTargetBatches?: number
+  serviceTargetBatches?: number
+  unloadCapacityPerTick?: number
   idFactory?: () => EntityId
   settlementIntervalTicks?: number
   maintenanceCost?: FiscalSystemOptions['maintenanceCost']
@@ -36,6 +38,8 @@ export class EconomySystem implements SimulationSystem {
       routePlanner: options.routePlanner,
       maxShipment: options.maxShipment,
       inputTargetBatches: options.inputTargetBatches,
+      serviceTargetBatches: options.serviceTargetBatches,
+      unloadCapacityPerTick: options.unloadCapacityPerTick,
       serviceRules,
       idFactory: options.idFactory,
     })

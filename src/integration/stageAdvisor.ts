@@ -1413,6 +1413,8 @@ function diagnoseLogisticsGovernance(
     }
   }
   if (dominant === 'no-route') {
+    const logisticsPlan = logisticsExecutionPlan(snapshot, 'build-road-link', dominant)
+    const roadPlan = logisticsRoadLinkPlan(snapshot, logisticsPlan)
     return {
       metricLabel: '断路',
       targetLabelPrefix: '失败',
@@ -1425,7 +1427,8 @@ function diagnoseLogisticsGovernance(
         label: '打开道路图层并修通线路',
         tool: 'road',
         overlayMode: 'logistics',
-        logisticsPlan: logisticsExecutionPlan(snapshot, 'build-road-link', dominant),
+        logisticsPlan,
+        ...(roadPlan ? { roadPlan } : {}),
       },
     }
   }
@@ -1509,6 +1512,22 @@ function logisticsExecutionPlan(
     focusRole,
     focusBuildingId,
   }
+}
+
+function logisticsRoadLinkPlan(
+  snapshot: Pick<SimulationSnapshot, 'buildings' | 'cells' | 'economy'>,
+  plan: LogisticsExecutionPlan,
+): NonNullable<StageGovernanceRecommendation['roadPlan']> | undefined {
+  if (plan.kind !== 'build-road-link') return undefined
+  const source = plan.sourceBuildingId ? snapshot.buildings[plan.sourceBuildingId] : undefined
+  const destination = plan.destinationBuildingId ? snapshot.buildings[plan.destinationBuildingId] : undefined
+  if (!source || !destination) return undefined
+  return roadLinkConstructionPlan({
+    kind: 'road',
+    label: '物流补线',
+    from: source.entrance,
+    to: destination.entrance,
+  }, snapshot)
 }
 
 function logisticsExecutionFocusRole(

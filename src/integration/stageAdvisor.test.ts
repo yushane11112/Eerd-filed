@@ -902,6 +902,25 @@ describe('stage advisor overlays', () => {
       metricLabel,
     })
     expect(card?.action).toContain(actionIncludes)
+    if (reason === 'no-route') {
+      expect(card?.recommendation.roadPlan).toMatchObject({
+        from: { x: 2, y: 2 },
+        to: { x: 4, y: 5 },
+        roadCells: 4,
+        bridgeCells: 0,
+        treasuryCost: 24,
+        missingTreasury: 0,
+        canAfford: true,
+      })
+      expect(card?.recommendation.roadPlan?.cells.map((cell) => cell.point)).toEqual([
+        { x: 3, y: 2 },
+        { x: 4, y: 2 },
+        { x: 4, y: 3 },
+        { x: 4, y: 4 },
+      ])
+    } else {
+      expect(card?.recommendation.roadPlan).toBeUndefined()
+    }
   })
 })
 

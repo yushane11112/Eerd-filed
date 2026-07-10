@@ -858,3 +858,16 @@
 - `logisticsPlan` 已可定位来源/目的相关建筑，但尚未自动生成 `build-road-link` 的道路计划。
 - `add-carrier-dispatch` 仍没有正式承运调度入口；需要先定义承运容量、车船来源和财政/材料成本。
 - `expand-storage` / `add-buffer-storage` 仍没有从计划直接生成候选仓储 footprint；下一轮应复用现有营造推荐执行链路。
+
+## 2026-07-10 第九十八轮验证
+
+- 目标 GREEN：`npx vitest run src/integration/stageAdvisor.test.ts -t "recommends a specific logistics fix"` 通过，`no-route` 物流分因会输出 roadPlan，其余物流分因不误带 roadPlan。
+- 相关回归：`npx vitest run src/integration/stageAdvisor.test.ts src/qa/logisticsHotspotScenarios.test.ts src/qa/browserE2eScenarios.test.ts src/integration/GameRuntime.test.ts` 通过，4 个测试文件、47 项测试。
+- 全量回归：`npm test` 通过，41 个测试文件、254 项测试。
+- 生产构建：`npm run build` 通过。
+- 补丁检查：`git diff --check` 通过，无空白错误输出。
+
+当前限制：
+
+- `build-road-link` 现可生成直连 roadPlan，但不是智能道路规划器；它尚未避让建筑、绕开高成本水面、选择最短路网连接点或聚合多个订单。
+- `add-carrier-dispatch`、`expand-storage`、`add-buffer-storage`、`inspect-source-stock` 仍需要继续接入正式运行时动作/面板。

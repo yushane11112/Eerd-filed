@@ -871,3 +871,17 @@
 
 - `build-road-link` 现可生成直连 roadPlan，但不是智能道路规划器；它尚未避让建筑、绕开高成本水面、选择最短路网连接点或聚合多个订单。
 - `add-carrier-dispatch`、`expand-storage`、`add-buffer-storage`、`inspect-source-stock` 仍需要继续接入正式运行时动作/面板。
+
+## 2026-07-10 第九十九轮验证
+
+- 目标 RED/GREEN：`npm test -- src/integration/stageAdvisor.test.ts` 首次暴露仓储建议仍返回通用第一块空地；修正后 21 项测试通过，仓满物流建议会选择热点旁粮仓 footprint。
+- 回归修正：统一建筑可用性校验会二次覆盖定制 `execution`，导致物流热点候选丢失；已改为保留已有 execution，只在缺失时生成通用建筑落点。
+- 相关回归：`npm test -- src/integration/stageAdvisor.test.ts src/integration/GameRuntime.test.ts src/qa/logisticsHotspotScenarios.test.ts` 通过，3 个测试文件、44 项测试。
+- 全量回归：`npm test` 通过，41 个测试文件、255 项测试。
+- 生产构建：`npm run build` 通过。
+- 补丁检查：`git diff --check` 通过，无空白错误输出。
+
+当前限制：
+
+- 仓储候选是“离当前热点最近的可建粮仓”启发式，不是商业级仓储选址 AI；尚未评估道路容量、服务半径、多资源流向、未来扩建空间和多订单聚合收益。
+- `add-carrier-dispatch` 和 `inspect-source-stock` 仍缺正式运行时动作/面板；下一轮应继续把结构化计划落到可点击执行入口。

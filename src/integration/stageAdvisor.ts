@@ -886,7 +886,11 @@ function compactOverlay(
 }
 
 function isNear(a: GridPoint, b: GridPoint, distance: number): boolean {
-  return Math.abs(a.x - b.x) + Math.abs(a.y - b.y) <= distance
+  return manhattanDistance(a, b) <= distance
+}
+
+function manhattanDistance(a: GridPoint, b: GridPoint): number {
+  return Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
 }
 
 function serviceRadius(level: number): number {
@@ -1135,7 +1139,8 @@ export function explainStageRecommendationAvailability(
         currentStageLabel,
         requiredStageLabel,
       },
-      execution: diagnoseBuildingRecommendationExecution(recommendation.buildingType, snapshot),
+      execution: recommendation.execution
+        ?? diagnoseBuildingRecommendationExecution(recommendation.buildingType, snapshot),
     }
   }
   return {
@@ -1232,7 +1237,79 @@ function diagnoseServiceGapMarketExecution(
       }
     }
   }
-  return best ?? base
+  if (!best) return base
+  const { gapCount: _gapCount, key: _key, ...execution } = best
+  return execution
+}
+
+function withLogisticsStorageExecution(
+  recommendation: StageGovernanceRecommendation,
+  snapshot: Pick<SimulationSnapshot, 'metrics' | 'cells' | 'buildings' | 'economy'>,
+  plan: LogisticsExecutionPlan,
+): StageGovernanceRecommendation {
+  const available = explainStageRecommendationAvailability(recommendation, snapshot)
+  if (available.availability?.unlocked === false) return available
+  if (available.tool !== 'building' || available.buildingType !== 'granary') return available
+  return {
+    ...available,
+    execution: diagnoseLogisticsStorageExecution(snapshot, plan),
+  }
+}
+
+function diagnoseLogisticsStorageExecution(
+  snapshot: Pick<SimulationSnapshot, 'cells' | 'buildings' | 'economy'>,
+  plan: LogisticsExecutionPlan,
+): NonNullable<StageGovernanceRecommendation['execution']> {
+  const base = diagnoseBuildingRecommendationExecution('granary', snapshot)
+  if (!base.buildable) return base
+  const definition = BUILDING_DEFINITIONS.granary
+  const focusBuildingId = plan.focusBuildingId ?? plan.destinationBuildingId ?? plan.sourceBuildingId
+  const focus = focusBuildingId ? snapshot.buildings[focusBuildingId] : undefined
+  if (!definition || !focus) return base
+
+  const cells = new Map(snapshot.cells.map((cell) => [pointBucket(cell.point), cell]))
+  let landCandidates = 0
+  let best: (NonNullable<StageGovernanceRecommendation['execution']> & { distance: number; key: string }) | undefined
+  for (const originCell of snapshot.cells) {
+    const origin = originCell.point
+    const footprint = definition.footprint.map((point) => ({
+      x: origin.x + point.x,
+      y: origin.y + point.y,
+    }))
+    const footprintOk = footprint.every((point) => {
+      const cell = cells.get(pointBucket(point))
+      return cell
+        && (cell.terrain === 'land' || cell.terrain === 'shore')
+        && !cell.road
+        && !cell.buildingId
+    })
+    if (!footprintOk) continue
+    landCandidates += 1
+    const entrance = {
+      x: origin.x + definition.entrance.x,
+      y: origin.y + definition.entrance.y,
+    }
+    if (!hasAdjacentRoad(cells, entrance)) continue
+    const distance = manhattanDistance(entrance, focus.entrance)
+    const key = `${distance}:${pointBucket(origin)}`
+    if (!best || distance < best.distance || key.localeCompare(best.key) < 0) {
+      best = {
+        buildable: true,
+        reason: '已找到靠近物流热点的仓储落点，可切换到营造工具试放。',
+        candidate: origin,
+        entrance,
+        footprint,
+        rotation: 0,
+        landCandidates,
+        roadAnchors: base.roadAnchors,
+        distance,
+        key,
+      }
+    }
+  }
+  if (!best) return base
+  const { distance: _distance, key: _key, ...execution } = best
+  return execution
 }
 
 function countServiceGaps(
@@ -1379,6 +1456,14 @@ function diagnoseLogisticsGovernance(
 } {
   const dominant = dominantLogisticsFailureReason(snapshot)
   if ((overlay?.metrics?.unloadBacklog ?? 0) > 0 || dominant === 'destination-throughput') {
+    const logisticsPlan = logisticsExecutionPlan(snapshot, 'split-unload', dominant)
+    const recommendation = withLogisticsStorageExecution({
+      label: '分流卸货压力',
+      tool: 'building',
+      buildingType: 'granary',
+      overlayMode: 'logistics',
+      logisticsPlan,
+    }, snapshot, logisticsPlan)
     return {
       metricLabel: '卸货排队',
       targetLabelPrefix: '卸货排队',
@@ -1387,13 +1472,7 @@ function diagnoseLogisticsGovernance(
       detail: (activeOrders, hotspots) => (
         `当前有 ${activeOrders} 条未完成订单、${hotspots} 个物流热点，且目的建筑出现卸货排队。`
       ),
-      recommendation: {
-        label: '分流卸货压力',
-        tool: 'building',
-        buildingType: 'granary',
-        overlayMode: 'logistics',
-        logisticsPlan: logisticsExecutionPlan(snapshot, 'split-unload', dominant),
-      },
+      recommendation,
     }
   }
   if (dominant === 'no-carrier') {
@@ -1433,6 +1512,14 @@ function diagnoseLogisticsGovernance(
     }
   }
   if (dominant === 'destination-capacity') {
+    const logisticsPlan = logisticsExecutionPlan(snapshot, 'expand-storage', dominant)
+    const recommendation = withLogisticsStorageExecution({
+      label: '扩建仓储容量',
+      tool: 'building',
+      buildingType: 'granary',
+      overlayMode: 'logistics',
+      logisticsPlan,
+    }, snapshot, logisticsPlan)
     return {
       metricLabel: '仓满',
       targetLabelPrefix: '失败',
@@ -1441,13 +1528,7 @@ function diagnoseLogisticsGovernance(
       detail: (activeOrders, hotspots) => (
         `当前有 ${activeOrders} 条未完成订单、${hotspots} 个物流热点，主要卡在目的建筑容量不足。`
       ),
-      recommendation: {
-        label: '扩建仓储容量',
-        tool: 'building',
-        buildingType: 'granary',
-        overlayMode: 'logistics',
-        logisticsPlan: logisticsExecutionPlan(snapshot, 'expand-storage', dominant),
-      },
+      recommendation,
     }
   }
   if (dominant === 'source-inventory-insufficient' || dominant === 'no-source-inventory') {
@@ -1467,6 +1548,14 @@ function diagnoseLogisticsGovernance(
       },
     }
   }
+  const logisticsPlan = logisticsExecutionPlan(snapshot, 'add-buffer-storage', dominant)
+  const recommendation = withLogisticsStorageExecution({
+    label: '打开物流图层并补仓储',
+    tool: 'building',
+    buildingType: 'granary',
+    overlayMode: 'logistics',
+    logisticsPlan,
+  }, snapshot, logisticsPlan)
   return {
     metricLabel: (overlay?.metrics?.hotspots ?? 0) > 0 ? '热点' : '未完成',
     targetLabelPrefix: '物流热点',
@@ -1475,13 +1564,7 @@ function diagnoseLogisticsGovernance(
     detail: (activeOrders, hotspots) => (
       `当前有 ${activeOrders} 条未完成订单、${hotspots} 个物流热点，货物流转容易压到少数建筑。`
     ),
-    recommendation: {
-      label: '打开物流图层并补仓储',
-      tool: 'building',
-      buildingType: 'granary',
-      overlayMode: 'logistics',
-      logisticsPlan: logisticsExecutionPlan(snapshot, 'add-buffer-storage', dominant),
-    },
+    recommendation,
   }
 }
 

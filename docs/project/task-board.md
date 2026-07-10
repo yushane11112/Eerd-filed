@@ -170,3 +170,4 @@
 | FULL-LEVEL-EATERY-SAMPLE-01 | 第二个 L0–L8 完整金标样例 | `docs/project/gold-slice/sample-manifests/**`, `package.json` | 已完成 | `main-eatery` 可通过 strict L0–L8 校验 |
 | LOGISTICS-EXECUTION-FOCUS-01 | 物流执行计划聚焦目标 | `src/integration/stageAdvisor.ts`, `src/App.tsx` | 已完成 | 物流计划声明来源/目的地/线路/缓冲聚焦角色，治理卡可定位真实相关建筑 |
 | LOGISTICS-ROAD-PLAN-01 | 物流断路执行计划 | `src/integration/stageAdvisor.ts` | 已完成 | `build-road-link` 根据订单来源/目的建筑入口生成可一键施工的 roadPlan |
+| LOGISTICS-STORAGE-CANDIDATE-01 | 物流仓储候选落点 | `src/integration/stageAdvisor.ts` | 已完成 | `expand-storage`、`split-unload` 和 `add-buffer-storage` 会给出贴近物流热点的粮仓 footprint 候选 |

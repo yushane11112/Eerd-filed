@@ -1174,3 +1174,15 @@
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮物流断路 roadPlan 接入事实 |
 | `docs/project/qa.md` | QA 记录 | 记录本轮定向测试、相关回归、全量回归、构建和限制 |
 | `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务，避免新会话重复本轮 |
+
+## 2026-07-10：第九十九轮物流仓储候选落点
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 治理数据层 | 仓储类物流计划生成贴近热点建筑、入口邻路且通过资源校验的粮仓 footprint 候选 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证仓满物流建议会选择热点旁仓储候选，并保留计划聚焦目标 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第九十九轮进展、地图建造/UI 完成度和下一轮任务 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LOGISTICS-STORAGE-CANDIDATE-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮仓储候选选址接入事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮定向测试、相关回归、全量回归、构建和限制 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务，避免新会话重复本轮 |

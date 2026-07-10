@@ -922,6 +922,73 @@ describe('stage advisor overlays', () => {
       expect(card?.recommendation.roadPlan).toBeUndefined()
     }
   })
+
+  it('places storage execution candidates near the logistics hotspot', () => {
+    const cells = landRect(0, 0, 9, 9).map((cell) => {
+      const key = `${cell.point.x},${cell.point.y}`
+      const occupied = new Map([
+        ['2,1', 'source'],
+        ['3,1', 'source'],
+        ['2,2', 'source'],
+        ['3,2', 'source'],
+        ['6,5', 'market'],
+        ['7,5', 'market'],
+        ['8,5', 'market'],
+        ['6,6', 'market'],
+        ['7,6', 'market'],
+        ['8,6', 'market'],
+      ]).get(key)
+      return {
+        ...cell,
+        ...(key === '1,2' || key === '5,7' ? { road: { kind: 'street' as const } } : {}),
+        ...(occupied ? { buildingId: occupied } : {}),
+      }
+    })
+    const snapshot = makeSnapshot({
+      cells,
+      buildings: {
+        source: { ...building('source', 'granary', { x: 2, y: 2 }), inventory: { wood: 3, stone: 2 } },
+        market: building('market', 'market', { x: 6, y: 6 }),
+      },
+      economy: { treasury: 500, taxRate: 0.1, lastTaxIncome: 0, lastMaintenanceCost: 0 },
+      logisticsOrders: Object.fromEntries([1, 2, 3].map((index) => [
+        `order-${index}`,
+        {
+          id: `order-${index}`,
+          resource: 'food',
+          amount: 1,
+          sourceBuildingId: 'source',
+          destinationBuildingId: 'market',
+          priority: 10,
+          state: 'waiting',
+          failureReason: 'destination-capacity',
+        },
+      ])),
+    })
+
+    const card = deriveStageGovernanceCards(snapshot)
+      .find((item) => item.id === 'governance-logistics-hotspots')
+
+    expect(card?.recommendation.logisticsPlan).toMatchObject({
+      kind: 'expand-storage',
+      focusRole: 'destination',
+      focusBuildingId: 'market',
+    })
+    expect(card?.recommendation.execution).toMatchObject({
+      buildable: true,
+      reason: '已找到靠近物流热点的仓储落点，可切换到营造工具试放。',
+      candidate: { x: 4, y: 5 },
+      entrance: { x: 5, y: 6 },
+      footprint: [
+        { x: 4, y: 5 },
+        { x: 5, y: 5 },
+        { x: 4, y: 6 },
+        { x: 5, y: 6 },
+      ],
+      rotation: 0,
+      roadAnchors: 2,
+    })
+  })
 })
 
 function makeSnapshot(overrides: Partial<SimulationSnapshot> = {}): SimulationSnapshot {

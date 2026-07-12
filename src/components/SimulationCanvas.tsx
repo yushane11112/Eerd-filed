@@ -1,6 +1,6 @@
 import { Application, Graphics } from 'pixi.js'
 import { useEffect, useRef, useState } from 'react'
-import { DynamicScene, gridToScreen, screenToGrid } from '../rendering'
+import { DynamicScene, createDefaultPrefabRegistry, gridToScreen, screenToGrid } from '../rendering'
 import { roadVisualStyle } from '../rendering/roads'
 import type { CameraState, GridPoint, SimulationSnapshot } from '../simulation/contracts'
 import { CameraController, DragController, PlacementController, deriveRuntimePlacementPreview, runtimePlacementValidator } from '../ui'
@@ -94,7 +94,7 @@ export function SimulationCanvas({
     if (!host) return
     let disposed = false
     const app = new Application()
-    const scene = new DynamicScene()
+    const scene = new DynamicScene(undefined, { prefabRegistry: createDefaultPrefabRegistry() })
     const terrain = new Graphics()
     appRef.current = app
     sceneRef.current = scene

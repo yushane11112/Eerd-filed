@@ -516,3 +516,12 @@
 - 新增承运人不是 UI 假数据：目标测试会推进模拟 tick，确认 `EconomySystem` 能把新货车派给缺车订单并写入 `cargoIntent`。
 - `App` 在执行 `add-carrier-dispatch` 计划时改为调用新增承运容量动作，成功后刷新物流图层；`redispatchLogisticsOrders` 继续作为底层恢复/释放能力保留。
 - 客观限制：本轮新增的是免费、即时、陆路货车；还没有车船建造成本、车行/码头来源、船运选择、承运容量上限或维护费用。
+
+## 2026-07-12 第一百零四轮：金标占位视觉接入主画布
+
+- 启动 `GOLD-VISUAL-RUNTIME-REGISTRY-01`：回应“视觉效果变化不明显”的问题，把已有金标程序化占位细节真正接入主游戏画布。
+- 新增 `createDefaultPrefabRegistry`，默认注册 `main-homes`、`main-eatery`、`main-pier`，并用现有完整样例生成 `main-granary` 的临时运行时 descriptor，让 starter 城市的民居、集市、粮仓都能显示金标占位细节。
+- `SimulationCanvas` 创建 `DynamicScene` 时传入默认 registry；民居、粮仓、集市、码头不再只显示通用灰盒，而会显示等级/状态条和程序化细节层。
+- 修正 prefab 占位尺寸：不再把 manifest 原始像素 bounds 当地图尺寸，避免巨大透明矩形覆盖地图；占位视觉现在按等距建筑 fallback 尺寸缩放。
+- 用本机 Chrome 截图验证主画布可加载、canvas 为 1440×900，巨大矩形已消失；截图产物为 `/tmp/eerd-visual-slice-104-fixed.png`。
+- 客观限制：这仍是程序化占位和 manifest 样例接入，不是最终手绘/建模资产；下一步应继续做更大尺寸、更强辨识度的建筑轮廓、道路铺装和街区氛围。

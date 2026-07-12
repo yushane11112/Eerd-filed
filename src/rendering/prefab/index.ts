@@ -12,6 +12,7 @@ export {
   type PrefabBuildingResolveInput,
   type ResolvedPrefabBuilding,
 } from './registry'
+export { createDefaultPrefabRegistry } from './defaultRegistry'
 export {
   PREFAB_REQUIRED_STATES,
   PREFAB_STATE_PRIORITY,

@@ -1256,3 +1256,18 @@
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮承运容量补充动作 |
 | `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、开发构建、全量回归和限制 |
 | `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务，避免新会话重复本轮 |
+
+## 2026-07-12：第一百零四轮金标占位视觉接入主画布
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/prefab/defaultRegistry.ts` | 渲染运行时配置 | 默认创建 starter 金标占位 registry，注册民居、食肆、粮仓和码头 descriptor |
+| `src/components/SimulationCanvas.tsx` | 主画布接入 | `DynamicScene` 默认加载 prefab registry，让程序化细节进入真实游戏画面 |
+| `src/rendering/visuals.ts` | 建筑占位视觉 | prefab 占位按等距建筑尺寸缩放，避免 manifest 像素 bounds 生成巨型透明框 |
+| `src/rendering/prefab/registry.test.ts` | 自动测试 | 验证默认 registry 覆盖 `main-homes`、`main-eatery`、`main-granary` 和 `main-pier` |
+| `/tmp/eerd-visual-slice-104-fixed.png` | 本地验收截图 | Chrome 截图确认主画布可加载且巨型占位框已消失 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第一百零四轮视觉进展、完成度和下一轮任务 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `GOLD-VISUAL-RUNTIME-REGISTRY-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮视觉 registry 接入事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、开发构建、截图验证、全量回归和限制 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务，避免新会话重复本轮 |

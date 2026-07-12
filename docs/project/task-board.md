@@ -155,6 +155,7 @@
 | GOLD-PIER-VISUAL-SLICE-01 | 旧码头首个可视切片 | `src/rendering/**`, `docs/project/gold-slice/sample-manifests/**` | 已完成 | main-pier 样例驱动更完整的 L0/L4/L8 占位表现 |
 | GOLD-ASSET-CI-01 | main-pier 资产校验入口 | `package.json`, `tools/asset-validator/**`, `docs/project/gold-slice/sample-manifests/main-pier/**` | 已完成 | `npm run asset:validate:main-pier` 可直接校验样例 manifest |
 | GOLD-BUILDING-VISUAL-DIVERSITY-01 | 多类金标建筑差异化视觉切片 | `src/rendering/**` | 已完成 | 3 类非码头建筑拥有 L0/L4/L8 差异化程序化表现 |
+| GOLD-VISUAL-RUNTIME-REGISTRY-01 | 金标占位视觉接入主画布 | `src/rendering/prefab/**`, `src/components/SimulationCanvas.tsx`, `src/rendering/visuals.ts` | 已完成 | 主游戏画布默认加载金标样例 registry，民居/粮仓/集市/码头细节层实际可见 |
 | MATERIAL-PICKUP-FEEL-01 | 材料掉落与手动扫取手感 | `src/components/SimulationCanvas.tsx`, `src/App.tsx`, `src/styles.css` | 已完成 | 地图内材料节点可见、可点击/连续拾取且不破坏拖拽 |
 | SIM-CITY-OPERATIONS-01 | 城市运行后果闭环 | `src/simulation/**`, `src/qa/**` | 已完成 | 服务不足形成确定性居民需求/满意度后果并可测 |
 | GOLD-MANIFEST-BATCH-01 | 金标样例 manifest 批量化 | `docs/project/gold-slice/sample-manifests/**`, `tools/asset-validator/**`, `package.json` | 已完成 | 3 个样例可由批量脚本统一校验 |

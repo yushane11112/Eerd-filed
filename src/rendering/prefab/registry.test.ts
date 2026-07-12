@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import sampleAnimationManifest from '../../../docs/project/gold-slice/sample-manifests/main-pier/animation-manifest.json'
 import sampleBuildingManifest from '../../../docs/project/gold-slice/sample-manifests/main-pier/building-manifest.json'
+import { createDefaultPrefabRegistry } from './defaultRegistry'
 import { parseRuntimePrefabDescriptor } from './parser'
 import { PrefabRuntimeRegistry } from './registry'
 
@@ -95,5 +96,26 @@ describe('PrefabRuntimeRegistry', () => {
       'production-secondary',
       'output-ready',
     ])
+  })
+
+  it('creates a default visual registry for starter gold-slice assets', () => {
+    const registry = createDefaultPrefabRegistry()
+
+    expect(registry.has('main-homes')).toBe(true)
+    expect(registry.has('main-eatery')).toBe(true)
+    expect(registry.has('main-granary')).toBe(true)
+    expect(registry.has('main-pier')).toBe(true)
+    expect(registry.resolveBuilding({ assetId: 'main-homes', level: 8, status: 'working' })).toMatchObject({
+      assetId: 'main-homes',
+      levelKey: 'L8',
+    })
+    expect(registry.resolveBuilding({ assetId: 'main-eatery', level: 4, status: 'serving' })).toMatchObject({
+      assetId: 'main-eatery',
+      levelKey: 'L4',
+    })
+    expect(registry.resolveBuilding({ assetId: 'main-granary', level: 4, status: 'idle' })).toMatchObject({
+      assetId: 'main-granary',
+      levelKey: 'L4',
+    })
   })
 })

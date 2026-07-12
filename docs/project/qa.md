@@ -938,3 +938,18 @@
 
 - 新增承运人当前是免费、即时生成的 `cart`，尚未绑定车行/码头、银两/材料成本、维护费、运力上限或船运路线。
 - 本轮只证明新增运力能进入正式物流系统；还没有给承运容量建立长期平衡、人口/岗位来源或 UI 侧车船管理面板。
+
+## 2026-07-12 第一百零四轮验证
+
+- 目标 GREEN：`npm test -- src/rendering/prefab/registry.test.ts src/rendering/DynamicScene.test.ts` 通过，2 个渲染测试文件、15 项测试覆盖默认 registry 与金标占位细节层。
+- 开发构建：`npm run build -- --mode development` 通过，确认主画布引入样例 manifest 后仍可打包。
+- 浏览器验收：本机 Chrome 打开 `http://127.0.0.1:5174/`，canvas 为 1440×900，截图 `/tmp/eerd-visual-slice-104-fixed.png` 确认巨大透明占位框已消失。
+- 全量回归：`npm test` 通过，41 个测试文件、260 项测试；长稳用例耗时约 71.07 秒。
+- 生产构建：`npm run build` 通过。
+- 补丁检查：`git diff --check` 通过，无空白错误输出。
+
+当前限制：
+
+- 当前仍是程序化占位细节，不是最终手绘/建模资产；但它已经进入真实主画布，不再只存在于测试 registry。
+- `main-granary` 暂用现有完整样例生成运行时 descriptor，以便显示粮仓程序化细节；正式粮仓 manifest 仍需后续补齐。
+- 主包增加了样例 manifest 数据，后续应评估是否把 registry 拆成懒加载或压缩后的生产 manifest。

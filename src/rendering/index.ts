@@ -15,6 +15,7 @@ export {
 } from './culling'
 export { createSceneLayers, SCENE_LAYER_ORDER, type SceneLayers } from './layers'
 export {
+  createDefaultPrefabRegistry,
   parseRuntimePrefabDescriptor,
   resolvePrefabAnimationState,
 } from './prefab'

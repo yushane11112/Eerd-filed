@@ -305,13 +305,12 @@ export class BuildingVisual extends BaseVisual {
 
     this.prefabPlaceholder.visible = true
     this.prefabPlaceholder.label = prefabPlaceholderLabel(resolved)
-    const bounds = resolved.descriptor.bounds.localPx
-    const width = Math.max(fallbackWidth * 1.3, bounds.right - bounds.left)
-    const height = Math.max(fallbackHeight, bounds.bottom - bounds.top)
+    const authoredLevelRatio = Math.max(0, Math.min(1, resolved.level.numericLevel / 8))
+    const width = fallbackWidth * (1.28 + authoredLevelRatio * 0.18)
+    const height = fallbackHeight * (1.04 + authoredLevelRatio * 0.12)
     const left = -width / 2
     const top = -height
     const stateColor = prefabStateColor(resolved.state)
-    const authoredLevelRatio = Math.max(0, Math.min(1, resolved.level.numericLevel / 8))
     const progressRatio = Math.max(0.08, Math.min(1, building.productionProgress || 0))
 
     this.prefabShell

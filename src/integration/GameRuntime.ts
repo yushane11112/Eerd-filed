@@ -109,6 +109,14 @@ export interface RuntimeActionResult {
     missingOrders: number
     sourceBuildingId?: string
   }
+  logisticsStorage?: {
+    buildingId?: string
+    buildingType: string
+    ordersReset: number
+    carriersReleased: number
+    missingOrders: number
+    construction?: BuildingConstructionCost
+  }
   upgrade?: {
     level: number
     cost: Partial<Record<ResourceKind, number>>
@@ -135,6 +143,13 @@ export interface LogisticsSourceTransferInput {
 export interface LogisticsCarrierCapacityInput {
   orderIds: readonly string[]
   sourceBuildingId?: string
+}
+
+export interface LogisticsStorageConstructionInput {
+  orderIds: readonly string[]
+  point: GridPoint
+  rotation?: QuarterRotation
+  buildingType?: string
 }
 
 export type RuntimeDebugScenario =
@@ -929,6 +944,125 @@ export class GameRuntime {
         ...stats,
         resource,
       },
+    }
+  }
+
+  buildStorageForLogisticsPlan(input: LogisticsStorageConstructionInput): RuntimeActionResult {
+    const buildingType = input.buildingType ?? 'granary'
+    const rotation = input.rotation ?? 0
+    const definition = BUILDING_DEFINITIONS[buildingType]
+    const stats = {
+      buildingId: undefined as string | undefined,
+      buildingType,
+      ordersReset: 0,
+      carriersReleased: 0,
+      missingOrders: 0,
+      construction: undefined as BuildingConstructionCost | undefined,
+    }
+    if (!definition) {
+      return {
+        ok: false,
+        message: '未知仓储建筑类型。',
+        logisticsStorage: stats,
+      }
+    }
+
+    const stage = deriveRuntimeCityStage(this.snapshotCache.metrics)
+    if (!isRuntimeBuildingUnlocked(buildingType, stage)) {
+      return {
+        ok: false,
+        message: `${definition.name}需要进入${CITY_STAGE_LABELS[definition.cityStage ?? 'water-town']}后营造。`,
+        logisticsStorage: stats,
+      }
+    }
+
+    const id = `${buildingType}-${++this.buildingSequence}`
+    const placement = this.grid.validateBuildingPlacement(id, definition, input.point, rotation, {
+      requireRoadAccess: true,
+    })
+    if (!placement.valid || !placement.entrance) {
+      return {
+        ok: false,
+        message: placement.issues[0]?.reason === 'no-road-access'
+          ? '仓储入口必须紧邻道路，无法执行扩仓计划。'
+          : '仓储候选地块已变化，无法执行扩仓计划。',
+        logisticsStorage: stats,
+      }
+    }
+
+    const snapshot = this.engine.snapshot
+    const payment = spendBuildingConstructionCost(
+      buildingType,
+      definition,
+      snapshot.economy.treasury,
+      snapshot.buildings,
+      BUILDING_DEFINITIONS,
+    )
+    if (!payment.ok) {
+      const missingMaterials = formatResourceList(payment.quote.missingMaterials)
+      const missingTreasury = payment.quote.missingTreasury
+      const shortage = [
+        missingTreasury > 0 ? `银两不足${missingTreasury}` : '',
+        missingMaterials === '无' ? '' : `材料不足：${missingMaterials}`,
+      ].filter(Boolean).join('，')
+      return {
+        ok: false,
+        message: shortage || '扩仓资源不足。',
+        logisticsStorage: stats,
+      }
+    }
+
+    const committed = this.grid.placeBuilding(id, definition, input.point, rotation, {
+      requireRoadAccess: true,
+    })
+    if (!committed.valid || !committed.entrance) {
+      return {
+        ok: false,
+        message: '地块状态已变化，扩仓施工失败。',
+        logisticsStorage: stats,
+      }
+    }
+
+    snapshot.economy.treasury = payment.treasury
+    snapshot.buildings[id] = createBuilding(id, buildingType, input.point, committed.entrance, rotation)
+    snapshot.cells = this.grid.toCells()
+    stats.buildingId = id
+    stats.construction = payment.cost
+
+    const uniqueOrderIds = Array.from(new Set(input.orderIds))
+    for (const orderId of uniqueOrderIds) {
+      const order = snapshot.logisticsOrders[orderId]
+      if (!order) {
+        stats.missingOrders += 1
+        continue
+      }
+      if (order.state === 'delivered' || order.state === 'cancelled') continue
+      if (order.carrierId) {
+        const carrier = snapshot.agents[order.carrierId]
+        if (carrier) {
+          carrier.activity = 'idle'
+          carrier.path = []
+          carrier.pathIndex = 0
+          delete carrier.cargoIntent
+          stats.carriersReleased += 1
+        }
+      }
+      order.state = 'waiting'
+      delete order.carrierId
+      delete order.failureReason
+      delete order.cancelReason
+      delete order.throughputQueuedSinceTick
+      stats.ordersReset += 1
+    }
+    snapshot.logisticsQueues = {}
+    this.rebuild(snapshot)
+
+    return {
+      ok: true,
+      message: `${definition.name}已作为物流缓冲落成，重置 ${stats.ordersReset} 条订单等待分流。`,
+      buildingId: id,
+      construction: payment.cost,
+      logisticsStorage: stats,
     }
   }
 

@@ -309,6 +309,22 @@ export default function App() {
       setToast(`${item.title}：${recommendation.label}。`)
       return
     }
+    if (isLogisticsStorageBuildPlan(recommendation) && recommendation.execution?.candidate) {
+      const result = runtime.buildStorageForLogisticsPlan({
+        orderIds: recommendation.logisticsPlan.orderIds,
+        point: recommendation.execution.candidate,
+        rotation: recommendation.execution.rotation ?? 0,
+        buildingType: recommendation.buildingType,
+      })
+      setToast(`${item.title}：${result.message}`)
+      if (result.ok) {
+        setRecommendedBuildType(null)
+        setActiveStageRecommendation(null)
+        setStageAdvisorOverlay(deriveStageMapOverlay('logistics', runtime.getSnapshot(), Date.now()) ?? null)
+        setActiveStageOverlayMode('logistics')
+        return
+      }
+    }
     if (recommendation.tool === 'building' && recommendation.buildingType) {
       if (!BUILDING_DEFINITIONS[recommendation.buildingType]) {
         setRecommendedBuildType(null)
@@ -816,6 +832,21 @@ function upgradeButtonTitle(reason: string | undefined) {
   if (reason === 'max-level') return '已达到最高等级'
   if (reason === 'insufficient-materials') return '材料不足，点击可查看失败提示'
   return '消耗城市仓储材料升级'
+}
+
+function isLogisticsStorageBuildPlan(
+  recommendation: StageGovernanceRecommendation,
+): recommendation is StageGovernanceRecommendation & {
+  buildingType: string
+  logisticsPlan: NonNullable<StageGovernanceRecommendation['logisticsPlan']>
+} {
+  return recommendation.tool === 'building'
+    && recommendation.buildingType === 'granary'
+    && (
+      recommendation.logisticsPlan?.kind === 'expand-storage'
+      || recommendation.logisticsPlan?.kind === 'split-unload'
+      || recommendation.logisticsPlan?.kind === 'add-buffer-storage'
+    )
 }
 
 function formatResourceList(resources: Partial<Record<string, number>>) {

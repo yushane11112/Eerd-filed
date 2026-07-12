@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-12：第一百零九轮物流仓储执行计划真实建造动作
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/GameRuntime.ts` | 运行时动作 | 新增物流仓储计划建造入口，复用正式营造成本并重置关联订单/承运/队列 |
+| `src/App.tsx` | 治理卡交互 | 将扩仓、分流卸货和缓冲仓计划接入一键建仓执行链路 |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 覆盖建仓扣费、订单重置、承运释放和卸货队列清理 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录第一百零九轮运行时闭环进展、完成度和下一轮任务 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `LOGISTICS-STORAGE-BUILD-ACTION-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮物流仓储执行动作事实和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录目标测试、完整测试、构建和差异检查 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务为卸货能力分层 |
+
 ## 2026-07-12：第一百零八轮活动密度与状态反馈增强
 
 | 文件 | 产物类型 | 用途 |

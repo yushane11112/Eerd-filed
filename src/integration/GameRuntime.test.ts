@@ -578,6 +578,89 @@ describe('GameRuntime integration', () => {
     expect(after.logisticsQueues).toEqual({})
   })
 
+  it('builds storage from a logistics storage plan and retries congested orders', () => {
+    const runtime = new GameRuntime()
+    const snapshot = mutableRuntimeSnapshot(runtime)
+    snapshot.buildings['granary-1'].inventory = { wood: 20, stone: 10 }
+    const candidate = snapshot.cells
+      .map((cell) => cell.point)
+      .find((point) => runtime.previewBuildingPlacement('granary', point, 0).valid)
+    expect(candidate).toBeDefined()
+
+    snapshot.logisticsQueues = {
+      'market-1': {
+        buildingId: 'market-1',
+        unloadCapacityPerTick: 1,
+        unloadedThisTick: 0,
+        waitingToUnloadCount: 1,
+        longestWaitTicks: 4,
+        waitingOrderIds: ['storage-order'],
+      },
+    }
+    snapshot.logisticsOrders['storage-order'] = {
+      id: 'storage-order',
+      resource: 'food',
+      amount: 4,
+      sourceBuildingId: 'granary-1',
+      destinationBuildingId: 'market-1',
+      priority: 88,
+      state: 'assigned',
+      carrierId: 'carrier-1',
+      failureReason: 'destination-capacity',
+      throughputQueuedSinceTick: 33,
+    }
+    snapshot.agents['carrier-1'].activity = 'delivering'
+    snapshot.agents['carrier-1'].path = [{ x: 14, y: 5 }]
+    snapshot.agents['carrier-1'].pathIndex = 0
+    snapshot.agents['carrier-1'].cargoIntent = {
+      orderId: 'storage-order',
+      resource: 'food',
+      amount: 4,
+      sourceBuildingId: 'granary-1',
+      destinationBuildingId: 'market-1',
+      phase: 'dropoff',
+    }
+
+    const beforeTreasury = snapshot.economy.treasury
+    const result = runtime.buildStorageForLogisticsPlan({
+      orderIds: ['storage-order', 'missing-order', 'storage-order'],
+      point: candidate!,
+      buildingType: 'granary',
+    })
+    const after = runtime.getSnapshot()
+
+    expect(result).toMatchObject({
+      ok: true,
+      logisticsStorage: {
+        buildingType: 'granary',
+        ordersReset: 1,
+        carriersReleased: 1,
+        missingOrders: 1,
+      },
+    })
+    expect(result.logisticsStorage?.buildingId).toMatch(/^granary-/)
+    expect(result.construction).toEqual({ treasury: 140, materials: { wood: 3, stone: 2 } })
+    expect(after.economy.treasury).toBe(beforeTreasury - 140)
+    expect(after.buildings[result.logisticsStorage!.buildingId!]).toMatchObject({
+      type: 'granary',
+      origin: candidate,
+      status: 'idle',
+    })
+    expect(after.logisticsOrders['storage-order']).toMatchObject({
+      state: 'waiting',
+    })
+    expect(after.logisticsOrders['storage-order']).not.toHaveProperty('carrierId')
+    expect(after.logisticsOrders['storage-order']).not.toHaveProperty('failureReason')
+    expect(after.logisticsOrders['storage-order']).not.toHaveProperty('throughputQueuedSinceTick')
+    expect(after.agents['carrier-1']).toMatchObject({
+      activity: 'idle',
+      path: [],
+      pathIndex: 0,
+    })
+    expect(after.agents['carrier-1']).not.toHaveProperty('cargoIntent')
+    expect(after.logisticsQueues).toEqual({})
+  })
+
   it('previews building placement footprint and conflicts without mutating the city', () => {
     const runtime = new GameRuntime()
     runtime.placeRoad({ x: 6, y: 10 })

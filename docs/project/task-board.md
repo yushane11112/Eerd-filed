@@ -182,3 +182,4 @@
 | LOGISTICS-REDISPATCH-ACTION-01 | 物流承运重新调度动作 | `src/integration/GameRuntime.ts`, `src/App.tsx`, `src/integration/GameRuntime.test.ts` | 已完成 | 缺承运治理卡可释放承运人并将关联订单重置回等待队列 |
 | LOGISTICS-SOURCE-STOCK-TRANSFER-01 | 物流来源库存调拨 | `src/integration/GameRuntime.ts`, `src/App.tsx`, `src/integration/GameRuntime.test.ts` | 已完成 | 来源库存治理卡可从备用库存调拨资源并重置关联订单 |
 | LOGISTICS-CARRIER-CAPACITY-01 | 物流承运容量补充 | `src/integration/GameRuntime.ts`, `src/App.tsx`, `src/integration/GameRuntime.test.ts` | 已完成 | 缺承运治理卡可新增一名货车承运人并让正式物流系统接单 |
+| LOGISTICS-STORAGE-BUILD-ACTION-01 | 物流仓储建造动作 | `src/integration/GameRuntime.ts`, `src/App.tsx`, `src/integration/GameRuntime.test.ts` | 已完成 | 扩仓、分流卸货和缓冲仓计划可从候选落点真实建成粮仓、扣除营造成本并重置关联订单 |

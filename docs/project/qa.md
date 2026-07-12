@@ -9,6 +9,14 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-12 第一百轮验证
+
+- TDD GREEN：`npm test -- src/ui/cityAdvisorUi.test.ts` 通过，1 个测试文件、3 项测试，覆盖道路计划摘要和物流执行计划详情文案。
+- `npm run build -- --mode development`：TypeScript 与 Vite 构建通过，验证建筑详情面板接入物流计划状态。
+- 全量回归：`npm test` 通过，41 个测试文件、256 项测试；长稳用例耗时约 71.20 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `git diff --check`：通过。
+
 ## 2026-07-10 第九十六轮验证
 
 - TDD RED：`npx vitest run src/integration/stageAdvisor.test.ts -t "recommends a specific logistics fix"` 先失败；5 类物流分因治理卡均缺少 `recommendation.logisticsPlan`，证明上一轮仍主要停留在文案和工具入口。

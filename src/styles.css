@@ -1068,6 +1068,27 @@ button:focus-visible { outline: 3px solid #f0c86c; outline-offset: 2px; }
   background: #e0e3d4;
   cursor: not-allowed;
 }
+.logistics-plan-card {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #d8d7c2;
+  border-radius: 13px;
+  background: rgba(235,242,224,.78);
+}
+.logistics-plan-card p {
+  margin: 7px 0 0;
+  color: #68766f;
+  font-size: 8px;
+  line-height: 1.45;
+}
+.logistics-plan-card em {
+  display: block;
+  margin-top: 6px;
+  color: #7c6640;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 800;
+}
 .demolition-card {
   margin-top: 10px;
   padding: 10px;

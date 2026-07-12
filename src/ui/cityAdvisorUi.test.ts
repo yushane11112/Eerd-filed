@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatRoadPlanSummary } from './cityAdvisorUi'
+import { formatLogisticsInventoryPanelCopy, formatRoadPlanSummary } from './cityAdvisorUi'
 
 describe('city advisor UI copy', () => {
   it('summarizes road and bridge construction plans for bottleneck cards', () => {
@@ -33,5 +33,21 @@ describe('city advisor UI copy', () => {
       missingTreasury: 12,
       canAfford: false,
     })).toBe('补线计划：道路 2 格、桥梁 1 格，预计银两 30，还缺银两 12。')
+  })
+
+  it('summarizes logistics inventory and dispatch state for inspector panels', () => {
+    expect(formatLogisticsInventoryPanelCopy({
+      role: 'source',
+      resource: 'food',
+      resourceLabel: '粮食',
+      stock: 12,
+      orderCount: 3,
+      busyCarriers: 2,
+      waitingOrders: 1,
+    })).toEqual({
+      title: '物流执行计划：来源库存',
+      inventory: '粮食库存 12，关联订单 3 单。',
+      dispatch: '承运调度：忙碌 2，待派 1。',
+    })
   })
 })

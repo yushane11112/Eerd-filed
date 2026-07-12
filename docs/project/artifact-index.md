@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-12：第一百轮物流执行计划详情面板
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/App.tsx` | 主界面 | 选中物流计划相关建筑时显示库存、订单和承运调度状态 |
+| `src/ui/cityAdvisorUi.ts` | UI 文案工具 | 生成物流执行计划详情面板文案 |
+| `src/ui/cityAdvisorUi.test.ts` | 自动测试 | 固定物流库存与调度状态文案 |
+| `src/styles.css` | 界面样式 | 增加物流执行计划卡样式 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LOGISTICS-INSPECTOR-PANEL-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第一百轮进展、UI 完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录目标测试、构建和后续全量验证 |
+
 ## 2026-07-03：第八十九轮可调营造经济表
 
 | 文件 | 产物类型 | 用途 |

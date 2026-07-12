@@ -53,7 +53,7 @@ import {
   FullscreenController,
   type FullscreenState,
 } from './ui'
-import { formatRoadPlanSummary } from './ui/cityAdvisorUi'
+import { formatLogisticsInventoryPanelCopy, formatRoadPlanSummary } from './ui/cityAdvisorUi'
 import { runtimeOptionsFromSearch } from './ui/runtimeOptions'
 import './styles.css'
 
@@ -127,6 +127,9 @@ export default function App() {
     : undefined
   const selectedUpgrade = selectedBuilding
     ? runtime.getBuildingUpgradeQuote(selectedBuilding.id)
+    : undefined
+  const selectedLogisticsPanel = selectedBuilding
+    ? logisticsPlanInspectorPanel(snapshot, activeStageRecommendation, selectedBuilding.id)
     : undefined
   const rareTotal = Object.values(snapshot.rareRewards.inventory)
     .reduce((sum, value) => sum + (value ?? 0), 0)
@@ -668,6 +671,16 @@ export default function App() {
             <span>产能<b>{Math.round(selectedBuilding.productionProgress)} 刻</b></span>
             <span>库存<b>{Object.values(selectedBuilding.inventory).reduce((a, b) => a + (b ?? 0), 0)}</b></span>
           </div>
+          {selectedLogisticsPanel && (
+            <div className="logistics-plan-card">
+              <div className="upgrade-head">
+                <span>{selectedLogisticsPanel.copy.title}</span>
+                <b>{selectedLogisticsPanel.planLabel}</b>
+              </div>
+              <p>{selectedLogisticsPanel.copy.inventory}</p>
+              <em>{selectedLogisticsPanel.copy.dispatch}</em>
+            </div>
+          )}
           {selectedUpgrade && (
             <div className="upgrade-card">
               <div className="upgrade-head">
@@ -1026,6 +1039,59 @@ function logisticsPlanFocusTarget(
     return { kind: 'building', buildingId: fallbackBuildingId }
   }
   return undefined
+}
+
+function logisticsPlanInspectorPanel(
+  snapshot: ReturnType<GameRuntime['getSnapshot']>,
+  recommendation: StageGovernanceRecommendation | null,
+  buildingId: string,
+) {
+  const plan = recommendation?.logisticsPlan
+  if (!plan) return undefined
+  const isSource = plan.sourceBuildingId === buildingId
+  const isDestination = plan.destinationBuildingId === buildingId
+  const isFocus = plan.focusBuildingId === buildingId
+  if (!isSource && !isDestination && !isFocus) return undefined
+  const building = snapshot.buildings[buildingId]
+  if (!building) return undefined
+  const orderIds = new Set(plan.orderIds)
+  const relatedOrders = Object.values(snapshot.logisticsOrders)
+    .filter((order) => orderIds.has(order.id))
+  const busyCarriers = relatedOrders
+    .filter((order) => order.carrierId || Object.values(snapshot.agents).some((agent) => (
+      agent.cargoIntent?.orderId === order.id
+    )))
+    .length
+  const waitingOrders = relatedOrders
+    .filter((order) => order.state === 'waiting' || order.state === 'assigned')
+    .length
+  const stock = plan.resource
+    ? Object.entries(building.inventory)
+      .find(([resource]) => resource === plan.resource)?.[1] ?? 0
+    : Object.values(building.inventory).reduce((sum, amount) => sum + (amount ?? 0), 0)
+  return {
+    planLabel: formatLogisticsPlanKind(plan.kind),
+    copy: formatLogisticsInventoryPanelCopy({
+      role: isSource ? 'source' : isDestination ? 'destination' : 'focus',
+      resource: plan.resource,
+      resourceLabel: plan.resource ? resourceName(plan.resource) : undefined,
+      stock,
+      orderCount: relatedOrders.length,
+      busyCarriers,
+      waitingOrders,
+    }),
+  }
+}
+
+function formatLogisticsPlanKind(kind: NonNullable<StageGovernanceRecommendation['logisticsPlan']>['kind']) {
+  return ({
+    'add-carrier-dispatch': '承运调度',
+    'build-road-link': '线路修通',
+    'expand-storage': '扩仓',
+    'inspect-source-stock': '查库存',
+    'split-unload': '卸货分流',
+    'add-buffer-storage': '补缓冲仓',
+  } as Record<typeof kind, string>)[kind]
 }
 
 function severityFromScore(score: number): BottleneckSeverity {

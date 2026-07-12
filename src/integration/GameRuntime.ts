@@ -81,6 +81,11 @@ export interface RuntimeActionResult {
     ordersCancelled: number
     carriersReleased: number
   }
+  logisticsDispatch?: {
+    ordersReset: number
+    carriersReleased: number
+    missingOrders: number
+  }
   upgrade?: {
     level: number
     cost: Partial<Record<ResourceKind, number>>
@@ -622,6 +627,51 @@ export class GameRuntime {
       message: `${buildingId} 已拆除，迁出 ${stats.householdsRemoved} 户，取消 ${stats.ordersCancelled} 条物流。`,
       buildingId,
       demolition: stats,
+    }
+  }
+
+  redispatchLogisticsOrders(orderIds: readonly string[]): RuntimeActionResult {
+    const snapshot = this.engine.snapshot
+    const stats = {
+      ordersReset: 0,
+      carriersReleased: 0,
+      missingOrders: 0,
+    }
+    const uniqueOrderIds = Array.from(new Set(orderIds))
+    for (const orderId of uniqueOrderIds) {
+      const order = snapshot.logisticsOrders[orderId]
+      if (!order) {
+        stats.missingOrders += 1
+        continue
+      }
+      if (order.state === 'delivered' || order.state === 'cancelled') continue
+      if (order.carrierId) {
+        const carrier = snapshot.agents[order.carrierId]
+        if (carrier) {
+          carrier.activity = 'idle'
+          carrier.path = []
+          carrier.pathIndex = 0
+          delete carrier.cargoIntent
+          stats.carriersReleased += 1
+        }
+      }
+      order.state = 'waiting'
+      delete order.carrierId
+      delete order.failureReason
+      delete order.cancelReason
+      delete order.throughputQueuedSinceTick
+      stats.ordersReset += 1
+    }
+    if (stats.ordersReset > 0) {
+      snapshot.logisticsQueues = {}
+      this.rebuild(snapshot)
+    }
+    return {
+      ok: stats.ordersReset > 0,
+      message: stats.ordersReset > 0
+        ? `已重置 ${stats.ordersReset} 条物流订单，释放 ${stats.carriersReleased} 名承运人，等待重新调度。`
+        : '没有可重新调度的物流订单。',
+      logisticsDispatch: stats,
     }
   }
 

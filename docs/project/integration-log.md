@@ -493,3 +493,10 @@
 - 新增 `formatLogisticsInventoryPanelCopy`，统一生成来源/目的库存、关联订单和承运调度状态文案。
 - `App` 在选中 `logisticsPlan` 相关来源、目的或聚焦建筑时显示“物流执行计划”卡，展示资源库存、关联订单数、忙碌承运数和待派订单数。
 - 客观限制：本轮仍是可见诊断入口，尚未新增真实承运人建造、自动调度或来源库存调拨动作；下一步应把调度计划接入正式运行时操作。
+
+## 2026-07-12 第一百零一轮：物流承运重新调度动作
+
+- 启动 `LOGISTICS-REDISPATCH-ACTION-01`：把“补承运调度”从治理卡按钮推进为真实运行时动作。
+- `GameRuntime.redispatchLogisticsOrders` 会按订单样本释放关联承运人、清空路径和 cargoIntent，把 assigned/in_transit 订单重置为 waiting，并清除失败原因、取消原因和卸货排队 tick。
+- `App` 在执行 `add-carrier-dispatch` 计划时调用该运行时动作，成功后刷新物流图层，等待下一 tick 由正式 `LogisticsSystem` 重新派车。
+- 客观限制：本轮是“重置并重新进入调度队列”，不是新增车船或复杂调度算法；后续仍需正式承运人补充、路线优先级和调度容量系统。

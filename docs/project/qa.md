@@ -17,6 +17,14 @@
 - `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
 - `git diff --check`：通过。
 
+## 2026-07-12 第一百零一轮验证
+
+- TDD GREEN：`npm test -- src/integration/GameRuntime.test.ts src/ui/cityAdvisorUi.test.ts` 通过，2 个测试文件、26 项测试，覆盖承运重新调度运行时动作和治理 UI 文案。
+- `npm run build -- --mode development`：TypeScript 与 Vite 构建通过，验证 `add-carrier-dispatch` 治理按钮接入运行时动作。
+- 全量回归：`npm test` 通过，41 个测试文件、257 项测试；长稳用例耗时约 71.14 秒。
+- `npm run build`：TypeScript 与 Vite 生产构建通过，`dist/` 产物生成。
+- `git diff --check`：通过。
+
 ## 2026-07-10 第九十六轮验证
 
 - TDD RED：`npx vitest run src/integration/stageAdvisor.test.ts -t "recommends a specific logistics fix"` 先失败；5 类物流分因治理卡均缺少 `recommendation.logisticsPlan`，证明上一轮仍主要停留在文案和工具入口。

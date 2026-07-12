@@ -337,6 +337,16 @@ export default function App() {
       setToast(`${item.title}：${recommendation.label}。`)
       return
     }
+    if (recommendation.logisticsPlan?.kind === 'add-carrier-dispatch') {
+      const result = runtime.redispatchLogisticsOrders(recommendation.logisticsPlan.orderIds)
+      setToast(`${item.title}：${result.message}`)
+      if (result.ok) {
+        setActiveStageRecommendation(null)
+        setStageAdvisorOverlay(deriveStageMapOverlay('logistics', runtime.getSnapshot(), Date.now()) ?? null)
+        setActiveStageOverlayMode('logistics')
+      }
+      return
+    }
     setTool({ kind: 'inspect' })
     setRecommendedBuildType(null)
     setActiveStageRecommendation(null)

@@ -2,6 +2,18 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-12：第一百零一轮物流承运重新调度
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/GameRuntime.ts` | 运行时入口 | 增加物流订单重新调度动作，释放承运人并重置订单 |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 验证订单重置、承运释放、失败状态清理和队列清空 |
+| `src/App.tsx` | 主界面 | `add-carrier-dispatch` 治理计划调用运行时重新调度动作 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LOGISTICS-REDISPATCH-ACTION-01` 已完成 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第一百零一轮进展、城市模拟/UI 完成度和下一轮任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮实现和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录目标测试、构建和后续全量验证 |
+
 ## 2026-07-12：第一百轮物流执行计划详情面板
 
 | 文件 | 产物类型 | 用途 |

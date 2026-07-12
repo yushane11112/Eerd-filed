@@ -373,6 +373,69 @@ describe('GameRuntime integration', () => {
     expect(after.agents['carrier-1']).not.toHaveProperty('cargoIntent')
   })
 
+  it('redispatches active logistics orders by releasing carriers back to the waiting queue', () => {
+    const runtime = new GameRuntime()
+    const snapshot = mutableRuntimeSnapshot(runtime)
+    snapshot.logisticsQueues = {
+      'market-1': {
+        buildingId: 'market-1',
+        unloadCapacityPerTick: 1,
+        unloadedThisTick: 1,
+        waitingToUnloadCount: 1,
+        longestWaitTicks: 4,
+        waitingOrderIds: ['dispatch-order'],
+      },
+    }
+    snapshot.logisticsOrders['dispatch-order'] = {
+      id: 'dispatch-order',
+      resource: 'food',
+      amount: 2,
+      sourceBuildingId: 'granary-1',
+      destinationBuildingId: 'market-1',
+      priority: 80,
+      state: 'assigned',
+      carrierId: 'carrier-1',
+      failureReason: 'no-carrier',
+      throughputQueuedSinceTick: 12,
+    }
+    snapshot.agents['carrier-1'].activity = 'delivering'
+    snapshot.agents['carrier-1'].path = [{ x: 13, y: 11 }, { x: 12, y: 11 }]
+    snapshot.agents['carrier-1'].pathIndex = 1
+    snapshot.agents['carrier-1'].cargoIntent = {
+      orderId: 'dispatch-order',
+      resource: 'food',
+      amount: 2,
+      sourceBuildingId: 'granary-1',
+      destinationBuildingId: 'market-1',
+      phase: 'pickup',
+    }
+
+    const result = runtime.redispatchLogisticsOrders(['dispatch-order', 'missing-order', 'dispatch-order'])
+    const after = runtime.getSnapshot()
+
+    expect(result).toMatchObject({
+      ok: true,
+      logisticsDispatch: {
+        ordersReset: 1,
+        carriersReleased: 1,
+        missingOrders: 1,
+      },
+    })
+    expect(after.logisticsOrders['dispatch-order']).toMatchObject({
+      state: 'waiting',
+    })
+    expect(after.logisticsOrders['dispatch-order']).not.toHaveProperty('carrierId')
+    expect(after.logisticsOrders['dispatch-order']).not.toHaveProperty('failureReason')
+    expect(after.logisticsOrders['dispatch-order']).not.toHaveProperty('throughputQueuedSinceTick')
+    expect(after.agents['carrier-1']).toMatchObject({
+      activity: 'idle',
+      path: [],
+      pathIndex: 0,
+    })
+    expect(after.agents['carrier-1']).not.toHaveProperty('cargoIntent')
+    expect(after.logisticsQueues).toEqual({})
+  })
+
   it('previews building placement footprint and conflicts without mutating the city', () => {
     const runtime = new GameRuntime()
     runtime.placeRoad({ x: 6, y: 10 })

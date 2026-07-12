@@ -2,6 +2,20 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-12：第一百零七轮道路与街区质感增强
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/roads.ts` | 道路视觉配置 | 为土路、石路和桥梁增加阴影、纹理线和铺装模式元数据 |
+| `src/rendering/roads.test.ts` | 自动测试 | 固定三类道路铺装模式和纹理配置差异 |
+| `src/components/SimulationCanvas.tsx` | 主画布地形渲染 | 绘制土路车辙、石路板缝、桥面木板、水波、岸线和田地纹理 |
+| `/tmp/eerd-visual-slice-107-streets.png` | 本地验收截图 | Chrome 截图确认道路、水岸和地表纹理进入主画布 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录第一百零七轮地图质感进展、完成度和下一轮任务 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `VISUAL-STREET-DISTRICT-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮道路与街区质感增强事实和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录目标测试、构建和截图验收 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务为活动密度与状态反馈 |
+
 ## 2026-07-12：第一百零六轮 Starter 建筑第一眼改观
 
 | 文件 | 产物类型 | 用途 |

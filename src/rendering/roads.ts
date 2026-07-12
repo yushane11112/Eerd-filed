@@ -8,6 +8,9 @@ export interface RoadVisualStyle {
   alpha: number
   deckInset: number
   pierColor?: number
+  shadow: number
+  seam: number
+  pattern: 'ruts' | 'stone-slabs' | 'bridge-planks'
 }
 
 const ROAD_VISUAL_STYLES: Record<RoadKind, RoadVisualStyle> = {
@@ -18,6 +21,9 @@ const ROAD_VISUAL_STYLES: Record<RoadKind, RoadVisualStyle> = {
     strokeWidth: 1,
     alpha: 0.7,
     deckInset: 22,
+    shadow: 0x6f5b43,
+    seam: 0x7b6245,
+    pattern: 'ruts',
   },
   stone: {
     kind: 'stone',
@@ -26,6 +32,9 @@ const ROAD_VISUAL_STYLES: Record<RoadKind, RoadVisualStyle> = {
     strokeWidth: 1,
     alpha: 0.7,
     deckInset: 22,
+    shadow: 0x7f867f,
+    seam: 0xe4e0d4,
+    pattern: 'stone-slabs',
   },
   bridge: {
     kind: 'bridge',
@@ -35,6 +44,9 @@ const ROAD_VISUAL_STYLES: Record<RoadKind, RoadVisualStyle> = {
     alpha: 0.9,
     deckInset: 24,
     pierColor: 0x8a765b,
+    shadow: 0x5f6f75,
+    seam: 0x9c7048,
+    pattern: 'bridge-planks',
   },
 }
 

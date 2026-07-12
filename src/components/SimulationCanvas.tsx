@@ -628,24 +628,108 @@ function drawTerrain(graphics: Graphics, snapshot: SimulationSnapshot) {
         screen.x - 48, screen.y,
       ])
       .fill({ color })
+    drawTerrainTexture(graphics, cell, screen)
     if (cell.road) {
-      const roadStyle = roadVisualStyle(cell.road)
-      graphics
-        .poly([
-          screen.x, screen.y - 10,
-          screen.x + roadStyle.deckInset, screen.y,
-          screen.x, screen.y + 10,
-          screen.x - roadStyle.deckInset, screen.y,
-        ])
-        .fill({ color: roadStyle.fill })
-        .stroke({ color: roadStyle.stroke, width: roadStyle.strokeWidth, alpha: roadStyle.alpha })
-      if (roadStyle.kind === 'bridge' && roadStyle.pierColor) {
-        graphics
-          .circle(screen.x - 11, screen.y + 8, 3)
-          .circle(screen.x + 11, screen.y - 8, 3)
-          .fill({ color: roadStyle.pierColor, alpha: 0.82 })
-      }
+      drawRoadTexture(graphics, cell.road, screen)
     }
+  }
+}
+
+function drawTerrainTexture(
+  graphics: Graphics,
+  cell: SimulationSnapshot['cells'][number],
+  screen: { x: number; y: number },
+): void {
+  if (cell.terrain === 'water') {
+    const rippleOffset = (cell.point.x * 7 + cell.point.y * 5) % 13
+    graphics
+      .moveTo(screen.x - 24 + rippleOffset, screen.y - 5)
+      .lineTo(screen.x - 8 + rippleOffset, screen.y - 9)
+      .moveTo(screen.x + 4 - rippleOffset * 0.4, screen.y + 8)
+      .lineTo(screen.x + 20 - rippleOffset * 0.4, screen.y + 4)
+      .stroke({ color: 0xd8f0eb, alpha: 0.22, width: 1 })
+    return
+  }
+
+  if (cell.terrain === 'shore') {
+    graphics
+      .moveTo(screen.x - 40, screen.y)
+      .lineTo(screen.x, screen.y + 19)
+      .lineTo(screen.x + 40, screen.y)
+      .stroke({ color: 0xefe0aa, alpha: 0.46, width: 2 })
+      .moveTo(screen.x - 24, screen.y - 7)
+      .lineTo(screen.x + 20, screen.y + 6)
+      .stroke({ color: 0x8fb7ad, alpha: 0.24, width: 1 })
+    return
+  }
+
+  if ((cell.point.x + cell.point.y) % 5 === 0) {
+    graphics
+      .moveTo(screen.x - 26, screen.y - 5)
+      .lineTo(screen.x + 6, screen.y + 11)
+      .moveTo(screen.x - 6, screen.y - 13)
+      .lineTo(screen.x + 28, screen.y + 4)
+      .stroke({ color: 0x7f9b62, alpha: 0.22, width: 1 })
+  }
+}
+
+function drawRoadTexture(
+  graphics: Graphics,
+  roadKind: NonNullable<SimulationSnapshot['cells'][number]['road']>,
+  screen: { x: number; y: number },
+): void {
+  const roadStyle = roadVisualStyle(roadKind)
+  graphics
+    .poly([
+      screen.x, screen.y - 13,
+      screen.x + roadStyle.deckInset + 4, screen.y,
+      screen.x, screen.y + 13,
+      screen.x - roadStyle.deckInset - 4, screen.y,
+    ])
+    .fill({ color: roadStyle.shadow, alpha: 0.22 })
+    .poly([
+      screen.x, screen.y - 10,
+      screen.x + roadStyle.deckInset, screen.y,
+      screen.x, screen.y + 10,
+      screen.x - roadStyle.deckInset, screen.y,
+    ])
+    .fill({ color: roadStyle.fill })
+    .stroke({ color: roadStyle.stroke, width: roadStyle.strokeWidth, alpha: roadStyle.alpha })
+
+  if (roadStyle.pattern === 'ruts') {
+    graphics
+      .moveTo(screen.x - roadStyle.deckInset * 0.56, screen.y - 1)
+      .lineTo(screen.x + roadStyle.deckInset * 0.56, screen.y - 1)
+      .moveTo(screen.x - roadStyle.deckInset * 0.42, screen.y + 4)
+      .lineTo(screen.x + roadStyle.deckInset * 0.42, screen.y + 4)
+      .stroke({ color: roadStyle.seam, alpha: 0.42, width: 1.4 })
+    return
+  }
+
+  if (roadStyle.pattern === 'stone-slabs') {
+    for (let index = -2; index <= 2; index += 1) {
+      const x = screen.x + index * 8
+      graphics
+        .moveTo(x, screen.y - 7 + Math.abs(index))
+        .lineTo(x + 5, screen.y)
+        .lineTo(x, screen.y + 7 - Math.abs(index))
+    }
+    graphics.stroke({ color: roadStyle.seam, alpha: 0.42, width: 1 })
+    return
+  }
+
+  for (let index = -2; index <= 2; index += 1) {
+    const x = screen.x + index * 8
+    graphics
+      .moveTo(x, screen.y - 9)
+      .lineTo(x + 4, screen.y + 9)
+  }
+  graphics.stroke({ color: roadStyle.seam, alpha: 0.46, width: 1.2 })
+  if (roadStyle.pierColor) {
+    graphics
+      .circle(screen.x - 14, screen.y + 9, 3.4)
+      .circle(screen.x + 14, screen.y - 9, 3.4)
+      .fill({ color: roadStyle.pierColor, alpha: 0.82 })
   }
 }
 

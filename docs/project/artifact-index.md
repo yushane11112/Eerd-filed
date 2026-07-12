@@ -1211,3 +1211,35 @@
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮仓储候选选址接入事实 |
 | `docs/project/qa.md` | QA 记录 | 记录本轮定向测试、相关回归、全量回归、构建和限制 |
 | `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务，避免新会话重复本轮 |
+
+## 2026-07-12：第一百轮物流执行计划详情面板
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/App.tsx` | 城市治理 UI | 建筑详情展示物流执行计划、来源/目的库存、订单和承运状态 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录第一百轮物流计划可见诊断入口 |
+| `docs/project/integration-log.md` | 集成记录 | 记录计划详情面板接入事实 |
+
+## 2026-07-12：第一百零一轮物流承运重新调度动作
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/GameRuntime.ts` | 运行时动作 | 新增 `redispatchLogisticsOrders`，释放承运人并重置关联订单 |
+| `src/App.tsx` | 城市治理 UI | `add-carrier-dispatch` 计划点击后调用运行时动作并刷新物流图层 |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 固定承运重新调度会清空 carrier cargoIntent、失败原因和卸货队列 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录第一百零一轮承运调度入口 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LOGISTICS-REDISPATCH-ACTION-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮承运重新调度动作 |
+
+## 2026-07-12：第一百零二轮物流来源库存调拨动作
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/GameRuntime.ts` | 运行时动作 | 新增 `transferSourceInventoryForLogisticsPlan`，从备用库存调入缺货源建筑并重置订单 |
+| `src/App.tsx` | 城市治理 UI | `inspect-source-stock` 计划优先执行库存调拨，失败时回退定位建筑 |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 固定备用库存调拨、订单重置、承运释放和物流队列清理 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第一百零二轮进展、完成度和下一轮任务 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LOGISTICS-SOURCE-STOCK-TRANSFER-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮来源库存调拨动作 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、开发构建、全量回归和限制 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务，避免新会话重复本轮 |

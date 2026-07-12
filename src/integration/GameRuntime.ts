@@ -26,7 +26,11 @@ import {
   advanceBuildingUpgrades,
   buildingUpgradeCost,
   EconomySystem,
+  addInventory,
   effectiveBuildingDefinition,
+  inventoryAmount,
+  inventoryFreeCapacity,
+  removeInventory,
   RoadRoutePlanner,
   quoteBuildingConstruction,
   roadConstructionCost,
@@ -86,6 +90,16 @@ export interface RuntimeActionResult {
     carriersReleased: number
     missingOrders: number
   }
+  logisticsTransfer?: {
+    resource: ResourceKind
+    transferred: number
+    sourceBuildingId: string
+    donorBuildingIds: string[]
+    ordersReset: number
+    carriersReleased: number
+    missingOrders: number
+    missingAmount: number
+  }
   upgrade?: {
     level: number
     cost: Partial<Record<ResourceKind, number>>
@@ -101,6 +115,12 @@ export interface RoadPlanConstructionInput {
     point: GridPoint
     kind: RoadKind
   }>
+}
+
+export interface LogisticsSourceTransferInput {
+  orderIds: readonly string[]
+  sourceBuildingId?: string
+  resource?: string
 }
 
 export type RuntimeDebugScenario =
@@ -675,6 +695,151 @@ export class GameRuntime {
     }
   }
 
+  transferSourceInventoryForLogisticsPlan(input: LogisticsSourceTransferInput): RuntimeActionResult {
+    const snapshot = this.engine.snapshot
+    const uniqueOrderIds = Array.from(new Set(input.orderIds))
+    const stats = {
+      resource: undefined as ResourceKind | undefined,
+      transferred: 0,
+      sourceBuildingId: input.sourceBuildingId ?? '',
+      donorBuildingIds: [] as string[],
+      ordersReset: 0,
+      carriersReleased: 0,
+      missingOrders: 0,
+      missingAmount: 0,
+    }
+    const activeOrders = uniqueOrderIds.flatMap((orderId) => {
+      const order = snapshot.logisticsOrders[orderId]
+      if (!order) {
+        stats.missingOrders += 1
+        return []
+      }
+      if (order.state === 'delivered' || order.state === 'cancelled') return []
+      if (input.resource && order.resource !== input.resource) return []
+      if (input.sourceBuildingId && order.sourceBuildingId !== input.sourceBuildingId) return []
+      return [order]
+    })
+    const sampleOrder = activeOrders[0]
+    const resource = sampleOrder?.resource
+    const sourceBuildingId = input.sourceBuildingId ?? sampleOrder?.sourceBuildingId
+    if (!resource || !sourceBuildingId) {
+      return {
+        ok: false,
+        message: '没有找到可调拨的缺货订单。',
+        logisticsTransfer: {
+          resource: (resource ?? 'food') as ResourceKind,
+          transferred: 0,
+          sourceBuildingId: sourceBuildingId ?? '',
+          donorBuildingIds: [],
+          ordersReset: 0,
+          carriersReleased: 0,
+          missingOrders: stats.missingOrders,
+          missingAmount: 0,
+        },
+      }
+    }
+    stats.resource = resource
+    stats.sourceBuildingId = sourceBuildingId
+    const source = snapshot.buildings[sourceBuildingId]
+    if (!source) {
+      return {
+        ok: false,
+        message: `没有找到货源建筑 ${sourceBuildingId}。`,
+        logisticsTransfer: {
+          ...stats,
+          resource,
+        },
+      }
+    }
+
+    const requestedAmount = activeOrders
+      .filter((order) => order.sourceBuildingId === sourceBuildingId && order.resource === resource)
+      .reduce((total, order) => total + order.amount, 0)
+    const sourceStock = inventoryAmount(source, resource)
+    const sourceDefinition = BUILDING_DEFINITIONS[source.type]
+    const sourceCapacity = inventoryFreeCapacity(
+      source,
+      sourceDefinition ? effectiveBuildingDefinition(sourceDefinition, source) : undefined,
+    )
+    const targetAmount = Math.max(0, Math.min(requestedAmount - sourceStock, sourceCapacity))
+    if (targetAmount <= 0) {
+      return {
+        ok: false,
+        message: sourceCapacity <= 0
+          ? `${sourceBuildingId} 库容已满，暂时无法调入${resourceName(resource)}。`
+          : `${sourceBuildingId} 当前${resourceName(resource)}已足够，等待物流重新调度即可。`,
+        logisticsTransfer: {
+          ...stats,
+          resource,
+        },
+      }
+    }
+
+    const excludedBuildingIds = new Set<string>([sourceBuildingId])
+    for (const order of activeOrders) {
+      if (order.destinationBuildingId) excludedBuildingIds.add(order.destinationBuildingId)
+    }
+    let remaining = targetAmount
+    for (const donor of Object.values(snapshot.buildings)) {
+      if (remaining <= 0) break
+      if (excludedBuildingIds.has(donor.id)) continue
+      const available = inventoryAmount(donor, resource)
+      if (available <= 0) continue
+      const amount = Math.min(available, remaining)
+      const donorResult = removeInventory(donor, resource, amount)
+      const sourceResult = addInventory(source, sourceDefinition ? effectiveBuildingDefinition(sourceDefinition, source) : undefined, resource, amount)
+      if (!donorResult.ok || !sourceResult.ok) {
+        if (donorResult.ok) addInventory(donor, BUILDING_DEFINITIONS[donor.type], resource, amount)
+        continue
+      }
+      stats.transferred += amount
+      remaining -= amount
+      if (!stats.donorBuildingIds.includes(donor.id)) stats.donorBuildingIds.push(donor.id)
+    }
+    stats.missingAmount = Math.max(0, targetAmount - stats.transferred)
+    if (stats.transferred <= 0) {
+      return {
+        ok: false,
+        message: `没有找到可调拨的${resourceName(resource)}库存。`,
+        logisticsTransfer: {
+          ...stats,
+          resource,
+        },
+      }
+    }
+
+    for (const order of activeOrders) {
+      if (order.sourceBuildingId !== sourceBuildingId || order.resource !== resource) continue
+      if (order.carrierId) {
+        const carrier = snapshot.agents[order.carrierId]
+        if (carrier) {
+          carrier.activity = 'idle'
+          carrier.path = []
+          carrier.pathIndex = 0
+          delete carrier.cargoIntent
+          stats.carriersReleased += 1
+        }
+      }
+      order.state = 'waiting'
+      delete order.carrierId
+      delete order.failureReason
+      delete order.cancelReason
+      delete order.throughputQueuedSinceTick
+      stats.ordersReset += 1
+    }
+    snapshot.logisticsQueues = {}
+    this.rebuild(snapshot)
+
+    return {
+      ok: true,
+      message: `已向 ${sourceBuildingId} 调入 ${stats.transferred} 份${resourceName(resource)}，重置 ${stats.ordersReset} 条订单等待重新发车。`,
+      logisticsTransfer: {
+        ...stats,
+        resource,
+      },
+    }
+  }
+
   previewBuildingPlacement(type: string, point: GridPoint, rotation: QuarterRotation): BuildingPlacementPreview {
     const definition = BUILDING_DEFINITIONS[type]
     if (!definition) {
@@ -1081,6 +1246,17 @@ export class GameRuntime {
     this.randomState = (Math.imul(this.randomState, 1664525) + 1013904223) >>> 0
     return this.randomState / 0x1_0000_0000
   }
+}
+
+function resourceName(resource: ResourceKind): string {
+  return ({
+    food: '食物',
+    wood: '木料',
+    stone: '石材',
+    salt: '盐',
+    cloth: '布料',
+    medicine: '药材',
+  } as Record<ResourceKind, string>)[resource] ?? resource
 }
 
 function createBuilding(

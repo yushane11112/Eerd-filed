@@ -436,6 +436,82 @@ describe('GameRuntime integration', () => {
     expect(after.logisticsQueues).toEqual({})
   })
 
+  it('transfers reserve stock into a logistics source and retries blocked orders', () => {
+    const runtime = new GameRuntime()
+    const snapshot = mutableRuntimeSnapshot(runtime)
+    snapshot.buildings['granary-1'].inventory = { wood: 14, stone: 8 }
+    snapshot.buildings['riceField-1'].inventory = { food: 8 }
+    snapshot.logisticsQueues = {
+      'market-1': {
+        buildingId: 'market-1',
+        unloadCapacityPerTick: 1,
+        unloadedThisTick: 0,
+        waitingToUnloadCount: 1,
+        longestWaitTicks: 3,
+        waitingOrderIds: ['stock-order'],
+      },
+    }
+    snapshot.logisticsOrders['stock-order'] = {
+      id: 'stock-order',
+      resource: 'food',
+      amount: 6,
+      sourceBuildingId: 'granary-1',
+      destinationBuildingId: 'market-1',
+      priority: 85,
+      state: 'assigned',
+      carrierId: 'carrier-1',
+      failureReason: 'source-inventory-insufficient',
+      throughputQueuedSinceTick: 21,
+    }
+    snapshot.agents['carrier-1'].activity = 'delivering'
+    snapshot.agents['carrier-1'].path = [{ x: 13, y: 11 }]
+    snapshot.agents['carrier-1'].pathIndex = 0
+    snapshot.agents['carrier-1'].cargoIntent = {
+      orderId: 'stock-order',
+      resource: 'food',
+      amount: 6,
+      sourceBuildingId: 'granary-1',
+      destinationBuildingId: 'market-1',
+      phase: 'pickup',
+    }
+
+    const result = runtime.transferSourceInventoryForLogisticsPlan({
+      orderIds: ['stock-order', 'missing-order', 'stock-order'],
+      sourceBuildingId: 'granary-1',
+      resource: 'food',
+    })
+    const after = runtime.getSnapshot()
+
+    expect(result).toMatchObject({
+      ok: true,
+      logisticsTransfer: {
+        resource: 'food',
+        transferred: 6,
+        sourceBuildingId: 'granary-1',
+        donorBuildingIds: ['riceField-1'],
+        ordersReset: 1,
+        carriersReleased: 1,
+        missingOrders: 1,
+        missingAmount: 0,
+      },
+    })
+    expect(after.buildings['granary-1'].inventory.food).toBe(6)
+    expect(after.buildings['riceField-1'].inventory.food).toBe(2)
+    expect(after.logisticsOrders['stock-order']).toMatchObject({
+      state: 'waiting',
+    })
+    expect(after.logisticsOrders['stock-order']).not.toHaveProperty('carrierId')
+    expect(after.logisticsOrders['stock-order']).not.toHaveProperty('failureReason')
+    expect(after.logisticsOrders['stock-order']).not.toHaveProperty('throughputQueuedSinceTick')
+    expect(after.agents['carrier-1']).toMatchObject({
+      activity: 'idle',
+      path: [],
+      pathIndex: 0,
+    })
+    expect(after.agents['carrier-1']).not.toHaveProperty('cargoIntent')
+    expect(after.logisticsQueues).toEqual({})
+  })
+
   it('previews building placement footprint and conflicts without mutating the city', () => {
     const runtime = new GameRuntime()
     runtime.placeRoad({ x: 6, y: 10 })

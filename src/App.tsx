@@ -347,6 +347,23 @@ export default function App() {
       }
       return
     }
+    if (recommendation.logisticsPlan?.kind === 'inspect-source-stock') {
+      const result = runtime.transferSourceInventoryForLogisticsPlan({
+        orderIds: recommendation.logisticsPlan.orderIds,
+        sourceBuildingId: recommendation.logisticsPlan.sourceBuildingId,
+        resource: recommendation.logisticsPlan.resource,
+      })
+      setToast(`${item.title}：${result.message}`)
+      if (result.ok) {
+        setActiveStageRecommendation(null)
+        setStageAdvisorOverlay(deriveStageMapOverlay('logistics', runtime.getSnapshot(), Date.now()) ?? null)
+        setActiveStageOverlayMode('logistics')
+        return
+      }
+      const logisticsTarget = logisticsPlanFocusTarget(snapshot, recommendation)
+      if (logisticsTarget) focusCityTarget(logisticsTarget, item.title)
+      return
+    }
     setTool({ kind: 'inspect' })
     setRecommendedBuildType(null)
     setActiveStageRecommendation(null)

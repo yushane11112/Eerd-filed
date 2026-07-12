@@ -173,3 +173,6 @@
 | LOGISTICS-EXECUTION-FOCUS-01 | 物流执行计划聚焦目标 | `src/integration/stageAdvisor.ts`, `src/App.tsx` | 已完成 | 物流计划声明来源/目的地/线路/缓冲聚焦角色，治理卡可定位真实相关建筑 |
 | LOGISTICS-ROAD-PLAN-01 | 物流断路执行计划 | `src/integration/stageAdvisor.ts` | 已完成 | `build-road-link` 根据订单来源/目的建筑入口生成可一键施工的 roadPlan |
 | LOGISTICS-STORAGE-CANDIDATE-01 | 物流仓储候选落点 | `src/integration/stageAdvisor.ts` | 已完成 | `expand-storage`、`split-unload` 和 `add-buffer-storage` 会给出贴近物流热点的粮仓 footprint 候选 |
+| LOGISTICS-INSPECTOR-PANEL-01 | 物流执行计划详情面板 | `src/App.tsx` | 已完成 | 建筑详情可显示计划相关库存、订单和承运状态 |
+| LOGISTICS-REDISPATCH-ACTION-01 | 物流承运重新调度动作 | `src/integration/GameRuntime.ts`, `src/App.tsx`, `src/integration/GameRuntime.test.ts` | 已完成 | 缺承运治理卡可释放承运人并将关联订单重置回等待队列 |
+| LOGISTICS-SOURCE-STOCK-TRANSFER-01 | 物流来源库存调拨 | `src/integration/GameRuntime.ts`, `src/App.tsx`, `src/integration/GameRuntime.test.ts` | 已完成 | 来源库存治理卡可从备用库存调拨资源并重置关联订单 |

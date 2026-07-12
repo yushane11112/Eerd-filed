@@ -500,3 +500,11 @@
 - `GameRuntime.redispatchLogisticsOrders` 会按订单样本释放关联承运人、清空路径和 cargoIntent，把 assigned/in_transit 订单重置为 waiting，并清除失败原因、取消原因和卸货排队 tick。
 - `App` 在执行 `add-carrier-dispatch` 计划时调用该运行时动作，成功后刷新物流图层，等待下一 tick 由正式 `LogisticsSystem` 重新派车。
 - 客观限制：本轮是“重置并重新进入调度队列”，不是新增车船或复杂调度算法；后续仍需正式承运人补充、路线优先级和调度容量系统。
+
+## 2026-07-12 第一百零二轮：物流来源库存调拨动作
+
+- 启动 `LOGISTICS-SOURCE-STOCK-TRANSFER-01`：把 `inspect-source-stock` 从“定位货源库存”推进为可执行的来源补货动作。
+- `GameRuntime.transferSourceInventoryForLogisticsPlan` 会按订单样本计算来源建筑缺口，寻找非来源/非目的建筑里的同类备用库存，并通过正式库存增减工具调入货源建筑。
+- 调拨成功后，关联未完成订单会被重置为 `waiting`，释放承运人、清空 cargoIntent、失败原因和卸货排队 tick，让正式 `LogisticsSystem` 在后续 tick 重新派车。
+- `App` 在执行 `inspect-source-stock` 计划时优先调用调拨动作；成功后刷新物流图层，失败时仍回退到聚焦相关建筑，保留可理解的诊断入口。
+- 客观限制：本轮是短链路“备用库存调拨”，不是完整生产排程或跨仓储最优调拨；还没有考虑道路距离、批量路线、未来需求预测和正式车船扩容。

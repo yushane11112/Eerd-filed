@@ -1,5 +1,13 @@
 # 集成记录
 
+## 2026-07-12 第一百零五轮：目标与执行节奏校准
+
+- 启动 `PM-EXECUTION-STRATEGY-01`：审视过往改动后，确认最终商业级游戏总目标不变，但当前执行阶段不应继续停留在 P0 文档重构节奏。
+- 新增 `docs/project/execution-strategy.md`，明确当前阶段为 P1.5 商业级垂直切片收敛期，并把近期默认优先级调整为可见垂直切片、可操作闭环、核心模拟自洽、QA 分层提效和文档减重。
+- 同步 `README.md`、`HANDOFF.md`、`commercial-launch-master-plan.md` 和 `progress-dashboard.md`，确保其他电脑或新 Codex 对话读取仓库后得到同一目标口径。
+- 新增三项后续视觉冲刺任务：`VISUAL-SLICE-STARTER-01`、`VISUAL-STREET-DISTRICT-01`、`VISUAL-ACTIVITY-FEEDBACK-01`。
+- 客观限制：本轮是项目目标和节奏校准，不改变运行时代码和主画布效果；下一轮应直接进入 starter 建筑第一眼改观。
+
 ## 2026-07-03
 
 - 启动并完成第八十九轮：`CONSTRUCTION-ECONOMY-TABLE-01`。营造成本从 `construction.ts` 私有硬编码推进为可导出、可校验、可替换的经济表。

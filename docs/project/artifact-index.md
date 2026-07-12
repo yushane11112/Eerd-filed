@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-12：第一百零五轮目标与执行节奏校准
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `docs/project/execution-strategy.md` | 项目执行策略 | 固化最终总目标、P1.5 当前阶段、近期优先级、低收益事项和 Tier 0-4 验证分级 |
+| `docs/project/README.md` | 项目中枢入口 | 将当前阶段从 P0 更新为 P1.5，并加入执行策略索引 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 让其他电脑或新对话优先读取执行策略，按可见垂直切片和验证分级继续 |
+| `docs/project/commercial-launch-master-plan.md` | 上线总计划 | 增补 2026-07-12 执行节奏校准，保持长期商业级总目标不变 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新当前阶段、风险、下一轮默认任务和每轮更新要求 |
+| `docs/project/task-board.md` | 任务看板 | 新增目标校准任务和后三轮视觉垂直切片任务 |
+| `docs/project/integration-log.md` | 集成记录 | 记录第一百零五轮目标与节奏校准事实 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮文档级验证和跳过代码测试原因 |
+
 ## 2026-07-12：第一百零一轮物流承运重新调度
 
 | 文件 | 产物类型 | 用途 |

@@ -9,6 +9,13 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-12 第一百零五轮验证
+
+- 验证等级：Tier 0，纯项目目标、节奏和文档接续校准。
+- `git diff --check`：通过。
+- 未运行 `npm test` 和 `npm run build`：本轮没有修改运行时代码、构建配置、测试代码或依赖，完整测试和构建不会提供额外有效信号。
+- 交付要求：文档更新后提交并推送 GitHub，保证其他电脑读取 `docs/project/execution-strategy.md`、`HANDOFF.md` 和 `progress-dashboard.md` 时目标稳定统一。
+
 ## 2026-07-12 第一百轮验证
 
 - TDD GREEN：`npm test -- src/ui/cityAdvisorUi.test.ts` 通过，1 个测试文件、3 项测试，覆盖道路计划摘要和物流执行计划详情文案。

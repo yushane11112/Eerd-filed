@@ -53,11 +53,11 @@ npm run build
 新对话完全空白时，直接给 Codex 这段话：
 
 ```text
-请先读取 docs/project/README.md、docs/project/HANDOFF.md、docs/project/commercial-launch-master-plan.md、docs/project/progress-dashboard.md、docs/project/task-board.md 和 docs/project/integration-log.md。
+请先读取 docs/project/README.md、docs/project/HANDOFF.md、docs/project/execution-strategy.md、docs/project/commercial-launch-master-plan.md、docs/project/progress-dashboard.md、docs/project/task-board.md 和 docs/project/integration-log.md。
 
 这是《小耳岛》商业级东方水乡城市文明模拟项目。当前主线已经放弃固定 28 类建筑、四岛解锁、听歌捡材料，目标是对齐《凯撒大帝》类城市建设：自由规划城市、人口生命周期、就业、生产、仓储、物流、市场、财政、公共服务、风险治理、街区繁荣和全阶段商业级美术。
 
-请按 progress-dashboard.md 的下一轮默认任务继续执行，并且每轮完成后更新 task-board.md、integration-log.md、progress-dashboard.md、artifact-index.md 和 qa.md，测试通过后提交并推送 GitHub。
+请按 execution-strategy.md 和 progress-dashboard.md 的下一轮默认任务继续执行。每轮只选择一个主目标，优先做可见垂直切片和真实运行时闭环；按验证分级选择测试强度，更新必要项目文档，测试或验证通过后提交并推送 GitHub。
 ```
 
 这段话的作用是让新对话从仓库文档恢复上下文，而不是依赖旧聊天记录。
@@ -106,12 +106,13 @@ npm run build
 
 1. `docs/project/README.md`
 2. `docs/project/HANDOFF.md`
-3. `docs/project/commercial-launch-master-plan.md`
-4. `docs/project/progress-dashboard.md`
-5. `docs/project/task-board.md`
-6. `docs/project/integration-log.md`
-7. `docs/project/artifact-index.md`
-8. `docs/project/qa.md`
+3. `docs/project/execution-strategy.md`
+4. `docs/project/commercial-launch-master-plan.md`
+5. `docs/project/progress-dashboard.md`
+6. `docs/project/task-board.md`
+7. `docs/project/integration-log.md`
+8. `docs/project/artifact-index.md`
+9. `docs/project/qa.md`
 
 如果涉及具体方向，再读取：
 
@@ -124,13 +125,13 @@ npm run build
 
 ## 7. 当前下一轮默认任务
 
-以 `docs/project/progress-dashboard.md` 为准。当前方向是：
+以 `docs/project/execution-strategy.md` 和 `docs/project/progress-dashboard.md` 为准。当前方向是：
 
-1. 继续做可见视觉变化：放大 starter 建筑体块辨识度，增加道路铺装、仓储堆场、集市外摆和民居灯火，让玩家第一眼看到城市更像成品。
-2. 继续将结构化物流执行计划接入运行时动作：承运容量、承运重新调度和来源库存调拨已完成；下一步需要给扩仓/分流卸货计划接入真正的仓储建造或升级执行链路。
-3. 将卸货能力从全局参数推进到建筑等级、仓储工人、入口数量或港口类型驱动。
-4. 将升级成本从统一倍数扩展为按建筑类别、文明阶段、产能和服务容量分层的商业化曲线。
-5. 扩展浏览器 E2E 到更多城市管理动作，而不是重复覆盖已固定的 5 个治理场景。
+1. 先做 starter 城市第一眼改观：民居、粮仓、集市、码头、稻田和道路在主画布上有更大轮廓、更强功能差异和更少灰盒感。
+2. 再做道路与街区质感：石路、土路、桥面、田埂、仓储堆场、集市外摆和水岸边界形成清晰城市结构。
+3. 再做活动密度与状态反馈：居民、货车、服务访问、市场人流、仓储忙碌、缺货/仓满/停工状态在地图上更容易被看见。
+4. 物流、卸货能力、升级经济表和浏览器 E2E 继续推进，但近期必须优先选择能转化为可见垂直切片或真实操作闭环的任务。
+5. 每轮按 `execution-strategy.md` 的 Tier 0-4 验证分级执行，不再对纯文档或低风险视觉调整机械运行最高成本验证。
 
 ## 8. 不允许丢失的项目原则
 
@@ -140,5 +141,5 @@ npm run build
 - 美术不是首批金标任务，而是 ART-P0 到 ART-P11 全阶段生产线。
 - 外来人口入住前后必须有身份、行为、视觉和系统差异。
 - 每轮完成后必须留下项目内可检查产出。
-- 测试通过前不能宣称完成。
+- 测试或对应等级验证通过前不能宣称完成。
 - 推送 GitHub 后，另一台电脑才能无缝继续。

@@ -467,7 +467,7 @@ describe('DynamicScene', () => {
   it('draws distinct L0 L4 L8 procedural detail layers for additional gold building assets', async () => {
     const { DynamicScene } = await import('./DynamicScene')
     const { parseRuntimePrefabDescriptor, PrefabRuntimeRegistry } = await import('./prefab')
-    const goldAssetIds = ['main-homes', 'main-eatery', 'main-granary'] as const
+    const goldAssetIds = ['main-homes', 'main-eatery', 'main-granary', 'windfield-rice'] as const
     const descriptors = goldAssetIds.map((assetId) => {
       const parsed = parseRuntimePrefabDescriptor(
         { ...validBuildingManifest, assetId },
@@ -547,6 +547,28 @@ describe('DynamicScene', () => {
             'main-granary-placeholder-warehouse:multi-bay:L8',
             'main-granary-placeholder-silos:stacked:L8',
             'main-granary-placeholder-market-yard:carts-workers:L8',
+          ],
+        },
+      },
+      {
+        id: 'rice',
+        type: 'riceField',
+        detailLayer: 'prefab-placeholder-windfield-rice-details',
+        detailChildrenByLevel: {
+          L0: [
+            'windfield-rice-placeholder-paddy:rough:L0',
+            'windfield-rice-placeholder-bunds:broken:L0',
+            'windfield-rice-placeholder-seedlings:sparse:L0',
+          ],
+          L4: [
+            'windfield-rice-placeholder-paddy:grid:L4',
+            'windfield-rice-placeholder-water-channels:L4',
+            'windfield-rice-placeholder-workers:planting:L4',
+          ],
+          L8: [
+            'windfield-rice-placeholder-paddy:terraced:L8',
+            'windfield-rice-placeholder-irrigation:ordered:L8',
+            'windfield-rice-placeholder-harvest:crowded:L8',
           ],
         },
       },

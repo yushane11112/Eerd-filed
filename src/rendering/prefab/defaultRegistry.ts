@@ -8,7 +8,7 @@ import { parseRuntimePrefabDescriptor } from './parser'
 import { PrefabRuntimeRegistry } from './registry'
 import type { GoldAnimationManifest, GoldBuildingManifest, RuntimePrefabDescriptor } from './types'
 
-type SampleAssetId = 'main-homes' | 'main-eatery' | 'main-granary' | 'main-pier'
+type SampleAssetId = 'main-homes' | 'main-eatery' | 'main-granary' | 'main-pier' | 'windfield-rice'
 
 export function createDefaultPrefabRegistry(): PrefabRuntimeRegistry {
   return new PrefabRuntimeRegistry([
@@ -31,6 +31,11 @@ export function createDefaultPrefabRegistry(): PrefabRuntimeRegistry {
       pierBuildingManifest as GoldBuildingManifest,
       pierAnimationManifest as GoldAnimationManifest,
       'main-pier',
+    ),
+    descriptorFromSample(
+      eateryBuildingManifest as GoldBuildingManifest,
+      eateryAnimationManifest as GoldAnimationManifest,
+      'windfield-rice',
     ),
   ].filter((descriptor): descriptor is RuntimePrefabDescriptor => Boolean(descriptor)))
 }

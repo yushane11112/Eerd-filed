@@ -318,6 +318,7 @@ export class BuildingVisual extends BaseVisual {
       .fill({ color: 0xe8e0ce, alpha: 0.18 })
       .rect(left + 3, top + 14, width - 6, height - 20)
       .fill({ color: stateColor, alpha: 0.08 })
+    this.drawStarterPrefabSilhouette(resolved, left, top, width, height, stateColor)
 
     this.prefabOutline
       .rect(left, top, width, height)
@@ -594,6 +595,7 @@ export class BuildingVisual extends BaseVisual {
       resolved.assetId !== 'main-homes'
       && resolved.assetId !== 'main-eatery'
       && resolved.assetId !== 'main-granary'
+      && resolved.assetId !== 'windfield-rice'
     ) {
       return
     }
@@ -622,7 +624,101 @@ export class BuildingVisual extends BaseVisual {
       return
     }
 
+    if (resolved.assetId === 'windfield-rice') {
+      this.drawWindfieldRicePlaceholderDetails(resolved.levelKey, left, top, width, height, stateColor)
+      return
+    }
+
     this.drawMainGranaryPlaceholderDetails(resolved.levelKey, left, top, width, height, stateColor)
+  }
+
+  private drawStarterPrefabSilhouette(
+    resolved: Readonly<ResolvedPrefabBuilding>,
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+    stateColor: number,
+  ): void {
+    if (!this.prefabShell) return
+
+    const yardY = top + height * 0.68
+    if (resolved.assetId === 'main-homes') {
+      this.prefabShell
+        .poly([left + width * 0.12, yardY, left + width * 0.5, yardY + 13, left + width * 0.88, yardY, left + width * 0.5, yardY - 16])
+        .fill({ color: 0xd9b978, alpha: 0.34 })
+      for (let index = 0; index < 3; index += 1) {
+        const houseLeft = left + width * (0.2 + index * 0.19)
+        const houseTop = top + height * (0.34 + (index % 2) * 0.06)
+        this.prefabShell
+          .rect(houseLeft, houseTop, width * 0.16, height * 0.2)
+          .fill({ color: 0xb89365, alpha: 0.42 })
+          .poly([
+            houseLeft - 3,
+            houseTop,
+            houseLeft + width * 0.08,
+            houseTop - height * 0.14,
+            houseLeft + width * 0.16 + 3,
+            houseTop,
+          ])
+          .fill({ color: 0x4f6e62, alpha: 0.72 })
+      }
+      return
+    }
+
+    if (resolved.assetId === 'main-eatery') {
+      this.prefabShell
+        .poly([left + width * 0.12, top + height * 0.62, left + width * 0.5, top + height * 0.78, left + width * 0.9, top + height * 0.62, left + width * 0.5, top + height * 0.46])
+        .fill({ color: 0xd69a72, alpha: 0.32 })
+        .rect(left + width * 0.2, top + height * 0.36, width * 0.54, height * 0.18)
+        .fill({ color: 0x9c7048, alpha: 0.44 })
+        .poly([left + width * 0.16, top + height * 0.36, left + width * 0.46, top + height * 0.18, left + width * 0.78, top + height * 0.36])
+        .fill({ color: 0xb85c4c, alpha: 0.72 })
+      for (let index = 0; index < 3; index += 1) {
+        this.prefabShell
+          .circle(left + width * (0.28 + index * 0.18), top + height * 0.66, 4)
+          .fill({ color: stateColor, alpha: 0.48 })
+      }
+      return
+    }
+
+    if (resolved.assetId === 'main-granary') {
+      this.prefabShell
+        .poly([left + width * 0.14, top + height * 0.66, left + width * 0.5, top + height * 0.78, left + width * 0.86, top + height * 0.66, left + width * 0.5, top + height * 0.52])
+        .fill({ color: 0xc4a36e, alpha: 0.32 })
+        .rect(left + width * 0.25, top + height * 0.34, width * 0.5, height * 0.24)
+        .fill({ color: 0x9f8660, alpha: 0.48 })
+        .poly([left + width * 0.22, top + height * 0.34, left + width * 0.5, top + height * 0.18, left + width * 0.78, top + height * 0.34])
+        .fill({ color: 0xc9b58a, alpha: 0.76 })
+      for (let index = 0; index < 3; index += 1) {
+        this.prefabShell
+          .roundRect(left + width * (0.28 + index * 0.14), top + height * 0.46, width * 0.09, height * 0.22, 3)
+          .fill({ color: 0xe4b94f, alpha: 0.48 })
+      }
+      return
+    }
+
+    if (resolved.assetId === 'main-pier') {
+      this.prefabShell
+        .rect(left + width * 0.08, top + height * 0.7, width * 0.84, 6)
+        .fill({ color: 0x477f9d, alpha: 0.3 })
+        .poly([left + width * 0.18, top + height * 0.58, left + width * 0.5, top + height * 0.72, left + width * 0.82, top + height * 0.58, left + width * 0.5, top + height * 0.44])
+        .fill({ color: 0x8a765b, alpha: 0.5 })
+      return
+    }
+
+    if (resolved.assetId === 'windfield-rice') {
+      this.prefabShell
+        .poly([left + width * 0.1, top + height * 0.64, left + width * 0.5, top + height * 0.8, left + width * 0.9, top + height * 0.64, left + width * 0.5, top + height * 0.48])
+        .fill({ color: 0xa7bd6f, alpha: 0.38 })
+      for (let index = 0; index < 5; index += 1) {
+        const y = top + height * (0.54 + index * 0.035)
+        this.prefabShell
+          .moveTo(left + width * (0.18 + index * 0.025), y)
+          .lineTo(left + width * (0.82 - index * 0.025), y + height * 0.12)
+      }
+      this.prefabShell.stroke({ color: 0xf0d982, alpha: 0.5, width: 1.2 })
+    }
   }
 
   private drawMainHomesPlaceholderDetails(
@@ -924,6 +1020,90 @@ export class BuildingVisual extends BaseVisual {
         .fill({ color: 0x3f3a34, alpha: 0.7 })
         .circle(x + 6, top + height * 0.62, 2)
         .fill({ color: stateColor, alpha: 0.82 })
+    }
+  }
+
+  private drawWindfieldRicePlaceholderDetails(
+    levelKey: 'L0' | 'L4' | 'L8',
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+    stateColor: number,
+  ): void {
+    const ground = this.prefabGoldAssetGround
+    const structure = this.prefabGoldAssetStructure
+    const activity = this.prefabGoldAssetActivity
+    if (!ground || !structure || !activity) return
+
+    if (levelKey === 'L0') {
+      ground.label = 'windfield-rice-placeholder-paddy:rough:L0'
+      structure.label = 'windfield-rice-placeholder-bunds:broken:L0'
+      activity.label = 'windfield-rice-placeholder-seedlings:sparse:L0'
+
+      ground
+        .poly([left + width * 0.18, top + height * 0.62, left + width * 0.5, top + height * 0.74, left + width * 0.82, top + height * 0.62, left + width * 0.5, top + height * 0.5])
+        .fill({ color: 0x8fa66a, alpha: 0.34 })
+      structure
+        .moveTo(left + width * 0.22, top + height * 0.58)
+        .lineTo(left + width * 0.5, top + height * 0.68)
+        .lineTo(left + width * 0.78, top + height * 0.58)
+        .stroke({ color: 0x7f6a4d, alpha: 0.54, width: 1.5 })
+      for (let index = 0; index < 5; index += 1) {
+        activity
+          .moveTo(left + width * (0.3 + index * 0.08), top + height * 0.61)
+          .lineTo(left + width * (0.31 + index * 0.08), top + height * 0.56)
+      }
+      activity.stroke({ color: 0xa7bd6f, alpha: 0.76, width: 1.4 })
+      return
+    }
+
+    if (levelKey === 'L4') {
+      ground.label = 'windfield-rice-placeholder-paddy:grid:L4'
+      structure.label = 'windfield-rice-placeholder-water-channels:L4'
+      activity.label = 'windfield-rice-placeholder-workers:planting:L4'
+
+      for (let index = 0; index < 3; index += 1) {
+        const y = top + height * (0.52 + index * 0.07)
+        ground
+          .poly([left + width * 0.2, y, left + width * 0.5, y + height * 0.09, left + width * 0.8, y, left + width * 0.5, y - height * 0.09])
+          .fill({ color: index % 2 ? 0xa7bd6f : 0x8c9a9a, alpha: 0.28 })
+      }
+      structure
+        .moveTo(left + width * 0.18, top + height * 0.52)
+        .lineTo(left + width * 0.82, top + height * 0.69)
+        .moveTo(left + width * 0.18, top + height * 0.65)
+        .lineTo(left + width * 0.82, top + height * 0.48)
+        .stroke({ color: 0xf0d982, alpha: 0.48, width: 1.2 })
+      for (let index = 0; index < 3; index += 1) {
+        activity
+          .circle(left + width * (0.34 + index * 0.14), top + height * (0.66 - index * 0.03), 2.2)
+          .fill({ color: stateColor, alpha: 0.82 })
+      }
+      return
+    }
+
+    ground.label = 'windfield-rice-placeholder-paddy:terraced:L8'
+    structure.label = 'windfield-rice-placeholder-irrigation:ordered:L8'
+    activity.label = 'windfield-rice-placeholder-harvest:crowded:L8'
+
+    for (let index = 0; index < 5; index += 1) {
+      const y = top + height * (0.42 + index * 0.055)
+      ground
+        .moveTo(left + width * (0.14 + index * 0.02), y)
+        .lineTo(left + width * 0.5, y + height * 0.08)
+        .lineTo(left + width * (0.86 - index * 0.02), y)
+        .stroke({ color: index % 2 ? 0xa7bd6f : 0xf0d982, alpha: 0.58, width: 2 })
+    }
+    structure
+      .rect(left + width * 0.18, top + height * 0.58, width * 0.64, 4)
+      .fill({ color: 0x477f9d, alpha: 0.24 })
+      .rect(left + width * 0.44, top + height * 0.47, width * 0.12, height * 0.16)
+      .fill({ color: 0x7f6a4d, alpha: 0.42 })
+    for (let index = 0; index < 7; index += 1) {
+      activity
+        .circle(left + width * (0.22 + index * 0.085), top + height * (0.68 - (index % 2) * 0.08), 2)
+        .fill({ color: index % 2 ? stateColor : 0xe7c6a5, alpha: 0.84 })
     }
   }
 

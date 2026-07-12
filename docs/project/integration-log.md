@@ -1,5 +1,13 @@
 # 集成记录
 
+## 2026-07-12 第一百零六轮：Starter 建筑第一眼改观
+
+- 启动 `VISUAL-SLICE-STARTER-01`：把第一百零四轮的金标占位接入继续推进为更强的 starter 建筑轮廓，而不是只显示小型通用矩形。
+- `BuildingVisual` 的 prefab shell 新增类型化轮廓：民居显示院落和连续屋顶，集市显示店面屋顶和桌位，粮仓显示仓体/粮囤，码头显示水边平台，稻田显示田块和田埂线。
+- `createDefaultPrefabRegistry` 新增 `windfield-rice` 临时 descriptor，让 `riceField` 映射到的稻田占位也进入主画布，不再因 registry 缺失回退为灰盒。
+- 浏览器截图验收：本机 Chrome 打开 `http://127.0.0.1:5174/`，canvas 为 1440×900，截图保存在 `/tmp/eerd-visual-slice-105-starter.png`。Playwright 自带 Chromium 未安装，因此使用系统 Google Chrome 执行截图。
+- 客观限制：本轮仍是程序化占位视觉，不是最终手绘/建模资产；道路铺装、街区边界、水岸和活动密度仍需下一轮继续增强。
+
 ## 2026-07-12 第一百零五轮：目标与执行节奏校准
 
 - 启动 `PM-EXECUTION-STRATEGY-01`：审视过往改动后，确认最终商业级游戏总目标不变，但当前执行阶段不应继续停留在 P0 文档重构节奏。

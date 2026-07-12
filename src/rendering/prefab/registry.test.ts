@@ -105,6 +105,7 @@ describe('PrefabRuntimeRegistry', () => {
     expect(registry.has('main-eatery')).toBe(true)
     expect(registry.has('main-granary')).toBe(true)
     expect(registry.has('main-pier')).toBe(true)
+    expect(registry.has('windfield-rice')).toBe(true)
     expect(registry.resolveBuilding({ assetId: 'main-homes', level: 8, status: 'working' })).toMatchObject({
       assetId: 'main-homes',
       levelKey: 'L8',
@@ -115,6 +116,10 @@ describe('PrefabRuntimeRegistry', () => {
     })
     expect(registry.resolveBuilding({ assetId: 'main-granary', level: 4, status: 'idle' })).toMatchObject({
       assetId: 'main-granary',
+      levelKey: 'L4',
+    })
+    expect(registry.resolveBuilding({ assetId: 'windfield-rice', level: 4, status: 'working' })).toMatchObject({
+      assetId: 'windfield-rice',
       levelKey: 'L4',
     })
   })

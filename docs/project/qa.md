@@ -9,6 +9,15 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-12 第一百零六轮验证
+
+- 验证等级：Tier 2，主画布 starter 视觉改动。
+- 目标测试：`npm test -- src/rendering/DynamicScene.test.ts src/rendering/prefab/registry.test.ts` 通过，2 个测试文件、15 项测试，覆盖 starter prefab registry 和 `windfield-rice` 稻田细节层。
+- 开发构建：`npm run build -- --mode development` 通过。
+- 生产构建：`npm run build` 通过。
+- 浏览器截图验收：本机 Chrome 打开 `http://127.0.0.1:5174/`，canvas 为 1440×900，截图 `/tmp/eerd-visual-slice-105-starter.png`。Playwright 自带 Chromium 未安装，已改用系统 Google Chrome；console 仅出现一个资源 404，未发现游戏脚本错误或空白画布。
+- 限制：本轮仍是程序化占位和临时 descriptor，不是最终商业美术；道路铺装、街区边界、水岸和活动密度仍需后续视觉轮处理。
+
 ## 2026-07-12 第一百零五轮验证
 
 - 验证等级：Tier 0，纯项目目标、节奏和文档接续校准。

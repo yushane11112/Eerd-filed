@@ -338,7 +338,10 @@ export default function App() {
       return
     }
     if (recommendation.logisticsPlan?.kind === 'add-carrier-dispatch') {
-      const result = runtime.redispatchLogisticsOrders(recommendation.logisticsPlan.orderIds)
+      const result = runtime.addCarrierForLogisticsPlan({
+        orderIds: recommendation.logisticsPlan.orderIds,
+        sourceBuildingId: recommendation.logisticsPlan.sourceBuildingId,
+      })
       setToast(`${item.title}：${result.message}`)
       if (result.ok) {
         setActiveStageRecommendation(null)

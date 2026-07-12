@@ -436,6 +436,72 @@ describe('GameRuntime integration', () => {
     expect(after.logisticsQueues).toEqual({})
   })
 
+  it('adds a carrier for blocked logistics plans and lets the economy dispatch it', () => {
+    const runtime = new GameRuntime()
+    const snapshot = mutableRuntimeSnapshot(runtime)
+    snapshot.agents['carrier-1'].activity = 'delivering'
+    snapshot.agents['carrier-1'].cargoIntent = {
+      orderId: 'busy-order',
+      resource: 'food',
+      amount: 1,
+      sourceBuildingId: 'granary-1',
+      destinationBuildingId: 'market-1',
+      phase: 'pickup',
+    }
+    snapshot.logisticsOrders['capacity-order'] = {
+      id: 'capacity-order',
+      resource: 'food',
+      amount: 2,
+      sourceBuildingId: 'granary-1',
+      destinationBuildingId: 'market-1',
+      priority: 90,
+      state: 'waiting',
+      failureReason: 'no-carrier',
+    }
+
+    const result = runtime.addCarrierForLogisticsPlan({
+      orderIds: ['capacity-order', 'missing-order', 'capacity-order'],
+      sourceBuildingId: 'granary-1',
+    })
+    const afterAdd = runtime.getSnapshot()
+
+    expect(result).toMatchObject({
+      ok: true,
+      logisticsCarrier: {
+        carrierId: 'runtime-cart-1',
+        carriersAdded: 1,
+        ordersReset: 1,
+        carriersReleased: 0,
+        missingOrders: 1,
+        sourceBuildingId: 'granary-1',
+      },
+    })
+    expect(afterAdd.agents['runtime-cart-1']).toMatchObject({
+      role: 'cart',
+      activity: 'idle',
+      position: afterAdd.buildings['granary-1'].entrance,
+    })
+    expect(afterAdd.logisticsOrders['capacity-order']).toMatchObject({
+      state: 'waiting',
+    })
+    expect(afterAdd.logisticsOrders['capacity-order']).not.toHaveProperty('failureReason')
+
+    runtime.advance(1_000)
+    const afterAdvance = runtime.getSnapshot()
+
+    expect(afterAdvance.logisticsOrders['capacity-order']).toMatchObject({
+      carrierId: 'runtime-cart-1',
+    })
+    expect(afterAdvance.logisticsOrders['capacity-order'].state).not.toBe('waiting')
+    expect(afterAdvance.logisticsOrders['capacity-order']).not.toHaveProperty('failureReason')
+    expect(afterAdvance.agents['runtime-cart-1'].cargoIntent).toMatchObject({
+      orderId: 'capacity-order',
+      resource: 'food',
+      sourceBuildingId: 'granary-1',
+      destinationBuildingId: 'market-1',
+    })
+  })
+
   it('transfers reserve stock into a logistics source and retries blocked orders', () => {
     const runtime = new GameRuntime()
     const snapshot = mutableRuntimeSnapshot(runtime)

@@ -1,4 +1,5 @@
 import type {
+  AgentEntity,
   BuildingEntity,
   GridPoint,
   MusicCompletionEvent,
@@ -100,6 +101,14 @@ export interface RuntimeActionResult {
     missingOrders: number
     missingAmount: number
   }
+  logisticsCarrier?: {
+    carrierId?: string
+    carriersAdded: number
+    ordersReset: number
+    carriersReleased: number
+    missingOrders: number
+    sourceBuildingId?: string
+  }
   upgrade?: {
     level: number
     cost: Partial<Record<ResourceKind, number>>
@@ -121,6 +130,11 @@ export interface LogisticsSourceTransferInput {
   orderIds: readonly string[]
   sourceBuildingId?: string
   resource?: string
+}
+
+export interface LogisticsCarrierCapacityInput {
+  orderIds: readonly string[]
+  sourceBuildingId?: string
 }
 
 export type RuntimeDebugScenario =
@@ -695,6 +709,84 @@ export class GameRuntime {
     }
   }
 
+  addCarrierForLogisticsPlan(input: LogisticsCarrierCapacityInput): RuntimeActionResult {
+    const snapshot = this.engine.snapshot
+    const uniqueOrderIds = Array.from(new Set(input.orderIds))
+    const stats = {
+      carrierId: undefined as string | undefined,
+      carriersAdded: 0,
+      ordersReset: 0,
+      carriersReleased: 0,
+      missingOrders: 0,
+      sourceBuildingId: input.sourceBuildingId,
+    }
+    const activeOrders = uniqueOrderIds.flatMap((orderId) => {
+      const order = snapshot.logisticsOrders[orderId]
+      if (!order) {
+        stats.missingOrders += 1
+        return []
+      }
+      if (order.state === 'delivered' || order.state === 'cancelled') return []
+      if (input.sourceBuildingId && order.sourceBuildingId !== input.sourceBuildingId) return []
+      return [order]
+    })
+    const sampleOrder = activeOrders[0]
+    const sourceBuildingId = input.sourceBuildingId ?? sampleOrder?.sourceBuildingId
+    if (!sampleOrder || !sourceBuildingId) {
+      return {
+        ok: false,
+        message: '没有找到可补充承运的物流订单。',
+        logisticsCarrier: {
+          ...stats,
+          sourceBuildingId,
+        },
+      }
+    }
+    const source = snapshot.buildings[sourceBuildingId]
+    const destination = snapshot.buildings[sampleOrder.destinationBuildingId]
+    const spawnPoint = source?.entrance ?? destination?.entrance ?? { x: 13, y: 11 }
+    const carrierId = nextRuntimeCarrierId(snapshot)
+    const carrier: AgentEntity = {
+      id: carrierId,
+      role: 'cart',
+      position: { ...spawnPoint },
+      path: [],
+      pathIndex: 0,
+      activity: 'idle',
+    }
+    snapshot.agents[carrierId] = carrier
+    stats.carrierId = carrierId
+    stats.carriersAdded = 1
+    stats.sourceBuildingId = sourceBuildingId
+
+    for (const order of activeOrders) {
+      if (order.carrierId) {
+        const existingCarrier = snapshot.agents[order.carrierId]
+        if (existingCarrier) {
+          existingCarrier.activity = 'idle'
+          existingCarrier.path = []
+          existingCarrier.pathIndex = 0
+          delete existingCarrier.cargoIntent
+          stats.carriersReleased += 1
+        }
+      }
+      order.state = 'waiting'
+      delete order.carrierId
+      delete order.failureReason
+      delete order.cancelReason
+      delete order.throughputQueuedSinceTick
+      stats.ordersReset += 1
+    }
+    snapshot.logisticsQueues = {}
+    this.rebuild(snapshot)
+
+    return {
+      ok: true,
+      message: `已补充 1 名承运人（${carrierId}），重置 ${stats.ordersReset} 条订单等待调度。`,
+      logisticsCarrier: stats,
+    }
+  }
+
   transferSourceInventoryForLogisticsPlan(input: LogisticsSourceTransferInput): RuntimeActionResult {
     const snapshot = this.engine.snapshot
     const uniqueOrderIds = Array.from(new Set(input.orderIds))
@@ -1257,6 +1349,12 @@ function resourceName(resource: ResourceKind): string {
     cloth: '布料',
     medicine: '药材',
   } as Record<ResourceKind, string>)[resource] ?? resource
+}
+
+function nextRuntimeCarrierId(snapshot: SimulationSnapshot): string {
+  let index = 1
+  while (snapshot.agents[`runtime-cart-${index}`]) index += 1
+  return `runtime-cart-${index}`
 }
 
 function createBuilding(

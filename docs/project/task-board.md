@@ -176,3 +176,4 @@
 | LOGISTICS-INSPECTOR-PANEL-01 | 物流执行计划详情面板 | `src/App.tsx` | 已完成 | 建筑详情可显示计划相关库存、订单和承运状态 |
 | LOGISTICS-REDISPATCH-ACTION-01 | 物流承运重新调度动作 | `src/integration/GameRuntime.ts`, `src/App.tsx`, `src/integration/GameRuntime.test.ts` | 已完成 | 缺承运治理卡可释放承运人并将关联订单重置回等待队列 |
 | LOGISTICS-SOURCE-STOCK-TRANSFER-01 | 物流来源库存调拨 | `src/integration/GameRuntime.ts`, `src/App.tsx`, `src/integration/GameRuntime.test.ts` | 已完成 | 来源库存治理卡可从备用库存调拨资源并重置关联订单 |
+| LOGISTICS-CARRIER-CAPACITY-01 | 物流承运容量补充 | `src/integration/GameRuntime.ts`, `src/App.tsx`, `src/integration/GameRuntime.test.ts` | 已完成 | 缺承运治理卡可新增一名货车承运人并让正式物流系统接单 |

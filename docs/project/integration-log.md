@@ -498,7 +498,7 @@
 
 - 启动 `LOGISTICS-REDISPATCH-ACTION-01`：把“补承运调度”从治理卡按钮推进为真实运行时动作。
 - `GameRuntime.redispatchLogisticsOrders` 会按订单样本释放关联承运人、清空路径和 cargoIntent，把 assigned/in_transit 订单重置为 waiting，并清除失败原因、取消原因和卸货排队 tick。
-- `App` 在执行 `add-carrier-dispatch` 计划时调用该运行时动作，成功后刷新物流图层，等待下一 tick 由正式 `LogisticsSystem` 重新派车。
+- 本动作保留为底层“重置并回到调度队列”的能力；第一百零三轮后，UI 的 `add-carrier-dispatch` 会优先走新增承运容量动作。
 - 客观限制：本轮是“重置并重新进入调度队列”，不是新增车船或复杂调度算法；后续仍需正式承运人补充、路线优先级和调度容量系统。
 
 ## 2026-07-12 第一百零二轮：物流来源库存调拨动作
@@ -508,3 +508,11 @@
 - 调拨成功后，关联未完成订单会被重置为 `waiting`，释放承运人、清空 cargoIntent、失败原因和卸货排队 tick，让正式 `LogisticsSystem` 在后续 tick 重新派车。
 - `App` 在执行 `inspect-source-stock` 计划时优先调用调拨动作；成功后刷新物流图层，失败时仍回退到聚焦相关建筑，保留可理解的诊断入口。
 - 客观限制：本轮是短链路“备用库存调拨”，不是完整生产排程或跨仓储最优调拨；还没有考虑道路距离、批量路线、未来需求预测和正式车船扩容。
+
+## 2026-07-12 第一百零三轮：物流承运容量补充动作
+
+- 启动 `LOGISTICS-CARRIER-CAPACITY-01`：把 `add-carrier-dispatch` 从“释放/重置旧承运人”推进为真正增加城市运力。
+- `GameRuntime.addCarrierForLogisticsPlan` 会按订单样本在来源建筑入口生成一名新的 `cart` 承运人，并清理样本订单的 no-carrier 失败状态，让它们重新进入正式调度队列。
+- 新增承运人不是 UI 假数据：目标测试会推进模拟 tick，确认 `EconomySystem` 能把新货车派给缺车订单并写入 `cargoIntent`。
+- `App` 在执行 `add-carrier-dispatch` 计划时改为调用新增承运容量动作，成功后刷新物流图层；`redispatchLogisticsOrders` 继续作为底层恢复/释放能力保留。
+- 客观限制：本轮新增的是免费、即时、陆路货车；还没有车船建造成本、车行/码头来源、船运选择、承运容量上限或维护费用。

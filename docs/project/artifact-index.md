@@ -1243,3 +1243,16 @@
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮来源库存调拨动作 |
 | `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、开发构建、全量回归和限制 |
 | `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务，避免新会话重复本轮 |
+
+## 2026-07-12：第一百零三轮物流承运容量补充动作
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/GameRuntime.ts` | 运行时动作 | 新增 `addCarrierForLogisticsPlan`，按物流计划在来源建筑入口补一名 `cart` 承运人并重置订单 |
+| `src/App.tsx` | 城市治理 UI | `add-carrier-dispatch` 计划改为新增承运容量，成功后刷新物流图层 |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 验证新承运人会被正式 `EconomySystem` 派给缺车订单 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 更新第一百零三轮进展、完成度和下一轮任务 |
+| `docs/project/task-board.md` | 任务看板 | 记录 `LOGISTICS-CARRIER-CAPACITY-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮承运容量补充动作 |
+| `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、开发构建、全量回归和限制 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务，避免新会话重复本轮 |

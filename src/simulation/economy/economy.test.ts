@@ -611,6 +611,70 @@ describe('road logistics', () => {
     })
   })
 
+  it('derives unload throughput from destination type, level, workers, and road access', () => {
+    const createInboundState = (
+      destination: BuildingEntity,
+      orderCount: number,
+    ): SimulationSnapshot => {
+      const buildings: SimulationSnapshot['buildings'] = { [destination.id]: destination }
+      const agents: SimulationSnapshot['agents'] = {}
+      const logisticsOrders: SimulationSnapshot['logisticsOrders'] = {}
+      for (let index = 0; index < orderCount; index += 1) {
+        const source = building(`source-${index}`, 'farm', { x: 0, y: 0 }, { food: 5 })
+        const cart = carrier(`cart-${index}`, destination.entrance)
+        cart.activity = 'delivering'
+        buildings[source.id] = source
+        agents[cart.id] = cart
+        logisticsOrders[`order-${index}`] = {
+          id: `order-${index}`,
+          resource: 'food',
+          amount: 1,
+          sourceBuildingId: source.id,
+          destinationBuildingId: destination.id,
+          priority: 50,
+          state: 'in_transit',
+          carrierId: cart.id,
+        }
+      }
+      return snapshot({
+        tick: 30,
+        buildings,
+        agents,
+        logisticsOrders,
+      })
+    }
+
+    const basicMarket = building('market-1', 'market', { x: 3, y: 0 }, {})
+    const basicState = createInboundState(basicMarket, 4)
+
+    new LogisticsSystem({ definitions }).update(basicState)
+
+    expect(Object.values(basicState.logisticsOrders).filter((order) => order.state === 'delivered')).toHaveLength(3)
+    expect(basicState.logisticsQueues?.['market-1']).toMatchObject({
+      unloadCapacityPerTick: 3,
+      unloadedThisTick: 3,
+      waitingToUnloadCount: 1,
+      waitingOrderIds: ['order-3'],
+    })
+
+    const upgradedGranary = {
+      ...building('granary-1', 'granary', { x: 3, y: 0 }, {}),
+      level: 4,
+      workers: ['worker-1', 'worker-2', 'worker-3', 'worker-4', 'worker-5', 'worker-6'],
+    }
+    const upgradedState = createInboundState(upgradedGranary, 6)
+
+    new LogisticsSystem({ definitions }).update(upgradedState)
+
+    expect(Object.values(upgradedState.logisticsOrders).filter((order) => order.state === 'delivered')).toHaveLength(6)
+    expect(upgradedState.logisticsQueues?.['granary-1']).toMatchObject({
+      unloadCapacityPerTick: 6,
+      unloadedThisTick: 6,
+      waitingToUnloadCount: 0,
+      waitingOrderIds: [],
+    })
+  })
+
   it('archives completed logistics history while preserving efficiency statistics', () => {
     const state = snapshot({
       logisticsOrders: {

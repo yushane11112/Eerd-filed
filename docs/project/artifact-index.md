@@ -2,6 +2,18 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-12：第一百一十轮卸货能力分层
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/economy/logistics.ts` | 物流模拟规则 | 默认按目的建筑类型、等级、工人和入口道路数计算卸货能力，保留 QA 覆盖参数 |
+| `src/simulation/economy/economy.test.ts` | 自动测试 | 覆盖显式低吞吐排队和默认建筑分层卸货能力 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录第一百一十轮模拟规则进展、完成度和下一轮任务 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `LOGISTICS-UNLOAD-CAPACITY-TIER-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮卸货能力分层事实和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录目标测试、完整测试、构建和差异检查 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务为升级经济表分类型曲线 |
+
 ## 2026-07-12：第一百零九轮物流仓储执行计划真实建造动作
 
 | 文件 | 产物类型 | 用途 |

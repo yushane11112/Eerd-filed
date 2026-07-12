@@ -92,6 +92,7 @@ interface ActiveOrderIndexes {
 interface UnloadThroughputState {
   unloadedByDestination: Map<EntityId, number>
   touchedDestinations: Set<EntityId>
+  capacityByDestination: Map<EntityId, number>
 }
 
 export class LogisticsSystem implements SimulationSystem {
@@ -102,7 +103,7 @@ export class LogisticsSystem implements SimulationSystem {
   private readonly inputTargetBatches: number
   private readonly serviceRules: Readonly<Record<string, ServiceRule>>
   private readonly serviceTargetBatches: number
-  private readonly unloadCapacityPerTick: number
+  private readonly unloadCapacityPerTick: number | undefined
   private readonly idFactory: () => EntityId
   private readonly completedOrderRetention: number
   private sequence = 0
@@ -114,7 +115,9 @@ export class LogisticsSystem implements SimulationSystem {
     this.inputTargetBatches = options.inputTargetBatches ?? 2
     this.serviceRules = options.serviceRules ?? {}
     this.serviceTargetBatches = options.serviceTargetBatches ?? 3
-    this.unloadCapacityPerTick = Math.max(1, Math.floor(options.unloadCapacityPerTick ?? 3))
+    this.unloadCapacityPerTick = options.unloadCapacityPerTick === undefined
+      ? undefined
+      : Math.max(1, Math.floor(options.unloadCapacityPerTick))
     this.idFactory = options.idFactory ?? (() => `logistics-${++this.sequence}`)
     this.completedOrderRetention = Math.max(0, options.completedOrderRetention ?? 500)
   }
@@ -127,6 +130,7 @@ export class LogisticsSystem implements SimulationSystem {
     this.advanceCarriers(snapshot, {
       unloadedByDestination: new Map(),
       touchedDestinations: new Set(),
+      capacityByDestination: new Map(),
     })
     this.archiveCompletedOrders(snapshot)
     this.updateEfficiency(snapshot)
@@ -459,7 +463,8 @@ export class LogisticsSystem implements SimulationSystem {
       return
     }
     const unloadedThisTick = unloadState.unloadedByDestination.get(destination.id) ?? 0
-    if (unloadedThisTick >= this.unloadCapacityPerTick) {
+    const unloadCapacity = this.resolveUnloadCapacity(snapshot, destination, unloadState)
+    if (unloadedThisTick >= unloadCapacity) {
       order.throughputQueuedSinceTick ??= snapshot.tick
       this.markFailure(destination, order.resource, 'destination-throughput')
       this.markOrderFailure(order, 'destination-throughput')
@@ -508,7 +513,7 @@ export class LogisticsSystem implements SimulationSystem {
       ))
     snapshot.logisticsQueues[destination.id] = {
       buildingId: destination.id,
-      unloadCapacityPerTick: this.unloadCapacityPerTick,
+      unloadCapacityPerTick: this.resolveUnloadCapacity(snapshot, destination, unloadState),
       unloadedThisTick: unloadState.unloadedByDestination.get(destination.id) ?? 0,
       waitingToUnloadCount: waitingOrders.length,
       longestWaitTicks: waitingOrders.reduce((max, order) => (
@@ -556,6 +561,48 @@ export class LogisticsSystem implements SimulationSystem {
 
   private effectiveDefinition(building: BuildingEntity): BuildingDefinition {
     return effectiveBuildingDefinition(this.definitions[building.type], building)
+  }
+
+  private resolveUnloadCapacity(
+    snapshot: SimulationSnapshot,
+    destination: BuildingEntity,
+    unloadState: UnloadThroughputState,
+  ): number {
+    const existing = unloadState.capacityByDestination.get(destination.id)
+    if (existing !== undefined) return existing
+
+    const capacity = this.unloadCapacityPerTick ?? this.deriveBuildingUnloadCapacity(snapshot, destination)
+    unloadState.capacityByDestination.set(destination.id, capacity)
+    return capacity
+  }
+
+  private deriveBuildingUnloadCapacity(snapshot: SimulationSnapshot, destination: BuildingEntity): number {
+    const definition = this.definitions[destination.type]
+    const category = definition?.category
+    const base = category === 'harbor'
+      ? 4
+      : category === 'storage'
+        ? 3
+        : category === 'market' || category === 'service' || category === 'production'
+          ? 2
+          : 1
+    const levelBonus = Math.floor(Math.max(0, destination.level - 1) / 3)
+    const workerBonus = Math.floor(destination.workers.length / 6)
+    const entranceBonus = Math.min(2, Math.max(0, this.countRoadAccess(snapshot, destination) - 1))
+    return Math.max(1, Math.min(8, base + levelBonus + workerBonus + entranceBonus))
+  }
+
+  private countRoadAccess(snapshot: SimulationSnapshot, building: BuildingEntity): number {
+    const points = [
+      { x: building.entrance.x + 1, y: building.entrance.y },
+      { x: building.entrance.x - 1, y: building.entrance.y },
+      { x: building.entrance.x, y: building.entrance.y + 1 },
+      { x: building.entrance.x, y: building.entrance.y - 1 },
+    ]
+    return points.filter((point) => {
+      const cell = snapshot.cells.find((candidate) => samePoint(candidate.point, point))
+      return Boolean(cell?.road)
+    }).length
   }
 
   private clearFailure(building: BuildingEntity, resource: ResourceKind): void {

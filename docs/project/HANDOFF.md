@@ -127,9 +127,9 @@ npm run build
 
 以 `docs/project/execution-strategy.md` 和 `docs/project/progress-dashboard.md` 为准。当前方向是：
 
-1. 先做卸货能力分层：将卸货吞吐从全局参数推进到建筑等级、仓储工人、入口数量或港口类型驱动。
-2. 再做升级经济表分类型曲线：把统一倍率推进到按建筑类别/阶段的商业化曲线。
-3. 补物流仓储建造浏览器 E2E：为 `expand-storage`/`split-unload` 成功建仓补真实点击场景。
+1. 先做升级经济表分类型曲线：把统一倍率推进到按建筑类别/阶段的商业化曲线。
+2. 补物流仓储建造浏览器 E2E：为 `expand-storage`/`split-unload` 成功建仓补真实点击场景。
+3. 再做卸货能力可视化解释：在物流图层或建筑详情里解释当前建筑卸货能力来源。
 4. 每轮按 `execution-strategy.md` 的 Tier 0-4 验证分级执行，不再对纯文档或低风险视觉调整机械运行最高成本验证。
 
 ## 8. 不允许丢失的项目原则

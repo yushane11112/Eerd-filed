@@ -191,6 +191,101 @@ describe('DynamicScene', () => {
     expect(scene.layers.residents.children).toHaveLength(1)
   })
 
+  it('adds stable activity trail and marker layers for visible agents', async () => {
+    const { DynamicScene } = await import('./DynamicScene')
+    const scene = new DynamicScene()
+    const snapshot = createSnapshot()
+    snapshot.buildings = {}
+    snapshot.worldDrops = []
+    snapshot.agents = {
+      commuter: {
+        id: 'commuter',
+        role: 'worker',
+        position: { x: 2, y: 3 },
+        path: [{ x: 3, y: 3 }, { x: 4, y: 3 }],
+        pathIndex: 0,
+        activity: 'commuting',
+      },
+      service: {
+        id: 'service',
+        role: 'resident',
+        position: { x: 3, y: 4 },
+        path: [{ x: 4, y: 4 }],
+        pathIndex: 0,
+        activity: 'serving',
+        serviceIntent: {
+          buildingId: 'market-1',
+          need: 'food',
+          resource: 'food',
+          amount: 1,
+          saleValue: 2,
+          restoreAmount: 10,
+        },
+      },
+      pickup: {
+        id: 'pickup',
+        role: 'cart',
+        position: { x: 4, y: 5 },
+        path: [{ x: 5, y: 5 }],
+        pathIndex: 0,
+        activity: 'delivering',
+        cargoIntent: {
+          orderId: 'order-pickup',
+          resource: 'food',
+          amount: 2,
+          sourceBuildingId: 'granary-1',
+          destinationBuildingId: 'market-1',
+          phase: 'pickup',
+        },
+      },
+      dropoff: {
+        id: 'dropoff',
+        role: 'cart',
+        position: { x: 5, y: 6 },
+        path: [{ x: 6, y: 6 }],
+        pathIndex: 0,
+        activity: 'delivering',
+        cargoIntent: {
+          orderId: 'order-dropoff',
+          resource: 'food',
+          amount: 2,
+          sourceBuildingId: 'granary-1',
+          destinationBuildingId: 'market-1',
+          phase: 'dropoff',
+        },
+      },
+    }
+
+    scene.sync(snapshot, camera, 0.5)
+
+    expect(scene.layers.residents.children).toHaveLength(2)
+    expect(scene.layers.transport.children).toHaveLength(2)
+    const residentMarkers = scene.layers.residents.children.flatMap((display) => childLabels(display))
+    const transportMarkers = scene.layers.transport.children.flatMap((display) => childLabels(display))
+    expect(residentMarkers).toEqual(expect.arrayContaining([
+      'agent-activity-trail:commute',
+      'agent-body:worker:commuting',
+      'agent-activity-marker:commute',
+      'agent-activity-trail:service-visit',
+      'agent-body:resident:serving',
+      'agent-activity-marker:service-visit',
+    ]))
+    expect(transportMarkers).toEqual(expect.arrayContaining([
+      'agent-activity-trail:cargo-pickup',
+      'agent-body:cart:delivering',
+      'agent-activity-marker:cargo-pickup',
+      'agent-activity-trail:cargo-dropoff',
+      'agent-activity-marker:cargo-dropoff',
+    ]))
+
+    const beforeResidentLabels = scene.layers.residents.children.map((display) => childLabels(display))
+    const beforeTransportLabels = scene.layers.transport.children.map((display) => childLabels(display))
+    snapshot.tick += 1
+    scene.sync(snapshot, camera, 0.5)
+    expect(scene.layers.residents.children.map((display) => childLabels(display))).toEqual(beforeResidentLabels)
+    expect(scene.layers.transport.children.map((display) => childLabels(display))).toEqual(beforeTransportLabels)
+  })
+
   it('renders district prosperity below buildings without duplicating visuals', async () => {
     const { DynamicScene } = await import('./DynamicScene')
     const scene = new DynamicScene()

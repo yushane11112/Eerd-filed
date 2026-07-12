@@ -14,7 +14,7 @@
 | PM-EXECUTION-STRATEGY-01 | 目标与执行节奏校准 | `docs/project/execution-strategy.md`, `docs/project/README.md`, `docs/project/HANDOFF.md`, `docs/project/progress-dashboard.md`, `docs/project/commercial-launch-master-plan.md` | 已完成 | 最终商业级总目标保持不变，当前阶段切到 P1.5 垂直切片收敛期，并建立 Tier 0-4 验证分级 |
 | VISUAL-SLICE-STARTER-01 | Starter 建筑第一眼改观 | `src/rendering/**`, `src/components/SimulationCanvas.tsx`, `docs/project/**` | 已完成 | 民居、粮仓、集市、码头和稻田在主画布上有更大轮廓、更强功能差异和截图验收 |
 | VISUAL-STREET-DISTRICT-01 | 道路与街区质感 | `src/rendering/**`, `src/styles.css`, `docs/project/**` | 已完成 | 石路、土路、桥面、水波、岸线和田地纹理让城市结构更清楚 |
-| VISUAL-ACTIVITY-FEEDBACK-01 | 活动密度与状态反馈 | `src/rendering/**`, `src/integration/**`, `docs/project/**` | 待开始 | 居民、货车、服务访问、市场人流、仓储忙碌和异常状态在地图上更容易看见 |
+| VISUAL-ACTIVITY-FEEDBACK-01 | 活动密度与状态反馈 | `src/rendering/**`, `src/integration/**`, `docs/project/**` | 已完成 | 居民、货车、服务访问、货运取送、通勤和异常状态在地图上更容易看见 |
 | POP-MIGRATION-ENGINE-01 | 外来人口状态机实现 | `src/simulation/core/**`, `src/simulation/contracts.ts` | 已完成 | 人口不再凭空入住，抵达/等待/入住/离城可测 |
 | CITY-ATTRACTION-01 | 城市吸引力评分 | `src/simulation/**`, `src/integration/**`, `src/App.tsx` | 已完成 | 空房、岗位、食物、税率、满意度和物流影响迁入，指标栏可见 |
 | POP-MIGRATION-VISUAL-01 | 候选外来人口可见反馈 | `src/simulation/**`, `src/rendering/**`, `src/integration/**` | 已完成 | 等房候选人在地图可见，小事流可定位临时停留点 |

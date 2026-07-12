@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-12：第一百零八轮活动密度与状态反馈增强
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/visuals.ts` | agent 动态渲染 | 为居民、工人、货车和船只增加活动尾迹、主体和状态标记层 |
+| `src/rendering/DynamicScene.test.ts` | 自动测试 | 固定通勤、服务访问、取货和送货 agent 的可视层标签稳定输出 |
+| `/tmp/eerd-visual-slice-108-activity.png` | 本地验收截图 | Chrome 截图确认主画布可加载且活动标记不遮挡 UI |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录第一百零八轮动态表现进展、完成度和下一轮任务 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `VISUAL-ACTIVITY-FEEDBACK-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮 agent 活动表现增强事实和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录目标测试、构建和截图验收 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务为物流扩仓/分流卸货真实动作 |
+
 ## 2026-07-12：第一百零七轮道路与街区质感增强
 
 | 文件 | 产物类型 | 用途 |

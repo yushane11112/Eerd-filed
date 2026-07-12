@@ -1421,14 +1421,45 @@ function prefabStateColor(state: ResolvedPrefabBuilding['state']): number {
   return 0xb9aa8b
 }
 
+type AgentActivityVisualKind =
+  | 'idle'
+  | 'commute'
+  | 'returning'
+  | 'working'
+  | 'service-visit'
+  | 'service-return'
+  | 'cargo-pickup'
+  | 'cargo-dropoff'
+
+function agentActivityVisualKind(agent: Readonly<AgentEntity>): AgentActivityVisualKind {
+  if (agent.cargoIntent?.phase === 'pickup') return 'cargo-pickup'
+  if (agent.cargoIntent?.phase === 'dropoff') return 'cargo-dropoff'
+  if (agent.serviceIntent) return agent.activity === 'returning' ? 'service-return' : 'service-visit'
+  if (agent.activity === 'commuting') return 'commute'
+  if (agent.activity === 'returning') return 'returning'
+  if (agent.activity === 'working') return 'working'
+  return 'idle'
+}
+
+function agentActivityColor(kind: AgentActivityVisualKind): number {
+  if (kind === 'cargo-pickup') return 0xf3e6bd
+  if (kind === 'cargo-dropoff') return 0xd9b45f
+  if (kind === 'service-visit' || kind === 'service-return') return 0xd69a72
+  if (kind === 'commute' || kind === 'returning') return 0x6f7f95
+  if (kind === 'working') return 0xf0d982
+  return 0xb9aa8b
+}
+
 export class AgentVisual extends BaseVisual {
   kind: 'resident' | 'transport'
-  private readonly body = new Graphics()
+  private readonly trail = new Graphics({ label: 'agent-activity-trail' })
+  private readonly body = new Graphics({ label: 'agent-body' })
+  private readonly marker = new Graphics({ label: 'agent-activity-marker' })
 
   constructor(metrics: Readonly<IsoMetrics>, kind: 'resident' | 'transport') {
     super(metrics)
     this.kind = kind
-    this.display.addChild(this.body)
+    this.display.addChild(this.trail, this.body, this.marker)
   }
 
   update(snapshot: Readonly<SimulationSnapshot>, alpha: number): void {
@@ -1447,16 +1478,28 @@ export class AgentVisual extends BaseVisual {
     const moving = agent.activity === 'commuting'
       || agent.activity === 'delivering'
       || agent.activity === 'returning'
+      || agent.activity === 'shopping'
+      || agent.activity === 'serving'
     const bob = moving ? Math.abs(Math.sin(phase)) * 2 : 0
     const isTransport = this.kind === 'transport'
+    const activityKind = agentActivityVisualKind(agent)
 
+    this.drawAgentActivityTrail(agent, activityKind, phase)
     this.body.clear()
+    this.body.label = `agent-body:${agent.role}:${agent.activity}`
     if (isTransport) {
       const width = agent.role === 'boat' ? 26 : 20
-      this.body.roundRect(-width / 2, -9 - bob, width, 10, 3)
-        .fill({ color: ROLE_COLOR[agent.role] })
-      this.body.circle(-width * 0.28, 2 - bob, 3).fill({ color: 0x3f3a34 })
-      this.body.circle(width * 0.28, 2 - bob, 3).fill({ color: 0x3f3a34 })
+      if (agent.role === 'boat') {
+        this.body
+          .poly([-width / 2, -8 - bob, width / 2, -8 - bob, width * 0.34, 2 - bob, -width * 0.34, 2 - bob])
+          .fill({ color: ROLE_COLOR[agent.role] })
+          .stroke({ color: 0x2f5668, alpha: 0.62, width: 1 })
+      } else {
+        this.body.roundRect(-width / 2, -9 - bob, width, 10, 3)
+          .fill({ color: ROLE_COLOR[agent.role] })
+        this.body.circle(-width * 0.28, 2 - bob, 3).fill({ color: 0x3f3a34 })
+        this.body.circle(width * 0.28, 2 - bob, 3).fill({ color: 0x3f3a34 })
+      }
       if (agent.cargoIntent) {
         const cargoColor = agent.cargoIntent.phase === 'dropoff' ? 0xd9b45f : 0xf3e6bd
         this.body.roundRect(-5, -16 - bob, 10, 6, 2)
@@ -1466,6 +1509,93 @@ export class AgentVisual extends BaseVisual {
     } else {
       this.body.circle(0, -12 - bob, 4).fill({ color: 0xe7c6a5 })
       this.body.roundRect(-4, -8 - bob, 8, 12, 3).fill({ color: ROLE_COLOR[agent.role] })
+    }
+    this.drawAgentActivityMarker(activityKind, bob, phase)
+  }
+
+  private drawAgentActivityTrail(
+    agent: Readonly<AgentEntity>,
+    activityKind: AgentActivityVisualKind,
+    phase: number,
+  ): void {
+    this.trail.clear()
+    this.trail.label = `agent-activity-trail:${activityKind}`
+    if (activityKind === 'idle') return
+
+    const color = agentActivityColor(activityKind)
+    const pulse = 0.5 + Math.abs(Math.sin(phase)) * 0.25
+    this.trail
+      .ellipse(0, 1, 13, 5)
+      .fill({ color, alpha: 0.1 + pulse * 0.12 })
+
+    if (agent.path.length > 0) {
+      this.trail
+        .moveTo(-12, 5)
+        .lineTo(-5, 2)
+        .moveTo(5, 2)
+        .lineTo(12, -2)
+        .stroke({ color, alpha: 0.34, width: 1.4 })
+    }
+  }
+
+  private drawAgentActivityMarker(
+    activityKind: AgentActivityVisualKind,
+    bob: number,
+    phase: number,
+  ): void {
+    this.marker.clear()
+    this.marker.label = `agent-activity-marker:${activityKind}`
+    if (activityKind === 'idle') return
+
+    const color = agentActivityColor(activityKind)
+    const y = -23 - bob
+
+    if (activityKind === 'cargo-pickup' || activityKind === 'cargo-dropoff') {
+      this.marker
+        .roundRect(-6, y - 5, 12, 9, 2)
+        .fill({ color, alpha: 0.9 })
+        .moveTo(-4, y - 1)
+        .lineTo(4, y - 1)
+        .stroke({ color: 0x6f5734, alpha: 0.75, width: 1 })
+      if (activityKind === 'cargo-dropoff') {
+        this.marker
+          .moveTo(0, y + 8 + Math.sin(phase) * 1.2)
+          .lineTo(0, y + 3)
+          .lineTo(-3, y + 6)
+          .moveTo(0, y + 3)
+          .lineTo(3, y + 6)
+          .stroke({ color: 0x6f5734, alpha: 0.9, width: 1.4 })
+      }
+      return
+    }
+
+    if (activityKind === 'service-visit' || activityKind === 'service-return') {
+      this.marker
+        .circle(0, y, 6)
+        .fill({ color, alpha: 0.86 })
+        .roundRect(-2, y - 5, 4, 10, 1)
+        .roundRect(-5, y - 2, 10, 4, 1)
+        .fill({ color: 0xf4ecd7, alpha: 0.95 })
+      return
+    }
+
+    if (activityKind === 'commute' || activityKind === 'returning') {
+      this.marker
+        .circle(-4, y + 2, 2.3)
+        .circle(1, y - 2, 2.3)
+        .circle(6, y + 2, 2.3)
+        .fill({ color, alpha: 0.82 })
+      return
+    }
+
+    if (activityKind === 'working') {
+      this.marker
+        .moveTo(-6, y + 4)
+        .lineTo(0, y - 6)
+        .lineTo(6, y + 4)
+        .moveTo(-3, y - 1)
+        .lineTo(3, y - 1)
+        .stroke({ color, alpha: 0.9, width: 1.6 })
     }
   }
 

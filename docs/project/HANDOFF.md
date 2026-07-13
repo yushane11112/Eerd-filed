@@ -22,6 +22,8 @@ codex/commercial-launch-plan-docs
 /Users/xmly/Documents/Codex/2026-06-23/ni
 ```
 
+最近完成：第一百一十一轮已补上 `logistics-source-shortage` 来源库存浏览器场景，真实点击“检查来源库存”后会定位粮仓，并验证建筑详情中的“物流执行计划：来源库存”面板可见。
+
 如果另一台电脑路径不同，不影响项目，只要 clone 同一个 GitHub 仓库并 checkout 同一个分支即可。
 
 ## 2. 另一台电脑第一次接续

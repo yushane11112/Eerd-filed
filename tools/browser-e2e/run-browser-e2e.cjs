@@ -143,6 +143,15 @@ async function runScenario(browser, scenario) {
       } catch {
         failures.push(`Missing interaction result text: ${scenario.interaction.expectToastText}`)
       }
+      if (scenario.interaction.expectVisibleText) {
+        try {
+          await page.getByText(scenario.interaction.expectVisibleText, { exact: false })
+            .first()
+            .waitFor({ state: 'visible', timeout: 5_000 })
+        } catch {
+          failures.push(`Missing post-interaction visible text: ${scenario.interaction.expectVisibleText}`)
+        }
+      }
     }
 
     const forbidden = new Set(scenario.forbiddenConsoleLevels)

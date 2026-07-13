@@ -9,6 +9,16 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-13 第一百一十一轮验证
+
+- 验证等级：Tier 3，新增真实浏览器治理场景和点击后面板断言，影响 QA 契约、URL 调试入口和 E2E runner。
+- 定向测试：`npm test -- src/ui/cityAdvisorUi.test.ts src/qa/browserE2eScenarios.test.ts src/ui/runtimeOptions.test.ts src/integration/GameRuntime.test.ts` 通过，4 个测试文件、39 项测试。
+- 单场景真实浏览器 E2E：`BROWSER_E2E_SCENARIO=logistics-source-shortage npm run qa:browser-e2e` 通过；点击“检查来源库存”后 toast 显示“已定位到「粮仓」。”，并验证“物流执行计划：来源库存”面板可见。
+- 完整测试：`npm test` 通过，41 个测试文件、265 项测试。
+- 生产构建：`npm run build` 通过。
+- 差异检查：`git diff --check` 通过。
+- 限制：本轮加固来源库存治理的浏览器回归，不新增物流调度算法；物流仓储建造成功点击 E2E 仍需后续补齐。
+
 ## 2026-07-12 第一百一十轮验证
 
 - 验证等级：Tier 3，物流卸货吞吐规则变化，影响订单交付、卸货队列和长跑压力读数。

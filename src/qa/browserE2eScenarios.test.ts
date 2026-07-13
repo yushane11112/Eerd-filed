@@ -14,6 +14,7 @@ describe('browser E2E scenario contract', () => {
       'road-plan-low-treasury',
       'bridge-gap',
       'logistics-hotspot',
+      'logistics-source-shortage',
       'service-governance',
     ])
     expect(BROWSER_E2E_SCENARIOS).toEqual(expect.arrayContaining([
@@ -51,6 +52,17 @@ describe('browser E2E scenario contract', () => {
         interaction: {
           clickText: '打开物流图层并补仓储',
           expectToastText: '物流热点拥堵：打开物流图层并补仓储。',
+        },
+      }),
+      expect.objectContaining({
+        id: 'logistics-source-shortage',
+        path: '/?debugScenario=logistics-source-shortage',
+        mustContainText: expect.arrayContaining(['物流热点拥堵', '检查来源库存', '执行计划：定位货源库存']),
+        forbiddenConsoleLevels: ['error'],
+        interaction: {
+          clickText: '检查来源库存',
+          expectToastText: '已定位到「粮仓」。',
+          expectVisibleText: '物流执行计划：来源库存',
         },
       }),
       expect.objectContaining({
@@ -100,6 +112,13 @@ describe('browser E2E scenario contract', () => {
         expectToastText: '物流热点拥堵：打开物流图层并补仓储。',
       },
     })
+    expect(browserE2eScenarioById('logistics-source-shortage')).toMatchObject({
+      interaction: {
+        clickText: '检查来源库存',
+        expectToastText: '已定位到「粮仓」。',
+        expectVisibleText: '物流执行计划：来源库存',
+      },
+    })
     expect(browserE2eScenarioById('service-governance')).toMatchObject({
       interaction: {
         clickText: '打开服务图层并营造市场',
@@ -136,6 +155,14 @@ describe('browser E2E scenario contract', () => {
         interaction: {
           clickText: '打开物流图层并补仓储',
           expectToastText: '物流热点拥堵：打开物流图层并补仓储。',
+        },
+      }),
+      expect.objectContaining({
+        id: 'logistics-source-shortage',
+        interaction: {
+          clickText: '检查来源库存',
+          expectToastText: '已定位到「粮仓」。',
+          expectVisibleText: '物流执行计划：来源库存',
         },
       }),
       expect.objectContaining({

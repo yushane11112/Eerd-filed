@@ -26,6 +26,12 @@ describe('runtime URL options', () => {
     })
   })
 
+  it('enables the logistics source shortage debug scenario', () => {
+    expect(runtimeOptionsFromSearch('?debugScenario=logistics-source-shortage')).toEqual({
+      debugScenario: 'logistics-source-shortage',
+    })
+  })
+
   it('ignores unknown debug scenarios', () => {
     expect(runtimeOptionsFromSearch('?debugScenario=unknown')).toEqual({})
   })

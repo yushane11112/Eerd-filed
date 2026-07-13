@@ -157,6 +157,7 @@ export type RuntimeDebugScenario =
   | 'isolated-road-network-low-treasury'
   | 'bridge-gap'
   | 'logistics-hotspot'
+  | 'logistics-source-shortage'
 
 export interface GameRuntimeOptions {
   initialTreasury?: number
@@ -257,6 +258,11 @@ export class GameRuntime {
     if (options.debugScenario === 'logistics-hotspot') {
       const debugSnapshot = this.engine.snapshot
       this.applyLogisticsHotspotScenario(debugSnapshot)
+      this.engine = this.createEngine(debugSnapshot)
+    }
+    if (options.debugScenario === 'logistics-source-shortage') {
+      const debugSnapshot = this.engine.snapshot
+      this.applyLogisticsSourceShortageScenario(debugSnapshot)
       this.engine = this.createEngine(debugSnapshot)
     }
     this.snapshotCache = this.withDistrictProsperity(this.engine.snapshot)
@@ -1402,6 +1408,77 @@ export class GameRuntime {
         orderId: 'debug-cloth-inbound',
         resource: 'cloth',
         amount: 4,
+        sourceBuildingId: 'granary-1',
+        destinationBuildingId: 'market-1',
+        phase: 'pickup',
+      },
+    }
+    snapshot.agents['carrier-1'].activity = 'working'
+  }
+
+  private applyLogisticsSourceShortageScenario(snapshot: SimulationSnapshot) {
+    snapshot.buildings['granary-1'].inventory = {
+      ...snapshot.buildings['granary-1'].inventory,
+      food: 3,
+    }
+    snapshot.logisticsOrders = {
+      'debug-food-reserved': {
+        id: 'debug-food-reserved',
+        resource: 'food',
+        amount: 3,
+        sourceBuildingId: 'granary-1',
+        destinationBuildingId: 'market-1',
+        priority: 95,
+        state: 'assigned',
+        carrierId: 'debug-carrier-reserved',
+      },
+      'debug-food-waiting': {
+        id: 'debug-food-waiting',
+        resource: 'food',
+        amount: 2,
+        sourceBuildingId: 'granary-1',
+        destinationBuildingId: 'market-1',
+        priority: 90,
+        state: 'waiting',
+        failureReason: 'source-inventory-insufficient',
+      },
+      'debug-food-waiting-2': {
+        id: 'debug-food-waiting-2',
+        resource: 'food',
+        amount: 2,
+        sourceBuildingId: 'granary-1',
+        destinationBuildingId: 'market-1',
+        priority: 89,
+        state: 'waiting',
+        failureReason: 'source-inventory-insufficient',
+      },
+      'debug-food-waiting-3': {
+        id: 'debug-food-waiting-3',
+        resource: 'food',
+        amount: 1,
+        sourceBuildingId: 'granary-1',
+        destinationBuildingId: 'market-1',
+        priority: 88,
+        state: 'waiting',
+        failureReason: 'source-inventory-insufficient',
+      },
+    }
+    snapshot.agents['debug-carrier-reserved'] = {
+      id: 'debug-carrier-reserved',
+      role: 'cart',
+      position: { x: 12, y: 11 },
+      path: [
+        { x: 12, y: 11 },
+        { x: 11, y: 11 },
+        { x: 10, y: 11 },
+        { x: 10, y: 7 },
+      ],
+      pathIndex: 0,
+      activity: 'delivering',
+      cargoIntent: {
+        orderId: 'debug-food-reserved',
+        resource: 'food',
+        amount: 3,
         sourceBuildingId: 'granary-1',
         destinationBuildingId: 'market-1',
         phase: 'pickup',

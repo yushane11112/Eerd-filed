@@ -184,3 +184,4 @@
 | LOGISTICS-CARRIER-CAPACITY-01 | 物流承运容量补充 | `src/integration/GameRuntime.ts`, `src/App.tsx`, `src/integration/GameRuntime.test.ts` | 已完成 | 缺承运治理卡可新增一名货车承运人并让正式物流系统接单 |
 | LOGISTICS-STORAGE-BUILD-ACTION-01 | 物流仓储建造动作 | `src/integration/GameRuntime.ts`, `src/App.tsx`, `src/integration/GameRuntime.test.ts` | 已完成 | 扩仓、分流卸货和缓冲仓计划可从候选落点真实建成粮仓、扣除营造成本并重置关联订单 |
 | LOGISTICS-UNLOAD-CAPACITY-TIER-01 | 卸货能力分层 | `src/simulation/economy/logistics.ts`, `src/simulation/economy/economy.test.ts` | 已完成 | 未显式覆盖时，目的建筑按类型、等级、工人和入口道路数动态计算每 tick 卸货能力 |
+| BROWSER-E2E-LOGISTICS-SOURCE-STOCK-01 | 来源库存检查浏览器交互 | `src/integration/GameRuntime.ts`, `src/qa/browserE2eScenarios.ts`, `tools/browser-e2e/run-browser-e2e.cjs` | 已完成 | `logistics-source-shortage` 场景真实点击“检查来源库存”后定位粮仓，并断言建筑详情物流执行计划面板可见 |

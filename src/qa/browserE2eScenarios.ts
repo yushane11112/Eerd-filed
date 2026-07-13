@@ -9,6 +9,7 @@ export interface BrowserE2eScenario {
   interaction?: {
     clickText: string
     expectToastText: string
+    expectVisibleText?: string
   }
 }
 
@@ -58,6 +59,18 @@ export const BROWSER_E2E_SCENARIOS: BrowserE2eScenario[] = [
     },
   },
   {
+    id: 'logistics-source-shortage',
+    title: '来源库存检查浏览器场景',
+    path: '/?debugScenario=logistics-source-shortage',
+    mustContainText: ['物流热点拥堵', '检查来源库存', '执行计划：定位货源库存'],
+    forbiddenConsoleLevels: ['error'],
+    interaction: {
+      clickText: '检查来源库存',
+      expectToastText: '已定位到「粮仓」。',
+      expectVisibleText: '物流执行计划：来源库存',
+    },
+  },
+  {
     id: 'service-governance',
     title: '服务治理浏览器场景',
     path: '/',
@@ -101,6 +114,9 @@ export function validateBrowserE2eScenarios(
       }
       if (!scenario.interaction.expectToastText.trim()) {
         errors.push(`Scenario ${scenario.id} interaction expectToastText is required`)
+      }
+      if (scenario.interaction.expectVisibleText !== undefined && !scenario.interaction.expectVisibleText.trim()) {
+        errors.push(`Scenario ${scenario.id} interaction expectVisibleText must not be empty`)
       }
     }
   }

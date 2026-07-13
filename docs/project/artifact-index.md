@@ -2,6 +2,20 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-13：第一百一十一轮来源库存治理浏览器场景
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/GameRuntime.ts` | 调试场景 | 新增 `logistics-source-shortage`，稳定制造来源库存不足与可调拨备用库存 |
+| `src/ui/runtimeOptions.ts` | URL 场景入口 | 允许通过 `?debugScenario=logistics-source-shortage` 打开该浏览器场景 |
+| `src/qa/browserE2eScenarios.ts` | 浏览器 E2E 契约 | 新增来源库存检查场景，并声明点击后必须出现物流执行计划面板 |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 浏览器执行器 | 支持 interaction 后的 `expectVisibleText` 断言 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录第一百一十一轮 QA 场景进展与完成度变化 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `BROWSER-E2E-LOGISTICS-SOURCE-STOCK-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮浏览器场景和合并取舍 |
+| `docs/project/qa.md` | QA 记录 | 记录定向测试、真实浏览器场景、完整测试、构建和差异检查 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 记录最近完成事项，保持下一轮默认任务稳定 |
+
 ## 2026-07-12：第一百一十轮卸货能力分层
 
 | 文件 | 产物类型 | 用途 |

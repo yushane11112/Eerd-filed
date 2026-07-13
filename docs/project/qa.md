@@ -9,6 +9,17 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-13 第一百一十二轮验证
+
+- 验证等级：Tier 3，升级经济表结构变化会影响运行时升级报价、材料缺口和城市仓储扣料。
+- 定向测试：`npm test -- src/simulation/economy/constructionTable.test.ts src/simulation/economy/upgrades.test.ts` 通过，2 个测试文件、16 项测试。
+- 运行时回归：`npm test -- src/integration/GameRuntime.test.ts src/simulation/economy/economy.test.ts` 通过，2 个测试文件、59 项测试。
+- 开发构建：`npm run build -- --mode development` 通过。
+- 完整测试：`npm test` 通过，41 个测试文件、265 项测试。
+- 生产构建：`npm run build` 通过。
+- 差异检查：`git diff --check` 通过。
+- 限制：本轮完成分类型升级曲线的结构和运行时接入，但仍未完成按容量、产能、维护费、服务价值和回本周期校准的商业级经济平衡。
+
 ## 2026-07-13 第一百一十一轮验证
 
 - 验证等级：Tier 3，新增真实浏览器治理场景和点击后面板断言，影响 QA 契约、URL 调试入口和 E2E runner。

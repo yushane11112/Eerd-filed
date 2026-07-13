@@ -1,5 +1,13 @@
 # 集成记录
 
+## 2026-07-13 第一百一十二轮：分类型升级曲线
+
+- 启动 `UPGRADE-CATEGORY-CURVES-01`：把升级成本从统一等级倍率推进为 `defaultCurve` / `categoryCurves` / `typeCurves` 三层经济曲线。
+- `DEFAULT_CONSTRUCTION_ECONOMY_TABLE` 现在可按住宅、仓储、生产、市场、服务、港口和地标等建筑类别配置不同材料投入和里程碑材料；未传建筑定义时仍走旧默认曲线，兼容既有测试和兜底逻辑。
+- `buildingUpgradeCost`、`upgradeBuildingFromCityStorage` 和 `startBuildingUpgradeFromCityStorage` 已把建筑定义传入经济表，因此运行时升级报价、缺料提示和城市仓储扣料会按建筑类型/类别曲线执行。
+- `validateConstructionEconomyTable` 扩展到升级曲线结构，会检查默认、类别、类型曲线中的负数、非法数值和无效里程碑等级。
+- 客观限制：本轮完成的是“结构与运行时接入”，不是最终商业平衡；成本仍需和容量、产能、维护费、服务价值、阶段节奏和回本周期做下一轮审计。
+
 ## 2026-07-13 第一百一十一轮：来源库存治理浏览器场景
 
 - 启动 `BROWSER-E2E-LOGISTICS-SOURCE-STOCK-01`：把来源库存治理从单元/运行时覆盖补成真实浏览器回归场景。

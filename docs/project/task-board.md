@@ -51,6 +51,7 @@
 | CONSTRUCTION-COST-01 | 正式建筑营造成本 | `src/simulation/economy/construction.ts`, `src/integration/GameRuntime.ts`, `src/integration/stageAdvisor.ts` | 已完成 | 建筑放置消耗财政和城市仓储材料，治理卡能诊断材料/银两不足 |
 | CONSTRUCTION-ECONOMY-TABLE-01 | 可调营造经济表 | `src/simulation/economy/construction.ts`, `src/simulation/economy/constructionTable.test.ts`, `docs/project/economy-balancing.md` | 已完成 | 默认营造成本表可导出、可校验、可替换，默认数值保持兼容并补平衡审计 |
 | UPGRADE-ECONOMY-TABLE-01 | 升级成本接入经济表 | `src/simulation/economy/construction.ts`, `src/simulation/economy/upgrades.ts`, `src/simulation/economy/*test.ts`, `docs/project/economy-balancing.md` | 已完成 | 建筑升级成本进入 `ConstructionEconomyTable.upgradeCosts`，自定义表可影响升级扣料且默认曲线兼容 |
+| UPGRADE-CATEGORY-CURVES-01 | 分类型升级曲线 | `src/simulation/economy/construction.ts`, `src/simulation/economy/upgrades.ts`, `src/simulation/economy/*test.ts`, `src/integration/GameRuntime.test.ts`, `docs/project/economy-balancing.md` | 已完成 | 升级成本支持 `defaultCurve` / `categoryCurves` / `typeCurves` 三层曲线，运行时按建筑定义报价和扣料 |
 | BUILD-MENU-COST-01 | 建造菜单成本与缺口 | `src/content/runtimeBuildings.ts`, `src/App.tsx`, `src/styles.css` | 已完成 | 建造菜单显示银两/材料成本、缺口和是否可营造 |
 | GOVERNANCE-PLACEMENT-FOCUS-01 | 治理卡推荐落点提示 | `src/integration/stageAdvisor.ts`, `src/App.tsx`, `src/styles.css` | 已完成 | 点击建筑类治理建议会在地图标出建议落点和入口，并在建造菜单标出推荐建筑 |
 | GOVERNANCE-PLACEMENT-FOOTPRINT-01 | 治理卡推荐占地预览 | `src/integration/stageAdvisor.ts`, `src/components/SimulationCanvas.tsx`, `src/styles.css` | 已完成 | 点击建筑类治理建议会显示真实建筑 footprint、入口格和推荐建筑高亮 |

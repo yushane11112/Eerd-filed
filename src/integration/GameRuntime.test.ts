@@ -827,6 +827,7 @@ describe('GameRuntime integration', () => {
 
   it('quotes building upgrade cost and missing materials without mutating storage', () => {
     const runtime = new GameRuntime()
+    mutableRuntimeSnapshot(runtime).buildings['granary-1'].inventory.cloth = 1
 
     const firstQuote = runtime.getBuildingUpgradeQuote('house-1')
     const before = runtime.getSnapshot()

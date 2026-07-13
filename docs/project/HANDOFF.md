@@ -22,7 +22,7 @@ codex/commercial-launch-plan-docs
 /Users/xmly/Documents/Codex/2026-06-23/ni
 ```
 
-最近完成：第一百一十一轮已补上 `logistics-source-shortage` 来源库存浏览器场景，真实点击“检查来源库存”后会定位粮仓，并验证建筑详情中的“物流执行计划：来源库存”面板可见。
+最近完成：第一百一十二轮已把建筑升级经济从统一等级倍率推进为 `defaultCurve` / `categoryCurves` / `typeCurves` 三层曲线，运行时升级报价、缺料提示和城市仓储扣料会按建筑定义走类型/类别曲线；第一百一十一轮已补上 `logistics-source-shortage` 来源库存浏览器场景。
 
 如果另一台电脑路径不同，不影响项目，只要 clone 同一个 GitHub 仓库并 checkout 同一个分支即可。
 
@@ -129,9 +129,9 @@ npm run build
 
 以 `docs/project/execution-strategy.md` 和 `docs/project/progress-dashboard.md` 为准。当前方向是：
 
-1. 先做升级经济表分类型曲线：把统一倍率推进到按建筑类别/阶段的商业化曲线。
-2. 补物流仓储建造浏览器 E2E：为 `expand-storage`/`split-unload` 成功建仓补真实点击场景。
-3. 再做卸货能力可视化解释：在物流图层或建筑详情里解释当前建筑卸货能力来源。
+1. 补物流仓储建造浏览器 E2E：为 `expand-storage`/`split-unload` 成功建仓补真实点击场景。
+2. 再做卸货能力可视化解释：在物流图层或建筑详情里解释当前建筑卸货能力来源。
+3. 做升级经济回本周期/容量联动审计：把分类型成本和容量、产能、维护费、服务价值进行第一版报表校准。
 4. 每轮按 `execution-strategy.md` 的 Tier 0-4 验证分级执行，不再对纯文档或低风险视觉调整机械运行最高成本验证。
 
 ## 8. 不允许丢失的项目原则

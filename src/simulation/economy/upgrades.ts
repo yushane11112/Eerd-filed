@@ -67,7 +67,7 @@ export function buildingUpgradeCost(
 ): Partial<Record<ResourceKind, number>> {
   const nextLevel = building.level + 1
   if (nextLevel > maxLevelFor(definition)) return {}
-  return constructionTableBuildingUpgradeCost(building, table)
+  return constructionTableBuildingUpgradeCost(building, table, definition)
 }
 
 export function effectiveBuildingDefinition(

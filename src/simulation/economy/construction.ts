@@ -1,4 +1,5 @@
 import type {
+  BuildingCategory,
   BuildingDefinition,
   BuildingEntity,
   ResourceKind,
@@ -31,12 +32,20 @@ export interface RoadConstructionQuote {
   canAfford: boolean
 }
 
+export interface BuildingUpgradeCostCurve {
+  base?: Partial<Record<ResourceKind, number>>
+  perNextLevel?: Partial<Record<ResourceKind, number>>
+  perTwoNextLevels?: Partial<Record<ResourceKind, number>>
+  milestoneLevels?: Partial<Record<number, Partial<Record<ResourceKind, number>>>>
+}
+
 export interface ConstructionEconomyTable {
   buildingCosts: Record<string, BuildingConstructionCost>
   roadCosts: Record<RoadKind, RoadConstructionCost>
   upgradeCosts: {
-    woodPerNextLevel: number
-    stonePerTwoNextLevels: number
+    defaultCurve: BuildingUpgradeCostCurve
+    categoryCurves?: Partial<Record<BuildingCategory, BuildingUpgradeCostCurve>>
+    typeCurves?: Record<string, BuildingUpgradeCostCurve>
   }
   fallback: {
     baseTreasury: number
@@ -60,8 +69,58 @@ export const DEFAULT_CONSTRUCTION_ECONOMY_TABLE: ConstructionEconomyTable = {
     bridge: { treasury: 18 },
   },
   upgradeCosts: {
-    woodPerNextLevel: 1,
-    stonePerTwoNextLevels: 1,
+    defaultCurve: {
+      perNextLevel: { wood: 1 },
+      perTwoNextLevels: { stone: 1 },
+    },
+    categoryCurves: {
+      housing: {
+        perNextLevel: { wood: 1 },
+        perTwoNextLevels: { stone: 1 },
+        milestoneLevels: {
+          4: { cloth: 1 },
+          7: { brick: 1 },
+        },
+      },
+      storage: {
+        perNextLevel: { wood: 1 },
+        perTwoNextLevels: { stone: 1 },
+        milestoneLevels: {
+          5: { brick: 1 },
+        },
+      },
+      production: {
+        perNextLevel: { wood: 2 },
+        perTwoNextLevels: { stone: 1, brick: 1 },
+      },
+      market: {
+        perNextLevel: { wood: 2 },
+        perTwoNextLevels: { stone: 1 },
+        milestoneLevels: {
+          3: { cloth: 1 },
+          6: { brick: 2 },
+        },
+      },
+      service: {
+        perNextLevel: { wood: 1 },
+        perTwoNextLevels: { stone: 2 },
+        milestoneLevels: {
+          4: { cloth: 1 },
+          6: { brick: 2 },
+        },
+      },
+      harbor: {
+        perNextLevel: { wood: 2 },
+        perTwoNextLevels: { stone: 1, brick: 1 },
+      },
+      landmark: {
+        perNextLevel: { stone: 1 },
+        perTwoNextLevels: { brick: 1 },
+        milestoneLevels: {
+          4: { cloth: 1 },
+        },
+      },
+    },
   },
   fallback: {
     baseTreasury: 50,
@@ -74,13 +133,19 @@ export const DEFAULT_CONSTRUCTION_ECONOMY_TABLE: ConstructionEconomyTable = {
 export function buildingUpgradeCost(
   building: Pick<BuildingEntity, 'level'>,
   table: ConstructionEconomyTable = DEFAULT_CONSTRUCTION_ECONOMY_TABLE,
+  definition?: Pick<BuildingDefinition, 'type' | 'category'>,
 ): Partial<Record<ResourceKind, number>> {
   const nextLevel = Math.max(0, Math.floor(building.level + 1))
   if (!Number.isFinite(nextLevel) || nextLevel <= 0) return {}
-  return compactCost({
-    wood: nextLevel * table.upgradeCosts.woodPerNextLevel,
-    stone: Math.floor(nextLevel / 2) * table.upgradeCosts.stonePerTwoNextLevels,
-  })
+  const curve = upgradeCostCurveFor(table, definition)
+  return compactCost(
+    addCosts(
+      scaleCost(curve.base, 1),
+      scaleCost(curve.perNextLevel, nextLevel),
+      scaleCost(curve.perTwoNextLevels, Math.floor(nextLevel / 2)),
+      curve.milestoneLevels?.[nextLevel],
+    ),
+  )
 }
 
 export function buildingConstructionCost(
@@ -195,13 +260,84 @@ export function validateConstructionEconomyTable(table: ConstructionEconomyTable
   for (const kind of ['dirt', 'stone', 'bridge'] as RoadKind[]) {
     validateNonNegative(table.roadCosts[kind]?.treasury, `roadCosts.${kind}.treasury`, errors)
   }
-  validateNonNegative(table.upgradeCosts?.woodPerNextLevel, 'upgradeCosts.woodPerNextLevel', errors)
-  validateNonNegative(table.upgradeCosts?.stonePerTwoNextLevels, 'upgradeCosts.stonePerTwoNextLevels', errors)
+  validateUpgradeCurve(table.upgradeCosts?.defaultCurve, 'upgradeCosts.defaultCurve', errors)
+  for (const [category, curve] of Object.entries(table.upgradeCosts?.categoryCurves ?? {})) {
+    validateUpgradeCurve(curve, `upgradeCosts.categoryCurves.${category}`, errors)
+  }
+  for (const [type, curve] of Object.entries(table.upgradeCosts?.typeCurves ?? {})) {
+    validateUpgradeCurve(curve, `upgradeCosts.typeCurves.${type}`, errors)
+  }
   validateNonNegative(table.fallback.baseTreasury, 'fallback.baseTreasury', errors)
   validateNonNegative(table.fallback.treasuryPerFootprint, 'fallback.treasuryPerFootprint', errors)
   validatePositive(table.fallback.woodPerTwoFootprint, 'fallback.woodPerTwoFootprint', errors)
   validatePositive(table.fallback.stonePerThreeFootprint, 'fallback.stonePerThreeFootprint', errors)
   return errors
+}
+
+function upgradeCostCurveFor(
+  table: ConstructionEconomyTable,
+  definition?: Pick<BuildingDefinition, 'type' | 'category'>,
+): BuildingUpgradeCostCurve {
+  if (definition?.type && table.upgradeCosts.typeCurves?.[definition.type]) {
+    return table.upgradeCosts.typeCurves[definition.type]
+  }
+  if (definition?.category && table.upgradeCosts.categoryCurves?.[definition.category]) {
+    return table.upgradeCosts.categoryCurves[definition.category]!
+  }
+  return table.upgradeCosts.defaultCurve
+}
+
+function scaleCost(
+  cost: Partial<Record<ResourceKind, number>> | undefined,
+  factor: number,
+): Partial<Record<ResourceKind, number>> {
+  if (!cost || factor <= 0) return {}
+  const scaled: Partial<Record<ResourceKind, number>> = {}
+  for (const [resource, amount] of costEntries(cost)) {
+    scaled[resource] = amount * factor
+  }
+  return scaled
+}
+
+function addCosts(
+  ...costs: Array<Partial<Record<ResourceKind, number>> | undefined>
+): Partial<Record<ResourceKind, number>> {
+  const total: Partial<Record<ResourceKind, number>> = {}
+  for (const cost of costs) {
+    if (!cost) continue
+    for (const [resource, amount] of costEntries(cost)) {
+      total[resource] = (total[resource] ?? 0) + amount
+    }
+  }
+  return total
+}
+
+function validateUpgradeCurve(
+  curve: BuildingUpgradeCostCurve | undefined,
+  path: string,
+  errors: string[],
+): void {
+  if (!curve) {
+    errors.push(`${path} must be defined`)
+    return
+  }
+  validateCostMap(curve.base, `${path}.base`, errors)
+  validateCostMap(curve.perNextLevel, `${path}.perNextLevel`, errors)
+  validateCostMap(curve.perTwoNextLevels, `${path}.perTwoNextLevels`, errors)
+  for (const [level, cost] of Object.entries(curve.milestoneLevels ?? {})) {
+    validatePositive(Number(level), `${path}.milestoneLevels.${level}`, errors)
+    validateCostMap(cost, `${path}.milestoneLevels.${level}`, errors)
+  }
+}
+
+function validateCostMap(
+  cost: Partial<Record<ResourceKind, number>> | undefined,
+  path: string,
+  errors: string[],
+): void {
+  for (const [resource, amount] of Object.entries(cost ?? {})) {
+    validateNonNegative(amount, `${path}.${resource}`, errors)
+  }
 }
 
 function cityStorageBuildings(

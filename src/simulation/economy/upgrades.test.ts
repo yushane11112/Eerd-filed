@@ -188,8 +188,10 @@ describe('building upgrades', () => {
         bridge: { treasury: 18 },
       },
       upgradeCosts: {
-        woodPerNextLevel: 2,
-        stonePerTwoNextLevels: 3,
+        defaultCurve: {
+          perNextLevel: { wood: 2 },
+          perTwoNextLevels: { stone: 3 },
+        },
       },
       fallback: {
         baseTreasury: 50,

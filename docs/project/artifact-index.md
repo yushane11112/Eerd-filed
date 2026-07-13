@@ -2,6 +2,22 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-13：第一百一十二轮分类型升级曲线
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/economy/construction.ts` | 经济表与校验 | 新增 `BuildingUpgradeCostCurve`，支持默认、类别、类型三层升级曲线和里程碑材料校验 |
+| `src/simulation/economy/upgrades.ts` | 运行时升级扣料 | 升级报价/扣料传入建筑定义，按类型/类别曲线计算材料缺口 |
+| `src/simulation/economy/constructionTable.test.ts` | 自动测试 | 覆盖默认兜底曲线、住宅/生产类别曲线、自定义类型曲线和非法曲线诊断 |
+| `src/simulation/economy/upgrades.test.ts` | 自动测试 | 固定升级扣料 wrapper 对新经济表结构的兼容性 |
+| `src/integration/GameRuntime.test.ts` | 运行时回归 | 覆盖建筑升级报价、连续升级和缺料提示在新曲线下仍能持久运行 |
+| `docs/project/economy-balancing.md` | 平衡审计 | 记录分层升级曲线能力和仍未满足商业级经济的缺口 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录第一百一十二轮进展、完成度和下一轮默认任务 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `UPGRADE-CATEGORY-CURVES-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮经济表接入事实和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录目标测试、构建和后续完整门禁 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新最近完成事项和下一轮默认任务 |
+
 ## 2026-07-13：第一百一十一轮来源库存治理浏览器场景
 
 | 文件 | 产物类型 | 用途 |

@@ -725,6 +725,7 @@ export default function App() {
               </div>
               <p>{selectedLogisticsPanel.copy.inventory}</p>
               <em>{selectedLogisticsPanel.copy.dispatch}</em>
+              {selectedLogisticsPanel.copy.unload && <em>{selectedLogisticsPanel.copy.unload}</em>}
             </div>
           )}
           {selectedUpgrade && (
@@ -1130,6 +1131,7 @@ function logisticsPlanInspectorPanel(
     ? Object.entries(building.inventory)
       .find(([resource]) => resource === plan.resource)?.[1] ?? 0
     : Object.values(building.inventory).reduce((sum, amount) => sum + (amount ?? 0), 0)
+  const unloadQueue = snapshot.logisticsQueues?.[buildingId]
   return {
     planLabel: formatLogisticsPlanKind(plan.kind),
     copy: formatLogisticsInventoryPanelCopy({
@@ -1140,6 +1142,16 @@ function logisticsPlanInspectorPanel(
       orderCount: relatedOrders.length,
       busyCarriers,
       waitingOrders,
+      ...(unloadQueue
+        ? {
+            unloadQueue: {
+              capacityPerTick: unloadQueue.unloadCapacityPerTick,
+              waitingToUnloadCount: unloadQueue.waitingToUnloadCount,
+              longestWaitTicks: unloadQueue.longestWaitTicks,
+              breakdown: unloadQueue.unloadCapacityBreakdown,
+            },
+          }
+        : {}),
     }),
   }
 }

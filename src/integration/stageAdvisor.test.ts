@@ -870,6 +870,18 @@ describe('stage advisor overlays', () => {
               market: {
                 buildingId: 'market',
                 unloadCapacityPerTick: 1,
+                unloadCapacityBreakdown: {
+                  source: 'building' as const,
+                  category: 'market' as const,
+                  base: 1,
+                  levelBonus: 0,
+                  workerBonus: 0,
+                  entranceBonus: 0,
+                  roadAccess: 1,
+                  workerCount: 0,
+                  cappedAt: 8,
+                  total: 1,
+                },
                 unloadedThisTick: 1,
                 waitingToUnloadCount: 3,
                 longestWaitTicks: 5,
@@ -902,6 +914,10 @@ describe('stage advisor overlays', () => {
       metricLabel,
     })
     expect(card?.action).toContain(actionIncludes)
+    if (reason === 'destination-throughput') {
+      expect(card?.detail).toContain('每刻卸货 1 单、排队 3 单')
+      expect(card?.detail).toContain('能力来自基础 1')
+    }
     if (reason === 'no-route') {
       expect(card?.recommendation.roadPlan).toMatchObject({
         from: { x: 2, y: 2 },

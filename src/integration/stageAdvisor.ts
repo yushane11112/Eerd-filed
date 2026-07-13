@@ -506,6 +506,7 @@ export function deriveStageMapOverlay(
       (max, queue) => Math.max(max, queue.longestWaitTicks),
       0,
     )
+    const maxUnloadQueue = unloadQueues[0]
     return compactOverlay(id, '物流线路', [
       ...activeOrders.flatMap((order) => {
       const source = snapshot.buildings[order.sourceBuildingId]
@@ -544,6 +545,8 @@ export function deriveStageMapOverlay(
       hotspots: hotspots.length,
       unloadBacklog,
       longestUnloadWait,
+      maxUnloadCapacity: maxUnloadQueue?.unloadCapacityPerTick ?? 0,
+      maxUnloadWaiting: maxUnloadQueue?.waitingToUnloadCount ?? 0,
     }, [], true)
   }
 
@@ -981,6 +984,34 @@ function suggestRoadNetworkLinks(
       }]
     })
     .slice(0, 4)
+}
+
+function formatUnloadQueueReason(snapshot: Readonly<SimulationSnapshot>): string {
+  const queue = Object.values(snapshot.logisticsQueues ?? {})
+    .filter((item) => item.waitingToUnloadCount > 0)
+    .sort((left, right) => (
+      right.waitingToUnloadCount - left.waitingToUnloadCount
+      || right.longestWaitTicks - left.longestWaitTicks
+      || left.buildingId.localeCompare(right.buildingId)
+    ))[0]
+  if (!queue) return ''
+  const building = snapshot.buildings[queue.buildingId]
+  const name = building ? (BUILDING_DEFINITIONS[building.type]?.name ?? building.id) : queue.buildingId
+  const wait = queue.longestWaitTicks > 0 ? `、最长等待 ${queue.longestWaitTicks} 刻` : ''
+  const breakdown = queue.unloadCapacityBreakdown
+  if (!breakdown) {
+    return `最拥堵的是${name}，每刻卸货 ${queue.unloadCapacityPerTick} 单、排队 ${queue.waitingToUnloadCount} 单${wait}。`
+  }
+  if (breakdown.source === 'override') {
+    return `最拥堵的是${name}，每刻卸货 ${queue.unloadCapacityPerTick} 单、排队 ${queue.waitingToUnloadCount} 单${wait}；当前能力来自压力场景固定值。`
+  }
+  const parts = [
+    `基础 ${breakdown.base}`,
+    breakdown.levelBonus > 0 ? `等级 +${breakdown.levelBonus}` : '',
+    breakdown.workerBonus > 0 ? `工人 +${breakdown.workerBonus}` : '',
+    breakdown.entranceBonus > 0 ? `入口道路 +${breakdown.entranceBonus}` : '',
+  ].filter(Boolean).join('、')
+  return `最拥堵的是${name}，每刻卸货 ${queue.unloadCapacityPerTick} 单、排队 ${queue.waitingToUnloadCount} 单${wait}；能力来自${parts}，邻路 ${breakdown.roadAccess} 格、工人 ${breakdown.workerCount} 人。`
 }
 
 function roadLinkConstructionPlan(
@@ -1470,7 +1501,7 @@ function diagnoseLogisticsGovernance(
       cause: '多辆承运车船同时压到同一市场或仓储，目的建筑卸货口吞吐不足。',
       action: '在热点附近分流卸货，补仓储缓冲或升级后续卸货能力，避免车船堵在目的地。',
       detail: (activeOrders, hotspots) => (
-        `当前有 ${activeOrders} 条未完成订单、${hotspots} 个物流热点，且目的建筑出现卸货排队。`
+        `当前有 ${activeOrders} 条未完成订单、${hotspots} 个物流热点，且目的建筑出现卸货排队。${formatUnloadQueueReason(snapshot)}`
       ),
       recommendation,
     }

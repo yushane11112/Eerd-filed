@@ -652,6 +652,18 @@ describe('road logistics', () => {
     expect(Object.values(basicState.logisticsOrders).filter((order) => order.state === 'delivered')).toHaveLength(3)
     expect(basicState.logisticsQueues?.['market-1']).toMatchObject({
       unloadCapacityPerTick: 3,
+      unloadCapacityBreakdown: {
+        source: 'building',
+        category: 'market',
+        base: 2,
+        levelBonus: 0,
+        workerBonus: 0,
+        entranceBonus: 1,
+        roadAccess: 2,
+        workerCount: 1,
+        cappedAt: 8,
+        total: 3,
+      },
       unloadedThisTick: 3,
       waitingToUnloadCount: 1,
       waitingOrderIds: ['order-3'],
@@ -669,6 +681,18 @@ describe('road logistics', () => {
     expect(Object.values(upgradedState.logisticsOrders).filter((order) => order.state === 'delivered')).toHaveLength(6)
     expect(upgradedState.logisticsQueues?.['granary-1']).toMatchObject({
       unloadCapacityPerTick: 6,
+      unloadCapacityBreakdown: {
+        source: 'building',
+        category: 'storage',
+        base: 3,
+        levelBonus: 1,
+        workerBonus: 1,
+        entranceBonus: 1,
+        roadAccess: 2,
+        workerCount: 6,
+        cappedAt: 8,
+        total: 6,
+      },
       unloadedThisTick: 6,
       waitingToUnloadCount: 0,
       waitingOrderIds: [],

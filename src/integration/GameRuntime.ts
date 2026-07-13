@@ -1501,7 +1501,7 @@ export class GameRuntime {
       medicine: 0,
     }
     snapshot.logisticsOrders = {}
-    for (let index = 1; index <= 18; index += 1) {
+    for (let index = 1; index <= 80; index += 1) {
       const orderId = `debug-unload-food-${index}`
       const carrierId = `debug-unload-carrier-${index}`
       snapshot.logisticsOrders[orderId] = {
@@ -1522,7 +1522,7 @@ export class GameRuntime {
         position: { ...market.entrance },
         path: [{ ...market.entrance }],
         pathIndex: 0,
-        activity: 'delivering',
+        activity: 'working',
         cargoIntent: {
           orderId,
           resource: 'food',
@@ -1537,9 +1537,21 @@ export class GameRuntime {
       'market-1': {
         buildingId: 'market-1',
         unloadCapacityPerTick: 1,
+        unloadCapacityBreakdown: {
+          source: 'override',
+          category: 'market',
+          base: 1,
+          levelBonus: 0,
+          workerBonus: 0,
+          entranceBonus: 0,
+          roadAccess: 1,
+          workerCount: market.workers.length,
+          cappedAt: 1,
+          total: 1,
+        },
         unloadedThisTick: 1,
-        waitingToUnloadCount: 18,
-        longestWaitTicks: 18,
+        waitingToUnloadCount: 80,
+        longestWaitTicks: 80,
         waitingOrderIds: Object.keys(snapshot.logisticsOrders).slice(0, 12),
       },
     }

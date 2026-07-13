@@ -62,7 +62,7 @@ export const BROWSER_E2E_SCENARIOS: BrowserE2eScenario[] = [
     id: 'logistics-storage-build',
     title: '物流扩仓建造浏览器场景',
     path: '/?debugScenario=logistics-storage-build',
-    mustContainText: ['物流热点拥堵', '分流卸货压力', '执行计划：分流卸货口'],
+    mustContainText: ['物流热点拥堵', '分流卸货压力', '执行计划：分流卸货口', '每刻卸货 2 单'],
     forbiddenConsoleLevels: ['error'],
     interaction: {
       clickText: '分流卸货压力',

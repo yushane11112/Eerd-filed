@@ -170,9 +170,23 @@ export interface LogisticsArchiveState {
   cancelReasons: Partial<Record<LogisticsFailureReason, number>>
 }
 
+export interface LogisticsUnloadCapacityBreakdown {
+  source: 'building' | 'override'
+  category?: BuildingCategory
+  base: number
+  levelBonus: number
+  workerBonus: number
+  entranceBonus: number
+  roadAccess: number
+  workerCount: number
+  cappedAt: number
+  total: number
+}
+
 export interface LogisticsQueueState {
   buildingId: EntityId
   unloadCapacityPerTick: number
+  unloadCapacityBreakdown?: LogisticsUnloadCapacityBreakdown
   unloadedThisTick: number
   waitingToUnloadCount: number
   longestWaitTicks: number

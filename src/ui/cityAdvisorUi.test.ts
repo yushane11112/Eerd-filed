@@ -50,4 +50,38 @@ describe('city advisor UI copy', () => {
       dispatch: '承运调度：忙碌 2，待派 1。',
     })
   })
+
+  it('explains unload capacity sources when a destination is queued', () => {
+    expect(formatLogisticsInventoryPanelCopy({
+      role: 'destination',
+      resource: 'food',
+      resourceLabel: '粮食',
+      stock: 6,
+      orderCount: 4,
+      busyCarriers: 4,
+      waitingOrders: 0,
+      unloadQueue: {
+        capacityPerTick: 5,
+        waitingToUnloadCount: 3,
+        longestWaitTicks: 7,
+        breakdown: {
+          source: 'building',
+          category: 'storage',
+          base: 3,
+          levelBonus: 1,
+          workerBonus: 0,
+          entranceBonus: 1,
+          roadAccess: 2,
+          workerCount: 5,
+          cappedAt: 8,
+          total: 5,
+        },
+      },
+    })).toEqual({
+      title: '物流执行计划：目的库存',
+      inventory: '粮食库存 6，关联订单 4 单。',
+      dispatch: '承运调度：忙碌 4，待派 0。',
+      unload: '卸货口：每刻 5 单，排队 3 单，最长等待 7 刻；来源 基础 3、等级 +1、入口道路 +1；邻路 2 格，工人 5 人，上限 8。',
+    })
+  })
 })

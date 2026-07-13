@@ -6,6 +6,7 @@ import type {
   GridPoint,
   LogisticsFailureReason,
   LogisticsOrder,
+  LogisticsUnloadCapacityBreakdown,
   ResourceKind,
   SimulationEvent,
   SimulationSnapshot,
@@ -93,6 +94,7 @@ interface UnloadThroughputState {
   unloadedByDestination: Map<EntityId, number>
   touchedDestinations: Set<EntityId>
   capacityByDestination: Map<EntityId, number>
+  capacityBreakdownByDestination: Map<EntityId, LogisticsUnloadCapacityBreakdown>
 }
 
 export class LogisticsSystem implements SimulationSystem {
@@ -131,6 +133,7 @@ export class LogisticsSystem implements SimulationSystem {
       unloadedByDestination: new Map(),
       touchedDestinations: new Set(),
       capacityByDestination: new Map(),
+      capacityBreakdownByDestination: new Map(),
     })
     this.archiveCompletedOrders(snapshot)
     this.updateEfficiency(snapshot)
@@ -514,6 +517,7 @@ export class LogisticsSystem implements SimulationSystem {
     snapshot.logisticsQueues[destination.id] = {
       buildingId: destination.id,
       unloadCapacityPerTick: this.resolveUnloadCapacity(snapshot, destination, unloadState),
+      unloadCapacityBreakdown: this.resolveUnloadCapacityBreakdown(snapshot, destination, unloadState),
       unloadedThisTick: unloadState.unloadedByDestination.get(destination.id) ?? 0,
       waitingToUnloadCount: waitingOrders.length,
       longestWaitTicks: waitingOrders.reduce((max, order) => (
@@ -576,7 +580,39 @@ export class LogisticsSystem implements SimulationSystem {
     return capacity
   }
 
+  private resolveUnloadCapacityBreakdown(
+    snapshot: SimulationSnapshot,
+    destination: BuildingEntity,
+    unloadState: UnloadThroughputState,
+  ): LogisticsUnloadCapacityBreakdown {
+    const existing = unloadState.capacityBreakdownByDestination.get(destination.id)
+    if (existing !== undefined) return existing
+
+    const breakdown = this.unloadCapacityPerTick === undefined
+      ? this.deriveBuildingUnloadCapacityBreakdown(snapshot, destination)
+      : {
+          source: 'override' as const,
+          base: this.unloadCapacityPerTick,
+          levelBonus: 0,
+          workerBonus: 0,
+          entranceBonus: 0,
+          roadAccess: this.countRoadAccess(snapshot, destination),
+          workerCount: destination.workers.length,
+          cappedAt: this.unloadCapacityPerTick,
+          total: this.unloadCapacityPerTick,
+        }
+    unloadState.capacityBreakdownByDestination.set(destination.id, breakdown)
+    return breakdown
+  }
+
   private deriveBuildingUnloadCapacity(snapshot: SimulationSnapshot, destination: BuildingEntity): number {
+    return this.deriveBuildingUnloadCapacityBreakdown(snapshot, destination).total
+  }
+
+  private deriveBuildingUnloadCapacityBreakdown(
+    snapshot: SimulationSnapshot,
+    destination: BuildingEntity,
+  ): LogisticsUnloadCapacityBreakdown {
     const definition = this.definitions[destination.type]
     const category = definition?.category
     const base = category === 'harbor'
@@ -588,8 +624,22 @@ export class LogisticsSystem implements SimulationSystem {
           : 1
     const levelBonus = Math.floor(Math.max(0, destination.level - 1) / 3)
     const workerBonus = Math.floor(destination.workers.length / 6)
-    const entranceBonus = Math.min(2, Math.max(0, this.countRoadAccess(snapshot, destination) - 1))
-    return Math.max(1, Math.min(8, base + levelBonus + workerBonus + entranceBonus))
+    const roadAccess = this.countRoadAccess(snapshot, destination)
+    const entranceBonus = Math.min(2, Math.max(0, roadAccess - 1))
+    const cappedAt = 8
+    const total = Math.max(1, Math.min(cappedAt, base + levelBonus + workerBonus + entranceBonus))
+    return {
+      source: 'building',
+      ...(category ? { category } : {}),
+      base,
+      levelBonus,
+      workerBonus,
+      entranceBonus,
+      roadAccess,
+      workerCount: destination.workers.length,
+      cappedAt,
+      total,
+    }
   }
 
   private countRoadAccess(snapshot: SimulationSnapshot, building: BuildingEntity): number {

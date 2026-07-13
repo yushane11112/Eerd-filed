@@ -2,6 +2,27 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-13：第一百一十四轮卸货能力可视化解释
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 公共状态契约 | 新增 `LogisticsUnloadCapacityBreakdown`，让物流队列能携带卸货能力来源拆解 |
+| `src/simulation/economy/logistics.ts` | 物流模拟规则 | 输出建筑卸货能力拆解，并保持 QA 覆盖能力值的解释来源 |
+| `src/integration/stageAdvisor.ts` | 治理诊断 | 卸货排队治理卡说明最拥堵建筑的卸货能力、排队和来源构成 |
+| `src/ui/cityAdvisorUi.ts` | UI 文案格式化 | 建筑详情物流面板生成“卸货口”解释文案 |
+| `src/App.tsx` | 主界面接入 | 在建筑详情物流执行计划卡中展示卸货能力来源说明 |
+| `src/integration/GameRuntime.ts` | 调试场景稳定性 | 延长 `logistics-storage-build` 的排队压力窗口，并避免调试承运人污染活动压力卡 |
+| `src/simulation/economy/economy.test.ts` | 自动测试 | 覆盖普通市场和升级仓储的卸货能力来源拆解 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 覆盖卸货排队治理卡包含能力来源说明 |
+| `src/ui/cityAdvisorUi.test.ts` | 自动测试 | 覆盖建筑详情卸货口解释文案 |
+| `src/qa/browserE2eScenarios.ts` | 浏览器 E2E 契约 | 物流扩仓建造场景校准为真实建筑卸货能力“每刻卸货 2 单” |
+| `src/qa/browserE2eScenarios.test.ts` | 自动测试 | 固定浏览器契约中的真实卸货能力文本 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录第一百一十四轮进展、完成度和下一轮默认任务 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `LOGISTICS-UNLOAD-CAPACITY-EXPLAIN-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮能力解释、QA 场景校准和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录目标测试、浏览器场景、完整测试、构建和差异检查 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新最近完成事项和下一轮默认任务 |
+
 ## 2026-07-13：第一百一十三轮物流仓储建造浏览器场景
 
 | 文件 | 产物类型 | 用途 |

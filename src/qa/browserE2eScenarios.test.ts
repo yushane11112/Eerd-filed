@@ -58,7 +58,7 @@ describe('browser E2E scenario contract', () => {
       expect.objectContaining({
         id: 'logistics-storage-build',
         path: '/?debugScenario=logistics-storage-build',
-        mustContainText: expect.arrayContaining(['物流热点拥堵', '分流卸货压力', '执行计划：分流卸货口']),
+        mustContainText: expect.arrayContaining(['物流热点拥堵', '分流卸货压力', '执行计划：分流卸货口', '每刻卸货 2 单']),
         forbiddenConsoleLevels: ['error'],
         interaction: {
           clickText: '分流卸货压力',

@@ -9,6 +9,18 @@
 - 普通材料不依赖听歌；歌曲完成事件只结算稀缺材料。
 - 外来人口必须先进入候选状态，再根据城市吸引力、空房和等待时长决定入住或离开，不能凭空生成正式住户。
 
+## 2026-07-13 第一百一十四轮验证
+
+- 验证等级：Tier 3，物流队列契约、卸货模拟解释、治理卡、建筑详情面板和浏览器场景契约均有变更。
+- 定向测试：`npm test -- src/simulation/economy/economy.test.ts src/integration/stageAdvisor.test.ts src/ui/cityAdvisorUi.test.ts src/qa/browserE2eScenarios.test.ts` 通过，4 个测试文件、62 项测试。
+- 单场景真实浏览器 E2E：`BROWSER_E2E_SCENARIO=logistics-storage-build npm run qa:browser-e2e` 通过；场景可见“每刻卸货 2 单”，点击“分流卸货压力”后 toast 显示“粮仓已作为物流缓冲落成”。
+- 完整测试：`npm test` 通过，41 个测试文件、267 项测试。
+- 生产构建：`npm run build` 通过。
+- 完整浏览器 E2E：`npm run qa:browser-e2e` 通过，7 个固定场景全部通过；覆盖道路补线、财政不足、桥梁缺口、物流热点、物流扩仓建造、来源库存检查和服务治理。
+- 差异检查：`git diff --check` 通过。
+- TDD/QA 过程发现：原 `logistics-storage-build` 场景用手写固定 1 单能力，页面运行后会被真实引擎刷新为市场自身 2 单能力，且 18 单排队会在 QA 点击前消化；本轮改为真实能力文本并扩大排队压力窗口，避免测试只验证瞬时假状态。
+- 限制：本轮完成治理卡和建筑详情的文本解释，还没有把卸货能力来源短标签直接绘制到物流图层热点旁。
+
 ## 2026-07-13 第一百一十三轮验证
 
 - 验证等级：Tier 3，新增真实浏览器治理场景并覆盖物流仓储建造动作，影响 URL 调试入口、QA 契约和浏览器点击链路。

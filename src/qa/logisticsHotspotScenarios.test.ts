@@ -16,9 +16,9 @@ describe('logistics hotspot QA scenarios', () => {
           recommendationTool: 'building',
         },
         orders: [
-          { id: 'debug-food-inbound', resource: 'food', destinationBuildingId: 'market-1', state: 'waiting' },
+          { id: 'debug-food-inbound', resource: 'food', destinationBuildingId: 'market-1', state: 'assigned' },
           { id: 'debug-cloth-inbound', resource: 'cloth', destinationBuildingId: 'market-1', state: 'assigned' },
-          { id: 'debug-medicine-inbound', resource: 'medicine', destinationBuildingId: 'market-1', state: 'waiting' },
+          { id: 'debug-medicine-inbound', resource: 'medicine', destinationBuildingId: 'market-1', state: 'assigned' },
         ],
       },
     ])

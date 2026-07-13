@@ -14,6 +14,7 @@ describe('browser E2E scenario contract', () => {
       'road-plan-low-treasury',
       'bridge-gap',
       'logistics-hotspot',
+      'logistics-storage-build',
       'logistics-source-shortage',
       'service-governance',
     ])
@@ -51,7 +52,17 @@ describe('browser E2E scenario contract', () => {
         forbiddenConsoleLevels: ['error'],
         interaction: {
           clickText: '打开物流图层并补仓储',
-          expectToastText: '物流热点拥堵：打开物流图层并补仓储。',
+          expectToastText: '粮仓已作为物流缓冲落成',
+        },
+      }),
+      expect.objectContaining({
+        id: 'logistics-storage-build',
+        path: '/?debugScenario=logistics-storage-build',
+        mustContainText: expect.arrayContaining(['物流热点拥堵', '分流卸货压力', '执行计划：分流卸货口']),
+        forbiddenConsoleLevels: ['error'],
+        interaction: {
+          clickText: '分流卸货压力',
+          expectToastText: '粮仓已作为物流缓冲落成',
         },
       }),
       expect.objectContaining({
@@ -83,6 +94,10 @@ describe('browser E2E scenario contract', () => {
       id: 'logistics-hotspot',
       path: '/?debugScenario=logistics-hotspot',
     })
+    expect(browserE2eScenarioById('logistics-storage-build')).toMatchObject({
+      id: 'logistics-storage-build',
+      path: '/?debugScenario=logistics-storage-build',
+    })
     expect(browserE2eScenarioById('missing')).toBeUndefined()
   })
 
@@ -109,7 +124,13 @@ describe('browser E2E scenario contract', () => {
     expect(browserE2eScenarioById('logistics-hotspot')).toMatchObject({
       interaction: {
         clickText: '打开物流图层并补仓储',
-        expectToastText: '物流热点拥堵：打开物流图层并补仓储。',
+        expectToastText: '粮仓已作为物流缓冲落成',
+      },
+    })
+    expect(browserE2eScenarioById('logistics-storage-build')).toMatchObject({
+      interaction: {
+        clickText: '分流卸货压力',
+        expectToastText: '粮仓已作为物流缓冲落成',
       },
     })
     expect(browserE2eScenarioById('logistics-source-shortage')).toMatchObject({
@@ -154,7 +175,14 @@ describe('browser E2E scenario contract', () => {
         id: 'logistics-hotspot',
         interaction: {
           clickText: '打开物流图层并补仓储',
-          expectToastText: '物流热点拥堵：打开物流图层并补仓储。',
+          expectToastText: '粮仓已作为物流缓冲落成',
+        },
+      }),
+      expect.objectContaining({
+        id: 'logistics-storage-build',
+        interaction: {
+          clickText: '分流卸货压力',
+          expectToastText: '粮仓已作为物流缓冲落成',
         },
       }),
       expect.objectContaining({

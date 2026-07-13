@@ -26,6 +26,12 @@ describe('runtime URL options', () => {
     })
   })
 
+  it('enables the logistics storage build debug scenario', () => {
+    expect(runtimeOptionsFromSearch('?debugScenario=logistics-storage-build')).toEqual({
+      debugScenario: 'logistics-storage-build',
+    })
+  })
+
   it('enables the logistics source shortage debug scenario', () => {
     expect(runtimeOptionsFromSearch('?debugScenario=logistics-source-shortage')).toEqual({
       debugScenario: 'logistics-source-shortage',

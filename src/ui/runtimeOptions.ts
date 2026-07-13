@@ -5,6 +5,7 @@ const DEBUG_SCENARIOS = new Set<GameRuntimeOptions['debugScenario']>([
   'isolated-road-network-low-treasury',
   'bridge-gap',
   'logistics-hotspot',
+  'logistics-storage-build',
   'logistics-source-shortage',
 ])
 

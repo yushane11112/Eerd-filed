@@ -2,6 +2,21 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-13：第一百一十三轮物流仓储建造浏览器场景
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/GameRuntime.ts` | 调试场景 | 新增 `logistics-storage-build`，稳定制造卸货排队并保证正式建仓成本可支付 |
+| `src/ui/runtimeOptions.ts` | URL 场景入口 | 允许通过 `?debugScenario=logistics-storage-build` 打开该浏览器场景 |
+| `src/ui/runtimeOptions.test.ts` | 自动测试 | 覆盖新增 URL 调试参数不会被过滤 |
+| `src/qa/browserE2eScenarios.ts` | 浏览器 E2E 契约 | 新增物流扩仓建造场景，声明可见文案和真实点击断言 |
+| `src/qa/browserE2eScenarios.test.ts` | 自动测试 | 固定新场景 id、URL、文案和 interaction 元数据 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录第一百一十三轮进展、QA 完成度和下一轮默认任务 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `BROWSER-E2E-LOGISTICS-STORAGE-BUILD-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮浏览器场景、过程发现和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录定向测试、真实浏览器场景、完整测试、构建和差异检查 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新最近完成事项和下一轮默认任务 |
+
 ## 2026-07-13：第一百一十二轮分类型升级曲线
 
 | 文件 | 产物类型 | 用途 |

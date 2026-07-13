@@ -157,6 +157,7 @@ export type RuntimeDebugScenario =
   | 'isolated-road-network-low-treasury'
   | 'bridge-gap'
   | 'logistics-hotspot'
+  | 'logistics-storage-build'
   | 'logistics-source-shortage'
 
 export interface GameRuntimeOptions {
@@ -258,6 +259,11 @@ export class GameRuntime {
     if (options.debugScenario === 'logistics-hotspot') {
       const debugSnapshot = this.engine.snapshot
       this.applyLogisticsHotspotScenario(debugSnapshot)
+      this.engine = this.createEngine(debugSnapshot)
+    }
+    if (options.debugScenario === 'logistics-storage-build') {
+      const debugSnapshot = this.engine.snapshot
+      this.applyLogisticsStorageBuildScenario(debugSnapshot)
       this.engine = this.createEngine(debugSnapshot)
     }
     if (options.debugScenario === 'logistics-source-shortage') {
@@ -1370,7 +1376,8 @@ export class GameRuntime {
         sourceBuildingId: 'granary-1',
         destinationBuildingId: 'market-1',
         priority: 90,
-        state: 'waiting',
+        state: 'assigned',
+        carrierId: 'debug-carrier-food',
       },
       'debug-cloth-inbound': {
         id: 'debug-cloth-inbound',
@@ -1389,7 +1396,38 @@ export class GameRuntime {
         sourceBuildingId: 'granary-1',
         destinationBuildingId: 'market-1',
         priority: 70,
-        state: 'waiting',
+        state: 'assigned',
+        carrierId: 'debug-carrier-medicine',
+      },
+    }
+    snapshot.agents['debug-carrier-food'] = {
+      id: 'debug-carrier-food',
+      role: 'cart',
+      position: { x: 15, y: 18 },
+      path: [
+        { x: 15, y: 18 },
+        { x: 14, y: 18 },
+        { x: 13, y: 18 },
+        { x: 12, y: 18 },
+        { x: 11, y: 18 },
+        { x: 10, y: 18 },
+        { x: 10, y: 17 },
+        { x: 10, y: 16 },
+        { x: 10, y: 15 },
+        { x: 10, y: 14 },
+        { x: 10, y: 13 },
+        { x: 10, y: 12 },
+        { x: 10, y: 11 },
+      ],
+      pathIndex: 0,
+      activity: 'delivering',
+      cargoIntent: {
+        orderId: 'debug-food-inbound',
+        resource: 'food',
+        amount: 5,
+        sourceBuildingId: 'granary-1',
+        destinationBuildingId: 'market-1',
+        phase: 'pickup',
       },
     }
     snapshot.agents['debug-carrier-busy'] = {
@@ -1411,6 +1449,98 @@ export class GameRuntime {
         sourceBuildingId: 'granary-1',
         destinationBuildingId: 'market-1',
         phase: 'pickup',
+      },
+    }
+    snapshot.agents['debug-carrier-medicine'] = {
+      id: 'debug-carrier-medicine',
+      role: 'cart',
+      position: { x: 15, y: 17 },
+      path: [
+        { x: 15, y: 17 },
+        { x: 14, y: 17 },
+        { x: 13, y: 17 },
+        { x: 12, y: 17 },
+        { x: 11, y: 17 },
+        { x: 10, y: 17 },
+        { x: 10, y: 16 },
+        { x: 10, y: 15 },
+        { x: 10, y: 14 },
+        { x: 10, y: 13 },
+        { x: 10, y: 12 },
+        { x: 10, y: 11 },
+      ],
+      pathIndex: 0,
+      activity: 'delivering',
+      cargoIntent: {
+        orderId: 'debug-medicine-inbound',
+        resource: 'medicine',
+        amount: 3,
+        sourceBuildingId: 'granary-1',
+        destinationBuildingId: 'market-1',
+        phase: 'pickup',
+      },
+    }
+    snapshot.agents['carrier-1'].activity = 'working'
+  }
+
+  private applyLogisticsStorageBuildScenario(snapshot: SimulationSnapshot) {
+    snapshot.economy.treasury = Math.max(snapshot.economy.treasury, 2400)
+    const market = snapshot.buildings['market-1']
+    snapshot.buildings['granary-1'].inventory = {
+      ...snapshot.buildings['granary-1'].inventory,
+      wood: Math.max(inventoryAmount(snapshot.buildings['granary-1'], 'wood'), 8),
+      stone: Math.max(inventoryAmount(snapshot.buildings['granary-1'], 'stone'), 6),
+      food: 80,
+      cloth: 24,
+      medicine: 24,
+    }
+    market.inventory = {
+      ...market.inventory,
+      food: 0,
+      cloth: 0,
+      medicine: 0,
+    }
+    snapshot.logisticsOrders = {}
+    for (let index = 1; index <= 18; index += 1) {
+      const orderId = `debug-unload-food-${index}`
+      const carrierId = `debug-unload-carrier-${index}`
+      snapshot.logisticsOrders[orderId] = {
+        id: orderId,
+        resource: 'food',
+        amount: 1,
+        sourceBuildingId: 'granary-1',
+        destinationBuildingId: 'market-1',
+        priority: 100 - index,
+        state: 'in_transit',
+        carrierId,
+        failureReason: 'destination-throughput',
+        throughputQueuedSinceTick: Math.max(0, snapshot.tick - index),
+      }
+      snapshot.agents[carrierId] = {
+        id: carrierId,
+        role: 'cart',
+        position: { ...market.entrance },
+        path: [{ ...market.entrance }],
+        pathIndex: 0,
+        activity: 'delivering',
+        cargoIntent: {
+          orderId,
+          resource: 'food',
+          amount: 1,
+          sourceBuildingId: 'granary-1',
+          destinationBuildingId: 'market-1',
+          phase: 'dropoff',
+        },
+      }
+    }
+    snapshot.logisticsQueues = {
+      'market-1': {
+        buildingId: 'market-1',
+        unloadCapacityPerTick: 1,
+        unloadedThisTick: 1,
+        waitingToUnloadCount: 18,
+        longestWaitTicks: 18,
+        waitingOrderIds: Object.keys(snapshot.logisticsOrders).slice(0, 12),
       },
     }
     snapshot.agents['carrier-1'].activity = 'working'

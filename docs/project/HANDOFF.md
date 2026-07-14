@@ -22,6 +22,8 @@ codex/commercial-launch-plan-docs
 /Users/xmly/Documents/Codex/2026-06-23/ni
 ```
 
+真实游戏持续预览：`https://little-ear-island-game-preview.netlify.app`。该地址直接运行本仓库的 Vite/Pixi 游戏构建，并已绑定 GitHub 自动部署；推送当前开发分支后会自动更新。不要把该需求重新解释成独立宣传落地页。
+
 最近完成：第一百一十四轮已完成卸货能力可视化解释，治理卡和建筑详情会说明当前建筑卸货能力来自基础、等级、工人和入口道路；第一百一十三轮已补上 `logistics-storage-build` 物流仓储建造真实浏览器场景，真实点击“分流卸货压力”后建成粮仓缓冲。
 
 如果另一台电脑路径不同，不影响项目，只要 clone 同一个 GitHub 仓库并 checkout 同一个分支即可。

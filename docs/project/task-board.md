@@ -2,6 +2,7 @@
 
 | ID | 会话职责 | 写入范围 | 状态 | 集成条件 |
 | --- | --- | --- | --- | --- |
+| PREVIEW-CONTINUOUS-DEPLOY-01 | 真实游戏持续预览站 | `netlify.toml`, `.gitignore`, `docs/project/**` | 已完成 | 公网地址直接运行当前 Vite/Pixi 游戏；GitHub 推送自动触发构建与发布 |
 | PM-LAUNCH-PLAN-01 | 商业级完整上线总计划 | `docs/project/commercial-launch-master-plan.md` | 已完成 | 明确最终上线目标、阶段产出、生产线、自动执行机制 |
 | PM-DASHBOARD-01 | 进度仪表盘 | `docs/project/progress-dashboard.md` | 已完成 | 阶段、完成度、风险、下一轮任务可检查 |
 | PM-ARTIFACT-INDEX-01 | 项目真实产物索引 | `docs/project/artifact-index.md` | 已完成 | 每轮实际新增/修改文件可追踪 |

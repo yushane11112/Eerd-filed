@@ -6,3 +6,6 @@ coverage/
 work/
 outputs/
 
+
+# Local Netlify folder
+.netlify

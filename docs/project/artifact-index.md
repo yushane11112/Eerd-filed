@@ -2,6 +2,18 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-07-14：真实游戏持续预览站
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `netlify.toml` | 持续部署配置 | 使用 `npm run build` 构建并发布 `dist` 中的真实游戏产物 |
+| `.gitignore` | 本地状态隔离 | 忽略 Netlify 本地项目绑定目录 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录真实游戏预览地址和自动更新口径 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `PREVIEW-CONTINUOUS-DEPLOY-01` 已完成 |
+| `docs/project/integration-log.md` | 集成记录 | 记录部署方式、资源校验和实时更新边界 |
+| `docs/project/qa.md` | QA 记录 | 记录完整测试、构建和公网资源验证 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 固化预览入口和推送后自动更新规则 |
+
 ## 2026-07-13：第一百一十四轮卸货能力可视化解释
 
 | 文件 | 产物类型 | 用途 |

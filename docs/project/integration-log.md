@@ -613,3 +613,11 @@
 - 修正 prefab 占位尺寸：不再把 manifest 原始像素 bounds 当地图尺寸，避免巨大透明矩形覆盖地图；占位视觉现在按等距建筑 fallback 尺寸缩放。
 - 用本机 Chrome 截图验证主画布可加载、canvas 为 1440×900，巨大矩形已消失；截图产物为 `/tmp/eerd-visual-slice-104-fixed.png`。
 - 客观限制：这仍是程序化占位和 manifest 样例接入，不是最终手绘/建模资产；下一步应继续做更大尺寸、更强辨识度的建筑轮廓、道路铺装和街区氛围。
+
+## 2026-07-16 第一百一十五轮：物流仓储建成后结果解释
+
+- 启动 `LOGISTICS-STORAGE-OUTCOME-01`：补齐仓储治理动作的结果闭环，避免建成后只剩一次性 toast。
+- `SimulationSnapshot.logisticsStorageInterventions` 按新建筑保存本次干预的 tick、重置订单数、释放承运人数和清理卸货队列数；这些数据随运行时重建保留。
+- `GameRuntime.buildStorageForLogisticsPlan` 在清理队列时记录真实数量；`App` 建成后自动选中新粮仓，详情抽屉持续显示“建成后的物流变化”。
+- 浏览器场景 `logistics-storage-build` 增加可见断言，确认点击治理卡后详情面板出现持久化结果，而不是只验证 toast。
+- 客观限制：本轮结果仍按单次干预记录，尚未进入存档版本迁移、事件流统计和多次干预历史列表；下一轮继续做经济/容量联动审计。

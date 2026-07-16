@@ -636,6 +636,7 @@ describe('GameRuntime integration', () => {
         ordersReset: 1,
         carriersReleased: 1,
         missingOrders: 1,
+        queuesCleared: 1,
       },
     })
     expect(result.logisticsStorage?.buildingId).toMatch(/^granary-/)
@@ -659,6 +660,12 @@ describe('GameRuntime integration', () => {
     })
     expect(after.agents['carrier-1']).not.toHaveProperty('cargoIntent')
     expect(after.logisticsQueues).toEqual({})
+    expect(after.logisticsStorageInterventions?.[result.logisticsStorage!.buildingId!]).toEqual({
+      tick: after.tick,
+      ordersReset: 1,
+      carriersReleased: 1,
+      queuesCleared: 1,
+    })
   })
 
   it('previews building placement footprint and conflicts without mutating the city', () => {

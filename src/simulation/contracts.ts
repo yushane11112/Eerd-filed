@@ -193,6 +193,13 @@ export interface LogisticsQueueState {
   waitingOrderIds: EntityId[]
 }
 
+export interface LogisticsStorageIntervention {
+  tick: Tick
+  ordersReset: number
+  carriersReleased: number
+  queuesCleared: number
+}
+
 export interface ServiceQueueEntry {
   householdId: EntityId
   queuedSinceTick: Tick
@@ -325,6 +332,7 @@ export interface SimulationSnapshot {
   logisticsOrders: Record<EntityId, LogisticsOrder>
   logisticsArchive?: LogisticsArchiveState
   logisticsQueues?: Record<EntityId, LogisticsQueueState>
+  logisticsStorageInterventions?: Record<EntityId, LogisticsStorageIntervention>
   serviceQueues?: Record<EntityId, ServiceQueueState>
   economy: EconomyState
   metrics: CityMetrics

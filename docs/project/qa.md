@@ -1064,3 +1064,11 @@
 - 当前仍是程序化占位细节，不是最终手绘/建模资产；但它已经进入真实主画布，不再只存在于测试 registry。
 - `main-granary` 暂用现有完整样例生成运行时 descriptor，以便显示粮仓程序化细节；正式粮仓 manifest 仍需后续补齐。
 - 主包增加了样例 manifest 数据，后续应评估是否把 registry 拆成懒加载或压缩后的生产 manifest。
+
+## 2026-07-16 第一百一十五轮验证
+
+- 目标 GREEN：`npm test -- src/integration/GameRuntime.test.ts src/ui/cityAdvisorUi.test.ts src/qa/browserE2eScenarios.test.ts` 通过，35 项测试覆盖物流建成结果快照、文案和浏览器契约。
+- 浏览器验收：`BROWSER_E2E_SCENARIO=logistics-storage-build npm run qa:browser-e2e` 通过；真实点击“分流卸货压力”后验证 toast 与“建成后的物流变化”详情均出现。
+- 生产构建：浏览器命令内置 `npm run build` 通过，Vite 产物正常生成。
+- 浏览器仅记录 Chromium/WebGL 驱动 warning，无应用 console error。
+- 本轮变更尚未完成全量回归；提交前将继续运行 `npm test`、`npm run build` 和 `git diff --check`。

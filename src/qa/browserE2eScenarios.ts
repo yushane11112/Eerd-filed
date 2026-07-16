@@ -67,6 +67,7 @@ export const BROWSER_E2E_SCENARIOS: BrowserE2eScenario[] = [
     interaction: {
       clickText: '分流卸货压力',
       expectToastText: '粮仓已作为物流缓冲落成',
+      expectVisibleText: '建成后的物流变化',
     },
   },
   {

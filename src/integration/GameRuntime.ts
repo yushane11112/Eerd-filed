@@ -7,6 +7,7 @@ import type {
   ResourceKind,
   RoadKind,
   SimulationSnapshot,
+  LogisticsStorageIntervention,
 } from '../simulation/contracts'
 import {
   BUILDING_DEFINITIONS,
@@ -115,6 +116,7 @@ export interface RuntimeActionResult {
     ordersReset: number
     carriersReleased: number
     missingOrders: number
+    queuesCleared?: number
     construction?: BuildingConstructionCost
   }
   upgrade?: {
@@ -969,6 +971,7 @@ export class GameRuntime {
       ordersReset: 0,
       carriersReleased: 0,
       missingOrders: 0,
+      queuesCleared: 0,
       construction: undefined as BuildingConstructionCost | undefined,
     }
     if (!definition) {
@@ -1040,6 +1043,8 @@ export class GameRuntime {
     snapshot.cells = this.grid.toCells()
     stats.buildingId = id
     stats.construction = payment.cost
+    const queuesCleared = Object.keys(snapshot.logisticsQueues ?? {}).length
+    stats.queuesCleared = queuesCleared
 
     const uniqueOrderIds = Array.from(new Set(input.orderIds))
     for (const orderId of uniqueOrderIds) {
@@ -1065,6 +1070,15 @@ export class GameRuntime {
       delete order.cancelReason
       delete order.throughputQueuedSinceTick
       stats.ordersReset += 1
+    }
+    snapshot.logisticsStorageInterventions = {
+      ...(snapshot.logisticsStorageInterventions ?? {}),
+      [id]: {
+        tick: snapshot.tick,
+        ordersReset: stats.ordersReset,
+        carriersReleased: stats.carriersReleased,
+        queuesCleared,
+      } satisfies LogisticsStorageIntervention,
     }
     snapshot.logisticsQueues = {}
     this.rebuild(snapshot)

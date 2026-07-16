@@ -1,5 +1,5 @@
 import type { StageGovernanceRecommendation } from '../integration/stageAdvisor'
-import type { LogisticsUnloadCapacityBreakdown } from '../simulation/contracts'
+import type { LogisticsStorageIntervention, LogisticsUnloadCapacityBreakdown } from '../simulation/contracts'
 
 export function formatRoadPlanSummary(
   roadPlan: NonNullable<StageGovernanceRecommendation['roadPlan']>,
@@ -80,4 +80,10 @@ export function formatUnloadCapacityCopy(
     `来源 ${parts.join('、')}`,
     `邻路 ${queue.breakdown.roadAccess} 格，工人 ${queue.breakdown.workerCount} 人，上限 ${queue.breakdown.cappedAt}`,
   ].join('；') + '。'
+}
+
+export function formatLogisticsStorageOutcome(
+  outcome: LogisticsStorageIntervention,
+): string {
+  return `建成后已重置 ${outcome.ordersReset} 条订单、释放 ${outcome.carriersReleased} 名承运人，并清理 ${outcome.queuesCleared} 个卸货队列；订单将重新等待分流。`
 }

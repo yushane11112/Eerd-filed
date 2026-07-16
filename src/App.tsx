@@ -53,7 +53,7 @@ import {
   FullscreenController,
   type FullscreenState,
 } from './ui'
-import { formatLogisticsInventoryPanelCopy, formatRoadPlanSummary } from './ui/cityAdvisorUi'
+import { formatLogisticsInventoryPanelCopy, formatLogisticsStorageOutcome, formatRoadPlanSummary } from './ui/cityAdvisorUi'
 import { runtimeOptionsFromSearch } from './ui/runtimeOptions'
 import './styles.css'
 
@@ -130,6 +130,9 @@ export default function App() {
     : undefined
   const selectedLogisticsPanel = selectedBuilding
     ? logisticsPlanInspectorPanel(snapshot, activeStageRecommendation, selectedBuilding.id)
+    : undefined
+  const selectedLogisticsOutcome = selectedBuilding
+    ? snapshot.logisticsStorageInterventions?.[selectedBuilding.id]
     : undefined
   const rareTotal = Object.values(snapshot.rareRewards.inventory)
     .reduce((sum, value) => sum + (value ?? 0), 0)
@@ -320,6 +323,7 @@ export default function App() {
       if (result.ok) {
         setRecommendedBuildType(null)
         setActiveStageRecommendation(null)
+        if (result.buildingId) setSelectedBuildingId(result.buildingId)
         setStageAdvisorOverlay(deriveStageMapOverlay('logistics', runtime.getSnapshot(), Date.now()) ?? null)
         setActiveStageOverlayMode('logistics')
         return
@@ -726,6 +730,15 @@ export default function App() {
               <p>{selectedLogisticsPanel.copy.inventory}</p>
               <em>{selectedLogisticsPanel.copy.dispatch}</em>
               {selectedLogisticsPanel.copy.unload && <em>{selectedLogisticsPanel.copy.unload}</em>}
+            </div>
+          )}
+          {selectedLogisticsOutcome && (
+            <div className="logistics-outcome-card">
+              <div className="upgrade-head">
+                <span>建成后的物流变化</span>
+                <b>已生效</b>
+              </div>
+              <p>{formatLogisticsStorageOutcome(selectedLogisticsOutcome)}</p>
             </div>
           )}
           {selectedUpgrade && (

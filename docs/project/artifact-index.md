@@ -1429,3 +1429,14 @@
 | `docs/project/integration-log.md` | 集成记录 | 记录本轮视觉 registry 接入事实 |
 | `docs/project/qa.md` | QA 记录 | 记录本轮目标测试、开发构建、截图验证、全量回归和限制 |
 | `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务，避免新会话重复本轮 |
+
+## 2026-07-16：第一百一十五轮物流仓储建成后结果解释
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 运行时契约 | 新增 `LogisticsStorageIntervention` 与快照持久化字段 |
+| `src/integration/GameRuntime.ts` | 运行时动作 | 建成缓冲仓时记录重置订单、释放承运人和清理队列的真实数量 |
+| `src/ui/cityAdvisorUi.ts` | UI 文案 | 统一生成建成后物流结果解释 |
+| `src/App.tsx` | 建筑详情 | 建成后自动选中新粮仓并持续显示结果面板 |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 固定运行时结果写入快照 |
+| `src/qa/browserE2eScenarios.ts` | 浏览器 QA | 物流建造场景新增建成后详情可见断言 |

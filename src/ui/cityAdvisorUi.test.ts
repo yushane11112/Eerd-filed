@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatLogisticsInventoryPanelCopy, formatRoadPlanSummary } from './cityAdvisorUi'
+import { formatLogisticsInventoryPanelCopy, formatLogisticsStorageOutcome, formatRoadPlanSummary } from './cityAdvisorUi'
 
 describe('city advisor UI copy', () => {
   it('summarizes road and bridge construction plans for bottleneck cards', () => {
@@ -83,5 +83,14 @@ describe('city advisor UI copy', () => {
       dispatch: '承运调度：忙碌 4，待派 0。',
       unload: '卸货口：每刻 5 单，排队 3 单，最长等待 7 刻；来源 基础 3、等级 +1、入口道路 +1；邻路 2 格，工人 5 人，上限 8。',
     })
+  })
+
+  it('explains the persistent result of building a logistics buffer', () => {
+    expect(formatLogisticsStorageOutcome({
+      tick: 42,
+      ordersReset: 3,
+      carriersReleased: 2,
+      queuesCleared: 1,
+    })).toBe('建成后已重置 3 条订单、释放 2 名承运人，并清理 1 个卸货队列；订单将重新等待分流。')
   })
 })

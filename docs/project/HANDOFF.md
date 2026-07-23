@@ -575,3 +575,18 @@ npm run build
 - 默认桌面浏览器回归通过功能与实体门禁，但 rAF 32.79/49.3/66.7ms，商业性能仍 RED；PNG 独立降级路径本轮未形成稳定可采纳的对照数据。
 - 本轮已完成构建、9 项定向测试、atlas 审计和 diff 检查；工作区仍待提交推送。
 - 下一步优先修复差分 runner 的服务/端口/浏览器生命周期，再完成三环境、多重复、目标规模的 WebP/PNG 矩阵与视口 LOD；不能把资源体积优化等同于商业级完成。
+
+## 2026-07-23 本轮交接：第二百零二轮
+
+- 渲染差分生命周期已修复：外层等待 `close`，浏览器 runner 统一清理 Vite 服务和浏览器进程组，超时有强杀兜底。
+- 桌面 GPU `full/no-atlas × 2`、软件渲染/嵌入容器五模式各 1 次均稳定输出 JSON；功能、实体、配置和 readPixels 门禁通过。
+- 本轮证据来自居民垂直切片，rAF 接近 60Hz 调度值，不能代替 300 栋/150 可见实体压力性能验收；商业性能仍 RED。
+- 下一步：将稳定 runner 接入 `civilization-scale`，完成三环境 × full/WebP/no-atlas × 目标规模的重复矩阵，再处理视口 LOD、纹理上传和 GPU 合成长尾。工作区本轮改动尚未提交推送。
+
+## 2026-07-23 本轮交接：第二百零三轮
+
+- 已修正 `civilization-scale` 默认误关闭 authored artwork/animation/terrain 的夹具问题，并新增契约回归测试；`full` 现在代表真实全画质目标规模。
+- 桌面 GPU 目标规模 full：rAF 平均/P95/最大 41.33/66.6/66.6ms，renderer 3.783/10.6/97.4ms；300 栋、135 居民、15 运输、150+ 可见、readPixels=0，功能门禁通过但商业帧率 RED。
+- no-atlas 为 46.39/66.8/66.9ms；其余 no-artwork/no-animation/no-terrain 也稳定返回，证明差分 runner 已能覆盖真实目标规模。
+- 完整回归 57 个测试文件/356 个测试通过，构建和 diff 检查通过；仓库既有 `npm run lint` 因 ESLint 9 缺少 `eslint.config.*` 无法启动，需后续单独修复。
+- 本轮下一步：将证据转入优化轮，优先处理视口裁剪、资源上传节流、渲染提交批次和 GPU 合成长尾；完成目标设备复测后才能关闭 `RENDER-SCALE-LONGTAIL-01`、`RENDER-GPU-COMPOSITOR-01`、`RENDER-ATLAS-PRODUCTION-GATE-01`。本轮仍需提交并推送。

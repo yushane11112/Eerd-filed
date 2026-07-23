@@ -105,7 +105,9 @@ export const BROWSER_E2E_SCENARIOS: BrowserE2eScenario[] = [
   {
     id: 'civilization-scale',
     title: '文明规模动态场景浏览器压力场景',
-    path: '/?debugScenario=civilization-scale&renderProfile=1&disableArtwork=1&disableAnimation=1&disableTerrain=1',
+    // The scale fixture represents the authored, animated production scene by default.
+    // Ablation runners explicitly add disableArtwork/disableAnimation/disableTerrain when needed.
+    path: '/?debugScenario=civilization-scale&renderProfile=1',
     mustContainText: ['城市运行'],
     forbiddenConsoleLevels: ['error'],
     renderEntityMinimums: {

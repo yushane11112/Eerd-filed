@@ -109,6 +109,15 @@ describe('browser E2E scenario contract', () => {
     expect(browserE2eScenarioById('missing')).toBeUndefined()
   })
 
+  it('keeps the civilization-scale baseline on the authored render path', () => {
+    expect(browserE2eScenarioById('civilization-scale')).toMatchObject({
+      path: '/?debugScenario=civilization-scale&renderProfile=1',
+    })
+    expect(browserE2eScenarioById('civilization-scale')?.path).not.toContain('disableArtwork=1')
+    expect(browserE2eScenarioById('civilization-scale')?.path).not.toContain('disableAnimation=1')
+    expect(browserE2eScenarioById('civilization-scale')?.path).not.toContain('disableTerrain=1')
+  })
+
   it('declares at least one real browser interaction instead of only page text checks', () => {
     expect(BROWSER_E2E_SCENARIOS.some((scenario) => scenario.interaction)).toBe(true)
     expect(browserE2eScenarioById('road-plan-success')).toMatchObject({

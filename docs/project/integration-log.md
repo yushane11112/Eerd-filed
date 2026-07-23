@@ -1224,3 +1224,17 @@
 - 本轮实际生成 28 张 WebP atlas、252 个 384px 等级帧，约 16.80 MiB；新增完整性审计，生成、审计、构建和定向测试均通过。
 - `buildingArtwork.ts` 的正式 atlas provider 已使用 WebP manifest；缺失或加载异常继续回退独立 PNG，未改变建筑等级视觉帧。
 - 默认桌面浏览器回归功能通过，但平均/P95/最大 rAF 32.79/49.3/66.7ms，商业性能仍未通过；差分 runner 的多次执行生命周期问题继续单列处理。
+
+## 2026-07-23：第二百零二轮渲染差分生命周期修复
+
+- `tools/qa/run-render-ablation.ts` 现在等待子进程 `close`，统一处理超时、错误、stdout 管道和重复 settle，并在 Unix 下以进程组方式终止浏览器 runner 及其子进程。
+- `tools/browser-e2e/run-browser-e2e.cjs` 对 Vite preview 使用独立进程组；浏览器关闭和服务清理由带超时的统一函数完成，避免多轮差分留下端口或浏览器进程。
+- 真实矩阵结果：桌面 GPU `full/no-atlas` 各 2 次，软件渲染和嵌入容器各覆盖 full/no-atlas/no-artwork/no-animation/no-terrain 1 次；全部稳定返回 JSON，配置回传正确，readPixels 均为 0。
+- 观测属于居民垂直切片，rAF 接近 60Hz 调度值；未覆盖 300 栋压力场景，因此没有把本轮结果写成商业性能通过。
+
+## 2026-07-23：第二百零三轮目标规模全画质差分
+
+- 修正 `civilization-scale` 场景契约：压力场景默认走完整 authored artwork/animation/terrain；`run-render-ablation` 的禁用模式负责显式构造差分夹具，新增测试锁定该语义。
+- 桌面 GPU 目标规模全画质样本：rAF 41.33/66.6/66.6ms，renderer 3.783/10.6/97.4ms，render sync P95 6.1ms；配置回传为 authoredArtwork=true、authoredAnimation=true、terrain=true、buildingAtlas=true，readPixels=0。
+- 同规模 no-atlas 为 46.39/66.8/66.9ms；no-artwork、no-animation、no-terrain 也均稳定返回并通过实体/功能/readPixels 门禁。全画质和图集差异均未达到 16.7ms 帧预算。
+- 该轮有效证明了目标规模渲染夹具和生命周期，不证明商业设备帧率；下一步继续解决渲染长尾与资源上传策略。

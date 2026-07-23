@@ -1742,3 +1742,18 @@
 - `npm run build`、建筑 artwork/diagnostics 定向测试 9 项和 `git diff --check` 通过；已知 jsdom Canvas warning 不影响退出码。
 - 默认 WebP atlas 桌面浏览器场景功能门禁通过：5 buildings、3 residents、1 transport、14 visible、readPixels=0；rAF 平均/P95/最大 32.79/49.3/66.7ms，renderer 1.15/2.2/69.6ms。
 - 结论：WebP 明显降低发行资源体积并已成为默认路径，但帧率仍未达到 16.7ms 商业目标；独立 PNG 对照本轮未稳定返回，不能纳入性能结论。
+
+## 2026-07-23 第二百零二轮验证
+
+- 构建与渲染定向测试通过；差分执行器在桌面 GPU `full/no-atlas × 2` 下稳定返回完整 JSON。
+- 软件渲染与嵌入容器各完成 5 模式 × 1：full、no-atlas、no-artwork、no-animation、no-terrain；每个结果 `ok=true`、配置开关回传正确、readPixels=0。
+- 垂直切片矩阵的 rAF 汇总约 16.65–16.68ms，renderer 平均约 0.34–0.75ms；这只是小场景生命周期和功能证据，不是 300 栋商业性能证据。GPU stall 警告在桌面环境仍可能出现。
+- 验收结论：`QA-RENDER-ABLATION-LIFECYCLE-01` 关闭；`RENDER-SCALE-LONGTAIL-01`、`RENDER-GPU-COMPOSITOR-01` 和 `RENDER-ATLAS-PRODUCTION-GATE-01` 继续 RED/进行中，下一步必须跑目标规模矩阵。
+
+## 2026-07-23 第二百零三轮验证
+
+- 修正压力夹具后，`civilization-scale` 默认配置确认开启 authoredArtwork、authoredAnimation、terrain 和 buildingAtlas；契约测试、`npm run build`、定向测试和 `git diff --check` 通过。
+- 完整回归：57 个测试文件、356 个测试全部通过；`npm run build` 通过。`npm run lint` 未执行成功，原因是仓库当前 ESLint 9 缺少 `eslint.config.*`，属于既有工程配置门禁问题，不是本轮规则错误。
+- 桌面 GPU `full` 目标规模：300 buildings、135 residents、15 transport、至少 150 visible，`ok=true`、readPixels=0；rAF 平均/P95/最大 41.33/66.6/66.6ms，renderer 平均/P95/最大 3.783/10.6/97.4ms，render sync P95 6.1ms。
+- 同规模 `no-atlas`：46.39/66.8/66.9ms，renderer 3.828/10.5/102.7ms；`no-artwork` 50.83/83/83ms，`no-animation` 42.39/66.7/67.1ms，`no-terrain` 32.79/50/50ms；全部 `ok=true`、readPixels=0，配置差异与模式一致。
+- 验收结论：目标规模动态场景可以稳定运行，生命周期和功能门禁 GREEN；商业 16.7ms 帧预算仍 RED，且 GPU/合成长尾最大约 97–103ms。后续必须优化视口裁剪、纹理上传节流、提交批次和目标设备实测，不能将本轮称为商业级性能通过。

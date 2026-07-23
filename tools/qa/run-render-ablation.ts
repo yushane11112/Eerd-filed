@@ -17,6 +17,7 @@ const modes = requestedModes.length
 
 if (modes.length === 0) throw new Error(`No render ablation mode matched RENDER_ABLATION_MODES=${requestedModes.join(',')}`)
 let invocation = 0
+const timeoutMs = Number.parseInt(process.env.RENDER_ABLATION_TIMEOUT_MS ?? '90000', 10)
 
 interface BrowserResult {
   ok: boolean
@@ -33,6 +34,16 @@ const median = (values: number[]) => {
   return sorted[Math.floor((sorted.length - 1) / 2)] ?? Number.POSITIVE_INFINITY
 }
 
+const terminateProcessTree = (child: ReturnType<typeof spawn>, signal: NodeJS.Signals) => {
+  if (!child.pid) return
+  try {
+    if (process.platform !== 'win32') process.kill(-child.pid, signal)
+    else child.kill(signal)
+  } catch {
+    child.kill(signal)
+  }
+}
+
 const run = (query: string) => new Promise<BrowserResult>((resolve, reject) => {
   invocation += 1
   const child = spawn(process.execPath, ['tools/browser-e2e/run-browser-e2e.cjs'], {
@@ -44,28 +55,43 @@ const run = (query: string) => new Promise<BrowserResult>((resolve, reject) => {
       BROWSER_E2E_PORT: String(Number.parseInt(process.env.BROWSER_E2E_PORT ?? '4173', 10) + invocation),
     },
     stdio: ['ignore', 'pipe', 'pipe'],
+    detached: process.platform !== 'win32',
   })
   let stdout = ''
   let stderr = ''
+  let settled = false
+  let forceKill: NodeJS.Timeout | undefined
+  const settle = (callback: () => void) => {
+    if (settled) return
+    settled = true
+    clearTimeout(timeout)
+    if (forceKill) clearTimeout(forceKill)
+    callback()
+  }
+  const cleanup = () => {
+    terminateProcessTree(child, 'SIGTERM')
+    forceKill = setTimeout(() => terminateProcessTree(child, 'SIGKILL'), 2_000)
+    forceKill.unref()
+  }
   const timeout = setTimeout(() => {
-    child.kill('SIGTERM')
-    reject(new Error(`渲染差分运行超时（${query}）`))
-  }, Number.parseInt(process.env.RENDER_ABLATION_TIMEOUT_MS ?? '90000', 10))
+    settle(() => reject(new Error(`渲染差分运行超时（${query}，${timeoutMs}ms）`)))
+    cleanup()
+  }, timeoutMs)
   child.stdout.on('data', (chunk) => { stdout += chunk.toString() })
   child.stderr.on('data', (chunk) => { stderr += chunk.toString() })
-  child.once('error', reject)
-  child.once('exit', (code) => {
-    clearTimeout(timeout)
+  child.once('error', (error) => settle(() => reject(error)))
+  child.once('close', (code, signal) => {
+    if (settled) return
     const jsonStart = stdout.indexOf('{')
     if (jsonStart < 0) {
-      reject(new Error(`渲染差分没有输出 JSON（${query}, exit ${code}）：${stderr || stdout}`))
+      settle(() => reject(new Error(`渲染差分没有输出 JSON（${query}, close ${code}, signal ${signal ?? 'none'}）：${stderr || stdout}`)))
       return
     }
     try {
       const report = JSON.parse(stdout.slice(jsonStart))
-      resolve(report.results?.[0] ?? { ok: false, failures: ['missing scenario result'] })
+      settle(() => resolve(report.results?.[0] ?? { ok: false, failures: ['missing scenario result'] }))
     } catch (error) {
-      reject(new Error(`渲染差分 JSON 解析失败：${error instanceof Error ? error.message : String(error)}`))
+      settle(() => reject(new Error(`渲染差分 JSON 解析失败：${error instanceof Error ? error.message : String(error)}`)))
     }
   })
 })

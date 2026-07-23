@@ -54,7 +54,7 @@ async function main() {
       String(port),
       '--strictPort',
     ],
-    { cwd, stdio: ['ignore', 'pipe', 'pipe'] },
+    { cwd, stdio: ['ignore', 'pipe', 'pipe'], detached: process.platform !== 'win32' },
   )
   const serverLogs = []
   server.stdout.on('data', (chunk) => serverLogs.push(chunk.toString()))
@@ -71,7 +71,7 @@ async function main() {
         results.push(await runScenario(browser, scenario))
       }
     } finally {
-      await browser.close()
+      await closeBrowser(browser)
     }
 
     console.log(JSON.stringify({
@@ -85,18 +85,48 @@ async function main() {
     const failed = results.filter((result) => !result.ok)
     if (failed.length > 0) process.exit(1)
   } finally {
-    server.kill('SIGTERM')
-    await new Promise((resolve) => {
-      const timer = setTimeout(resolve, 1_000)
-      server.once('exit', () => {
-        clearTimeout(timer)
-        resolve()
-      })
-    })
+    await terminateProcessTree(server)
     if (process.env.BROWSER_E2E_DEBUG_SERVER_LOGS === '1') {
       console.error(serverLogs.join(''))
     }
   }
+}
+
+async function closeBrowser(browser) {
+  try {
+    await withTimeout(browser.close(), 5_000)
+  } catch {
+    const browserProcess = typeof browser.process === 'function' ? browser.process() : null
+    if (browserProcess) await terminateProcessTree(browserProcess)
+  }
+}
+
+async function terminateProcessTree(child) {
+  if (!child?.pid) return
+  try {
+    if (process.platform !== 'win32') process.kill(-child.pid, 'SIGTERM')
+    else child.kill('SIGTERM')
+  } catch {}
+  await new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      try {
+        if (process.platform !== 'win32') process.kill(-child.pid, 'SIGKILL')
+        else child.kill('SIGKILL')
+      } catch {}
+      resolve()
+    }, 1_000)
+    child.once('exit', () => {
+      clearTimeout(timer)
+      resolve()
+    })
+  })
+}
+
+function withTimeout(promise, timeoutMs) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`operation timed out after ${timeoutMs}ms`)), timeoutMs)),
+  ])
 }
 
 async function loadScenarioContract() {

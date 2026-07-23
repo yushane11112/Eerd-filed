@@ -2135,6 +2135,14 @@
 | `tools/asset-validator/runtime-artwork-atlas-audit.js` | 图集完整性审计 | 校验 28 张 atlas、252 帧、扩展名、manifest 和文件体积 |
 | `src/rendering/artwork/buildingArtwork.ts` | WebP atlas provider | 加载共享图集并按等级创建帧纹理，异常时回退独立 PNG |
 
+## 2026-07-23 第二百零二轮：渲染差分生命周期
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `tools/qa/run-render-ablation.ts` | 稳定差分执行器 | 等待 `close`、清理进程组、处理超时与重复执行，避免无 JSON 或残留端口 |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 浏览器/Vite 生命周期清理 | 统一关闭浏览器和 preview 服务，并提供超时强杀兜底 |
+| 三环境渲染矩阵 | 运行证据 | 桌面 GPU full/no-atlas 各 2 次；软件和嵌入容器五模式各 1 次，全部返回 JSON 且 readPixels=0 |
+
 ## 2026-07-21 第一百九十六轮：场景同步缓存优化
 
 | 文件 | 产物类型 | 用途 |
@@ -2159,3 +2167,12 @@
 | `src/rendering/visuals.ts` | 建筑静态层拆分 | 将建筑主体/原画与状态动效分层，为后续批次优化提供边界 |
 | `src/rendering/renderDiagnostics.ts` | 静态缓存诊断开关 | 通过 `staticBuildingCache=1` 复现实验，不改变正式默认 |
 | `docs/project/integration-log.md` | 实验否证记录 | 记录缓存导致 renderer 与 rAF 恶化，避免重复走错路径 |
+
+## 2026-07-23 第二百零三轮：目标规模全画质证据
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/qa/browserE2eScenarios.ts` | 压力场景契约 | 目标规模默认保留 authored artwork、animation、terrain，差分开关由 runner 显式注入 |
+| `src/qa/browserE2eScenarios.test.ts` | 回归测试 | 防止 civilization-scale 压力场景再次被默认降级为模拟专用夹具 |
+| `tools/qa/run-render-ablation.ts` | 目标规模运行证据 | 桌面 GPU full/no-atlas 与三种禁用层差分均稳定返回 JSON，readPixels=0 |
+| `docs/project/qa.md` | 商业门禁记录 | 记录 300 栋全画质帧时间，明确功能通过但 60fps 门禁仍 RED |

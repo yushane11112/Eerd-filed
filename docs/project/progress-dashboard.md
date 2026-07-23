@@ -1067,3 +1067,17 @@
 - 新增 `runtime-artwork-atlas-audit`，校验 manifest、28 类建筑、9 级帧、扩展名和实际文件数量；审计通过。运行时默认路径同步切换至 WebP，加载失败仍回退独立 PNG。
 - 真实桌面 GPU 默认 WebP 场景回归通过实体与功能门禁：5 建筑、3 居民、1 运输、14 可见实体、readPixels=0；rAF 平均/P95/最大 32.79/49.3/66.7ms，renderer 1.15/2.2/69.6ms，商业帧率门禁仍 RED。
 - PNG 独立降级路径在本轮同环境下未稳定返回可采纳结果，不能据此宣称降级路径性能；下一轮继续修复差分 runner 生命周期，再做完整多环境矩阵和视口 LOD。
+
+## 2026-07-23 第二百零二轮：渲染差分生命周期与三环境矩阵
+
+- `run-render-ablation` 改用 `close` 等待子进程输出管道结束，并以独立进程组清理超时子树；浏览器 runner 对 Vite 服务和浏览器关闭增加 1 秒强制清理兜底，端口不会由上一轮残留进程占用。
+- 桌面 GPU `full/no-atlas × 2`、软件渲染 5 模式 × 1、嵌入容器 5 模式 × 1 均稳定返回 JSON；所有场景功能、实体和 readPixels=0 门禁通过。
+- 垂直切片矩阵观测 rAF 约 16.65–16.68ms，renderer 平均约 0.34–0.75ms；由于场景实体量小且受 60Hz 调度影响，只能证明 runner 和基础渲染路径稳定，不能证明 300 栋商业性能。
+- 生命周期任务可关闭；下一轮必须把同一矩阵接到 `civilization-scale` 目标规模，并补 WebP/PNG、视口 LOD、纹理上传和 GPU stall 的目标设备证据。
+
+## 2026-07-23 第二百零三轮：目标规模全画质差分验收
+
+- 修正 `civilization-scale` 压力夹具：默认 `full` 不再隐式关闭 authored artwork、authored animation 和 terrain；差分模式通过 URL 显式关闭对应层，并新增契约测试防止回归。
+- 桌面 GPU 目标规模 `full`：300 栋建筑、135 名居民、15 个运输实体、至少 150 个可见实体，功能与 readPixels=0 门禁通过；rAF 平均/P95/最大 41.33/66.6/66.6ms，renderer 3.783/10.6/97.4ms，render sync P95 6.1ms。
+- 同环境 `no-atlas`：rAF 46.39/66.8/66.9ms，renderer 3.828/10.5/102.7ms；`no-artwork` 50.83/83/83ms，`no-animation` 42.39/66.7/67.1ms，`no-terrain` 32.79/50/50ms，全部功能和 readPixels=0 门禁通过。
+- 结论：目标规模全画质已获得真实有效样本，但商业 60fps 门禁仍 RED；当前最大瓶颈偏向浏览器合成/资源提交长尾，下一轮必须进入视口裁剪、纹理上传节流和 GPU 合成专项，不能以“可运行”宣称商业级流畅。

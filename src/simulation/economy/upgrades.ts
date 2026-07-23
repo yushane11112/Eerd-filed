@@ -85,11 +85,31 @@ export function effectiveBuildingDefinition(
   const bonusLevels = Math.max(0, level - 1)
   const capacityMultiplier = 1 + bonusLevels * 0.15
   const jobsBonus = Math.floor((definition.jobs * bonusLevels) / 4)
+  const productionMilestones = definition.production
+    ? Math.floor(bonusLevels / 2)
+    : 0
+  const productionMultiplier = 1 + productionMilestones * 0.1
+  const production = definition.production
+    ? {
+        ...definition.production,
+        durationTicks: Math.max(
+          1,
+          Math.round(definition.production.durationTicks * (1 - productionMilestones * 0.05)),
+        ),
+        outputs: Object.fromEntries(
+          Object.entries(definition.production.outputs).map(([resource, amount]) => [
+            resource,
+            Math.round((amount ?? 0) * productionMultiplier * 100) / 100,
+          ]),
+        ) as NonNullable<BuildingDefinition['production']>['outputs'],
+      }
+    : undefined
 
   return {
     ...definition,
     capacity: Math.round(definition.capacity * capacityMultiplier),
     jobs: definition.jobs + jobsBonus,
+    production,
   }
 }
 
@@ -227,6 +247,8 @@ export function startBuildingUpgradeFromCityStorage(
 
   building.status = 'upgrading'
   building.statusReason = `升级至 ${previousLevel + 1} 级`
+  delete building.blockedSinceTick
+  delete building.blockedAuditBaseline
   building.productionProgress = 0
 
   return {
@@ -259,6 +281,8 @@ export function advanceBuildingUpgrades(
     building.level = previousLevel + 1
     building.status = 'idle'
     delete building.statusReason
+    delete building.blockedSinceTick
+    delete building.blockedAuditBaseline
     building.productionProgress = 0
 
     const effect = effectiveBuildingDefinition(definition, building)

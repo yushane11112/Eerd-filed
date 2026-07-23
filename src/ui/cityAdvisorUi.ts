@@ -1,5 +1,12 @@
 import type { StageGovernanceRecommendation } from '../integration/stageAdvisor'
-import type { LogisticsStorageIntervention, LogisticsUnloadCapacityBreakdown } from '../simulation/contracts'
+import type {
+  LogisticsStorageIntervention,
+  LogisticsStorageInterventionArchive,
+  LogisticsStorageInterventionRecord,
+  LogisticsUnloadCapacityBreakdown,
+  CityTimelineRecord,
+  CityTimelineResidentProfile,
+} from '../simulation/contracts'
 
 export function formatRoadPlanSummary(
   roadPlan: NonNullable<StageGovernanceRecommendation['roadPlan']>,
@@ -86,4 +93,54 @@ export function formatLogisticsStorageOutcome(
   outcome: LogisticsStorageIntervention,
 ): string {
   return `建成后已重置 ${outcome.ordersReset} 条订单、释放 ${outcome.carriersReleased} 名承运人，并清理 ${outcome.queuesCleared} 个卸货队列；订单将重新等待分流。`
+}
+
+export function formatLogisticsStorageHistory(
+  records: readonly LogisticsStorageInterventionRecord[],
+): string {
+  const totals = records.reduce((summary, record) => ({
+    ordersReset: summary.ordersReset + record.ordersReset,
+    carriersReleased: summary.carriersReleased + record.carriersReleased,
+    queuesCleared: summary.queuesCleared + record.queuesCleared,
+  }), { ordersReset: 0, carriersReleased: 0, queuesCleared: 0 })
+  return `历史干预 ${records.length} 次 · 重置订单 ${totals.ordersReset} · 释放承运 ${totals.carriersReleased} · 清理队列 ${totals.queuesCleared}`
+}
+
+export function formatLogisticsStorageArchive(
+  archive: LogisticsStorageInterventionArchive | undefined,
+  recentRecordCount: number,
+): string {
+  const archivedRecords = archive?.archivedRecords ?? 0
+  const ordersReset = archive?.ordersReset ?? 0
+  const carriersReleased = archive?.carriersReleased ?? 0
+  const queuesCleared = archive?.queuesCleared ?? 0
+  return `物流干预存档 · 近期明细 ${recentRecordCount} 条 · 已归档 ${archivedRecords} 条 · 累计重置订单 ${ordersReset} · 释放承运 ${carriersReleased} · 清理队列 ${queuesCleared}`
+}
+
+export function formatLogisticsStorageTimelineRecord(
+  record: LogisticsStorageInterventionRecord,
+  buildingLabel: string,
+): string {
+  return `第 ${record.tick} 刻 · ${buildingLabel} · 重置 ${record.ordersReset} 单 · 释放承运 ${record.carriersReleased} 人 · 清理队列 ${record.queuesCleared}`
+}
+
+export function formatCityTimelineRecord(record: CityTimelineRecord): string {
+  const kind = ({
+    service: '服务',
+    population: '人口',
+    finance: '财政',
+    labor: '劳务',
+    operations: '运行',
+  } as Record<CityTimelineRecord['kind'], string>)[record.kind]
+  return `第 ${record.tick} 刻 · ${kind} · ${record.title}`
+}
+
+export function formatCityTimelineResidentProfile(profile: CityTimelineResidentProfile): string {
+  const occupation = profile.occupations.length > 0 ? profile.occupations.join('、') : '无职业记录'
+  const satisfaction = profile.satisfaction === undefined ? '' : ` · 满意度 ${profile.satisfaction}`
+  return `${profile.origin} ${profile.members} 人 · 劳动力 ${profile.employedCount}/${profile.workerCount} 已就业 · ${occupation}${satisfaction}`
+}
+
+export function formatServiceRecoveryRecord(record: CityTimelineRecord): string {
+  return `第 ${record.tick} 刻 · ${record.detail}`
 }

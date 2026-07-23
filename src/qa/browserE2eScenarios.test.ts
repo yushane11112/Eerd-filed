@@ -17,6 +17,8 @@ describe('browser E2E scenario contract', () => {
       'logistics-storage-build',
       'logistics-source-shortage',
       'service-governance',
+      'civilization-resident-timeline',
+      'civilization-scale',
     ])
     expect(BROWSER_E2E_SCENARIOS).toEqual(expect.arrayContaining([
       expect.objectContaining({
@@ -86,6 +88,11 @@ describe('browser E2E scenario contract', () => {
           clickText: '打开服务图层并营造市场',
           expectToastText: '服务覆盖缺口：打开服务图层并营造市场。',
         },
+      }),
+      expect.objectContaining({
+        id: 'civilization-resident-timeline',
+        path: '/?debugScenario=civilization-resident-timeline&renderProfile=1',
+        mustContainText: expect.arrayContaining(['城市运行', '居民生活', '就业', '居民状态：', '外来家庭', '候选家庭']),
       }),
     ]))
   })

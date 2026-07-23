@@ -45,5 +45,7 @@ For the next art-export pass, each new gold sample should:
 - provide common anchors plus asset-specific anchors, such as `home_door_*` for `main-homes` or `stove_*` / `serving_window_*` for `main-eatery`;
 - keep LOD draw-call, texture, triangle, layer, and emitter budgets within `tools/asset-validator/asset-validator.js`;
 - keep animation slots independent for `blocked` and `storage_full`; reusing one generic blocked visual is not accepted.
+- provide a `visualIdentity` block with a unique building class, silhouette family, functional signature and material language, plus a complete L0-L8 `levelArc`; every level must declare its silhouette, functional read, environment change, active visible elements and structural-milestone status;
+- make L0 explicitly read as the original ruin/foundation and L8 explicitly read as a thriving, fully operating building; L0-L8 must contain at least three distinct silhouette signatures.
 
 The JSON validator is intentionally not a substitute for reviewing Blender collections, atlas images, pivots, collision shape accuracy, or Pixi capture output.

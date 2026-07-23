@@ -6,6 +6,7 @@ import type {
   ProductionRecipe,
   ResourceKind,
 } from '../simulation/contracts'
+import { BUILDING_VISUAL_IDENTITIES } from './buildingVisualIdentity'
 
 type BuildingSeed = Omit<BuildingDefinition, 'footprint' | 'entrance' | 'maxLevel'> & {
   size?: [number, number]
@@ -44,6 +45,7 @@ const seed = ({
     functions: definition.functions ?? inferFunctions(definition),
     connections: definition.connections ?? inferConnections(definition),
     eraTags: definition.eraTags ?? ['jiangnan-water-town', 'ming-qing-inspired', 'preindustrial'],
+    visualIdentity: BUILDING_VISUAL_IDENTITIES[definition.type],
   }
 }
 

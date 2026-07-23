@@ -11,7 +11,7 @@ type RuntimeBuildingSeed = Pick<
   BuildingDefinition,
   'type' | 'name' | 'category' | 'footprint' | 'entrance' | 'maxLevel'
   | 'jobs' | 'capacity' | 'production' | 'cityStage' | 'functions'
-  | 'connections' | 'eraTags' | 'districtAffinity'
+  | 'connections' | 'eraTags' | 'districtAffinity' | 'visualIdentity'
 >
 
 export const LEGACY_RUNTIME_ASSET_IDS: Record<string, keyof typeof BUILDING_CATALOG> = {
@@ -71,6 +71,37 @@ export const BUILDING_DEFINITIONS: Record<string, BuildingDefinition> = {
     capacity: 80,
     districtAffinity: ['market-street', 'riverside-shops'],
   }),
+  pharmacy: runtimeSeed('main-pharmacy', {
+    type: 'pharmacy',
+    name: '草木药铺',
+    cityStage: 'trade-town',
+    footprint: square(2, 2),
+    entrance: { x: 1, y: 2 },
+    jobs: 8,
+    capacity: 30,
+    production: { durationTicks: 80, inputs: {}, outputs: { medicine: 2 } },
+    districtAffinity: ['market-street', 'riverside-shops'],
+  }),
+  academy: runtimeSeed('main-academy', {
+    type: 'academy',
+    name: '溪山书院',
+    cityStage: 'prefecture-town',
+    footprint: square(4, 3),
+    entrance: { x: 2, y: 3 },
+    jobs: 18,
+    capacity: 80,
+    districtAffinity: ['civic-axis', 'garden-homes'],
+  }),
+  theatre: runtimeSeed('main-theatre', {
+    type: 'theatre',
+    name: '水上戏台',
+    cityStage: 'prefecture-town',
+    footprint: square(4, 3),
+    entrance: { x: 2, y: 3 },
+    jobs: 20,
+    capacity: 120,
+    districtAffinity: ['market-street', 'riverside-shops'],
+  }),
 }
 
 function square(width: number, height: number): BuildingDefinition['footprint'] {
@@ -86,6 +117,9 @@ export const BUILDING_MENU = [
   { type: 'riceField', shortName: '稻田', icon: 'building', cityStage: 'village-market' },
   { type: 'woodshop', shortName: '木作', icon: 'building', cityStage: 'trade-town' },
   { type: 'market', shortName: '集市', icon: 'building', cityStage: 'water-town' },
+  { type: 'pharmacy', shortName: '药铺', icon: 'service', cityStage: 'trade-town' },
+  { type: 'academy', shortName: '书院', icon: 'service', cityStage: 'prefecture-town' },
+  { type: 'theatre', shortName: '戏台', icon: 'culture', cityStage: 'prefecture-town' },
 ] as const
 
 export type RuntimeBuildingMenuItem = typeof BUILDING_MENU[number]

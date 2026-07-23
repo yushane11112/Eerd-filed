@@ -7,6 +7,7 @@ import type {
 } from '../simulation/contracts'
 import {
   AmbientCityStoryTracker,
+  CityNoticeAnalyticsQueue,
   CityNoticeTracker,
   deriveAmbientCityStories,
   deriveCityNotices,
@@ -25,6 +26,65 @@ describe('city notice derivation', () => {
 
     expect(first.map((notice) => notice.id)).toContain('resident-unhappy')
     expect(second).toHaveLength(0)
+  })
+
+  it('emits an auditable lifecycle for activation, acknowledgement, recovery and retrigger', () => {
+    const tracker = new CityNoticeTracker()
+    const active = makeSnapshot({
+      tick: 120,
+      metrics: { satisfaction: 42 },
+      buildings: { 'granary-1': building('granary-1', 'granary', { food: 50 }) },
+    })
+    const recovered = makeSnapshot({
+      tick: 150,
+      metrics: { satisfaction: 80 },
+      buildings: { 'granary-1': building('granary-1', 'granary', { food: 50 }) },
+    })
+
+    tracker.update(active)
+    expect(tracker.consumeLifecycleEvents()).toEqual([
+      expect.objectContaining({
+        phase: 'activated',
+        noticeId: 'resident-unhappy',
+        kind: 'resident',
+        tick: 120,
+      }),
+    ])
+    expect(tracker.acknowledge('resident-unhappy', 121)).toBe(true)
+    expect(tracker.acknowledge('resident-unhappy', 122)).toBe(false)
+    expect(tracker.consumeLifecycleEvents()).toEqual([
+      expect.objectContaining({ phase: 'acknowledged', noticeId: 'resident-unhappy', tick: 121 }),
+    ])
+
+    tracker.update(recovered)
+    expect(tracker.consumeLifecycleEvents()).toEqual([
+      expect.objectContaining({ phase: 'resolved', noticeId: 'resident-unhappy', tick: 150 }),
+    ])
+
+    tracker.update({ ...active, tick: 180 })
+    expect(tracker.consumeLifecycleEvents()).toEqual([
+      expect.objectContaining({ phase: 'retriggered', noticeId: 'resident-unhappy', tick: 180 }),
+    ])
+  })
+
+  it('restores a durable analytics batch and deduplicates stable event ids', () => {
+    const storage = new MemoryAnalyticsStorage()
+    const tracker = new CityNoticeTracker()
+    tracker.update(makeSnapshot({
+      tick: 120,
+      metrics: { satisfaction: 42 },
+      buildings: { 'granary-1': building('granary-1', 'granary', { food: 50 }) },
+    }))
+    const events = tracker.consumeLifecycleEvents()
+    const firstQueue = new CityNoticeAnalyticsQueue(storage)
+
+    expect(firstQueue.enqueue(events)).toBe(events.length)
+    expect(firstQueue.enqueue(events)).toBe(0)
+
+    const restoredQueue = new CityNoticeAnalyticsQueue(storage)
+    expect(restoredQueue.peek()).toEqual(events)
+    expect(restoredQueue.acknowledge([events[0].eventId])).toBe(1)
+    expect(new CityNoticeAnalyticsQueue(storage).peek()).toEqual(events.slice(1))
   })
 
   it('orders severe problems before softer city feedback', () => {
@@ -56,6 +116,139 @@ describe('city notice derivation', () => {
     expect(blocked.map((notice) => notice.id)).toContain('logistics-blocked')
     expect(recovered.map((notice) => notice.id)).not.toContain('resident-unhappy')
     expect(recovered.map((notice) => notice.id)).not.toContain('logistics-blocked')
+  })
+
+  it('turns a rising fiscal operating pressure into a locatable notice', () => {
+    const notices = deriveCityNotices(makeSnapshot({
+      buildings: { 'workshop-1': { ...building('workshop-1', 'woodshop'), status: 'blocked', statusReason: 'output-full' } },
+      economy: {
+        fiscalHistory: [{
+          tick: 120,
+          treasuryBefore: 100,
+          treasuryAfter: 80,
+          taxIncome: 10,
+          maintenanceCost: 30,
+          serviceMaintenanceCost: 0,
+          operationalPressure: {
+            blockedBuildings: 1,
+            logisticsBacklog: 0,
+            inventoryPressureBuildings: 0,
+            pressuredHouseholds: 0,
+          },
+          operationalPressureDelta: {
+            blockedBuildingsDelta: 1,
+            logisticsBacklogDelta: 0,
+            inventoryPressureBuildingsDelta: 0,
+            pressuredHouseholdsDelta: 0,
+          },
+        }],
+      },
+    }))
+
+    expect(notices.find((notice) => notice.id === 'fiscal-pressure-rising')).toMatchObject({
+      kind: 'finance',
+      severity: 'warning',
+      target: { kind: 'building', buildingId: 'workshop-1' },
+    })
+  })
+
+  it('does not repeat the fiscal alert while the same pressure cycle remains active', () => {
+    const tracker = new CityNoticeTracker()
+    const snapshot = makeSnapshot({
+      tick: 120,
+      buildings: {
+        'workshop-1': { ...building('workshop-1', 'woodshop'), status: 'blocked', statusReason: 'output-full' },
+      },
+      economy: {
+        fiscalHistory: [{
+          tick: 120,
+          treasuryBefore: 100,
+          treasuryAfter: 80,
+          taxIncome: 10,
+          maintenanceCost: 30,
+          serviceMaintenanceCost: 0,
+          operationalPressure: { blockedBuildings: 1, logisticsBacklog: 0, inventoryPressureBuildings: 0, pressuredHouseholds: 0 },
+          operationalPressureDelta: { blockedBuildingsDelta: 1, logisticsBacklogDelta: 0, inventoryPressureBuildingsDelta: 0, pressuredHouseholdsDelta: 0 },
+        }],
+      },
+    })
+
+    expect(tracker.update(snapshot).map((notice) => notice.id)).toContain('fiscal-pressure-rising')
+    expect(tracker.update({ ...snapshot, tick: 121 }).map((notice) => notice.id)).not.toContain('fiscal-pressure-rising')
+  })
+
+  it('re-arms the fiscal alert after pressure resolves and rises again', () => {
+    const tracker = new CityNoticeTracker()
+    const base = makeSnapshot({
+      buildings: {
+        'workshop-1': { ...building('workshop-1', 'woodshop'), status: 'blocked', statusReason: 'output-full' },
+      },
+    })
+    const pressure = (tick: number, blockedBuildingsDelta: number) => ({
+      ...base,
+      tick,
+      economy: {
+        ...base.economy,
+        fiscalHistory: [{
+          tick,
+          treasuryBefore: 100,
+          treasuryAfter: 80,
+          taxIncome: 10,
+          maintenanceCost: 30,
+          serviceMaintenanceCost: 0,
+          operationalPressure: { blockedBuildings: blockedBuildingsDelta > 0 ? 1 : 0, logisticsBacklog: 0, inventoryPressureBuildings: 0, pressuredHouseholds: 0 },
+          operationalPressureDelta: { blockedBuildingsDelta, logisticsBacklogDelta: 0, inventoryPressureBuildingsDelta: 0, pressuredHouseholdsDelta: 0 },
+        }],
+      },
+    })
+
+    expect(tracker.update(pressure(120, 1)).map((notice) => notice.id)).toContain('fiscal-pressure-rising')
+    expect(tracker.update(pressure(240, 0)).map((notice) => notice.id)).not.toContain('fiscal-pressure-rising')
+    expect(tracker.update(pressure(360, 1)).map((notice) => notice.id)).toContain('fiscal-pressure-rising')
+  })
+
+  it.each([
+    {
+      name: 'food shortage',
+      id: 'food-shortage',
+      active: makeSnapshot({
+        metrics: { population: 20 },
+        buildings: { 'granary-1': building('granary-1', 'granary', { food: 1 }) },
+      }),
+      recovered: makeSnapshot({
+        metrics: { population: 20 },
+        buildings: { 'granary-1': building('granary-1', 'granary', { food: 80 }) },
+      }),
+    },
+    {
+      name: 'logistics blockage',
+      id: 'logistics-blocked',
+      active: makeSnapshot({
+        metrics: { logisticsEfficiency: 0.35 },
+        logisticsOrders: {
+          'order-1': order('order-1', 'granary-1', 'market-1'),
+          'order-2': order('order-2', 'granary-1', 'market-1'),
+          'order-3': order('order-3', 'granary-1', 'market-1'),
+        },
+      }),
+      recovered: makeSnapshot({ metrics: { logisticsEfficiency: 0.95 } }),
+    },
+    {
+      name: 'migration waiting',
+      id: 'migration-waiting',
+      active: makeSnapshot({
+        tick: 42,
+        migrationCandidates: { visitor: migrationCandidate('visitor') },
+      }),
+      recovered: makeSnapshot({ tick: 43 }),
+    },
+  ])('re-arms the $name notice after the underlying state recovers', ({ id, active, recovered }) => {
+    const tracker = new CityNoticeTracker()
+
+    expect(tracker.update(active).map((notice) => notice.id)).toContain(id)
+    expect(tracker.update({ ...active, tick: active.tick + 1 }).map((notice) => notice.id)).not.toContain(id)
+    expect(tracker.update(recovered).map((notice) => notice.id)).not.toContain(id)
+    expect(tracker.update({ ...active, tick: recovered.tick + 1 }).map((notice) => notice.id)).toContain(id)
   })
 
   it('attaches a relevant building target to food shortage notices', () => {
@@ -186,6 +379,18 @@ describe('city notice derivation', () => {
   })
 })
 
+class MemoryAnalyticsStorage {
+  private values = new Map<string, string>()
+
+  getItem(key: string) {
+    return this.values.get(key) ?? null
+  }
+
+  setItem(key: string, value: string) {
+    this.values.set(key, value)
+  }
+}
+
 const metricDefaults = {
   population: 12,
   households: 3,
@@ -199,6 +404,7 @@ const metricDefaults = {
 function makeSnapshot(overrides: {
   tick?: number
   metrics?: Partial<SimulationSnapshot['metrics']>
+  economy?: Partial<SimulationSnapshot['economy']>
   buildings?: Record<string, BuildingEntity>
   logisticsOrders?: Record<string, LogisticsOrder>
   migrationCandidates?: Record<string, MigrationCandidateState>
@@ -219,6 +425,7 @@ function makeSnapshot(overrides: {
       taxRate: 0.1,
       lastTaxIncome: 0,
       lastMaintenanceCost: 0,
+      ...overrides.economy,
     },
     metrics: { ...metricDefaults, ...overrides.metrics },
     worldDrops: [],

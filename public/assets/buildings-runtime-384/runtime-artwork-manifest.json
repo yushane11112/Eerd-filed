@@ -1,0 +1,2281 @@
+{
+  "schemaVersion": "runtime-artwork-derivative.v1",
+  "generatedBy": "tools/art-pipeline/build-runtime-artwork-derivatives.js",
+  "sourceRoot": "public/assets/buildings",
+  "outputRoot": "public/assets/buildings-runtime-384",
+  "resampler": "sips",
+  "size": 384,
+  "fileCount": 252,
+  "totalSourceBytes": 125331330,
+  "totalOutputBytes": 51926857,
+  "entries": [
+    {
+      "source": "main-academy/level-0.png",
+      "output": "main-academy/level-0.png",
+      "sourceSha256": "c6465afcb3d4d4d2f1c1de033753ed0b99e058e4ec8bc76c392decccf316fc59",
+      "sourceBytes": 456120,
+      "outputBytes": 162399,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-academy/level-1.png",
+      "output": "main-academy/level-1.png",
+      "sourceSha256": "006d276894baaa5b9c2d928a03b2ab661cd9c98e4e7b3476cea8bced85f28e8a",
+      "sourceBytes": 425723,
+      "outputBytes": 138530,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-academy/level-2.png",
+      "output": "main-academy/level-2.png",
+      "sourceSha256": "4073c0e47a9ec70d66b6b4c2d7b007d348c0da8e0dae2251c7be15e1889cc9e8",
+      "sourceBytes": 469942,
+      "outputBytes": 170070,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-academy/level-3.png",
+      "output": "main-academy/level-3.png",
+      "sourceSha256": "bcd829e18197fdb36fb9620c73ce7d709c884eecfcc5469f800145e1ea9ba00a",
+      "sourceBytes": 488328,
+      "outputBytes": 183918,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-academy/level-4.png",
+      "output": "main-academy/level-4.png",
+      "sourceSha256": "6e553736055f384afc7dd17f45ece1a5ad47ea4a070bdc93e87d7e49f7fc74f0",
+      "sourceBytes": 505363,
+      "outputBytes": 205958,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-academy/level-5.png",
+      "output": "main-academy/level-5.png",
+      "sourceSha256": "daa34f9f099140c42e0f0a5ed0b7d31a51993252b2a278dca59243dbb2fc8ad9",
+      "sourceBytes": 551566,
+      "outputBytes": 241701,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-academy/level-6.png",
+      "output": "main-academy/level-6.png",
+      "sourceSha256": "7adef810549c48eeb834ea41a68304639098c5cac002b84b947b564f623232af",
+      "sourceBytes": 534095,
+      "outputBytes": 230524,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-academy/level-7.png",
+      "output": "main-academy/level-7.png",
+      "sourceSha256": "9cc4fbea440a32a888e4887972c2158b05b0e5c2355b3a80da333fe0feead4ee",
+      "sourceBytes": 576531,
+      "outputBytes": 261016,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-academy/level-8.png",
+      "output": "main-academy/level-8.png",
+      "sourceSha256": "2f4457c1e35f66ff05d1c8e1e25b6214b82c904639b899b494a0d6eefc40ac96",
+      "sourceBytes": 625633,
+      "outputBytes": 303395,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-bridge/level-0.png",
+      "output": "main-bridge/level-0.png",
+      "sourceSha256": "319bbf17cd1f8a6002531b6035dda331647940701c06a629edb3e16cd297a5ef",
+      "sourceBytes": 372466,
+      "outputBytes": 116449,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-bridge/level-1.png",
+      "output": "main-bridge/level-1.png",
+      "sourceSha256": "db9025f5fb007afd3e65f196040777f4db2530ee9e3053f692aff8a1f445c296",
+      "sourceBytes": 358563,
+      "outputBytes": 116642,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-bridge/level-2.png",
+      "output": "main-bridge/level-2.png",
+      "sourceSha256": "e22c8f31ab15391ed4ac0aae46de6902c8ba144040fca58ca854747982dcd079",
+      "sourceBytes": 356639,
+      "outputBytes": 116577,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-bridge/level-3.png",
+      "output": "main-bridge/level-3.png",
+      "sourceSha256": "1a53494296726c411104202dced181749c14b43ddaeec678d25ea6184d5d73c3",
+      "sourceBytes": 368733,
+      "outputBytes": 124737,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-bridge/level-4.png",
+      "output": "main-bridge/level-4.png",
+      "sourceSha256": "8b8cea35f4b27bdd3a016519f8e883cfc4107a627215dcccc7c591207a6d3653",
+      "sourceBytes": 364565,
+      "outputBytes": 120259,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-bridge/level-5.png",
+      "output": "main-bridge/level-5.png",
+      "sourceSha256": "1a646e4edc4c9aadd16e9bf9fc9a1c1ee50754a5298f33ea34a515dc34a634c5",
+      "sourceBytes": 425911,
+      "outputBytes": 166076,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-bridge/level-6.png",
+      "output": "main-bridge/level-6.png",
+      "sourceSha256": "22b9849da4cdbb59b93ee3fd208403cf13cca8cc7e2ceba6ece89ea50cdd8b5d",
+      "sourceBytes": 404895,
+      "outputBytes": 150465,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-bridge/level-7.png",
+      "output": "main-bridge/level-7.png",
+      "sourceSha256": "df1722b67431531b1ae270585a8f37033c7d42f6e99c5c0e7ffdce74f038729f",
+      "sourceBytes": 476578,
+      "outputBytes": 202679,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-bridge/level-8.png",
+      "output": "main-bridge/level-8.png",
+      "sourceSha256": "3e0c1e234016b5ff0a8c48eb9880d97dd97c9f14405795e21c7e503e00044a9a",
+      "sourceBytes": 515901,
+      "outputBytes": 228072,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-carpentry/level-0.png",
+      "output": "main-carpentry/level-0.png",
+      "sourceSha256": "228442df78df991b7283320145f08b3b833d0bb3e6a52d9820112692a849c718",
+      "sourceBytes": 410390,
+      "outputBytes": 132756,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-carpentry/level-1.png",
+      "output": "main-carpentry/level-1.png",
+      "sourceSha256": "219cd529443bceb674a2395c5ac28518be2e65d52a6059b7579aad17a25892ca",
+      "sourceBytes": 444710,
+      "outputBytes": 157213,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-carpentry/level-2.png",
+      "output": "main-carpentry/level-2.png",
+      "sourceSha256": "34e87da9866101004f06d8a0049f64303ce773177c6ca8e562c2ec5e29276cd2",
+      "sourceBytes": 442108,
+      "outputBytes": 154801,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-carpentry/level-3.png",
+      "output": "main-carpentry/level-3.png",
+      "sourceSha256": "70b7458004a3dd75c855bde48d9cb2625a7d5c16c7ea9040c73dd0b523e64981",
+      "sourceBytes": 485865,
+      "outputBytes": 193176,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-carpentry/level-4.png",
+      "output": "main-carpentry/level-4.png",
+      "sourceSha256": "38955b399a2c27b0966b39591d9f1a29dc2acbcb02754f682c3f2f3704154017",
+      "sourceBytes": 484277,
+      "outputBytes": 188367,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-carpentry/level-5.png",
+      "output": "main-carpentry/level-5.png",
+      "sourceSha256": "53b7a1ca1416a307846d704a2a124295ddac2f4dd3e77e4b654e9dd9341161fc",
+      "sourceBytes": 492350,
+      "outputBytes": 199958,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-carpentry/level-6.png",
+      "output": "main-carpentry/level-6.png",
+      "sourceSha256": "be8f2789ae7464fbe575056ec242152312f57d23ff43b1457964d00ebce99c87",
+      "sourceBytes": 492935,
+      "outputBytes": 202465,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-carpentry/level-7.png",
+      "output": "main-carpentry/level-7.png",
+      "sourceSha256": "11897b0d64e6385b367cf0ed2d28f6c4c4b8a98143f1d7c7d1714548995085b9",
+      "sourceBytes": 561697,
+      "outputBytes": 254652,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-carpentry/level-8.png",
+      "output": "main-carpentry/level-8.png",
+      "sourceSha256": "253aad6cde9be99d3509eaae2bbe38c2fde3ff4fbc1c29338ac24170788c757b",
+      "sourceBytes": 594625,
+      "outputBytes": 277636,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-eatery/level-0.png",
+      "output": "main-eatery/level-0.png",
+      "sourceSha256": "d14467aee52810a5ce18e30917abc60d36644b4116c0f31dbbcd482191ea9cc8",
+      "sourceBytes": 402092,
+      "outputBytes": 137621,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-eatery/level-1.png",
+      "output": "main-eatery/level-1.png",
+      "sourceSha256": "c40ef8624574e5cd45aa710173164b4dc9079639f1a5e456b593dcab4237ca37",
+      "sourceBytes": 396175,
+      "outputBytes": 139292,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-eatery/level-2.png",
+      "output": "main-eatery/level-2.png",
+      "sourceSha256": "b329fba660e262b2ab0f0c7708957e0e53d358f19e4c2e713a061eb74fbbb950",
+      "sourceBytes": 444499,
+      "outputBytes": 175649,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-eatery/level-3.png",
+      "output": "main-eatery/level-3.png",
+      "sourceSha256": "2fba86b1f98ad4ff52cb9e7063b3b43801bbd0ce9ea6282f476a45e14edac2e4",
+      "sourceBytes": 444554,
+      "outputBytes": 171089,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-eatery/level-4.png",
+      "output": "main-eatery/level-4.png",
+      "sourceSha256": "ed5b840ad4450c0dbec877cc6317188ee65b0af5e583d63fb7b89186acd1b694",
+      "sourceBytes": 458913,
+      "outputBytes": 185773,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-eatery/level-5.png",
+      "output": "main-eatery/level-5.png",
+      "sourceSha256": "f8a1a16d84a24089e2331ca4cf74ed4406159f5045aae78ef78d36e1a0e751a2",
+      "sourceBytes": 502810,
+      "outputBytes": 214713,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-eatery/level-6.png",
+      "output": "main-eatery/level-6.png",
+      "sourceSha256": "2f1c2b0b344187e94e08a3b285827a76edf785bfa93971c694b133ba4f3327e9",
+      "sourceBytes": 527552,
+      "outputBytes": 237480,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-eatery/level-7.png",
+      "output": "main-eatery/level-7.png",
+      "sourceSha256": "302fa20fbb92015b519783d726cdea21d1abd06e71408e4836be6453d932d858",
+      "sourceBytes": 555488,
+      "outputBytes": 250713,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-eatery/level-8.png",
+      "output": "main-eatery/level-8.png",
+      "sourceSha256": "cebc18ba3877c297c48ceeebb04b14eaa80ecbe047ff2036eea9f212c233c36e",
+      "sourceBytes": 572445,
+      "outputBytes": 267639,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-ferry/level-0.png",
+      "output": "main-ferry/level-0.png",
+      "sourceSha256": "884874a74a65a29dd723a6dec60a66afd048c85d5415b46b530eaa85cec0b09c",
+      "sourceBytes": 418890,
+      "outputBytes": 150460,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-ferry/level-1.png",
+      "output": "main-ferry/level-1.png",
+      "sourceSha256": "eb5b896225779ec9ae385281239948cea279d655b1e577d628078a8e518d8b11",
+      "sourceBytes": 415965,
+      "outputBytes": 155894,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-ferry/level-2.png",
+      "output": "main-ferry/level-2.png",
+      "sourceSha256": "9692bf5df99ff64c6de74138189d791ec59bd0961b60bd68c30f97650d91b03e",
+      "sourceBytes": 421877,
+      "outputBytes": 159911,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-ferry/level-3.png",
+      "output": "main-ferry/level-3.png",
+      "sourceSha256": "cdf7acd5355b099bd5cdd099e98029eda63d4e0d394c482dd546b34a99f4eabb",
+      "sourceBytes": 444621,
+      "outputBytes": 169858,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-ferry/level-4.png",
+      "output": "main-ferry/level-4.png",
+      "sourceSha256": "32b48e6f8d8be209ac78af23efa246c9876ca2fc3eb961bb04464fbf20f1955e",
+      "sourceBytes": 438034,
+      "outputBytes": 164714,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-ferry/level-5.png",
+      "output": "main-ferry/level-5.png",
+      "sourceSha256": "e095fda2441d70ce750eec82716886dcfe3fd436d0499ca8d24623912c6fb2d5",
+      "sourceBytes": 492052,
+      "outputBytes": 207689,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-ferry/level-6.png",
+      "output": "main-ferry/level-6.png",
+      "sourceSha256": "57c13a299c1853d98091c3044b273fccfd3c87e6ad9a6dc10bbc3c55eb745db4",
+      "sourceBytes": 502944,
+      "outputBytes": 213309,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-ferry/level-7.png",
+      "output": "main-ferry/level-7.png",
+      "sourceSha256": "8f53ade8a7f8ec67dda44c9069d0f56a1d8d30674207b439d40b2bf4bb10ed64",
+      "sourceBytes": 545836,
+      "outputBytes": 249726,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-ferry/level-8.png",
+      "output": "main-ferry/level-8.png",
+      "sourceSha256": "b6461c6ac52941f156c51f80ecc9541d9492081d17aaaaeaccb45a3db6d6df4d",
+      "sourceBytes": 591909,
+      "outputBytes": 285929,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-garden/level-0.png",
+      "output": "main-garden/level-0.png",
+      "sourceSha256": "62265c003757398874bbc0179e86bf7024ca3559bccf2e457028b5b70ea9e744",
+      "sourceBytes": 462285,
+      "outputBytes": 162915,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-garden/level-1.png",
+      "output": "main-garden/level-1.png",
+      "sourceSha256": "a7f352b4eccdda05b37bc994cd081d7b84088e459b01a69eca4f4d7162a460f0",
+      "sourceBytes": 429112,
+      "outputBytes": 144395,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-garden/level-2.png",
+      "output": "main-garden/level-2.png",
+      "sourceSha256": "12e418aebf327cf7210d800aec5c4800f414363c9f3a13ea03d87629d2a66bb4",
+      "sourceBytes": 466752,
+      "outputBytes": 166570,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-garden/level-3.png",
+      "output": "main-garden/level-3.png",
+      "sourceSha256": "bda1df1abc32aa099df3e0a5ca4f5c026314248dfd4500d984b3f2a6554f3727",
+      "sourceBytes": 463899,
+      "outputBytes": 160095,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-garden/level-4.png",
+      "output": "main-garden/level-4.png",
+      "sourceSha256": "aa72842218630e3396d40a3284156cd8a7352a22473d7256f27fd775aadfd2cc",
+      "sourceBytes": 475999,
+      "outputBytes": 174800,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-garden/level-5.png",
+      "output": "main-garden/level-5.png",
+      "sourceSha256": "5429f1c297c1ebe9901b0f38bbe974523f9893884783f9c8be6c537eca9225a8",
+      "sourceBytes": 499239,
+      "outputBytes": 194922,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-garden/level-6.png",
+      "output": "main-garden/level-6.png",
+      "sourceSha256": "d4e82cb6516bf2b6a8017d5af161ccec3223a47d9e4ef8cb51aa771783200fe3",
+      "sourceBytes": 529653,
+      "outputBytes": 219139,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-garden/level-7.png",
+      "output": "main-garden/level-7.png",
+      "sourceSha256": "f6f1b290cfc63a1998f5a5e2579e9cadbf4b7fe54a496c75cf691dfb293d0a56",
+      "sourceBytes": 573077,
+      "outputBytes": 255953,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-garden/level-8.png",
+      "output": "main-garden/level-8.png",
+      "sourceSha256": "b86c42853d540af589f0cc60ad65377c2b68b9f29941a03bb863c448eeee198e",
+      "sourceBytes": 613640,
+      "outputBytes": 286441,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-gate/level-0.png",
+      "output": "main-gate/level-0.png",
+      "sourceSha256": "c97ce5094d861dad10f7553863b388b822232c50c850b51e72795d24d91a3d65",
+      "sourceBytes": 429469,
+      "outputBytes": 161818,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-gate/level-1.png",
+      "output": "main-gate/level-1.png",
+      "sourceSha256": "cd20682519eba11afc1e92d039c610d03bf437ef0a582060a6dcfbe3d5c97b13",
+      "sourceBytes": 379252,
+      "outputBytes": 130278,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-gate/level-2.png",
+      "output": "main-gate/level-2.png",
+      "sourceSha256": "919a2e41ff7375247d5f53a081525af98ba0c41bd9e322646b6917a2c5ae8b8f",
+      "sourceBytes": 423620,
+      "outputBytes": 155527,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-gate/level-3.png",
+      "output": "main-gate/level-3.png",
+      "sourceSha256": "f95ee42ddb7f96d4c4d9ce009405441ab9ebd06c0a5ed0e7f486bfcabba5e300",
+      "sourceBytes": 450858,
+      "outputBytes": 178702,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-gate/level-4.png",
+      "output": "main-gate/level-4.png",
+      "sourceSha256": "457cdcad2974d4f4f9666b41b41f2078592bb0bccd0035f99e201d5ff3f5c073",
+      "sourceBytes": 464027,
+      "outputBytes": 190282,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-gate/level-5.png",
+      "output": "main-gate/level-5.png",
+      "sourceSha256": "6335ee720d977a49fe7b2dc716f7a594f800c44959b7b2ace432417787b517b2",
+      "sourceBytes": 513396,
+      "outputBytes": 229910,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-gate/level-6.png",
+      "output": "main-gate/level-6.png",
+      "sourceSha256": "02d686b4aa7b448dc29179e6c7f7332461e4dc7e593ea641887c7470921af4f7",
+      "sourceBytes": 502490,
+      "outputBytes": 212833,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-gate/level-7.png",
+      "output": "main-gate/level-7.png",
+      "sourceSha256": "9bb7ec7b41f0771d078a960d4b319ffbbc045843b51f86cb1f5fa57e91f213ac",
+      "sourceBytes": 561547,
+      "outputBytes": 257928,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-gate/level-8.png",
+      "output": "main-gate/level-8.png",
+      "sourceSha256": "5388c4644b22e7aa0a7f1c021f3d4707a5432abee9165511726d2f72e4a424af",
+      "sourceBytes": 640221,
+      "outputBytes": 319300,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-granary/level-0.png",
+      "output": "main-granary/level-0.png",
+      "sourceSha256": "becbfed3fd5f2086bc6c260fb1b61625aa592479fb0aaf4a5abf31c388b929a2",
+      "sourceBytes": 407426,
+      "outputBytes": 149089,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-granary/level-1.png",
+      "output": "main-granary/level-1.png",
+      "sourceSha256": "942aaf117c2099e62577f453ab6fa1253289fbac20cbeb505902eb6794bbf8d1",
+      "sourceBytes": 374411,
+      "outputBytes": 137783,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-granary/level-2.png",
+      "output": "main-granary/level-2.png",
+      "sourceSha256": "184ec06101e201a8e7a70aace7b527a600a2e4899b4a89b6a3640e762bf23e56",
+      "sourceBytes": 441527,
+      "outputBytes": 177239,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-granary/level-3.png",
+      "output": "main-granary/level-3.png",
+      "sourceSha256": "3bc345f0f6a39884599770f3817d77e46dff6177898d608ca01ec6af83400d56",
+      "sourceBytes": 434717,
+      "outputBytes": 171592,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-granary/level-4.png",
+      "output": "main-granary/level-4.png",
+      "sourceSha256": "80aa8f2911d9838c8a0556c76b762af1c333f5a06c60c169e44eddec6944f91c",
+      "sourceBytes": 436770,
+      "outputBytes": 173500,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-granary/level-5.png",
+      "output": "main-granary/level-5.png",
+      "sourceSha256": "0b8f3ae56986948cfeb7fc28b3d9869a5bd6e79d3757214420362ce6a52f8235",
+      "sourceBytes": 472529,
+      "outputBytes": 200442,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-granary/level-6.png",
+      "output": "main-granary/level-6.png",
+      "sourceSha256": "700a9b7fe7b7c31871f1780a10ba78b9d0f2fd3faa619f5dd83f1f565f42462c",
+      "sourceBytes": 506476,
+      "outputBytes": 222218,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-granary/level-7.png",
+      "output": "main-granary/level-7.png",
+      "sourceSha256": "0f232feeb465f8893b7e1d2172eb6d50d3286e621ae4f976c4848aeda3e623fa",
+      "sourceBytes": 558388,
+      "outputBytes": 263817,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-granary/level-8.png",
+      "output": "main-granary/level-8.png",
+      "sourceSha256": "35b6236a14f83c6e1b8ae6f4ab1599080e586cd1cb50aca765b2e71a1f337051",
+      "sourceBytes": 588483,
+      "outputBytes": 280504,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-homes/level-0.png",
+      "output": "main-homes/level-0.png",
+      "sourceSha256": "8159878e60feebd5ba968d8c91bc9a0a9afb148474866c07ce478b85bb9241cf",
+      "sourceBytes": 446237,
+      "outputBytes": 155653,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-homes/level-1.png",
+      "output": "main-homes/level-1.png",
+      "sourceSha256": "af72673ef66ddea0641965fe943954f97e19314afc70473974d8a2f4ddcd3dc8",
+      "sourceBytes": 440002,
+      "outputBytes": 161341,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-homes/level-2.png",
+      "output": "main-homes/level-2.png",
+      "sourceSha256": "7781a1da3894e21e575aeb2765500daac457515cd5a63a60545f391b14b0681e",
+      "sourceBytes": 489541,
+      "outputBytes": 193691,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-homes/level-3.png",
+      "output": "main-homes/level-3.png",
+      "sourceSha256": "4cd1369c6cea5c833fae9bcb2d8a5954946db72ff686322af3491d0dbd4e4d73",
+      "sourceBytes": 490977,
+      "outputBytes": 202072,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-homes/level-4.png",
+      "output": "main-homes/level-4.png",
+      "sourceSha256": "96736678afb93db3a722248c08c1f1da45eb0e3caa4ce54ddfbc19c2305a2d8f",
+      "sourceBytes": 505616,
+      "outputBytes": 215974,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-homes/level-5.png",
+      "output": "main-homes/level-5.png",
+      "sourceSha256": "436d1676430d754995454a4592c6a6ce51dea8a66cc4ec3028e2b902d2d0abe2",
+      "sourceBytes": 555048,
+      "outputBytes": 249406,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-homes/level-6.png",
+      "output": "main-homes/level-6.png",
+      "sourceSha256": "902e975e535b3cc7a9c4b89ed6b458d84371aa1de5750944abb3249a01faee23",
+      "sourceBytes": 563293,
+      "outputBytes": 255123,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-homes/level-7.png",
+      "output": "main-homes/level-7.png",
+      "sourceSha256": "aa2d7595644d315be3007a86ba425e8370f39b2e61aad3602288b29b19237aee",
+      "sourceBytes": 584623,
+      "outputBytes": 269716,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-homes/level-8.png",
+      "output": "main-homes/level-8.png",
+      "sourceSha256": "e9c65aa5ffa04b9f0231d3ba6c7406f4e74d082e7fcfb2a13ed72d4199f1af7d",
+      "sourceBytes": 644206,
+      "outputBytes": 317964,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-inn/level-0.png",
+      "output": "main-inn/level-0.png",
+      "sourceSha256": "71aba17c8fb9b2038bbe913c17524093a21664d20d0557a65dbe2bbec8861e9b",
+      "sourceBytes": 364528,
+      "outputBytes": 136014,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-inn/level-1.png",
+      "output": "main-inn/level-1.png",
+      "sourceSha256": "e2f1a26f0bce033ddd47d6b88d01a3f2016fb73f7d1c5f7fb1945073726271df",
+      "sourceBytes": 381389,
+      "outputBytes": 152992,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-inn/level-2.png",
+      "output": "main-inn/level-2.png",
+      "sourceSha256": "2cefddbdf390649a001d2db511b14bb02e303d9cc4f48c9e6d46d15cbd754d24",
+      "sourceBytes": 353684,
+      "outputBytes": 136322,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-inn/level-3.png",
+      "output": "main-inn/level-3.png",
+      "sourceSha256": "4584749254adc6690eaaf23198445b51c37752ae9809ced8ea4c4a396ec85a55",
+      "sourceBytes": 379017,
+      "outputBytes": 148318,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-inn/level-4.png",
+      "output": "main-inn/level-4.png",
+      "sourceSha256": "8383bf9122aa951075013aab727933ef5cb9c322d8932826694c6a9c0750cb43",
+      "sourceBytes": 394672,
+      "outputBytes": 167249,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-inn/level-5.png",
+      "output": "main-inn/level-5.png",
+      "sourceSha256": "66a264f050f4012cb5826716bbdcd4e624021f3d188568b459898a0418d95e61",
+      "sourceBytes": 438975,
+      "outputBytes": 197296,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-inn/level-6.png",
+      "output": "main-inn/level-6.png",
+      "sourceSha256": "03ee135dd2398cd8ad239be28d066e46a9e66f99fd8ef49d35792349f80f0d0a",
+      "sourceBytes": 447722,
+      "outputBytes": 201212,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-inn/level-7.png",
+      "output": "main-inn/level-7.png",
+      "sourceSha256": "1e4cdb4c905d7b9f5c96ccc35711c15a31dbc41d61084a9ed0646d5070db0753",
+      "sourceBytes": 505287,
+      "outputBytes": 235186,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-inn/level-8.png",
+      "output": "main-inn/level-8.png",
+      "sourceSha256": "9ec4537b5c8cb85dc8d8ee6eda8d599e61dcd1bc82cc827e65def6a5dc2a437c",
+      "sourceBytes": 555825,
+      "outputBytes": 269665,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-kiln/level-0.png",
+      "output": "main-kiln/level-0.png",
+      "sourceSha256": "a07fcdccf924710aa564f2915eb7b8f69b49579c3b2b5a51477ac077d0d0645c",
+      "sourceBytes": 420651,
+      "outputBytes": 137566,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-kiln/level-1.png",
+      "output": "main-kiln/level-1.png",
+      "sourceSha256": "670f67f7adb12eff5cdd73d947ba7f8ba2a856538e8568bfb9da319afcc75014",
+      "sourceBytes": 426743,
+      "outputBytes": 138912,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-kiln/level-2.png",
+      "output": "main-kiln/level-2.png",
+      "sourceSha256": "01bce4eab38e4b03a3dc11bc93bb013432f6e4e99bb34ef478f4bdaf4fbc5074",
+      "sourceBytes": 480057,
+      "outputBytes": 185004,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-kiln/level-3.png",
+      "output": "main-kiln/level-3.png",
+      "sourceSha256": "ae9118d08d164fd91a0e3cb37818e237bfcf51614e03af1992ec21e1b0135b66",
+      "sourceBytes": 462076,
+      "outputBytes": 171249,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-kiln/level-4.png",
+      "output": "main-kiln/level-4.png",
+      "sourceSha256": "9b4aae24a779c4654b07ef3f4531618875e18be2d141d75850ed80018b5fc011",
+      "sourceBytes": 494946,
+      "outputBytes": 195530,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-kiln/level-5.png",
+      "output": "main-kiln/level-5.png",
+      "sourceSha256": "3e97146fdaa2c1706ab1767f04a86a3b54fa81c72055444aca55f17738dc2331",
+      "sourceBytes": 516807,
+      "outputBytes": 215565,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-kiln/level-6.png",
+      "output": "main-kiln/level-6.png",
+      "sourceSha256": "08e23c03e4154e8b44f84142cf02b08ef6a52a5e7af6a520f36367203b840fe9",
+      "sourceBytes": 521453,
+      "outputBytes": 217226,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-kiln/level-7.png",
+      "output": "main-kiln/level-7.png",
+      "sourceSha256": "8e72634a8b50d5eaba3c993054cff51e058105d1e336864109aef08dde2efa1d",
+      "sourceBytes": 556483,
+      "outputBytes": 247069,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-kiln/level-8.png",
+      "output": "main-kiln/level-8.png",
+      "sourceSha256": "9892c590c9c1aa589aab13d2ba5a8f22750425e41e430dacc38b070851fe6c2b",
+      "sourceBytes": 611895,
+      "outputBytes": 292170,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pharmacy/level-0.png",
+      "output": "main-pharmacy/level-0.png",
+      "sourceSha256": "652f5228e1625fed1d180061246b0a11bcf3e388ce7af2200cfe295ba75d2fb8",
+      "sourceBytes": 443552,
+      "outputBytes": 149643,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pharmacy/level-1.png",
+      "output": "main-pharmacy/level-1.png",
+      "sourceSha256": "b4ca3f756ec354a61cfe43b0d4c0726a36e96d9b1311103309dcc02ef2410e1d",
+      "sourceBytes": 436278,
+      "outputBytes": 142027,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pharmacy/level-2.png",
+      "output": "main-pharmacy/level-2.png",
+      "sourceSha256": "548e98f90298273a88a6024c4ce65d6c9e2272ed2883d315e4651c09b071529b",
+      "sourceBytes": 457766,
+      "outputBytes": 159680,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pharmacy/level-3.png",
+      "output": "main-pharmacy/level-3.png",
+      "sourceSha256": "7aee06baefdf34c0222cbf86c2d86e9913af05f6df7c17d4f3a544867eb03f72",
+      "sourceBytes": 460341,
+      "outputBytes": 156422,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pharmacy/level-4.png",
+      "output": "main-pharmacy/level-4.png",
+      "sourceSha256": "22d98134d741acf9b20538adb0f02991d2d40adad859aa8b26e930cd6f5193fc",
+      "sourceBytes": 495180,
+      "outputBytes": 188773,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pharmacy/level-5.png",
+      "output": "main-pharmacy/level-5.png",
+      "sourceSha256": "e334bd4750b955d0e969b8ca5e11152e1a3a424eb62520ac243e972a5af52ce9",
+      "sourceBytes": 538816,
+      "outputBytes": 224447,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pharmacy/level-6.png",
+      "output": "main-pharmacy/level-6.png",
+      "sourceSha256": "117fe65bc5280fe96665ea2fb6b6786afeade2e1cd7150137a7b3c65079fb2bc",
+      "sourceBytes": 530738,
+      "outputBytes": 217924,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pharmacy/level-7.png",
+      "output": "main-pharmacy/level-7.png",
+      "sourceSha256": "39e4569201b480751e42a99c7fb2d67f5e389ccbe48c3852229ea5be62239055",
+      "sourceBytes": 580393,
+      "outputBytes": 255069,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pharmacy/level-8.png",
+      "output": "main-pharmacy/level-8.png",
+      "sourceSha256": "47b505b42b418129913365a93244b17150e134b86ec2896764efc45253a49b2c",
+      "sourceBytes": 621500,
+      "outputBytes": 289823,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pier/level-0.png",
+      "output": "main-pier/level-0.png",
+      "sourceSha256": "57c09c92e1cd3282e91c6c7d7e7e39720bebb3129e937640a99e29e5a8cbb958",
+      "sourceBytes": 408461,
+      "outputBytes": 143615,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pier/level-1.png",
+      "output": "main-pier/level-1.png",
+      "sourceSha256": "3884f86f0b3174e60d4fc864e706e2358d41c4fdaa4c8d3b1de9c4e479bb05b1",
+      "sourceBytes": 407124,
+      "outputBytes": 150372,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pier/level-2.png",
+      "output": "main-pier/level-2.png",
+      "sourceSha256": "3e12af14837f9eedcf72d23f421f935762241be27fa85c9d7de14c2dc6860126",
+      "sourceBytes": 408729,
+      "outputBytes": 146005,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pier/level-3.png",
+      "output": "main-pier/level-3.png",
+      "sourceSha256": "59ba3048f6cbf73407694b0a4f2c7311a9c54cac879c04d6fb2ca7a928774265",
+      "sourceBytes": 402077,
+      "outputBytes": 141212,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pier/level-4.png",
+      "output": "main-pier/level-4.png",
+      "sourceSha256": "8110c9553c2eef590f12cb5618ea18409521fc351926fbc9ade370db8454adb2",
+      "sourceBytes": 437661,
+      "outputBytes": 169080,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pier/level-5.png",
+      "output": "main-pier/level-5.png",
+      "sourceSha256": "10592ecf020902bfb1bb7561179155b75fce77e979ecdf840303b7fc2e026298",
+      "sourceBytes": 471992,
+      "outputBytes": 191494,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pier/level-6.png",
+      "output": "main-pier/level-6.png",
+      "sourceSha256": "519fea1aaae280894306be7155a19c0f6d5650be25e7c6e2d00b59e63ea847df",
+      "sourceBytes": 493478,
+      "outputBytes": 208205,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pier/level-7.png",
+      "output": "main-pier/level-7.png",
+      "sourceSha256": "f7093daee94f9b1f0535e56463d07fdee13bc87fae435ec12dc5f64fc98c6587",
+      "sourceBytes": 529459,
+      "outputBytes": 235487,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-pier/level-8.png",
+      "output": "main-pier/level-8.png",
+      "sourceSha256": "b36784a5e3207c56272edf585ef5e758ecc8d3c3e5ade8c8dcc87fcb65404dcc",
+      "sourceBytes": 617505,
+      "outputBytes": 296260,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-teahouse/level-0.png",
+      "output": "main-teahouse/level-0.png",
+      "sourceSha256": "e3bf25dc91a45eb9611ccdf9b7d7bffdd44271e3ea0a42ca7f81cf95dcdf6dd1",
+      "sourceBytes": 408497,
+      "outputBytes": 147207,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-teahouse/level-1.png",
+      "output": "main-teahouse/level-1.png",
+      "sourceSha256": "99ff9a80c30015338f14540468f9b6176decb33a5864f47f207ccdcb264c6e51",
+      "sourceBytes": 449978,
+      "outputBytes": 172644,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-teahouse/level-2.png",
+      "output": "main-teahouse/level-2.png",
+      "sourceSha256": "c337afc3ea2d3260686d33ee4d62e15f319819486844b3169d1ffae2a85e5047",
+      "sourceBytes": 440308,
+      "outputBytes": 168937,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-teahouse/level-3.png",
+      "output": "main-teahouse/level-3.png",
+      "sourceSha256": "25863cbb098e1caceaf49888cb57832311ab9943bd0931d845192683082ff96c",
+      "sourceBytes": 467303,
+      "outputBytes": 190673,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-teahouse/level-4.png",
+      "output": "main-teahouse/level-4.png",
+      "sourceSha256": "8807551e1821b7bf903d48dad1a5bb595642dec57b59184534949e400e1b9ce7",
+      "sourceBytes": 488652,
+      "outputBytes": 206029,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-teahouse/level-5.png",
+      "output": "main-teahouse/level-5.png",
+      "sourceSha256": "04b1523923939bdda6a891fd15c6dea2102dee122eda5ba793934b7705c6475c",
+      "sourceBytes": 542230,
+      "outputBytes": 243447,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-teahouse/level-6.png",
+      "output": "main-teahouse/level-6.png",
+      "sourceSha256": "e6384a3519fce4748f3d0fa8dd641097105566736c85c5af4b6e1d19f286d84a",
+      "sourceBytes": 563563,
+      "outputBytes": 261477,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-teahouse/level-7.png",
+      "output": "main-teahouse/level-7.png",
+      "sourceSha256": "d38a52c564d035952520bc9e990a2733d2f94c92a7b3b1ca6c2efc30334b9250",
+      "sourceBytes": 539342,
+      "outputBytes": 246094,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-teahouse/level-8.png",
+      "output": "main-teahouse/level-8.png",
+      "sourceSha256": "f52cfad62f065f6f0ac1aea6887446cc6b6132a44020385bf2a0351edc0cd72a",
+      "sourceBytes": 588382,
+      "outputBytes": 279992,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-theatre/level-0.png",
+      "output": "main-theatre/level-0.png",
+      "sourceSha256": "caf3c47530dd57b39bdc3da47aafb60332e358e1ce06337cf78e04b845903eac",
+      "sourceBytes": 444240,
+      "outputBytes": 154208,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-theatre/level-1.png",
+      "output": "main-theatre/level-1.png",
+      "sourceSha256": "0483e1d94cd847ef089753a3d839262488b0dc194160ce74e94b99eda05a22fe",
+      "sourceBytes": 425172,
+      "outputBytes": 147764,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-theatre/level-2.png",
+      "output": "main-theatre/level-2.png",
+      "sourceSha256": "5c740f3b8da9cb3c08e459ff50c867a25c9c862e756d71350e7680c16cabcc22",
+      "sourceBytes": 465902,
+      "outputBytes": 172996,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-theatre/level-3.png",
+      "output": "main-theatre/level-3.png",
+      "sourceSha256": "8c1c28e5a135587dbdc6dff00a70f8dd2fc97c002d4f28ad0bd84b7429add6bb",
+      "sourceBytes": 468236,
+      "outputBytes": 170862,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-theatre/level-4.png",
+      "output": "main-theatre/level-4.png",
+      "sourceSha256": "3665fae05e9202b3a52f39f3200e94848870756199fa13eba143c78a2f3e0eb2",
+      "sourceBytes": 486612,
+      "outputBytes": 190332,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-theatre/level-5.png",
+      "output": "main-theatre/level-5.png",
+      "sourceSha256": "17c46be42bfeb4279d5d8909d3c43918ad07f87d7faf9392b31fa02cf85d1ecb",
+      "sourceBytes": 496850,
+      "outputBytes": 197948,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-theatre/level-6.png",
+      "output": "main-theatre/level-6.png",
+      "sourceSha256": "c5f3afcbbea01a399e9b0020b822296c4bf0241cd985e97ec741cd38454bfd6a",
+      "sourceBytes": 520812,
+      "outputBytes": 217389,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-theatre/level-7.png",
+      "output": "main-theatre/level-7.png",
+      "sourceSha256": "f3fdef72dfabf37372b5de3f42834a80afaee1c0dbd6a095f87d19ce8224c16f",
+      "sourceBytes": 592739,
+      "outputBytes": 278868,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-theatre/level-8.png",
+      "output": "main-theatre/level-8.png",
+      "sourceSha256": "ea1edc03bd08c7ee44a1403258ba0c8b68d8d7bbf21f7c7758bd55a3740409cf",
+      "sourceBytes": 607497,
+      "outputBytes": 287292,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-weavery/level-0.png",
+      "output": "main-weavery/level-0.png",
+      "sourceSha256": "1f2a030ade73c7bc59353a229e8abb247ca6bd2731458257bf2b19689b98d620",
+      "sourceBytes": 416041,
+      "outputBytes": 148362,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-weavery/level-1.png",
+      "output": "main-weavery/level-1.png",
+      "sourceSha256": "c346d74bd219cdbd755e153f03f2d77e591aed33adb2afdf0ef409a2be0f7908",
+      "sourceBytes": 435123,
+      "outputBytes": 165241,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-weavery/level-2.png",
+      "output": "main-weavery/level-2.png",
+      "sourceSha256": "3148e3677dbaf70df34ac681b8c69e137a39cb8b6bd5c08add50f0b64ac17f75",
+      "sourceBytes": 437600,
+      "outputBytes": 172506,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-weavery/level-3.png",
+      "output": "main-weavery/level-3.png",
+      "sourceSha256": "fa6bcecab125eb3a18764c09c6cf2523943ccdbdb5520636d0a20886a384e568",
+      "sourceBytes": 454291,
+      "outputBytes": 181531,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-weavery/level-4.png",
+      "output": "main-weavery/level-4.png",
+      "sourceSha256": "5a7a196657b18327f939d2de19b57235e781ffd6a74aedffae3ca7a7930e59f4",
+      "sourceBytes": 468492,
+      "outputBytes": 194029,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-weavery/level-5.png",
+      "output": "main-weavery/level-5.png",
+      "sourceSha256": "ee03327a9b77d3a2e2118d66a48518cf9c892736aacdafe0c59fcd6086af9dea",
+      "sourceBytes": 502027,
+      "outputBytes": 218402,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-weavery/level-6.png",
+      "output": "main-weavery/level-6.png",
+      "sourceSha256": "0b108f215aa1fcba95d136a6b7656523115088e2df6e17f381e1d9675dbb498f",
+      "sourceBytes": 535356,
+      "outputBytes": 244241,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-weavery/level-7.png",
+      "output": "main-weavery/level-7.png",
+      "sourceSha256": "6534e1897205d9227b72ca76254b25d314bb3c2417ef6ac9f793c074f9b69888",
+      "sourceBytes": 550472,
+      "outputBytes": 255650,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "main-weavery/level-8.png",
+      "output": "main-weavery/level-8.png",
+      "sourceSha256": "f3713b157bc8e32304f867c01372f2a737195a1268f7f50fbcc1a345657eef13",
+      "sourceBytes": 608963,
+      "outputBytes": 299270,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-bamboo/level-0.png",
+      "output": "mistgrove-bamboo/level-0.png",
+      "sourceSha256": "4de8035e4cad1828c2ede7180b8b1a22ef31c031ec9da7786f5af2b673acab13",
+      "sourceBytes": 471419,
+      "outputBytes": 177312,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-bamboo/level-1.png",
+      "output": "mistgrove-bamboo/level-1.png",
+      "sourceSha256": "8f7834f755507602f00ea813d280ec9356e26df80e584a3e06a4c6b81220cfa3",
+      "sourceBytes": 458021,
+      "outputBytes": 174251,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-bamboo/level-2.png",
+      "output": "mistgrove-bamboo/level-2.png",
+      "sourceSha256": "42db139716743ad74c203d68e94ff519f20c995559cbcf7d2050be3f1b3f72c6",
+      "sourceBytes": 513412,
+      "outputBytes": 210499,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-bamboo/level-3.png",
+      "output": "mistgrove-bamboo/level-3.png",
+      "sourceSha256": "18e2d53d3541e7e61464f38a03eaf8f096622c018328b69656060c7353b24c38",
+      "sourceBytes": 480757,
+      "outputBytes": 182176,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-bamboo/level-4.png",
+      "output": "mistgrove-bamboo/level-4.png",
+      "sourceSha256": "004242f776e2d48f232d0f34b351ebbbc67647a76d456252a076649d9847ef90",
+      "sourceBytes": 516938,
+      "outputBytes": 212608,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-bamboo/level-5.png",
+      "output": "mistgrove-bamboo/level-5.png",
+      "sourceSha256": "069f56420228e844db9f5eb2208e74d204e71c83d356a213f9a0888cd77bbdf5",
+      "sourceBytes": 538192,
+      "outputBytes": 232046,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-bamboo/level-6.png",
+      "output": "mistgrove-bamboo/level-6.png",
+      "sourceSha256": "53516c5b5243122dbce58a6000c1f6eb70103c07f3bf76bb245d6bb57bd5c279",
+      "sourceBytes": 535571,
+      "outputBytes": 226948,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-bamboo/level-7.png",
+      "output": "mistgrove-bamboo/level-7.png",
+      "sourceSha256": "14c206b766060b3a87e93d2e1dc9fe23ea13925e1141f7e5b33a9de830dc64a4",
+      "sourceBytes": 600205,
+      "outputBytes": 282397,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-bamboo/level-8.png",
+      "output": "mistgrove-bamboo/level-8.png",
+      "sourceSha256": "f0b1ef6b235882889b452e92dd35b29e4095f28160074968c264f6da670be4df",
+      "sourceBytes": 632261,
+      "outputBytes": 308852,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-herbs/level-0.png",
+      "output": "mistgrove-herbs/level-0.png",
+      "sourceSha256": "8d7fd632260a9c7f6263c05d8392726254dce692e541dc366e195578adb1102e",
+      "sourceBytes": 486544,
+      "outputBytes": 187207,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-herbs/level-1.png",
+      "output": "mistgrove-herbs/level-1.png",
+      "sourceSha256": "87f75c82a31978306c2b51c833d9c40e3a65807d665c78bb6a0dc73aa1cb1972",
+      "sourceBytes": 472456,
+      "outputBytes": 185505,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-herbs/level-2.png",
+      "output": "mistgrove-herbs/level-2.png",
+      "sourceSha256": "1b84589b96358e37df0b480238b7facd67b887ffe3b598eed1c72f47b98d54ec",
+      "sourceBytes": 472131,
+      "outputBytes": 188831,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-herbs/level-3.png",
+      "output": "mistgrove-herbs/level-3.png",
+      "sourceSha256": "e36860673328802fd4ec83bbf773f7c2143ccf6ae10cf19060582cc77326e691",
+      "sourceBytes": 504565,
+      "outputBytes": 201784,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-herbs/level-4.png",
+      "output": "mistgrove-herbs/level-4.png",
+      "sourceSha256": "c3d8fdd9db24490208813b2d8931b43575cea0c4c615ece26ce5bb60209fa1d5",
+      "sourceBytes": 505340,
+      "outputBytes": 205942,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-herbs/level-5.png",
+      "output": "mistgrove-herbs/level-5.png",
+      "sourceSha256": "4ead6d34829fdb48a7094c5cca3aa05fcb447d6e8153939dd4f806df87f13f5f",
+      "sourceBytes": 555438,
+      "outputBytes": 241024,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-herbs/level-6.png",
+      "output": "mistgrove-herbs/level-6.png",
+      "sourceSha256": "3620c60ac236c422c21deb5cdb294a0e1f9eeda56eb1c2c5a7a5cb2d4f36ad20",
+      "sourceBytes": 543742,
+      "outputBytes": 233392,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-herbs/level-7.png",
+      "output": "mistgrove-herbs/level-7.png",
+      "sourceSha256": "0dff75cbd3e60c9aad40ba474170c222d54d2347da647eb5f8a1c28f91e3a071",
+      "sourceBytes": 601622,
+      "outputBytes": 278236,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-herbs/level-8.png",
+      "output": "mistgrove-herbs/level-8.png",
+      "sourceSha256": "b6360a83e7161e9dcc37a4b855a73f8bdc3e03eaac9d793117f77c6097ca2318",
+      "sourceBytes": 636321,
+      "outputBytes": 304124,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-pavilion/level-0.png",
+      "output": "mistgrove-pavilion/level-0.png",
+      "sourceSha256": "2d5ed50a5496c5b8f912d609c3765450029a4921c0569988a59ec882e4ec8794",
+      "sourceBytes": 482988,
+      "outputBytes": 190241,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-pavilion/level-1.png",
+      "output": "mistgrove-pavilion/level-1.png",
+      "sourceSha256": "aa4799337b94a0261cfda4600092a5f826168eeb6c38937489137844547ea270",
+      "sourceBytes": 495005,
+      "outputBytes": 202950,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-pavilion/level-2.png",
+      "output": "mistgrove-pavilion/level-2.png",
+      "sourceSha256": "5fb13ce4fcff4e77dea6ceeab72a75ac46872f012fba8e8ff9cc77acc03cb327",
+      "sourceBytes": 507986,
+      "outputBytes": 206009,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-pavilion/level-3.png",
+      "output": "mistgrove-pavilion/level-3.png",
+      "sourceSha256": "4d06caf63618e454dbfd11ae96ceb053145fd496e8d928d31eb1806f06eedafb",
+      "sourceBytes": 533010,
+      "outputBytes": 220902,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-pavilion/level-4.png",
+      "output": "mistgrove-pavilion/level-4.png",
+      "sourceSha256": "3dd7b0dd27d11cdbf6d647a7f4002b3e0a24d0119b4b96bbec35009c6088ed1b",
+      "sourceBytes": 565242,
+      "outputBytes": 251505,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-pavilion/level-5.png",
+      "output": "mistgrove-pavilion/level-5.png",
+      "sourceSha256": "fd09b324e15bb44996e91da47bf8d467db93a77c1cde0d983bf7e7b36be0b8d4",
+      "sourceBytes": 590325,
+      "outputBytes": 270841,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-pavilion/level-6.png",
+      "output": "mistgrove-pavilion/level-6.png",
+      "sourceSha256": "0e2208e831b3c5e38d74068a6f854a69d54cc4b0e6d4e6b48c745c8933a16a52",
+      "sourceBytes": 581094,
+      "outputBytes": 265240,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-pavilion/level-7.png",
+      "output": "mistgrove-pavilion/level-7.png",
+      "sourceSha256": "8f17be18e698c55d3365c52a68e554f385b6b05c741595818bb911e0f657acca",
+      "sourceBytes": 616334,
+      "outputBytes": 293810,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-pavilion/level-8.png",
+      "output": "mistgrove-pavilion/level-8.png",
+      "sourceSha256": "ba441b389953b7069dabf8bbe5108c4cb0c06c6354341b20ba0e5f092b781cbd",
+      "sourceBytes": 648206,
+      "outputBytes": 309951,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-tea/level-0.png",
+      "output": "mistgrove-tea/level-0.png",
+      "sourceSha256": "85571da68dcce1355c0b5cc7b47e2c5843a5b4ce734d13d55d646391ce75fca7",
+      "sourceBytes": 477908,
+      "outputBytes": 170860,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-tea/level-1.png",
+      "output": "mistgrove-tea/level-1.png",
+      "sourceSha256": "11722291a5122804bfa4c1ebf463d8f54b9626647b65d83387667948b18dcf50",
+      "sourceBytes": 481355,
+      "outputBytes": 186176,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-tea/level-2.png",
+      "output": "mistgrove-tea/level-2.png",
+      "sourceSha256": "dd55c1ae93de3c4477fd57570f47c7703da781dffd17d5242392299f0f52ec32",
+      "sourceBytes": 487287,
+      "outputBytes": 191531,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-tea/level-3.png",
+      "output": "mistgrove-tea/level-3.png",
+      "sourceSha256": "fe4148431339b8f44732dca2b0ce0430eb65d4b1f85e211336f220b1fdad4234",
+      "sourceBytes": 511814,
+      "outputBytes": 210342,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-tea/level-4.png",
+      "output": "mistgrove-tea/level-4.png",
+      "sourceSha256": "85b942a59be64ec13018289979c2181be485f544229e2b119b043b72b744e878",
+      "sourceBytes": 507257,
+      "outputBytes": 205543,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-tea/level-5.png",
+      "output": "mistgrove-tea/level-5.png",
+      "sourceSha256": "91d725b875e89b3383cb317f9cfbcd14b9b6d893191531075e884b58ba58fd1c",
+      "sourceBytes": 573598,
+      "outputBytes": 255621,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-tea/level-6.png",
+      "output": "mistgrove-tea/level-6.png",
+      "sourceSha256": "99ed10d34ff8fef0fdc660da23666ad1ef4739cf7bb789111f0a4b7282b36fec",
+      "sourceBytes": 556588,
+      "outputBytes": 248033,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-tea/level-7.png",
+      "output": "mistgrove-tea/level-7.png",
+      "sourceSha256": "c540472b7db36c9def7d88b3ed447058239ef66627b459c97a967c481692a55a",
+      "sourceBytes": 585737,
+      "outputBytes": 273761,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "mistgrove-tea/level-8.png",
+      "output": "mistgrove-tea/level-8.png",
+      "sourceSha256": "c2890e2d33157005f329d76ad86848c1cb9124a10113eed6968587a79b0b98ef",
+      "sourceBytes": 622756,
+      "outputBytes": 298077,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-harbor/level-0.png",
+      "output": "tide-harbor/level-0.png",
+      "sourceSha256": "ef4fb63bfbc5752e138483102cc331ef37b77c564382a09db5ad0fef47903172",
+      "sourceBytes": 489162,
+      "outputBytes": 195977,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-harbor/level-1.png",
+      "output": "tide-harbor/level-1.png",
+      "sourceSha256": "3ea748fc56d2497457f0fdba0189473cef38a2353e967591fabc936380c0936e",
+      "sourceBytes": 455102,
+      "outputBytes": 186939,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-harbor/level-2.png",
+      "output": "tide-harbor/level-2.png",
+      "sourceSha256": "a3c624394af011c390568df7621627582cf91aa15f619a5c8aa438c3af5cc1f3",
+      "sourceBytes": 472150,
+      "outputBytes": 193738,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-harbor/level-3.png",
+      "output": "tide-harbor/level-3.png",
+      "sourceSha256": "e3bc5b9af055355301a197b6de7393310445d9f54ec257364dcc4250a09fbed8",
+      "sourceBytes": 484287,
+      "outputBytes": 196439,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-harbor/level-4.png",
+      "output": "tide-harbor/level-4.png",
+      "sourceSha256": "c98721022db22b765ecd847f9657fa1c72b8b8a82f54a56f538cc7a44d84a828",
+      "sourceBytes": 540370,
+      "outputBytes": 243886,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-harbor/level-5.png",
+      "output": "tide-harbor/level-5.png",
+      "sourceSha256": "f7b77f7a52e136f358465c08abae61c0055d68e15a85405a9e7470f38869ef2e",
+      "sourceBytes": 574298,
+      "outputBytes": 266226,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-harbor/level-6.png",
+      "output": "tide-harbor/level-6.png",
+      "sourceSha256": "7ce7669148d4701d2bc137cdb537fd7253af0b09f1dd46dc8a4c05f9c51b09b7",
+      "sourceBytes": 554106,
+      "outputBytes": 254395,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-harbor/level-7.png",
+      "output": "tide-harbor/level-7.png",
+      "sourceSha256": "7a2f51b39ed60d407c09fd6586d4ec51a06d4daf79a013cf205cbc1d57b86cb7",
+      "sourceBytes": 599074,
+      "outputBytes": 287792,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-harbor/level-8.png",
+      "output": "tide-harbor/level-8.png",
+      "sourceSha256": "08596f514e61c2c19413a64c68b98495ff92851de405521f76d1869c054adaae",
+      "sourceBytes": 620309,
+      "outputBytes": 297144,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-lighthouse/level-0.png",
+      "output": "tide-lighthouse/level-0.png",
+      "sourceSha256": "d28c6236ff0c149a3e0b8c7f45d8b9e6f20d4cd26af91bf8643f13e46c7397ae",
+      "sourceBytes": 433241,
+      "outputBytes": 139945,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-lighthouse/level-1.png",
+      "output": "tide-lighthouse/level-1.png",
+      "sourceSha256": "5e4a3d168fad03b7d1969041342752be48f5224a74e514be916b96eefd8d21d4",
+      "sourceBytes": 438366,
+      "outputBytes": 150799,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-lighthouse/level-2.png",
+      "output": "tide-lighthouse/level-2.png",
+      "sourceSha256": "39e8b8830b4123877c809c2d8f19f41be60c0abf1fbcc8bd174e1e3d4050e420",
+      "sourceBytes": 447011,
+      "outputBytes": 160897,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-lighthouse/level-3.png",
+      "output": "tide-lighthouse/level-3.png",
+      "sourceSha256": "96286d83baf6928e18e7f280aa5c7c72668af63fdf85f88a8504d6bc1ad01b05",
+      "sourceBytes": 462463,
+      "outputBytes": 160643,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-lighthouse/level-4.png",
+      "output": "tide-lighthouse/level-4.png",
+      "sourceSha256": "56d260ef259435f3436a6c8cfaa21f511d3db0d213d2f1a8cdebdbe3866d85c3",
+      "sourceBytes": 469487,
+      "outputBytes": 163729,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-lighthouse/level-5.png",
+      "output": "tide-lighthouse/level-5.png",
+      "sourceSha256": "a58a3f32b2077eff80f51238b3b1a42ca9824c9253ba4682f9771084fcda7924",
+      "sourceBytes": 496416,
+      "outputBytes": 191149,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-lighthouse/level-6.png",
+      "output": "tide-lighthouse/level-6.png",
+      "sourceSha256": "b8543852b5746fefb6a9295911d7bb6fe3f934e02d51fdedbb2ac99e6eee696f",
+      "sourceBytes": 507311,
+      "outputBytes": 198543,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-lighthouse/level-7.png",
+      "output": "tide-lighthouse/level-7.png",
+      "sourceSha256": "5f8141ffbe804dc11cfe714b25bfa68fe4c904c6b4b6fefa8999e0d577f6ae76",
+      "sourceBytes": 555422,
+      "outputBytes": 242602,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-lighthouse/level-8.png",
+      "output": "tide-lighthouse/level-8.png",
+      "sourceSha256": "65ef8aaf6e36a69c47f8b8d4265554028e6442814ed9d1e46894109294861d1f",
+      "sourceBytes": 598227,
+      "outputBytes": 275727,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-salt/level-0.png",
+      "output": "tide-salt/level-0.png",
+      "sourceSha256": "6fb0b7b80e99a993f7ff2922037d9dfec68ecb99644738146f4991a0e3aabc4b",
+      "sourceBytes": 456602,
+      "outputBytes": 171102,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-salt/level-1.png",
+      "output": "tide-salt/level-1.png",
+      "sourceSha256": "5e462355396bdf88a687b7b1a49c8d40b0faae5d940a0e4a5b4b2bc7e68b1f79",
+      "sourceBytes": 441573,
+      "outputBytes": 171044,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-salt/level-2.png",
+      "output": "tide-salt/level-2.png",
+      "sourceSha256": "34dec18cc6bc0f298c126854a5d26227317acde5c1a5c80a68f0531adab11bf8",
+      "sourceBytes": 465432,
+      "outputBytes": 185485,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-salt/level-3.png",
+      "output": "tide-salt/level-3.png",
+      "sourceSha256": "5f5543ebb29c85b06e182e49cdd566eedbdfd03f9442d687941c04bb106eb63e",
+      "sourceBytes": 465138,
+      "outputBytes": 183443,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-salt/level-4.png",
+      "output": "tide-salt/level-4.png",
+      "sourceSha256": "b326c4e49c73bf24ee1ce33302360611b36442978080a8f04396c98b0aab2834",
+      "sourceBytes": 487564,
+      "outputBytes": 197716,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-salt/level-5.png",
+      "output": "tide-salt/level-5.png",
+      "sourceSha256": "d5124f47bee15a418392a31baf8086e2ac2e61c791255b7b86b4519959a723e9",
+      "sourceBytes": 498826,
+      "outputBytes": 208126,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-salt/level-6.png",
+      "output": "tide-salt/level-6.png",
+      "sourceSha256": "125851679b9ac76e2e05455aa599195ea27a5ffd831692dd9ce6bf72ea62d811",
+      "sourceBytes": 530800,
+      "outputBytes": 225140,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-salt/level-7.png",
+      "output": "tide-salt/level-7.png",
+      "sourceSha256": "7909978982b90bb2c6ef84ffebe430126d138342b947416e5aff74f3ad9d3987",
+      "sourceBytes": 571170,
+      "outputBytes": 258920,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-salt/level-8.png",
+      "output": "tide-salt/level-8.png",
+      "sourceSha256": "6465c00884eefa222041d6c6a1e9f92b7c5cd9169e3a9457617e2a98d1089cd9",
+      "sourceBytes": 634067,
+      "outputBytes": 311654,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-shipyard/level-0.png",
+      "output": "tide-shipyard/level-0.png",
+      "sourceSha256": "7a03f1d2da29560f9aaa2445b5575c3600f6596284e8ec06f037a82c9a78dfc0",
+      "sourceBytes": 454466,
+      "outputBytes": 174396,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-shipyard/level-1.png",
+      "output": "tide-shipyard/level-1.png",
+      "sourceSha256": "2fca04c2da0206b4705cecfe6b960e17f115d0c1b4e32e13430aa7bdd906671e",
+      "sourceBytes": 452796,
+      "outputBytes": 171134,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-shipyard/level-2.png",
+      "output": "tide-shipyard/level-2.png",
+      "sourceSha256": "20e178f34292dc163ea100d4b4b4728f46d794aaae3be16979746cf975eeaaad",
+      "sourceBytes": 467934,
+      "outputBytes": 183020,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-shipyard/level-3.png",
+      "output": "tide-shipyard/level-3.png",
+      "sourceSha256": "d078d7859b437b7daa80b24ed3a4e7b1e216b2de3d720e73e81a4889b71a633c",
+      "sourceBytes": 502086,
+      "outputBytes": 208237,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-shipyard/level-4.png",
+      "output": "tide-shipyard/level-4.png",
+      "sourceSha256": "06ec19099f85d29b4c75b95475cf2b7e3655bdbb69ca639d8b8e3fc34528b825",
+      "sourceBytes": 531027,
+      "outputBytes": 222297,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-shipyard/level-5.png",
+      "output": "tide-shipyard/level-5.png",
+      "sourceSha256": "87a04217bba4b4ab421ea60dc688d1bcebf1be976d1e6c101d5f13030134949d",
+      "sourceBytes": 543594,
+      "outputBytes": 235035,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-shipyard/level-6.png",
+      "output": "tide-shipyard/level-6.png",
+      "sourceSha256": "0ceaeab9fc1d109109874b12fe3c256551d0c0d6462d46b262a31f83d702ff47",
+      "sourceBytes": 564617,
+      "outputBytes": 252394,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-shipyard/level-7.png",
+      "output": "tide-shipyard/level-7.png",
+      "sourceSha256": "fa3da13ad2825d6166bc46c8c06e083f6fbb7db9e92e4342e5283fc9c1b2dadf",
+      "sourceBytes": 634894,
+      "outputBytes": 300344,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "tide-shipyard/level-8.png",
+      "output": "tide-shipyard/level-8.png",
+      "sourceSha256": "d436a244cc78d506df699ca8871e0602ba48d7efbb4d004d709507b40fccfdd2",
+      "sourceBytes": 650325,
+      "outputBytes": 304920,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-barn/level-0.png",
+      "output": "windfield-barn/level-0.png",
+      "sourceSha256": "36b696f85218d974fee22f678367d4216f8f35cbb0daaba4a89de5a1d1c7d5f5",
+      "sourceBytes": 438891,
+      "outputBytes": 169113,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-barn/level-1.png",
+      "output": "windfield-barn/level-1.png",
+      "sourceSha256": "efd7b66e9349d759ac6932cb843799ec4ed092c684c07196d48ed015c1e50c31",
+      "sourceBytes": 383531,
+      "outputBytes": 140660,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-barn/level-2.png",
+      "output": "windfield-barn/level-2.png",
+      "sourceSha256": "40286b1e2c792b3f7087c3144e07724f6802ec23be07a70987986ac8cf4e57d6",
+      "sourceBytes": 468741,
+      "outputBytes": 191648,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-barn/level-3.png",
+      "output": "windfield-barn/level-3.png",
+      "sourceSha256": "3bcb47b84c92408c26d090b2aab31ef8770fb9c806cd7473963fb4d121fc6593",
+      "sourceBytes": 467797,
+      "outputBytes": 197938,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-barn/level-4.png",
+      "output": "windfield-barn/level-4.png",
+      "sourceSha256": "983c86e05b3e599c9c38df6c2b827bc82d56eac91872533ab56d738a7b36d9ce",
+      "sourceBytes": 512910,
+      "outputBytes": 219080,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-barn/level-5.png",
+      "output": "windfield-barn/level-5.png",
+      "sourceSha256": "a1697074e1a23e7d2d524a88b98b27ca73c3c64be2ec24199341341616c67b5e",
+      "sourceBytes": 527607,
+      "outputBytes": 234923,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-barn/level-6.png",
+      "output": "windfield-barn/level-6.png",
+      "sourceSha256": "57358d14c99228cdbed3a336ae0da97a4c67bb6b484d5cc84b836a27c7582ec2",
+      "sourceBytes": 510088,
+      "outputBytes": 227093,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-barn/level-7.png",
+      "output": "windfield-barn/level-7.png",
+      "sourceSha256": "3217cf18031a69f723bbef0ebc131e988d5b2539f86c163e9867997b421844df",
+      "sourceBytes": 572176,
+      "outputBytes": 269218,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-barn/level-8.png",
+      "output": "windfield-barn/level-8.png",
+      "sourceSha256": "95153c2669b0491b84f8bcf95c4f11781f6112c770005caa4d511736763d4af2",
+      "sourceBytes": 588051,
+      "outputBytes": 279678,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-mill/level-0.png",
+      "output": "windfield-mill/level-0.png",
+      "sourceSha256": "18e599015fa7ef0954b667bc55f57ab4138d687967f67e7bb03ee30cddd71be5",
+      "sourceBytes": 463275,
+      "outputBytes": 174828,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-mill/level-1.png",
+      "output": "windfield-mill/level-1.png",
+      "sourceSha256": "af462aa97947f31aaeb2867cbb48e48607710396c7f0ce0afdaa726b27a2f63e",
+      "sourceBytes": 433737,
+      "outputBytes": 157331,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-mill/level-2.png",
+      "output": "windfield-mill/level-2.png",
+      "sourceSha256": "22b3ee26f7ec069e78f0a98477b04e23ea4b0a98074f7057471bbcf1f40f47a7",
+      "sourceBytes": 394250,
+      "outputBytes": 126566,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-mill/level-3.png",
+      "output": "windfield-mill/level-3.png",
+      "sourceSha256": "f698b164fa76dcaf816d1520d74613d0296a7ed0c0ad537ebbc8d30bfa23084a",
+      "sourceBytes": 479699,
+      "outputBytes": 191518,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-mill/level-4.png",
+      "output": "windfield-mill/level-4.png",
+      "sourceSha256": "c37c18a08a0d93d46d1826f758ea496eb73ccb12aa7ce120e21d12bdd0735351",
+      "sourceBytes": 501845,
+      "outputBytes": 206966,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-mill/level-5.png",
+      "output": "windfield-mill/level-5.png",
+      "sourceSha256": "96dd295ff4ee15b4bb2c9d0ec5694ad33c327ab7b664f16a8408629e31f6251b",
+      "sourceBytes": 534078,
+      "outputBytes": 228948,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-mill/level-6.png",
+      "output": "windfield-mill/level-6.png",
+      "sourceSha256": "206b794b5e8b58d1e3f0810c5169550e569e92aa7a2c95f63d37a89456a063fa",
+      "sourceBytes": 554399,
+      "outputBytes": 244738,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-mill/level-7.png",
+      "output": "windfield-mill/level-7.png",
+      "sourceSha256": "03ee6ec887b9a0acab4f59059aa8391ea3ca9740c34a1d023d2dd446b43f2479",
+      "sourceBytes": 594379,
+      "outputBytes": 277934,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-mill/level-8.png",
+      "output": "windfield-mill/level-8.png",
+      "sourceSha256": "97164caa0caaca762a56a503a3be7e7549d9626b464186df36641b9c129c7540",
+      "sourceBytes": 621460,
+      "outputBytes": 299437,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-orchard/level-0.png",
+      "output": "windfield-orchard/level-0.png",
+      "sourceSha256": "169b604987347814e1f48b9967273fb26d9caa5368be4893e406170bfbc20087",
+      "sourceBytes": 427884,
+      "outputBytes": 138875,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-orchard/level-1.png",
+      "output": "windfield-orchard/level-1.png",
+      "sourceSha256": "96894cad7b4259f2f8f5f67c7555f8ceba3957b45a205ca2915b69c0a85f33ba",
+      "sourceBytes": 403456,
+      "outputBytes": 136531,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-orchard/level-2.png",
+      "output": "windfield-orchard/level-2.png",
+      "sourceSha256": "795716f045324e2d4d89d972a5b71ab0ea76fcbd76c33a05f1b63a52f9519279",
+      "sourceBytes": 430315,
+      "outputBytes": 150846,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-orchard/level-3.png",
+      "output": "windfield-orchard/level-3.png",
+      "sourceSha256": "77c65c9f0f7e30a670768516ecead548a39a173093ff962d0f60a71bc7ea36dc",
+      "sourceBytes": 463768,
+      "outputBytes": 170960,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-orchard/level-4.png",
+      "output": "windfield-orchard/level-4.png",
+      "sourceSha256": "3ff836a8bac1a14d105bd483b7bbe662a4624c5f494241db1ec23fe149e123b8",
+      "sourceBytes": 488556,
+      "outputBytes": 189972,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-orchard/level-5.png",
+      "output": "windfield-orchard/level-5.png",
+      "sourceSha256": "a688bd61ddb231ee40946932b47bd1f6a8bd54308535cf23e1c553bbd5d091c8",
+      "sourceBytes": 560622,
+      "outputBytes": 246309,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-orchard/level-6.png",
+      "output": "windfield-orchard/level-6.png",
+      "sourceSha256": "7045d3e6806a38fa668320705d8613012ebd03e107ca499c9ff1c543054743c6",
+      "sourceBytes": 544732,
+      "outputBytes": 231448,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-orchard/level-7.png",
+      "output": "windfield-orchard/level-7.png",
+      "sourceSha256": "0fd2577e45e16aa16a3116e320ebcef5de39390d69288376f1be0e5f913310f8",
+      "sourceBytes": 578966,
+      "outputBytes": 259774,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-orchard/level-8.png",
+      "output": "windfield-orchard/level-8.png",
+      "sourceSha256": "c958b585bf8f4a1e75237402915ad015ba2cfbf2c26f64b00b39635a431a3954",
+      "sourceBytes": 631538,
+      "outputBytes": 298724,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-rice/level-0.png",
+      "output": "windfield-rice/level-0.png",
+      "sourceSha256": "7d4718ed31e084ae2a4a48a0b00a8479f0cbad0619a6aaebecf265faea82382f",
+      "sourceBytes": 435941,
+      "outputBytes": 156943,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-rice/level-1.png",
+      "output": "windfield-rice/level-1.png",
+      "sourceSha256": "a12e44cb088943e4663ecbc2ed88379608d16aef8f60b814ce1974b773e5cb23",
+      "sourceBytes": 447415,
+      "outputBytes": 167151,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-rice/level-2.png",
+      "output": "windfield-rice/level-2.png",
+      "sourceSha256": "3fac7c5156d87f0d9d40fb9135963bad8d31dfa16ccd5248feabaf68bcf29bc4",
+      "sourceBytes": 468260,
+      "outputBytes": 179174,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-rice/level-3.png",
+      "output": "windfield-rice/level-3.png",
+      "sourceSha256": "4549ffaed3755470e0705d71e127d24fe2e2aab6a012d31edf614d183fa65edf",
+      "sourceBytes": 448743,
+      "outputBytes": 173575,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-rice/level-4.png",
+      "output": "windfield-rice/level-4.png",
+      "sourceSha256": "847ceb9c240e27bc163eb340a912fddbf1eef6b51e91e9e926fbe8535a175d49",
+      "sourceBytes": 454933,
+      "outputBytes": 180256,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-rice/level-5.png",
+      "output": "windfield-rice/level-5.png",
+      "sourceSha256": "7046bc8eb8c5d7b76660436856cb0fd4914c1c0c34f8f2ee55a291a2c0cc77bf",
+      "sourceBytes": 470811,
+      "outputBytes": 189558,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-rice/level-6.png",
+      "output": "windfield-rice/level-6.png",
+      "sourceSha256": "656df99692ab68fb4ce3a2ceb622f03ca38b0b2a263db13e4608a8e553437da3",
+      "sourceBytes": 491116,
+      "outputBytes": 207328,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-rice/level-7.png",
+      "output": "windfield-rice/level-7.png",
+      "sourceSha256": "06a74332885b6db603b33fccab2334d2ae577e29169f4c746490ffca53b51627",
+      "sourceBytes": 533508,
+      "outputBytes": 235511,
+      "width": 384,
+      "height": 384
+    },
+    {
+      "source": "windfield-rice/level-8.png",
+      "output": "windfield-rice/level-8.png",
+      "sourceSha256": "f5ce7dd0fc1d202032776cdf26ad73c3fa58a2cae04ce04188fa4b6a76fd2bd0",
+      "sourceBytes": 564803,
+      "outputBytes": 260445,
+      "width": 384,
+      "height": 384
+    }
+  ]
+}

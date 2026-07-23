@@ -14,6 +14,7 @@ import {
   removeInventory,
 } from './inventory'
 import { effectiveBuildingDefinition } from './upgrades'
+import { activeWorkerCount } from '../core/workforce'
 
 export const PRODUCTION_STOP_REASONS = {
   NO_WORKERS: 'no-workers',
@@ -72,18 +73,21 @@ export class ProductionSystem implements SimulationSystem {
       const missing = missingInput(building, recipe)
       const projectedOutputSpace = inventoryFreeCapacity(building, definition) + inputAmount(recipe)
 
-      if (definition.jobs > 0 && building.workers.length === 0) {
-        this.block(building, PRODUCTION_STOP_REASONS.NO_WORKERS)
+      const presentWorkers = activeWorkerCount(snapshot, building)
+      if (definition.jobs > 0 && presentWorkers === 0) {
+        this.block(building, PRODUCTION_STOP_REASONS.NO_WORKERS, snapshot.tick)
       } else if (missing) {
-        this.block(building, `${PRODUCTION_STOP_REASONS.MISSING_INPUT}:${missing}`)
+        this.block(building, `${PRODUCTION_STOP_REASONS.MISSING_INPUT}:${missing}`, snapshot.tick)
       } else if (projectedOutputSpace < outputAmount(recipe)) {
-        this.block(building, PRODUCTION_STOP_REASONS.OUTPUT_FULL)
+        this.block(building, PRODUCTION_STOP_REASONS.OUTPUT_FULL, snapshot.tick)
       } else {
         building.status = 'working'
         delete building.statusReason
+        delete building.blockedSinceTick
+        delete building.blockedAuditBaseline
         const staffing = definition.jobs === 0
           ? 1
-          : Math.min(1, building.workers.length / definition.jobs)
+          : Math.min(1, presentWorkers / definition.jobs)
         building.productionProgress += staffing
 
         if (building.productionProgress >= recipe.durationTicks) {
@@ -106,7 +110,10 @@ export class ProductionSystem implements SimulationSystem {
     return events
   }
 
-  private block(building: BuildingEntity, reason: string): void {
+  private block(building: BuildingEntity, reason: string, tick: number): void {
+    if (building.status !== 'blocked' || building.statusReason !== reason) {
+      building.blockedSinceTick = tick
+    }
     building.status = 'blocked'
     building.statusReason = reason
   }

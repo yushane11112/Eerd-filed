@@ -61,3 +61,19 @@ export interface SceneSyncStats {
   visible: number
   pooled: number
 }
+
+export interface SceneSyncPerformanceProfile {
+  totalMs: number
+  districtsMs: number
+  buildingsMs: number
+  residentsMs: number
+  dropsMs: number
+  cleanupMs: number
+  sortMs: number
+  buildings: number
+  residents: number
+  transport: number
+  drops: number
+  visible: number
+  pooled: number
+}

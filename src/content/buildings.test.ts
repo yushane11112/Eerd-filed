@@ -17,6 +17,7 @@ import {
   LEGACY_RUNTIME_ASSET_IDS,
 } from './runtimeBuildings'
 import type { ResourceKind, SimulationSnapshot } from '../simulation/contracts'
+import { getBuildingVisualLevel } from './buildingVisualIdentity'
 
 describe('building catalog', () => {
   it('maps all twenty-eight original build sites into simulation definitions', () => {
@@ -30,6 +31,23 @@ describe('building catalog', () => {
     expect(BUILDING_CATALOG['windfield-rice'].production?.outputs.food).toBeGreaterThan(0)
     expect(BUILDING_CATALOG['tide-harbor'].production?.outputs.fish).toBeGreaterThan(0)
     expect(BUILDING_CATALOG['main-kiln'].production?.outputs.brick).toBeGreaterThan(0)
+  })
+
+  it('gives every building its own production-ready visual identity and full growth arc', () => {
+    const identities = Object.values(BUILDING_CATALOG).map((building) => building.visualIdentity)
+    expect(identities.every(Boolean)).toBe(true)
+    expect(new Set(identities.map((identity) => identity?.buildingClass)).size).toBe(28)
+    expect(new Set(identities.map((identity) => identity?.silhouetteFamily)).size).toBe(28)
+    expect(new Set(identities.map((identity) => identity?.functionalSignature)).size).toBe(28)
+    for (const identity of identities) {
+      expect(Object.keys(identity?.levelArc ?? {})).toHaveLength(9)
+      expect(identity?.levelArc.L0.stage).toBe('ruin')
+      expect(identity?.levelArc.L8.stage).toBe('thriving')
+      expect(identity?.levelArc.L1.structuralMilestone).toBe(true)
+      expect(identity?.levelArc.L3.structuralMilestone).toBe(true)
+      expect(identity?.levelArc.L5.structuralMilestone).toBe(true)
+      expect(identity?.levelArc.L7.structuralMilestone).toBe(true)
+    }
   })
 
   it('adds stage, function, connection and era metadata for runtime filtering', () => {
@@ -67,6 +85,32 @@ describe('building catalog', () => {
       entrance: { x: 1, y: 1 },
     })
     expect(BUILDING_DEFINITIONS.market.districtAffinity).toContain('market-street')
+    expect(BUILDING_DEFINITIONS.market.visualIdentity?.buildingClass).toBe('food-house')
+    expect(getBuildingVisualLevel('main-eatery', 8)?.stage).toBe('thriving')
+    expect(getBuildingVisualLevel('main-eatery', 99)?.stage).toBe('thriving')
+  })
+
+  it('exposes health, education and culture facilities as era-consistent runtime buildings', () => {
+    expect(BUILDING_DEFINITIONS.pharmacy).toMatchObject({
+      type: 'pharmacy',
+      cityStage: 'trade-town',
+      category: 'service',
+      functions: expect.arrayContaining(['service', 'employment']),
+      production: { outputs: { medicine: 2 } },
+    })
+    expect(BUILDING_DEFINITIONS.academy).toMatchObject({
+      type: 'academy',
+      cityStage: 'prefecture-town',
+      category: 'service',
+    })
+    expect(BUILDING_DEFINITIONS.theatre).toMatchObject({
+      type: 'theatre',
+      cityStage: 'prefecture-town',
+      category: 'service',
+    })
+    expect(isEraConsistentBuilding(BUILDING_DEFINITIONS.pharmacy)).toBe(true)
+    expect(isEraConsistentBuilding(BUILDING_DEFINITIONS.academy)).toBe(true)
+    expect(isEraConsistentBuilding(BUILDING_DEFINITIONS.theatre)).toBe(true)
   })
 
   it('gates starter runtime menu by derived city stage', () => {
@@ -97,6 +141,9 @@ describe('building catalog', () => {
     expect(tradeStage).toBe('trade-town')
     expect(isRuntimeBuildingUnlocked('market', starterStage)).toBe(true)
     expect(isRuntimeBuildingUnlocked('woodshop', starterStage)).toBe(false)
+    expect(isRuntimeBuildingUnlocked('pharmacy', starterStage)).toBe(false)
+    expect(isRuntimeBuildingUnlocked('pharmacy', tradeStage)).toBe(true)
+    expect(isRuntimeBuildingUnlocked('academy', tradeStage)).toBe(false)
     expect(isRuntimeBuildingUnlocked('woodshop', tradeStage)).toBe(true)
     expect(getRuntimeBuildingMenu(starterStage).find((item) => item.type === 'woodshop'))
       .toMatchObject({ unlocked: false, requiredStageLabel: '商贸镇' })

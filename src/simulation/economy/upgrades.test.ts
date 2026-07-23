@@ -177,6 +177,31 @@ describe('building upgrades', () => {
     expect(store.inventory).toEqual({})
   })
 
+  it('links production upgrades to milestone output and cycle improvements', () => {
+    const definition: BuildingDefinition = {
+      ...granaryDefinition,
+      type: 'riceField',
+      category: 'production',
+      production: {
+        durationTicks: 35,
+        inputs: {},
+        outputs: { food: 4 },
+      },
+    }
+
+    expect(effectiveBuildingDefinition(definition, { level: 1 }).production).toEqual(definition.production)
+    expect(effectiveBuildingDefinition(definition, { level: 3 }).production).toEqual({
+      durationTicks: 33,
+      inputs: {},
+      outputs: { food: 4.4 },
+    })
+    expect(effectiveBuildingDefinition(definition, { level: 5 }).production).toEqual({
+      durationTicks: 32,
+      inputs: {},
+      outputs: { food: 4.8 },
+    })
+  })
+
   it('uses a custom construction economy table for queued upgrade costs', () => {
     const target = building(2, {}, 'house-1', 'house')
     const store = building(1, { wood: 9, stone: 6 }, 'granary-1')

@@ -38,6 +38,7 @@ import {
   type AmbientCityStory,
   type CityNoticeTarget,
 } from './integration/cityNotices'
+import { deriveResidentGovernance, formatResidentActivity, formatResidentMigrationAudit, formatResidentPressure } from './integration/residentGovernance'
 import {
   deriveStageAdvisorOverlay,
   deriveStageGovernanceCards,
@@ -53,7 +54,8 @@ import {
   FullscreenController,
   type FullscreenState,
 } from './ui'
-import { formatLogisticsInventoryPanelCopy, formatLogisticsStorageOutcome, formatRoadPlanSummary } from './ui/cityAdvisorUi'
+import { auditUpgradeForBuilding } from './qa/upgradeEconomyAudit'
+import { formatCityTimelineRecord, formatCityTimelineResidentProfile, formatLogisticsInventoryPanelCopy, formatLogisticsStorageArchive, formatLogisticsStorageHistory, formatLogisticsStorageOutcome, formatLogisticsStorageTimelineRecord, formatRoadPlanSummary, formatServiceRecoveryRecord } from './ui/cityAdvisorUi'
 import { runtimeOptionsFromSearch } from './ui/runtimeOptions'
 import './styles.css'
 
@@ -125,6 +127,11 @@ export default function App() {
   const selectedDefinition = selectedBuilding
     ? BUILDING_DEFINITIONS[selectedBuilding.type]
     : undefined
+  const selectedHomeOccupancy = selectedBuilding && selectedDefinition?.category === 'housing'
+    ? Object.values(snapshot.households)
+      .filter((household) => household.homeBuildingId === selectedBuilding.id)
+      .reduce((sum, household) => sum + household.members, 0)
+    : undefined
   const selectedUpgrade = selectedBuilding
     ? runtime.getBuildingUpgradeQuote(selectedBuilding.id)
     : undefined
@@ -134,11 +141,49 @@ export default function App() {
   const selectedLogisticsOutcome = selectedBuilding
     ? snapshot.logisticsStorageInterventions?.[selectedBuilding.id]
     : undefined
+  const selectedLogisticsHistory = selectedBuilding
+    ? (snapshot.logisticsStorageInterventionHistory ?? []).filter((record) => record.buildingId === selectedBuilding.id)
+    : []
+  const logisticsStorageArchiveSummary = formatLogisticsStorageArchive(
+    snapshot.logisticsStorageInterventionArchive,
+    snapshot.logisticsStorageInterventionHistory?.length ?? 0,
+  )
+  const recentLogisticsInterventions = [...(snapshot.logisticsStorageInterventionHistory ?? [])]
+    .sort((left, right) => right.tick - left.tick || right.eventId.localeCompare(left.eventId))
+    .slice(0, 3)
+  const recentCityTimeline = [...(snapshot.cityTimeline ?? [])]
+    .sort((left, right) => right.tick - left.tick || right.id.localeCompare(left.id))
+    .slice(0, 4)
+  const recentServiceRecovery = [...(snapshot.cityTimeline ?? [])]
+    .filter((record) => record.source === 'service-bottleneck-cleared')
+    .sort((left, right) => right.tick - left.tick || right.id.localeCompare(left.id))[0]
+  const selectedServiceRecovery = selectedBuilding
+    ? [...(snapshot.cityTimeline ?? [])]
+      .filter((record) => record.source === 'service-bottleneck-cleared' && record.buildingId === selectedBuilding.id)
+      .sort((left, right) => right.tick - left.tick || right.id.localeCompare(left.id))[0]
+    : undefined
+  const selectedServiceDelivery = selectedBuilding
+    ? [...(snapshot.cityTimeline ?? [])]
+      .filter((record) => record.source === 'service-delivered' && record.buildingId === selectedBuilding.id)
+      .sort((left, right) => right.tick - left.tick || right.id.localeCompare(left.id))[0]
+    : undefined
+  const selectedBlockageRecords = selectedBuilding
+    ? [...(snapshot.cityTimeline ?? [])]
+      .filter((record) => (
+        (record.source === 'building-blockage-started' || record.source === 'building-blockage-cleared')
+        && record.buildingId === selectedBuilding.id
+      ))
+      .sort((left, right) => right.tick - left.tick || right.id.localeCompare(left.id))
+    : []
   const rareTotal = Object.values(snapshot.rareRewards.inventory)
     .reduce((sum, value) => sum + (value ?? 0), 0)
   const needScore = averageNeeds(snapshot)
   const bottlenecks = useMemo(() => getCityBottlenecks(snapshot), [snapshot])
   const cityStage = deriveRuntimeCityStage(snapshot.metrics)
+  const residentGovernance = useMemo(
+    () => deriveResidentGovernance(snapshot, BUILDING_DEFINITIONS),
+    [snapshot],
+  )
   const stageProgress = getRuntimeCityStageProgress(snapshot.metrics)
   const buildMenu = getRuntimeBuildingMenuState(cityStage, snapshot)
   const chooseTool = (next: BuildTool) => {
@@ -404,6 +449,7 @@ export default function App() {
     } else {
       setToast(`${story.title}：已记下，不影响继续建设。`)
     }
+    runtime.acknowledgeCityNotice(story.id.replace(/^story-/, ''))
     ambientStoryTrackerRef.current.resolve(story.id)
     setAmbientStories((current) => current.filter((item) => item.id !== story.id))
   }
@@ -440,6 +486,7 @@ export default function App() {
         <Metric icon={<Hammer />} label="就业" value={`${snapshot.metrics.employedWorkers}/${snapshot.metrics.employedWorkers + snapshot.metrics.availableJobs}`} />
         <Metric icon={<Compass />} label="吸引" value={`${Math.round(snapshot.metrics.cityAttraction ?? 0)}%`} />
         <Metric icon={<HeartPulse />} label="民需" value={`${Math.round(needScore)}%`} />
+        <Metric icon={<HeartPulse />} label="公共服务" value={`${Math.round(snapshot.metrics.publicServiceCoverage ?? 0)}%`} />
         <Metric icon={<Coins />} label="财政" value={Math.round(snapshot.economy.treasury).toLocaleString()} />
         <Metric icon={<Route />} label="物流" value={`${Math.round(snapshot.metrics.logisticsEfficiency)}%`} />
         <Metric icon={<Music2 />} label="珍材" value={String(rareTotal)} accent />
@@ -623,7 +670,11 @@ export default function App() {
       <aside className={`bottleneck-panel glass-panel ${bottleneckOpen ? 'open' : ''}`} aria-label="城市瓶颈管理">
         <button
           className="bottleneck-toggle"
-          onClick={() => setBottleneckOpen((open) => !open)}
+          onClick={() => setBottleneckOpen((open) => {
+            const next = !open
+            if (next) setToast('城市运行时间线已打开。')
+            return next
+          })}
           aria-expanded={bottleneckOpen}
         >
           <span><AlertTriangle /> 瓶颈</span>
@@ -632,6 +683,96 @@ export default function App() {
         {bottleneckOpen && (
           <div className="bottleneck-body">
             <p>优先处理最影响运转的 3 件事。</p>
+            <div className="city-timeline-card" aria-label="城市运行时间线">
+              <strong>城市运行</strong>
+              {recentCityTimeline.length > 0 ? recentCityTimeline.map((record) => {
+                const content = (
+                  <>
+                    <b>{formatCityTimelineRecord(record)}</b>
+                    <span>{record.detail}</span>
+                    {record.resident && <small className="city-timeline-resident">居民状态：{formatCityTimelineResidentProfile(record.resident)}</small>}
+                  </>
+                )
+                return record.buildingId ? (
+                  <button
+                    key={record.id}
+                    type="button"
+                    onClick={() => focusCityTarget({ kind: 'building', buildingId: record.buildingId! }, record.title)}
+                    title="定位到相关建筑"
+                  >
+                    {content}
+                  </button>
+                ) : (
+                  <div key={record.id} className="city-timeline-entry">
+                    {content}
+                  </div>
+                )
+              }) : (
+                <small>服务、人口和市场开始运行后，城市事件会在这里留下轨迹。</small>
+              )}
+            </div>
+            <div className="resident-governance-card" aria-label="居民生活状态">
+              <strong>居民生活</strong>
+              <div className="resident-governance-grid">
+                <span>居住<b>{residentGovernance.population}/{residentGovernance.housingCapacity}</b></span>
+            <span>就业<b>{residentGovernance.employedWorkers}/{residentGovernance.workerCount}</b></span>
+            <span>缺勤<b>{residentGovernance.absentWorkers}</b></span>
+                <span>候选<b>{residentGovernance.migrationCandidates} 户</b></span>
+                <span>净迁入<b>{residentGovernance.netMigration >= 0 ? '+' : ''}{residentGovernance.netMigration} 户</b></span>
+                <span>民需<b>{Math.round(residentGovernance.averageNeed)}%</b></span>
+              </div>
+              <small>当前活动：{formatResidentActivity(residentGovernance)}；最低民需：{residentGovernance.lowestNeed.label} {Math.round(residentGovernance.lowestNeed.value)}%。</small>
+              <small>服务压力：{formatResidentPressure(residentGovernance)}。</small>
+              <small>公共服务覆盖：{Math.round(residentGovernance.publicServiceCoverage)}%；最近维护支出：{residentGovernance.serviceMaintenanceCost}。</small>
+              <small>运行后果：阻塞 {residentGovernance.blockedBuildings} 处；{residentGovernance.longestBlockage ? `最长为${residentGovernance.longestBlockage.label}，已持续 ${residentGovernance.longestBlockage.ticks} 刻（${residentGovernance.longestBlockage.reason}）` : '暂无持续阻塞'}；物流待处理 {residentGovernance.logisticsBacklog} 单；库存压力 {residentGovernance.inventoryPressureBuildings} 处。</small>
+              {residentGovernance.lastFiscalOperationalPressure && (
+                <small>最近财政结算（第 {residentGovernance.lastFiscalOperationalPressure.tick} 刻）记录：阻塞 {residentGovernance.lastFiscalOperationalPressure.blockedBuildings} 处、物流积压 {residentGovernance.lastFiscalOperationalPressure.logisticsBacklog} 单、居民压力 {residentGovernance.lastFiscalOperationalPressure.pressuredHouseholds} 户{residentGovernance.lastFiscalOperationalPressure.blockedBuildingsDelta === undefined ? '' : `；较上周期阻塞 ${residentGovernance.lastFiscalOperationalPressure.blockedBuildingsDelta >= 0 ? '+' : ''}${residentGovernance.lastFiscalOperationalPressure.blockedBuildingsDelta}、物流 ${residentGovernance.lastFiscalOperationalPressure.logisticsBacklogDelta! >= 0 ? '+' : ''}${residentGovernance.lastFiscalOperationalPressure.logisticsBacklogDelta}、居民压力 ${residentGovernance.lastFiscalOperationalPressure.pressuredHouseholdsDelta! >= 0 ? '+' : ''}${residentGovernance.lastFiscalOperationalPressure.pressuredHouseholdsDelta}` }。</small>
+              )}
+              {recentServiceRecovery ? (
+                <button
+                  type="button"
+                  className="service-recovery-link"
+                  onClick={() => focusCityTarget({ kind: 'building', buildingId: recentServiceRecovery.buildingId! }, '服务恢复记录')}
+                  title="定位到最近恢复服务的建筑"
+                >
+                  {formatServiceRecoveryRecord(recentServiceRecovery)}
+                </button>
+              ) : (
+                <small>服务恢复：尚未记录设施从阻塞状态恢复。</small>
+              )}
+              <small>人口流动审计：{formatResidentMigrationAudit(residentGovernance)}；离城劳动力：就业 {residentGovernance.employedWorkersOut}、待业 {residentGovernance.unemployedWorkersOut}。</small>
+              <small>职业：{residentGovernance.occupations.length > 0 ? residentGovernance.occupations.map((occupation) => `${occupation.label} ${occupation.count}`).join('、') : '暂无职业记录'}{residentGovernance.overcrowdedHouseholds > 0 ? `；拥挤家庭 ${residentGovernance.overcrowdedHouseholds} 户` : ''}。</small>
+            </div>
+            <div className="bottleneck-archive-card" aria-label="物流干预存档">
+              <strong>治理存档</strong>
+              <span>{logisticsStorageArchiveSummary}</span>
+              {snapshot.logisticsStorageInterventionArchive?.lastTick ? (
+                <small>最近归档：第 {snapshot.logisticsStorageInterventionArchive.lastTick} 刻；明细窗口保留最近 200 条。</small>
+              ) : (
+                <small>扩仓等物流治理动作会在这里留下可追溯记录。</small>
+              )}
+            </div>
+            <div className="bottleneck-timeline-card" aria-label="最近物流治理动作">
+              <strong>最近治理动作</strong>
+              {recentLogisticsInterventions.length > 0 ? recentLogisticsInterventions.map((record) => {
+                const building = snapshot.buildings[record.buildingId]
+                const buildingLabel = building
+                  ? (BUILDING_DEFINITIONS[building.type]?.name ?? building.type)
+                  : `${record.buildingType}（已移除）`
+                return (
+                  <button
+                    key={record.eventId}
+                    type="button"
+                    onClick={() => focusCityTarget({ kind: 'building', buildingId: record.buildingId }, '物流治理记录')}
+                    title="定位到发生治理动作的建筑"
+                  >
+                    {formatLogisticsStorageTimelineRecord(record, buildingLabel)}
+                  </button>
+                )
+              }) : (
+                <small>还没有物流治理动作；发生扩仓或分流后，最近记录会出现在这里。</small>
+              )}
+            </div>
             {bottlenecks.length === 0 ? (
               <div className="bottleneck-empty">暂无明显瓶颈，继续扩建前留意物流和居民需求。</div>
             ) : (
@@ -720,7 +861,57 @@ export default function App() {
             <span>岗位<b>{selectedBuilding.workers.length}/{selectedDefinition.jobs}</b></span>
             <span>产能<b>{Math.round(selectedBuilding.productionProgress)} 刻</b></span>
             <span>库存<b>{Object.values(selectedBuilding.inventory).reduce((a, b) => a + (b ?? 0), 0)}</b></span>
+            {selectedHomeOccupancy !== undefined && <span>居住<b>{selectedHomeOccupancy}/{selectedDefinition.capacity}</b></span>}
           </div>
+          {selectedServiceRecovery && (
+            <div className="service-recovery-card" aria-label="服务恢复审计">
+              <div className="upgrade-head">
+                <span>最近服务恢复</span>
+                <b>第 {selectedServiceRecovery.tick} 刻</b>
+              </div>
+              <p>{selectedServiceRecovery.detail}</p>
+              {selectedServiceRecovery.serviceRecovery && (
+                <div className="service-recovery-grid">
+                  <span>建筑状态<b>{statusName(selectedServiceRecovery.serviceRecovery.buildingStatusBefore)} → {statusName(selectedServiceRecovery.serviceRecovery.buildingStatusAfter)}</b></span>
+                  <span>压力清除<b>{selectedServiceRecovery.serviceRecovery.pressureClearedHouseholds} 户</b></span>
+                  <span>最长压力<b>{selectedServiceRecovery.serviceRecovery.maxPressureTicks} 刻</b></span>
+                  {selectedServiceRecovery.fiscal && (
+                    <span>财政影响<b>库银 {Math.round(selectedServiceRecovery.fiscal.treasuryBefore ?? selectedServiceRecovery.fiscal.treasury)} → {Math.round(selectedServiceRecovery.fiscal.treasury)}</b></span>
+                  )}
+                </div>
+              )}
+              {selectedServiceDelivery?.serviceDelivery?.needBefore !== undefined && selectedServiceDelivery.serviceDelivery.needAfter !== undefined && (
+                <small>最近一户居民需求：{Math.round(selectedServiceDelivery.serviceDelivery.needBefore)} → {Math.round(selectedServiceDelivery.serviceDelivery.needAfter)}（第 {selectedServiceDelivery.tick} 刻）</small>
+              )}
+              <small>该记录来自真实服务系统：建筑状态、居民压力和恢复原因已同步。</small>
+            </div>
+          )}
+          {selectedBlockageRecords.length > 0 && (
+            <div className="blockage-lifecycle-card" aria-label="运行阻塞生命周期审计">
+              <div className="upgrade-head">
+                <span>运行状态审计</span>
+                <b>{selectedBlockageRecords[0].source === 'building-blockage-cleared' ? '已恢复' : '持续中'}</b>
+              </div>
+              <p>{selectedBlockageRecords[0].detail}</p>
+              {selectedBlockageRecords[0].blockage && (
+                <div className="service-recovery-grid">
+                  <span>原因<b>{reasonName(selectedBlockageRecords[0].blockage.reason)}</b></span>
+                  <span>开始<b>第 {selectedBlockageRecords[0].blockage.blockedSinceTick} 刻</b></span>
+                    <span>持续<b>{selectedBlockageRecords[0].blockage.durationTicks} 刻</b></span>
+                  {selectedBlockageRecords[0].blockage.consequences && (
+                    <>
+                      <span>同刻后果<b>缺勤 {selectedBlockageRecords[0].blockage.consequences.absentWorkers} · 物流 {selectedBlockageRecords[0].blockage.consequences.relatedLogisticsOrders} · 压力 {selectedBlockageRecords[0].blockage.consequences.pressuredHouseholds}</b></span>
+                      <span>库存占用<b>{selectedBlockageRecords[0].blockage.consequences.inventoryTotal}{selectedBlockageRecords[0].blockage.consequences.inventoryCapacity === undefined ? '' : `/${selectedBlockageRecords[0].blockage.consequences.inventoryCapacity}`}</b></span>
+                    </>
+                  )}
+                  {selectedBlockageRecords[0].blockage.consequenceDelta && (
+                    <span>期间变化<b>库存 {selectedBlockageRecords[0].blockage.consequenceDelta.inventoryDelta >= 0 ? '+' : ''}{selectedBlockageRecords[0].blockage.consequenceDelta.inventoryDelta} · 物流 {selectedBlockageRecords[0].blockage.consequenceDelta.relatedLogisticsOrdersDelta >= 0 ? '+' : ''}{selectedBlockageRecords[0].blockage.consequenceDelta.relatedLogisticsOrdersDelta} · 压力 {selectedBlockageRecords[0].blockage.consequenceDelta.pressuredHouseholdsDelta >= 0 ? '+' : ''}{selectedBlockageRecords[0].blockage.consequenceDelta.pressuredHouseholdsDelta}</b></span>
+                  )}
+                </div>
+              )}
+              <small>生命周期记录 {selectedBlockageRecords.length} 条：开始、持续后果与恢复均来自真实模拟事件。</small>
+            </div>
+          )}
           {selectedLogisticsPanel && (
             <div className="logistics-plan-card">
               <div className="upgrade-head">
@@ -741,6 +932,16 @@ export default function App() {
               <p>{formatLogisticsStorageOutcome(selectedLogisticsOutcome)}</p>
             </div>
           )}
+          {selectedLogisticsHistory.length > 0 && (
+            <div className="logistics-history-card">
+              <div className="upgrade-head">
+                <span>物流干预记录</span>
+                <b>可追溯</b>
+              </div>
+              <p>{formatLogisticsStorageHistory(selectedLogisticsHistory)}</p>
+              <small>最近事件：第 {selectedLogisticsHistory[selectedLogisticsHistory.length - 1].tick} 刻，记录已写入城市存档。</small>
+            </div>
+          )}
           {selectedUpgrade && (
             <div className="upgrade-card">
               <div className="upgrade-head">
@@ -756,6 +957,23 @@ export default function App() {
                   ? ` · 升级后容量 ${selectedUpgrade.effect.capacity}，岗位 ${selectedUpgrade.effect.jobs}`
                   : ''}
               </p>
+              {selectedUpgrade.economic && (
+                <small className={`upgrade-economy upgrade-economy-${selectedUpgrade.economic.verdict}`}>
+                  本级变化：容量 +{selectedUpgrade.economic.capacityDelta} · 岗位 +{selectedUpgrade.economic.jobsDelta}
+                  {selectedUpgrade.economic.productionValueDelta > 0
+                    ? ` · 产值 +${selectedUpgrade.economic.productionValueDelta}/财政周期`
+                    : ''}
+                  {selectedUpgrade.economic.serviceCapacityDelta > 0
+                    ? ` · 服务 +${selectedUpgrade.economic.serviceCapacityDelta}/刻`
+                    : ''}
+                  {selectedUpgrade.economic.paybackSettlements === null
+                    ? ' · 当前口径不可回本'
+                    : ` · 预计 ${selectedUpgrade.economic.paybackSettlements} 个财政周期回本`}
+                </small>
+              )}
+              {selectedUpgrade.economic?.warnings.length ? (
+                <em>经济提示：{selectedUpgrade.economic.warnings.join('、')}</em>
+              ) : null}
               {Object.keys(selectedUpgrade.missing).length > 0 && (
                 <em>缺少：{formatResourceList(selectedUpgrade.missing)}</em>
               )}
@@ -1044,6 +1262,46 @@ function getCityBottlenecks(snapshot: ReturnType<GameRuntime['getSnapshot']>) {
         target: weakestHouseholdHome(snapshot),
       })
     }
+  }
+
+  const riskyUpgrade = buildings
+    .filter((building) => building.level < (BUILDING_DEFINITIONS[building.type]?.maxLevel ?? building.level))
+    .map((building) => {
+      const definition = BUILDING_DEFINITIONS[building.type]
+      if (!definition) return undefined
+      return { building, definition, audit: auditUpgradeForBuilding(definition, building.level) }
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
+    .filter((entry) => entry.audit.verdict !== 'healthy')
+    .sort((left, right) => {
+      const verdictRank = { 'no-return': 2, slow: 1, healthy: 0 }
+      return verdictRank[right.audit.verdict] - verdictRank[left.audit.verdict]
+        || (right.audit.paybackSettlements ?? Number.POSITIVE_INFINITY)
+          - (left.audit.paybackSettlements ?? Number.POSITIVE_INFINITY)
+        || left.building.id.localeCompare(right.building.id)
+    })[0]
+  if (riskyUpgrade) {
+    const { building, definition, audit } = riskyUpgrade
+    const payback = audit.paybackSettlements === null
+      ? '当前口径不可回本'
+      : `预计 ${audit.paybackSettlements} 个财政周期回本`
+    const score = audit.verdict === 'no-return' ? 78 : 70
+    bottlenecks.push({
+      id: `upgrade-economy-${building.id}`,
+      title: '升级经济风险',
+      detail: `${definition.name} Lv.${building.level}→${audit.nextLevel}：${payback}。`,
+      cause: audit.warnings.length > 0
+        ? audit.warnings.join('、')
+        : '升级成本与当前产出/服务收益的回收速度偏慢。',
+      action: '先查看收益明细，再决定是否投入城市仓储材料。',
+      recommendation: {
+        label: '查看升级收益',
+        tool: 'inspect',
+      },
+      score,
+      severity: severityFromScore(score),
+      target: { kind: 'building', buildingId: building.id },
+    })
   }
 
   const waitingOrders = Object.values(snapshot.logisticsOrders)

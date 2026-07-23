@@ -5,10 +5,13 @@ import { DEFAULT_ISO_METRICS } from './isometric'
 import { createSceneLayers, type SceneLayers } from './layers'
 import { ObjectPool } from './ObjectPool'
 import type { PrefabRuntimeRegistry } from './prefab'
+import type { BuildingArtworkProvider } from './artwork/buildingArtwork'
+import type { BuildingAnimationDriverOptions, BuildingAnimationProvider } from './artwork/buildingAnimation'
 import type {
   EntityVisual,
   IsoMetrics,
   SceneCamera,
+  SceneSyncPerformanceProfile,
   SceneSyncStats,
 } from './types'
 import { AgentVisual, BuildingVisual, DistrictProsperityVisual, DropVisual } from './visuals'
@@ -23,6 +26,11 @@ function migrationCandidateVisualId(id: EntityId): EntityId {
 
 export interface DynamicSceneOptions {
   prefabRegistry?: PrefabRuntimeRegistry
+  buildingArtworkProvider?: BuildingArtworkProvider
+  buildingAnimationProvider?: BuildingAnimationProvider
+  buildingAnimationOptions?: BuildingAnimationDriverOptions
+  staticBuildingCache?: boolean
+  onSyncProfile?: (profile: SceneSyncPerformanceProfile) => void
 }
 
 export class DynamicScene {
@@ -37,15 +45,37 @@ export class DynamicScene {
   private readonly transportPool: ObjectPool<AgentVisual>
   private readonly dropPool: ObjectPool<DropVisual>
   private readonly active = new Map<EntityId, EntityVisual>()
+  private readonly onSyncProfile?: (profile: SceneSyncPerformanceProfile) => void
+  private lastSnapshot: Readonly<SimulationSnapshot> | null = null
+  private lastSnapshotTick: number | null = null
+  private lastBuildings: Readonly<SimulationSnapshot['buildings']> | null = null
+  private lastAgents: Readonly<SimulationSnapshot['agents']> | null = null
+  private lastDrops: Readonly<SimulationSnapshot['worldDrops']> | null = null
+  private lastDistricts: Readonly<SimulationSnapshot['districts']> | null = null
+  private lastMigrationCandidates: Readonly<SimulationSnapshot['migrationCandidates']> | null = null
+  private lastCameraKey: string | null = null
+  private lastStats: SceneSyncStats | null = null
 
   constructor(
     metrics: Readonly<IsoMetrics> = DEFAULT_ISO_METRICS,
     options: Readonly<DynamicSceneOptions> = {},
   ) {
     this.metrics = metrics
+    this.onSyncProfile = options.onSyncProfile
     this.root.addChild(this.world)
     this.layers = createSceneLayers(this.world)
-    this.buildingPool = new ObjectPool(() => new BuildingVisual(metrics, options.prefabRegistry), 16, 256)
+    this.buildingPool = new ObjectPool(
+      () => new BuildingVisual(
+        metrics,
+      options.prefabRegistry,
+      options.buildingArtworkProvider,
+      options.buildingAnimationProvider,
+      options.buildingAnimationOptions,
+      options.staticBuildingCache,
+      ),
+      16,
+      256,
+    )
     this.districtPool = new ObjectPool(() => new DistrictProsperityVisual(metrics), 8, 64)
     this.residentPool = new ObjectPool(() => new AgentVisual(metrics, 'resident'), 32, 512)
     this.transportPool = new ObjectPool(() => new AgentVisual(metrics, 'transport'), 12, 256)
@@ -57,7 +87,71 @@ export class DynamicScene {
     camera: Readonly<SceneCamera>,
     interpolationAlpha = 0,
   ): SceneSyncStats {
+    const profileStart = this.onSyncProfile ? performance.now() : 0
+    const cameraKey = `${camera.x}|${camera.y}|${camera.zoom}|${camera.viewportWidth}|${camera.viewportHeight}`
+    let phaseStart = profileStart
+    let districtsMs = 0
+    let buildingsMs = 0
+    let residentsMs = 0
+    let dropsMs = 0
     applyCameraTransform(this.world, camera)
+
+    // The ticker runs more often than the simulation clock. Replaying every
+    // Graphics.clear()/path command for 300 buildings on unchanged snapshots
+    // creates CPU and driver pressure without changing a pixel.
+    const snapshotVisualsUnchanged = snapshot === this.lastSnapshot
+      && snapshot.tick === this.lastSnapshotTick
+      && snapshot.buildings === this.lastBuildings
+      && snapshot.agents === this.lastAgents
+      && snapshot.worldDrops === this.lastDrops
+      && snapshot.districts === this.lastDistricts
+      && snapshot.migrationCandidates === this.lastMigrationCandidates
+
+    if (snapshotVisualsUnchanged && cameraKey === this.lastCameraKey && this.lastStats) {
+      this.onSyncProfile?.({
+        totalMs: performance.now() - profileStart,
+        districtsMs: 0,
+        buildingsMs: 0,
+        residentsMs: 0,
+        dropsMs: 0,
+        cleanupMs: 0,
+        sortMs: 0,
+        buildings: this.lastStats.buildings,
+        residents: this.lastStats.residents,
+        transport: this.lastStats.transport,
+        drops: this.lastStats.drops,
+        visible: this.lastStats.visible,
+        pooled: this.lastStats.pooled,
+      })
+      return this.lastStats
+    }
+
+    if (snapshotVisualsUnchanged && this.lastStats) {
+      let visible = 0
+      for (const visual of this.active.values()) {
+        visible += this.applyVisibility(visual, camera)
+      }
+      const stats = { ...this.lastStats, visible }
+      this.lastCameraKey = cameraKey
+      this.lastStats = stats
+      this.onSyncProfile?.({
+        totalMs: performance.now() - profileStart,
+        districtsMs: 0,
+        buildingsMs: 0,
+        residentsMs: 0,
+        dropsMs: 0,
+        cleanupMs: 0,
+        sortMs: 0,
+        buildings: stats.buildings,
+        residents: stats.residents,
+        transport: stats.transport,
+        drops: stats.drops,
+        visible: stats.visible,
+        pooled: stats.pooled,
+      })
+      return stats
+    }
+
     const expected = new Set<EntityId>()
     let visible = 0
     let buildings = 0
@@ -72,6 +166,10 @@ export class DynamicScene {
       visible += this.applyVisibility(visual, camera)
       districts += 1
     }
+    if (this.onSyncProfile) {
+      districtsMs = performance.now() - phaseStart
+      phaseStart = performance.now()
+    }
 
     for (const building of Object.values(snapshot.buildings)) {
       expected.add(building.id)
@@ -79,6 +177,10 @@ export class DynamicScene {
       visual.update(snapshot, interpolationAlpha)
       visible += this.applyVisibility(visual, camera)
       buildings += 1
+    }
+    if (this.onSyncProfile) {
+      buildingsMs = performance.now() - phaseStart
+      phaseStart = performance.now()
     }
 
     for (const agent of Object.values(snapshot.agents)) {
@@ -99,6 +201,10 @@ export class DynamicScene {
       visible += this.applyVisibility(visual, camera)
       residents += 1
     }
+    if (this.onSyncProfile) {
+      residentsMs = performance.now() - phaseStart
+      phaseStart = performance.now()
+    }
 
     for (const drop of snapshot.worldDrops) {
       expected.add(drop.id)
@@ -106,13 +212,42 @@ export class DynamicScene {
       visual.update(snapshot, interpolationAlpha)
       visible += this.applyVisibility(visual, camera)
     }
+    if (this.onSyncProfile) {
+      dropsMs = performance.now() - phaseStart
+      phaseStart = performance.now()
+    }
 
+    const cleanupStart = phaseStart
     for (const [id, visual] of [...this.active]) {
       if (!expected.has(id)) this.release(id, visual)
     }
+    const cleanupMs = this.onSyncProfile ? performance.now() - cleanupStart : 0
 
+    const sortStart = this.onSyncProfile ? performance.now() : 0
     this.sortDynamicLayers()
-    return {
+    if (this.onSyncProfile) {
+      const end = performance.now()
+      this.onSyncProfile({
+        totalMs: end - profileStart,
+        districtsMs,
+        buildingsMs,
+        residentsMs,
+        dropsMs,
+        cleanupMs,
+        sortMs: end - sortStart,
+        buildings,
+        residents,
+        transport,
+        drops: snapshot.worldDrops.length,
+        visible,
+        pooled: this.buildingPool.pooledCount
+          + this.districtPool.pooledCount
+          + this.residentPool.pooledCount
+          + this.transportPool.pooledCount
+          + this.dropPool.pooledCount,
+      })
+    }
+    const stats = {
       buildings,
       districts,
       residents,
@@ -125,10 +260,29 @@ export class DynamicScene {
         + this.transportPool.pooledCount
         + this.dropPool.pooledCount,
     }
+    this.lastSnapshot = snapshot
+    this.lastSnapshotTick = snapshot.tick
+    this.lastBuildings = snapshot.buildings
+    this.lastAgents = snapshot.agents
+    this.lastDrops = snapshot.worldDrops
+    this.lastDistricts = snapshot.districts
+    this.lastMigrationCandidates = snapshot.migrationCandidates
+    this.lastCameraKey = cameraKey
+    this.lastStats = stats
+    return stats
   }
 
   destroy(): void {
     for (const [id, visual] of [...this.active]) this.release(id, visual)
+    this.lastSnapshot = null
+    this.lastSnapshotTick = null
+    this.lastBuildings = null
+    this.lastAgents = null
+    this.lastDrops = null
+    this.lastDistricts = null
+    this.lastMigrationCandidates = null
+    this.lastCameraKey = null
+    this.lastStats = null
     this.root.destroy({ children: true })
   }
 

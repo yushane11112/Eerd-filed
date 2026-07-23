@@ -38,6 +38,12 @@ describe('runtime URL options', () => {
     })
   })
 
+  it('enables the service facility runtime debug scenario', () => {
+    expect(runtimeOptionsFromSearch('?debugScenario=service-facility-runtime')).toEqual({
+      debugScenario: 'service-facility-runtime',
+    })
+  })
+
   it('ignores unknown debug scenarios', () => {
     expect(runtimeOptionsFromSearch('?debugScenario=unknown')).toEqual({})
   })

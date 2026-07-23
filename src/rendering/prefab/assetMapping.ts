@@ -9,6 +9,9 @@ export const PREFAB_ASSET_ID_BY_BUILDING_TYPE: PrefabAssetMapping = {
   eatery: 'main-eatery',
   woodshop: 'main-carpentry',
   kiln: 'main-kiln',
+  pharmacy: 'main-pharmacy',
+  academy: 'main-academy',
+  theatre: 'main-theatre',
 
   'main-pier': 'main-pier',
   'main-ferry': 'main-ferry',

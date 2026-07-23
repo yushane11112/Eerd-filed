@@ -1440,3 +1440,722 @@
 | `src/App.tsx` | 建筑详情 | 建成后自动选中新粮仓并持续显示结果面板 |
 | `src/integration/GameRuntime.test.ts` | 自动测试 | 固定运行时结果写入快照 |
 | `src/qa/browserE2eScenarios.ts` | 浏览器 QA | 物流建造场景新增建成后详情可见断言 |
+
+## 2026-07-16：第一百一十六轮升级经济回本与容量联动审计
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/qa/upgradeEconomyAudit.ts` | 审计引擎 | 计算 64 个升级节点的成本价值、容量/岗位/生产/服务增益、维护费和回本周期 |
+| `src/qa/upgradeEconomyAuditCheck.ts` | QA 命令入口 | `npm run qa:upgrade-economy-audit` 输出平衡报告并检查覆盖与数值有效性 |
+| `src/qa/upgradeEconomyAudit.test.ts` | 自动测试 | 验证全建筑覆盖、服务等级联动和生产联动缺口可见 |
+| `src/simulation/economy/service.ts` | 运行时经济 | 服务建筑等级提升后真实增加每刻接待吞吐 |
+| `docs/project/audits/upgrade-economy.md` | 平衡审计文档 | 固化本轮假设、结果和下一轮修复范围 |
+
+## 2026-07-17：第一百一十七轮升级经济结果可见化
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/GameRuntime.ts` | 运行时接口 | 升级报价携带统一审计结果摘要 |
+| `src/App.tsx` | 建筑详情 UI | 显示容量/岗位、生产/服务增益、维护影响和回本周期 |
+| `src/styles.css` | 视觉状态 | 健康、慢回本和不可回本提示使用不同颜色层级 |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 验证升级报价包含经济结果且不改变存档库存 |
+| `docs/project/integration-log.md` | 集成记录 | 记录真实 UI 接入与浏览器环境失败 |
+
+## 2026-07-17：第一百一十八轮升级经济风险顾问
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/App.tsx` | 城市顾问 | 只提示最高风险升级节点，并定位到目标建筑 |
+| `src/qa/upgradeEconomyAudit.ts` | 共享审计 | 顾问与建筑详情复用同一回本/收益口径 |
+| `docs/project/progress-dashboard.md` | 进度记录 | 更新 UI 完成度与下一轮浏览器复验任务 |
+
+## 2026-07-17：第一百一十九轮物流热点能力来源短标签
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 物流图层协议 | 输出卸货能力来源徽标，并兼容旧队列快照 |
+| `src/components/SimulationCanvas.tsx` | 场景交互 | 在物流热点建筑入口附近渲染轻量能力标签 |
+| `src/styles.css` | 视觉样式 | 统一徽标尺寸、层级、颜色和不拦截交互行为 |
+| `src/integration/stageAdvisor.test.ts` | 自动测试 | 验证徽标生成、边界和能力来源格式化 |
+
+## 2026-07-17：第一百二十轮物流干预事件与存档审计
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 存档契约 | 定义物流干预历史记录和快照字段 |
+| `src/integration/GameRuntime.ts` | 运行时落盘 | 扩仓动作完成后追加唯一事件记录 |
+| `src/qa/logisticsStorageInterventionAudit.ts` | QA 审计器 | 校验事件引用、计数和累计结果 |
+| `src/qa/logisticsStorageInterventionAuditCheck.ts` | QA 命令 | 提供可重复的干预历史审计入口 |
+| `src/qa/logisticsStorageInterventionAudit.test.ts` | 自动测试 | 验证有效历史、重复事件和无效建筑边界 |
+
+## 2026-07-17：第一百二十一轮物流干预历史可见化
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/App.tsx` | 建筑详情 UI | 显示当前缓冲建筑的历史干预累计和最近事件 |
+| `src/ui/cityAdvisorUi.ts` | UI 口径函数 | 汇总多次物流干预结果 |
+| `src/ui/cityAdvisorUi.test.ts` | 自动测试 | 锁定历史累计文案和既有物流面板文案 |
+| `src/styles.css` | 视觉样式 | 为历史记录卡提供低干扰详情层级 |
+
+## 2026-07-17：第一百二十二轮物流干预历史有界归档
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/economy/logisticsInterventions.ts` | 存档策略 | 实现最近 200 条保留和旧事件累计归档 |
+| `src/simulation/economy/logisticsInterventions.test.ts` | 长跑边界测试 | 用 205 条事件验证窗口和归档结果 |
+| `src/simulation/contracts.ts` | 存档契约 | 增加干预归档累计字段 |
+| `src/qa/logisticsStorageInterventionAudit.ts` | QA 审计 | 汇总明细历史与累计归档并检查非法数据 |
+
+## 2026-07-17：第一百二十三轮物流干预归档城市管理可见化
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/App.tsx` | 城市管理 UI | 在瓶颈/治理抽屉显示全城物流干预存档摘要和最近归档刻数 |
+| `src/ui/cityAdvisorUi.ts` | UI 口径函数 | 统一近期明细与归档累计的展示文案 |
+| `src/ui/cityAdvisorUi.test.ts` | 自动测试 | 锁定归档统计和城市管理摘要格式 |
+| `src/styles.css` | 视觉样式 | 为治理存档卡提供独立但低干扰的层级 |
+
+## 2026-07-17：第一百二十四轮物流治理时间线可定位
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/App.tsx` | 城市管理交互 | 显示最近三条物流干预并触发建筑定位/详情查看 |
+| `src/ui/cityAdvisorUi.ts` | 时间线口径函数 | 统一治理记录的刻数、建筑和结果摘要 |
+| `src/ui/cityAdvisorUi.test.ts` | 自动测试 | 锁定时间线记录格式和治理统计文案 |
+| `src/styles.css` | 视觉样式 | 为可点击时间线提供低干扰按钮和聚焦反馈 |
+
+## 2026-07-17：第一百二十五轮城市运行文明时间线
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 文明事件契约 | 增加城市时间线分类、来源和快照字段 |
+| `src/integration/cityTimeline.ts` | 事件归档数据层 | 将服务、财政和人口事件映射为可读且有界的历史记录 |
+| `src/integration/cityTimeline.test.ts` | 自动测试 | 覆盖六类事件映射、建筑目标和 200 条窗口边界 |
+| `src/integration/GameRuntime.ts` | 运行时接入 | 每次模拟推进后持久化本轮文明事件 |
+| `src/App.tsx` | 城市管理 UI | 显示城市运行时间线并支持建筑事件定位 |
+| `src/ui/cityAdvisorUi.ts` | UI 口径函数 | 统一系统分类和时间线标题文案 |
+## 2026-07-17：第一百二十六轮居民身份与职业状态
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 居民状态契约 | 定义时间线中的候选、入住、离城家庭身份和就业快照 |
+| `src/integration/cityTimeline.ts` | 事件映射 | 将迁移事件转为带居民状态的城市运行记录 |
+| `src/integration/GameRuntime.ts` | 真实状态投影 | 从家庭、工人代理和雇佣建筑派生职业与就业状态 |
+| `src/ui/cityAdvisorUi.ts` | 居民状态文案 | 统一成员、劳动力、职业和满意度展示 |
+| `src/App.tsx` | 城市管理 UI | 在人口时间线显示居民状态并保留住房定位 |
+| `src/qa/browserE2eScenarios.ts` | 浏览器验收契约 | 固化候选家庭与入住家庭的可见差异场景 |
+
+## 2026-07-17：第一百二十七轮居民生活运行反馈
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/residentGovernance.ts` | 居民治理派生层 | 从真实模拟快照计算住房、就业、职业、活动和民需摘要 |
+| `src/integration/residentGovernance.test.ts` | 自动测试 | 验证住房、就业、待业、职业和活动统计口径 |
+| `src/App.tsx` | 城市管理与住房详情 | 展示居民生活卡和单栋住房实际入住人数 |
+| `src/styles.css` | 面板样式 | 为居民生活摘要提供紧凑信息层级 |
+| `src/rendering/visuals.ts` | 动态地图反馈 | 让工人服色随职业建筑类别变化 |
+| `src/qa/browserE2eScenarios.ts`, `src/qa/browserE2eScenarios.test.ts` | 浏览器验收契约 | 城市运行场景同时检查居民生活卡的居民生活与就业读数 |
+
+## 2026-07-17：第一百二十八轮岗位与缺勤后果
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/core/SimulationEngine.ts` | 居民劳动力模拟 | 生成岗位变更、缺勤和恢复出勤事件，并驱动工作路线 |
+| `src/simulation/core/workforce.ts` | 有效劳动力口径 | 统一区分岗位分配人数与实际出勤人数，兼容旧存档岗位 ID |
+| `src/simulation/economy/production.ts`, `src/simulation/economy/service.ts`, `src/simulation/economy/logistics.ts` | 建筑运行反馈 | 生产、服务、卸货能力按实际出勤人数计算 |
+| `src/integration/cityTimeline.ts`, `src/ui/cityAdvisorUi.ts` | 城市劳务时间线 | 展示居民获得岗位、失去岗位、缺勤及恢复原因 |
+| `src/integration/residentGovernance.ts`, `src/App.tsx` | 居民治理读数 | 显示当前缺勤人数 |
+
+## 2026-07-17：第一百二十九轮居民迁出原因
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 迁移原因契约 | 定义关键需求、失业和低满意度三类离城原因 |
+| `src/simulation/core/SimulationEngine.ts` | 迁出判定 | 从家庭需求、就业和满意度真实状态计算离城原因 |
+| `src/integration/cityTimeline.ts` | 因果文案投影 | 将迁出原因转换为城市运行时间线可读事实 |
+| `src/integration/cityTimeline.test.ts`, `src/simulation/core/SimulationEngine.test.ts` | 自动验证 | 覆盖离城原因生成和历史时间线兼容 |
+
+## 2026-07-17：第一百三十轮需求短板与长期缺勤
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 家庭压力状态契约 | 持久化各项需求短板刻数和家庭缺勤累计刻数 |
+| `src/simulation/core/SimulationEngine.ts` | 居民压力累计 | 从真实需求与工人出勤状态累计可解释的长期压力 |
+| `src/integration/cityTimeline.ts` | 因果解释投影 | 显示具体需求类型和连续缺勤时长 |
+| `src/integration/cityTimeline.test.ts`, `src/simulation/core/SimulationEngine.test.ts` | 自动验证 | 覆盖需求短板、长期缺勤迁出和时间线文案 |
+
+## 2026-07-17：第一百三十一轮服务短板来源
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/economy/service.ts` | 服务压力记录器 | 将真实服务工人、库存、道路、容量和家庭收入状态转为需求压力 |
+| `src/simulation/contracts.ts` | 服务压力契约 | 定义短板原因、持续刻数和关联服务建筑 |
+| `src/integration/residentGovernance.ts`, `src/App.tsx` | 居民治理反馈 | 展示持续时间最长的服务短板及原因 |
+| `src/integration/cityTimeline.ts` | 迁出因果时间线 | 展示具体需求、瓶颈原因和服务建筑 |
+| `src/simulation/economy/economy.test.ts`, `src/integration/residentGovernance.test.ts`, `src/integration/cityTimeline.test.ts` | 自动验证 | 覆盖服务短板累计、恢复清除和可读投影 |
+
+## 2026-07-17：第一百三十二轮城市级缺失服务设施
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/stageAdvisor.ts` | 城市服务覆盖分析 | 识别低需求且完全没有对应服务设施的城市级短板，并生成治理建议与营造候选 |
+| `src/integration/stageAdvisor.test.ts` | 自动验证 | 覆盖缺少医疗设施时的顾问卡、住宅定位和服务图层回退 |
+
+## 2026-07-17：第一百三十三轮运行时服务设施
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/content/runtimeBuildings.ts` | 运行时建筑定义与菜单 | 将药铺、书院、戏台接入时代解锁、建造报价、岗位、容量和升级体系 |
+| `src/rendering/prefab/assetMapping.ts` | 动态资产映射 | 将三类运行时建筑映射到对应的原创分层 Prefab 资产 |
+| `src/content/buildings.test.ts` | 建筑体系验证 | 验证三类设施的时代一致性、服务类别、解锁阶段和运行时定义 |
+| `src/qa/upgradeEconomyAudit.test.ts`, `docs/project/audits/upgrade-economy.md` | 升级经济审计 | 验证新增设施纳入 64 个 0–8 级升级节点和回本分析 |
+
+## 2026-07-17：第一百三十四轮服务设施闭环
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/GameRuntime.ts` | 可重复服务调试场景 | 生成商贸镇人口与健康短板，供建造到服务恢复验收复用 |
+| `src/qa/serviceFacilityScenarios.ts` | 运行时 QA 场景 | 真实调用药铺预览、建造、配工、库存和服务访问，并输出健康恢复摘要 |
+| `src/qa/serviceFacilityScenarios.test.ts` | 自动验收 | 验证药铺落成、工人绑定、服务事件和居民健康上升 |
+| `src/ui/runtimeOptions.ts`, `package.json` | 场景入口 | 接入 URL 调试参数与 `qa:service-facility-runtime` 命令 |
+
+## 2026-07-17：第一百三十五轮三类服务与故障审计
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/qa/serviceFacilityScenarios.ts` | 多设施运行时 QA | 统一验证药铺/书院/戏台从营造、配工到居民需求恢复 |
+| `src/qa/serviceFacilityScenarios.test.ts` | 服务故障回归 | 验证缺工、缺药材、断路均留下建筑与居民侧可解释状态 |
+| `src/integration/GameRuntime.ts` | QA 阶段夹具 | 仅为确定性服务场景提供时代入口，不旁路生产阶段推导 |
+| `src/ui/runtimeOptions.test.ts` | 调试入口回归 | 验证 `service-facility-runtime` URL 场景可被稳定解析 |
+
+## 2026-07-17：第一百三十六轮公共服务城市反馈
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 城市服务指标契约 | 持久化可选的 `publicServiceCoverage`，兼容旧存档和旧测试快照 |
+| `src/simulation/core/SimulationEngine.ts` | 城市吸引力运行规则 | 从三类公共服务需求计算覆盖并参与迁入吸引力 |
+| `src/simulation/core/SimulationEngine.test.ts` | 因果回归 | 验证服务需求短板降低覆盖和城市吸引力 |
+| `src/App.tsx` | 城市指标可视化 | 在指标栏显示公共服务覆盖率 |
+
+## 2026-07-17：第一百三十七轮人口财政反馈
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 人口流动/财政契约 | 定义可迁移的 `PopulationFlowLedger`、迁移指标和服务维护读数 |
+| `src/simulation/core/SimulationEngine.ts` | 人口流动运行账本 | 在落户和离城的真实状态变更点累计户数与人口数 |
+| `src/simulation/economy/fiscal.ts` | 服务维护成本核算 | 在财政结算时按服务建筑类别拆分维护成本 |
+| `src/integration/residentGovernance.ts` | 居民治理派生 | 汇总净迁入、服务覆盖和服务维护成本 |
+| `src/App.tsx` | 治理面板反馈 | 显示净迁入与公共服务财政压力 |
+| `src/integration/residentGovernance.test.ts` / `src/simulation/economy/economy.test.ts` | 回归证据 | 验证治理读数和服务维护成本不会脱离模拟状态 |
+
+## 2026-07-17：第一百三十八轮人口流动结构审计
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 流动结构契约 | 扩展人口账本的住房、原因、职业和就业状态维度 |
+| `src/simulation/core/SimulationEngine.ts` | 迁移审计写入器 | 在家庭实体变更的原子边界写入结构统计 |
+| `src/integration/residentGovernance.ts` | 流动解释器 | 将结构统计转换成居民治理可读摘要 |
+| `src/App.tsx` | 居民治理反馈 | 显示主要迁出原因、离城职业与劳动力构成 |
+| `src/simulation/core/SimulationEngine.test.ts` / `src/integration/residentGovernance.test.ts` | 结构回归 | 验证迁出同 tick 的原因、住房和职业数据完整 |
+
+## 2026-07-17：第一百三十九轮离城居民生命周期档案
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/core/SimulationEngine.ts` | 离城档案生成器 | 在家庭删除前保存完整居民状态，并通过推进结果传递 |
+| `src/integration/GameRuntime.ts` | 运行时桥接 | 将离城档案注入城市时间线事件上下文 |
+| `src/integration/cityTimeline.ts` | 时间线档案消费 | 显示真实离城家庭资料，兼容旧事件回退 |
+| `src/integration/cityTimeline.test.ts` / `src/simulation/core/SimulationEngine.test.ts` | 生命周期回归 | 验证离城档案跨引擎与时间线边界不丢失 |
+
+## 2026-07-17：第一百四十轮人口事件财政链路
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 财政时间线契约 | 定义可选财政快照和最近结算刻度 |
+| `src/simulation/economy/fiscal.ts` | 财政结算标记 | 在真实结算发生时写入结算刻度 |
+| `src/integration/cityTimeline.ts` | 事件链拼接 | 将迁出原因、服务瓶颈和财政快照合并到人口记录 |
+| `src/integration/GameRuntime.ts` | 运行时桥接 | 将当前存档财政状态提供给时间线映射器 |
+| `src/integration/cityTimeline.test.ts` | 财政链路回归 | 验证公共服务维护成本和财政快照出现在迁出记录 |
+
+## 2026-07-17：第一百四十一轮财政结算历史与周期对比
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 财政历史契约 | 定义结算前后库银、税收、维护和公共服务维护记录，并限制历史窗口 |
+| `src/simulation/economy/fiscal.ts` | 财政历史写入 | 在真实结算时写入可供人口事件引用的周期事实 |
+| `src/integration/GameRuntime.ts` | 事实桥接 | 仅把最近真实财政结算注入时间线，不伪造未发生结算 |
+| `src/integration/cityTimeline.ts` / `src/integration/cityTimeline.test.ts` | 周期审计消费与回归 | 在迁出事件显示财政前后变化，并验证无财政历史时的兼容行为 |
+
+## 2026-07-17：第一百四十二轮服务恢复前后审计
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 服务事件契约 | 为服务完成事件增加可选需求前后值 |
+| `src/simulation/economy/service.ts` | 恢复事实采集 | 在真实服务完成时捕获居民需求恢复前后状态 |
+| `src/integration/cityTimeline.ts` | 服务审计视图 | 展示恢复幅度并关联最近财政结算事实 |
+| `src/integration/cityTimeline.test.ts` / `src/simulation/economy/economy.test.ts` | 回归产物 | 验证新字段、旧事件兼容和服务链路不回归 |
+
+## 2026-07-17：第一百四十三轮服务瓶颈解除与建筑恢复审计
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 恢复事件契约 | 定义服务瓶颈解除事件及其压力审计字段 |
+| `src/simulation/economy/service.ts` | 建筑恢复事实 | 从阻塞状态恢复服务时写入真实解除原因和压力统计 |
+| `src/integration/cityTimeline.ts` | 恢复时间线 | 将建筑恢复和居民压力清除转成可读城市事件 |
+| `src/simulation/economy/economy.test.ts` / `src/integration/cityTimeline.test.ts` | 恢复回归 | 验证缺资源阻塞恢复、状态切换和时间线显示 |
+
+## 2026-07-17：第一百四十四轮恢复事件界面消费
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/App.tsx` | 治理/详情消费 | 将最近恢复事件接入瓶颈面板与建筑详情抽屉，并支持定位 |
+| `src/ui/cityAdvisorUi.ts` | 共用文案 | 格式化服务恢复时间线事实 |
+| `src/styles.css` | 视觉组件 | 为恢复链接和详情审计卡提供清晰的状态层级 |
+| `src/ui/cityAdvisorUi.test.ts` | UI 回归 | 验证恢复记录文案不会脱离运行时事实 |
+
+## 2026-07-17：第一百四十五轮恢复审计结构化数据
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 时间线审计契约 | 定义服务恢复状态、压力和服务需求前后值的结构化字段 |
+| `src/integration/cityTimeline.ts` | 事实映射 | 将真实服务事件转为可供治理与详情面板消费的审计对象 |
+| `src/App.tsx` / `src/styles.css` | 审计 UI | 展示建筑状态、压力、财政影响和居民需求前后变化 |
+| `src/integration/cityTimeline.test.ts` / `src/simulation/economy/economy.test.ts` | 集成回归 | 验证结构化字段来自真实服务恢复路径并保持旧事件兼容 |
+
+## 2026-07-17：第一百四十六轮服务恢复动态渲染
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/visuals.ts` | 动态建筑反馈 | 从城市时间线读取服务恢复事件，绘制按模拟刻衰减的恢复脉冲 |
+| `src/rendering/DynamicScene.test.ts` | 渲染回归 | 验证恢复记录能够驱动画布建筑状态层 |
+
+## 2026-07-17：第一百四十七轮阻塞原因动态反馈
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/visuals.ts` | 阻塞反馈动画 | 为真实阻塞原因的运动层加入模拟时钟驱动的呼吸强度 |
+| `src/rendering/DynamicScene.test.ts` | 阻塞渲染回归 | 保证四类阻塞符号和状态图层持续可见 |
+
+## 2026-07-17：第一百四十八轮运行阻塞持续时间与治理后果
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 阻塞生命周期契约 | 为建筑保存当前运行阻塞的起始模拟刻 |
+| `src/simulation/economy/production.ts` / `service.ts` / `logistics.ts` | 状态写入与恢复清理 | 由真实生产、服务、物流原因维护阻塞起始刻 |
+| `src/simulation/economy/upgrades.ts` | 状态边界修正 | 升级过程清除旧阻塞标记，避免治理误报 |
+| `src/integration/residentGovernance.ts` / `src/App.tsx` | 治理摘要与界面 | 展示阻塞、最长持续、物流积压和库存压力后果 |
+| `src/integration/residentGovernance.test.ts` | 结构回归 | 验证仓满阻塞持续时间和后果归因 |
+
+## 2026-07-17：第一百四十九轮阻塞生命周期时间线审计
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/core/SimulationEngine.ts` | 状态边沿事件 | 从真实建筑状态变化生成阻塞开始与恢复事件 |
+| `src/simulation/contracts.ts` | 时间线事件契约 | 定义运行事件、原因、起始刻、持续刻数和恢复状态 |
+| `src/integration/cityTimeline.ts` | 事实映射 | 将阻塞生命周期写入可追溯城市时间线 |
+| `src/App.tsx` / `src/styles.css` | 建筑详情审计 UI | 展示选中建筑的运行阻塞生命周期 |
+| `src/integration/cityTimeline.test.ts` | 时间线回归 | 验证缺料阻塞的开始与恢复记录结构 |
+
+## 2026-07-17：第一百五十轮阻塞同刻后果因果链
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 后果审计契约 | 定义缺勤、物流、库存和居民压力的结构化读数 |
+| `src/simulation/core/SimulationEngine.ts` | 运行时采集 | 在阻塞开始/恢复边沿从真实城市状态采集同刻后果 |
+| `src/integration/cityTimeline.ts` | 因果链映射 | 将后果写入阻塞开始与恢复事件详情 |
+| `src/App.tsx` | 建筑治理 UI | 在建筑详情中显示同刻后果和库存占用 |
+| `src/integration/cityTimeline.test.ts` | 数据回归 | 验证缺料事件保留库存、物流和压力数据 |
+
+## 2026-07-17：第一百五十一轮阻塞持续期间增量审计
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 增量契约 | 定义阻塞起始/恢复后果与期间增量的数据结构 |
+| `src/simulation/core/SimulationEngine.ts` | 生命周期计算 | 回写阻塞起始刻、保存基线并在恢复时计算增量 |
+| `src/simulation/core/SimulationEngine.test.ts` | 引擎回归 | 验证真实 `step()` 产生 2→5 库存的 `+3` 阻塞增量 |
+| `src/integration/cityTimeline.ts` | 时间线投影 | 将库存、物流和居民压力变化方向写入城市运行记录 |
+| `src/App.tsx` | 建筑治理界面 | 在运行状态审计卡显示阻塞期间变化 |
+
+## 2026-07-17：第一百五十二轮阻塞增量接入财政周期
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 财政压力契约 | 为财政结算记录增加运营压力快照并保持旧存档可选兼容 |
+| `src/simulation/economy/fiscal.ts` | 财政周期采集 | 在真实结算刻统计阻塞建筑、物流积压、库存压力和居民压力 |
+| `src/integration/residentGovernance.ts` | 治理派生 | 从最近财政历史读取运营压力，不创建并行状态 |
+| `src/App.tsx` | 治理面板 | 展示最近财政结算刻的运营压力摘要 |
+| `src/simulation/economy/economy.test.ts` | 财政回归 | 验证结算历史保留运营压力快照 |
+
+## 2026-07-17：第一百五十三轮阻塞原因变化生命周期分段
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/core/SimulationEngine.ts` | 生命周期分段逻辑 | 原因变化时闭合上一段并开启新段，避免审计链断裂 |
+| `src/simulation/core/SimulationEngine.test.ts` | 多段状态回归 | 验证缺料→断路→恢复的起始刻、持续时长和增量 |
+| `src/simulation/contracts.ts` | 兼容事件契约 | 保持每个阻塞段使用同一结构化事件数据 |
+| `src/integration/cityTimeline.ts` | 多段时间线投影 | 让每个原因段独立显示在城市运行时间线 |
+
+## 2026-07-17：第一百五十四轮财政压力周期对比与时间线事件
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 财政事件/差值契约 | 定义结算事件、运营压力快照和相邻周期差值 |
+| `src/simulation/economy/fiscal.ts` | 财政运行事件 | 在真实结算刻计算压力变化并发出 `fiscal-settlement` |
+| `src/integration/cityTimeline.ts` | 财政时间线投影 | 将结算事实投影为可追溯的 finance 记录 |
+| `src/integration/residentGovernance.ts` / `src/App.tsx` | 治理消费 | 显示最近财政周期的压力及变化方向 |
+| `src/simulation/economy/economy.test.ts` / `src/integration/cityTimeline.test.ts` | 交叉模块回归 | 验证财政差值计算和时间线投影 |
+
+## 2026-07-17：第一百五十五轮财政压力治理提示
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/cityNotices.ts` | 财政治理提示 | 将财政周期压力上升投影成可定位的 finance 城市提示 |
+| `src/integration/cityNotices.test.ts` | 定位回归 | 验证压力提示优先指向真实阻塞建筑 |
+| `docs/project/task-board.md` | 任务状态 | 记录治理提示完成项及浏览器证据后续项 |
+
+## 2026-07-17：第一百五十六轮财政提示生命周期
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/cityNotices.ts` | 通知生命周期机制 | 维护活动通知集合，抑制同周期重复提示并在状态解除后重新武装 |
+| `src/integration/cityNotices.test.ts` | 生命周期回归 | 覆盖同周期静默、压力消退和再次上升重触发 |
+
+## 2026-07-17：第一百五十七轮高优先级提示审计
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/cityNotices.test.ts` | 跨类型生命周期回归 | 覆盖粮食、物流、迁移和财政提示的静默、恢复与再次触发 |
+| `src/integration/cityNotices.ts` | 统一提示边沿 | 所有城市提示共享活动集合去重和恢复后重新武装机制 |
+
+## 2026-07-17：第一百五十八轮城市提示分析事件
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/cityNotices.ts` | 分析事件协议 | 定义提示生命周期事件、事件队列和确认动作 |
+| `src/integration/GameRuntime.ts` | 运行时消费接口 | 暴露批量消费与界面确认入口 |
+| `src/App.tsx` | 产品动作接入 | 将“看一眼/知道了”连接到 acknowledged 事件 |
+| `src/integration/cityNotices.test.ts` | 生命周期审计 | 验证四阶段事件顺序、去重和恢复后重触发 |
+
+## 2026-07-17：第一百五十九轮分析队列持久化
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/cityNotices.ts` | durable outbox | 持久化、恢复、稳定键去重和批次确认 |
+| `src/integration/GameRuntime.ts` | 运行时接线 | 在模拟刷新和重建时捕获分析事件，暴露批次接口 |
+| `src/integration/cityNotices.test.ts` | 存档恢复回归 | 验证跨实例恢复、重复入队去重和确认删除 |
+
+## 2026-07-17：第一百六十轮分析批次传输
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/analyticsTransport.ts` | 传输协议与调度器 | 批次发送、部分确认、失败保留和有界退避 |
+| `src/integration/analyticsTransport.test.ts` | 传输回归 | 验证离线、部分确认和失败重试行为 |
+| `src/integration/GameRuntime.ts` | 运行时入口 | 注入可选分析传输器并提供批量 flush 接口 |
+
+## 2026-07-17：第一百六十一轮 HTTP 分析适配器
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/analyticsHttpTransport.ts` | HTTP 传输适配器 | 批次 POST、超时、响应校验和确定性幂等键 |
+| `src/integration/analyticsHttpTransport.test.ts` | HTTP 回归 | 验证成功、非 2xx、非法响应、超时和未知 ID过滤 |
+## 2026-07-17：第一百六十二轮商业美术覆盖审计
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `tools/asset-validator/asset-coverage-audit.js` | 生产门禁 | 区分契约 manifest 与真实 DCC/运行时资产，逐项输出六类金样的 L0–L8 和交付缺口 |
+| `tools/asset-validator/asset-coverage-audit.self-test.js` | 门禁自检 | 锁定当前真实红灯状态，防止未来误删缺口检查 |
+| `package.json` | 项目命令 | 提供 `asset:coverage-audit` 与 `asset:coverage-audit:self-test` |
+## 2026-07-17：第一百六十三轮建筑视觉成长契约
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `tools/asset-validator/asset-validator.js` | 视觉生产契约 | 校验建筑独特身份、L0–L8 视觉成长、主体轮廓里程碑及 L0/L8 语义 |
+| `tools/asset-validator/asset-coverage-audit.js` | 门禁接入 | 对六类金样启用视觉身份与繁荣成长检查 |
+| `tools/asset-validator/asset-coverage-audit.self-test.js` | 契约回归 | 验证完整视觉身份可通过，L0/L8 轮廓复用会失败 |
+| `docs/project/gold-slice/sample-manifests/README.md` | 资产交付说明 | 记录美术导出必须提供的 visualIdentity 和 levelArc 字段 |
+
+## 2026-07-17：第一百六十四轮全建筑视觉身份目录
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/content/buildingVisualIdentity.ts` | 建筑视觉身份目录 | 28 类建筑的独立轮廓、功能、材质、动态元素与 L0–L8 成长弧 |
+| `src/simulation/contracts.ts` | 公共类型契约 | 声明建筑视觉阶段、等级视觉记录和视觉身份结构 |
+| `src/content/buildings.ts` | 内容运行时接入 | 将视觉身份注入全部建筑定义 |
+| `src/content/runtimeBuildings.ts` | 运行时别名接入 | 保证 house/market 等运行时建筑沿用对应金标身份 |
+| `tools/asset-validator/asset-validator.js` | 跨资产门禁 | 拒绝生产 manifest 共享建筑类别、轮廓族或功能识别 |
+| `tools/asset-validator/asset-coverage-audit.js` | 覆盖审计接入 | 在金样覆盖报告中输出跨资产视觉重复问题 |
+
+## 2026-07-17：第一百六十五轮动态视觉身份渲染
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/visuals.ts` | 动态渲染适配 | 使用建筑身份和等级阶段绘制可见的类别化灰盒轮廓；真实 Prefab 缺失时仍保留功能识别 |
+| `src/rendering/DynamicScene.test.ts` | 渲染回归 | 验证未注册 Prefab 的建筑不会被隐藏，并显示对应等级轮廓语义 |
+
+## 2026-07-17：第一百六十六轮运行时建筑美术接入
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/artwork/buildingArtwork.ts` | 运行时美术 Provider | 解析 28 类建筑的九级 PNG 路径、缓存 Pixi 纹理并统一等距精灵锚点/比例 |
+| `src/rendering/visuals.ts` | Pixi 场景接线 | 按建筑类型和等级显示真实透明建筑图，Provider 不可用时保留身份化灰盒降级 |
+| `src/components/SimulationCanvas.tsx` | 生产入口 | 启用运行时建筑美术 Provider |
+| `tools/asset-validator/runtime-artwork-audit.js` | 运行时资产审计 | 检查 28 个目录、252 个等级文件、PNG/尺寸/RGBA/字节级重复 |
+| `src/rendering/artwork/buildingArtwork.test.ts` | 运行时契约回归 | 覆盖九级边界、纹理缓存和等距精灵 footprint |
+
+## 2026-07-17：第一百六十七轮建筑差异化动效
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/visuals.ts` | 建筑动效层 | 按模拟 tick、建筑状态和视觉身份绘制施工、生产、农业、水面、灯塔、水车、炊烟等差异化动效 |
+| `src/rendering/DynamicScene.test.ts` | 动效运行时回归 | 验证动效层进入对象池视觉、状态层不被破坏且复用时子层数量稳定 |
+
+## 2026-07-17：第一百六十八轮 DCC 生产流水线
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `tools/art-pipeline/blender/build-gold-slice.py` | Blender 执行脚本 | 校验九级集合、命名、锚点、动画 action、碰撞/遮挡和关键视觉里程碑，并导出透明预览与 provenance |
+| `tools/art-pipeline/validate-pipeline-contract.js` | 生产契约门禁 | 防止 Blender 脚本与建模规格漂移 |
+| `docs/project/gold-slice/dcc-export-runbook.md` | 美术机执行手册 | 明确模型、分层图集、动画、碰撞、LOD 与浏览器验收交付物 |
+| `src/rendering/prefab/animationRuntime.ts` | Prefab 动画播放计划 | 将 manifest 状态槽位、进度源和 LOD 策略转换成渲染器可消费的确定性计划 |
+| `src/rendering/prefab/animationRuntime.test.ts` | 动画计划回归 | 覆盖生产进度、施工确定性和 LOD-off 过滤 |
+| `src/rendering/visuals.ts` | 动画计划消费 | 将 Prefab slots 接入 BuildingVisual 动态层，并在对象池 reset 时清理旧计划 |
+| `src/rendering/DynamicScene.test.ts` | 状态槽位渲染回归 | 断言仓满、生产状态的真实槽位进入动态层 |
+
+## 2026-07-17：第一百七十轮真实图集播放驱动
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/artwork/buildingAnimation.ts` | 图集 Provider 与 AnimatedSprite 驱动 | 按建筑等级、Prefab 槽位和 clip 查询帧，确定性播放并复用槽位显示对象 |
+| `src/rendering/artwork/buildingAnimation.test.ts` | 图集驱动回归 | 验证帧选择、缺失 clip 的显式回退和 reset 清理 |
+| `src/rendering/DynamicScene.ts` | 场景注入接口 | 为真实图集 Provider 保留可插拔注入点 |
+| `src/rendering/visuals.ts` | BuildingVisual 图集接线 | 在状态计划解析后驱动图集层；无资源时隐藏图集层并保留程序化降级 |
+
+## 2026-07-17：第一百七十一轮图集加载接线
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/artwork/buildingAnimation.ts` | atlas manifest 加载器 | 校验建筑/等级清单、并行加载 Pixi Spritesheet 并建立 Provider 索引 |
+| `src/rendering/artwork/buildingAnimationLoader.test.ts` | 加载契约回归 | 验证异步 URL 加载、clip 查询、重复键拒绝和字段校验 |
+| `src/components/SimulationCanvas.tsx` | 运行时注入接线 | 允许美术交付的 manifest 启用图集，失败时安全回退程序化渲染 |
+
+## 2026-07-17：第一百七十二轮部件与粒子运行时
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/artwork/buildingAnimation.ts` | 部件/粒子驱动 | 消费 `part-transform` 和 `particle` 槽位，按锚点和确定性进度更新对象池 |
+| `src/rendering/artwork/buildingAnimation.test.ts` | 部件/粒子回归 | 验证部件纹理、锚点定位、轮轴进度和粒子槽位显示 |
+| `src/rendering/DynamicScene.ts` | 动画选项传递 | 将部件、锚点、粒子 Provider 传递到 BuildingVisual |
+| `src/components/SimulationCanvas.tsx` | 运行时资源入口 | 暴露 atlas manifest 与部件/粒子 Provider 注入接口 |
+
+## 2026-07-17：第一百七十三轮动画预算门禁
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `tools/asset-validator/asset-validator.js` | 动画资源预算门禁 | 检查槽位、部件、粒子、锚点数量和粒子 LOD 降级策略 |
+| `tools/asset-validator/self-test.js` | 超预算自测 | 构造超出槽位预算的清单，证明门禁会失败 |
+| `tools/asset-validator/README.md` | 门禁文档 | 记录运行时预算与真实设备性能验证的边界 |
+
+## 2026-07-17：第一百七十四轮动画压力基准
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/artwork/buildingAnimation.ts` | 运行时诊断接口 | 暴露动画对象池和可见节点计数，供压力回归和后续设备采样复用 |
+| `src/qa/animationRuntimeBudget.test.ts` | 灰盒压力回归 | 覆盖 300 个宿主、150 个可见建筑、5 节点上限和二次同步对象复用 |
+| `package.json` | QA 命令 | 提供 `npm run qa:animation-runtime-budget` |
+
+## 2026-07-17：第一百七十五轮商业资源包门禁
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `tools/asset-validator/production-package-audit.js` | 生产包审计器 | 验证九级预览、DCC provenance、运行时图集、锚点和七状态证据的完整交付 |
+| `docs/project/gold-slice/dcc-export-runbook.md` | 美术机交付手册 | 规定真实 DCC 导出后必须生成的资源包文件和验收命令 |
+| `package.json` | 资产门禁命令 | 提供 `asset:production-package:audit` 与 `asset:production-package:self-test` |
+
+## 2026-07-17：第一百七十六轮居民生命周期审计
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/core/SimulationEngine.ts` | 生命周期状态修复 | 迁出前快照居民职业和就业状态，避免删除 agent 后丢失离城事实 |
+| `src/simulation/core/SimulationEngine.test.ts` | 居民生命周期回归 | 验证就业家庭迁出后的离城档案、职业分类、岗位释放与人口流动账本 |
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/contracts.ts` | 生命周期契约 | 保存迁入来源与入住结算 tick，供场景投影使用 |
+| `src/simulation/core/SimulationEngine.ts` | 真实状态写入 | 迁入结算时写入 `origin: migrated` 与 `settledTick` |
+| `src/rendering/visuals.ts` | 居民动态视觉层 | 候选状态色、状态点、新入住旗标与脉冲高亮，复用现有对象池 |
+| `src/rendering/DynamicScene.test.ts` | 渲染回归证据 | 验证 walking 候选人与新入住居民在同一场景快照中的可区分状态 |
+## 2026-07-17 第一百七十八轮：浏览器生命周期验收与资源加载
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/GameRuntime.ts` | 调试场景注入修复 | 将居民生命周期 fixture 重新注入 live engine，确保浏览器可见候选/入住差异 |
+| `src/integration/GameRuntime.test.ts` | 集成回归 | 断言居民生命周期场景的候选与入住状态同时存在 |
+| `src/qa/browserE2eScenarios.ts` | 浏览器验收场景 | 声明居民时间线必须显示候选家庭、外来家庭和居民状态 |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 浏览器 runner 幂等修复 | 避免重复切换已打开的城市瓶颈抽屉 |
+| `src/rendering/artwork/buildingArtwork.ts` | 浏览器资源加载修正 | 以 Image resource 创建惰性纹理，避免字符串 Cache miss；仍需处理真实图像数据警告 |
+## 2026-07-17 第一百七十九轮：建筑资源预加载
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/artwork/buildingArtwork.ts` | 资源预加载 Provider | 通过 Pixi Assets 预加载当前城市需要的建筑九级纹理，返回解码后的纹理 Provider |
+| `src/rendering/index.ts` | 渲染 API 导出 | 暴露建筑资源预加载入口 |
+| `src/components/SimulationCanvas.tsx` | 场景初始化接线 | 在 DynamicScene 创建前等待建筑资源准备完成，并保留取消后的安全销毁 |
+
+## 2026-07-17 第一百八十轮：建筑资源预加载安全门禁
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/artwork/buildingArtwork.ts` | 加载安全契约 | 生成去重资源清单，限制纹理规模，支持超时与 AbortSignal 取消 |
+| `src/rendering/artwork/buildingArtwork.test.ts` | 资源门禁回归 | 验证九级清单去重、预算失败与取消前置判断 |
+| `src/components/SimulationCanvas.tsx` | 生命周期回退 | 建筑资源失败或场景销毁时安全使用程序化 Provider |
+
+## 2026-07-18 第一百八十一轮：浏览器帧时间基线
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 浏览器性能采样器 | 记录真实 rAF 帧时间、P95/最大长帧、画布尺寸和 WebGL readPixels 次数 |
+| `docs/project/qa.md` | 性能证据记录 | 固化 headless 浏览器基线及 GPU stall 的归因边界 |
+
+## 2026-07-18 第一百八十二轮：DynamicScene 分段性能采样
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/types.ts` | 性能契约 | 定义同步总耗时及地块、建筑、居民、掉落物、清理、排序阶段字段 |
+| `src/rendering/DynamicScene.ts` | 运行时采样点 | 在场景同步过程中按阶段记录可选性能 profile |
+| `src/components/SimulationCanvas.tsx` | 查询参数接线 | 仅在 `renderProfile=1` 时收集最多 120 条 profile，生产默认关闭 |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 统计输出 | 计算各阶段平均值和 P95，并与 rAF/readPixels 结果一起输出 |
+
+## 2026-07-18 第一百八十三轮：动态实体数量证据
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/types.ts` | 实体计数契约 | 定义建筑、居民、运输、掉落物、可见和池化实体字段 |
+| `src/rendering/DynamicScene.ts` | 场景实体采样点 | 将当前动态场景实体数量随同步 profile 输出 |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 浏览器证据聚合器 | 计算实体计数的最小值、最大值和末值，避免只看页面文本 |
+
+## 2026-07-18 第一百八十四轮：多环境性能基线
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/qa/performanceBaseline.ts` | 性能环境与阈值契约 | 定义桌面 GPU、软件渲染、嵌入容器代理及平均/P95/最大帧时间门禁 |
+| `src/qa/performanceBaseline.test.ts` | 性能契约测试 | 防止环境矩阵缺项、阈值弱化或红线结果被错误判为通过 |
+| `tools/qa/run-performance-baseline.ts` | 可重复基线执行器 | 顺序启动三种 Chromium 配置，汇总场景、同步、帧时间和读回证据 |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 环境参数接入 | 根据 `BROWSER_E2E_PROFILE` 选择视口、设备像素比和 Chromium 图形参数 |
+
+## 2026-07-18 第一百八十五轮：静态视觉失效优化
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/visuals.ts` | 建筑静态失效缓存 | 按建筑等级、状态和资源身份避免稳定主体与占位几何每帧重复重建，同时保持动态状态更新 |
+| `src/rendering/DynamicScene.test.ts` | 渲染回归证据 | 覆盖动态场景同步与对象复用，防止缓存优化破坏视觉实体生命周期 |
+| `docs/project/progress-dashboard.md` | 性能结论记录 | 记录优化后真实三环境结果，明确本轮未证明帧率改善 |
+
+## 2026-07-18 第一百八十六轮：重复性能采样
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/qa/performanceBaseline.ts` | 稳健聚合契约 | 对多次样本按中位数评估帧时间、按最差值守护像素读回 |
+| `src/qa/performanceBaseline.test.ts` | 聚合规则测试 | 防止性能统计因离群值或读回中位数而误报通过 |
+| `tools/qa/run-performance-baseline.ts` | 多次执行器 | 默认每环境运行 3 次并保留原始结果，可通过 `PERF_BASELINE_REPEATS` 调整 |
+
+## 2026-07-19 第一百八十七轮：重复矩阵实测证据
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `tools/qa/run-performance-baseline.ts` | 3×3 浏览器矩阵结果 | 真实采样桌面 GPU、软件渲染和嵌入容器代理，聚合中位数并保留原始运行证据 |
+| `docs/project/qa.md` | 性能验收记录 | 记录场景、同步、readPixels 与帧时间的分项结果，明确门禁未通过 |
+
+## 2026-07-19 第一百八十八轮：渲染提交归因
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/components/SimulationCanvas.tsx` | renderer.render 采样接线 | 仅在 `renderProfile=1` 时测量 Pixi renderer CPU 调用耗时 |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 渲染提交证据聚合 | 输出 renderer 平均/P95/最大耗时，与 rAF 和 DynamicScene 分开 |
+| `src/qa/performanceBaseline.ts` | 渲染提交聚合契约 | 将多次 renderer profile 纳入中位数聚合并保留性能证据 |
+
+## 2026-07-20 第一百八十九轮：渲染差分诊断
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/renderDiagnostics.ts` | 渲染差分配置解析器 | 默认保持完整渲染，按查询参数独立关闭地形、建筑 authored artwork 或图集动画 |
+| `src/rendering/renderDiagnostics.test.ts` | 差分配置契约测试 | 验证默认配置和多个独立开关组合 |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 差分参数注入与回传 | 通过环境变量注入诊断参数，并输出实际运行时配置 |
+| `tools/qa/run-render-ablation.ts` | 四模式差分执行器 | 对同一浏览器场景按模式重复采样并汇总帧时间、同步、renderer 提交与 readPixels |
+| `src/rendering/artwork/buildingArtwork.ts` | 按等级建筑原画预加载 | 支持只加载当前快照需要的等级，保留未加载等级的运行时懒加载 |
+| `src/rendering/artwork/buildingArtwork.test.ts` | 预加载清单契约测试 | 验证默认九级兼容行为和按等级去重行为 |
+| `tools/asset-validator/runtime-artwork-budget-audit.js` | 运行时资源预算门禁 | 量化 PNG 下载体积、单包体积和估算 RGBA 显存；当前全量下载预算为 RED |
+| `public/assets/buildings-runtime-384/**` | 384px 运行时发行包 | 由 512px 源 PNG 派生，供 Pixi 运行时使用；252 张、约 49.5 MiB |
+| `tools/asset-validator/runtime-artwork-audit.js` | 运行时发行包完整性审计 | `--runtime` 模式检查 384×384、RGBA、九级覆盖和唯一性 |
+| `tools/art-pipeline/build-runtime-artwork-derivatives.js` | 运行时派生包生产脚本 | 从源 PNG 批量生成 384px 发行层并写入 provenance manifest |
+| `public/assets/buildings-runtime-384/runtime-artwork-manifest.json` | 派生包 provenance | 记录 252 个源文件哈希、源体积、产物体积和尺寸 |
+
+## 2026-07-21 第一百九十四轮：文明规模验收
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/qa/civilizationScale.test.ts` | 规模场景与动态同步测试 | 实际验证 500 户、300 栋、150 初始 agent，以及 300 栋/450 可见实体的连续同步与对象保留 |
+| `src/qa/civilizationLongRun.ts` | 长跑规模基线 | 在报告中记录目标规模基线，避免只用最大容量约束冒充规模覆盖 |
+| `src/qa/civilizationLongRunCheck.ts` | 文明长跑验收命令 | 运行 7,200 tick 压力模拟并检查规模、人口、物流、阻塞和数值完整性 |
+| `package.json` | `qa:civilization-scale` 命令 | 复现规模动态场景定向验收 |
+
+## 2026-07-21 第一百九十五轮：真实浏览器规模验收
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/qa/stressScenario.ts` | 浏览器压力视口夹具 | 将 150 个移动实体和 300 栋压力建筑固定到可复现首屏区域，避免相机漂移污染规模断言 |
+| `src/integration/GameRuntime.ts` | 规模调试场景接入 | 浏览器实际启动 500 户/300 栋/150 agent 快照，并合并压力建筑定义 |
+| `src/qa/browserE2eScenarios.ts` | 实体规模验收契约 | 对真实浏览器 profile 增加 300 buildings、135 residents、15 transport、150 visible 最小值 |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 运行时实体门禁 | 消费真实渲染 profile 并对规模场景执行最小值检查 |
+| `docs/project/qa.md` | 真实浏览器压力证据 | 记录规模通过与 118.52/166.4/166.4ms 帧时间红线 |
+
+## 2026-07-21 第一百九十九轮：共享建筑 atlas
+
+| 路径 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `tools/art-pipeline/build-runtime-artwork-atlases.js` | 可重复图集生成器 | 将 28 类建筑的 9 级 384px PNG 按 3×3 排列为共享 atlas，并生成帧清单 |
+| `public/assets/buildings-runtime-atlas/**` | 发行候选 atlas | 28 张 1152×1152 RGBA atlas，252 个精确等级帧；当前由诊断开关消费 |
+| `src/rendering/artwork/buildingArtwork.ts` | atlas provider/manifest contract | 根据 assetId 和 level 创建共享纹理源上的 Rectangle 子纹理，并保留独立 PNG 回退 |
+| `tools/qa/run-render-ablation.ts` | atlas 差分模式 | 支持 `atlas` 模式，与 full 模式输出可比浏览器帧时间 |
+
+## 2026-07-22 第二百轮：默认发行路径
+
+| 路径 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/renderDiagnostics.ts` | 默认渲染配置 | 默认启用共享建筑 atlas；`disableAtlas=1` 仅用于回归与降级 |
+| `src/components/SimulationCanvas.tsx` | 运行时安全回退 | atlas 加载失败时使用独立 PNG provider，避免资产问题阻塞场景启动 |
+| `tools/qa/run-render-ablation.ts` | 差分执行器待修复 | 支持 full/no-atlas/no-artwork/no-animation/no-terrain 差分；多次子进程本轮未稳定返回结果，下一轮修复生命周期后再恢复矩阵证据 |
+
+## 2026-07-22 第二百零一轮：WebP atlas 发行优化
+
+| 文件/目录 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `public/assets/buildings-runtime-atlas-webp/**` | WebP 共享建筑图集 | 28 类建筑 × 9 级，共 252 帧；默认正式 atlas 发行资源 |
+| `public/assets/buildings-runtime-atlas-webp/runtime-artwork-atlas-manifest.json` | 图集 manifest | 记录 WebP 格式、质量、帧矩形、源帧和资源版本 |
+| `tools/art-pipeline/build-runtime-artwork-atlases.js` | 可重复图集生成器 | 从 384px 运行时派生层生成 WebP；可通过 `ATLAS_FORMAT=png` 生成对照包 |
+| `tools/asset-validator/runtime-artwork-atlas-audit.js` | 图集完整性审计 | 校验 28 张 atlas、252 帧、扩展名、manifest 和文件体积 |
+| `src/rendering/artwork/buildingArtwork.ts` | WebP atlas provider | 加载共享图集并按等级创建帧纹理，异常时回退独立 PNG |
+
+## 2026-07-21 第一百九十六轮：场景同步缓存优化
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/DynamicScene.ts` | 快照边界缓存 | 避免同一不可变快照在每个 ticker 帧重复重建建筑、居民和掉落图形 |
+| `src/rendering/DynamicScene.test.ts` | 缓存兼容回归 | 验证 tick、集合引用和原地状态变更仍触发正确视觉更新 |
+| `docs/project/progress-dashboard.md` | 方向性性能证据 | 记录同步/renderer 平均耗时下降与 rAF 长尾仍未通过 |
+
+## 2026-07-21 第一百九十七轮：合成路径差分
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/renderDiagnostics.ts` | QA 渲染配置契约 | 解析 `disableAntialias=1` 与 `resolution=1`，生产默认画质不变 |
+| `src/components/SimulationCanvas.tsx` | Pixi renderer 初始化开关 | 将诊断配置传递给抗锯齿和分辨率设置 |
+| `src/rendering/renderDiagnostics.test.ts` | 配置解析回归 | 覆盖默认生产配置与 1x/无抗锯齿诊断配置 |
+| `docs/project/qa.md` | 浏览器差分证据 | 记录 1x/无抗锯齿后 54.35/83.3/83.3ms 帧时间与 RED 结论 |
+
+## 2026-07-21 第一百九十八轮：静态缓存实验
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/visuals.ts` | 建筑静态层拆分 | 将建筑主体/原画与状态动效分层，为后续批次优化提供边界 |
+| `src/rendering/renderDiagnostics.ts` | 静态缓存诊断开关 | 通过 `staticBuildingCache=1` 复现实验，不改变正式默认 |
+| `docs/project/integration-log.md` | 实验否证记录 | 记录缓存导致 renderer 与 rAF 恶化，避免重复走错路径 |

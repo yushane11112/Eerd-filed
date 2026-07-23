@@ -166,7 +166,10 @@ describe('SimulationEngine', () => {
       housingCapacity: 8,
       openHousingCapacity: 4,
     })
+    expect(household).toMatchObject({ origin: 'migrated', settledTick: snapshot.tick })
     expect(snapshot.metrics.waitingMigrants).toBeGreaterThan(0)
+    expect(snapshot.populationFlow).toMatchObject({ householdsIn: 1, residentsIn: 4 })
+    expect(snapshot.metrics).toMatchObject({ migrationIn: 1, migrationOut: 0, netMigration: 1 })
     expect(snapshot.metrics.cityAttraction).toBeGreaterThan(0)
     expect(snapshot.buildings.work.workers).toHaveLength(2)
     expect(household.income).toBe(0)
@@ -339,6 +342,82 @@ describe('SimulationEngine', () => {
     })
   })
 
+  it('turns low resident health into absence and restores the work route after recovery', () => {
+    const snapshot = createInitialSimulationSnapshot({
+      buildings: {
+        home: building('home', 'house'),
+        work: building('work', 'workshop'),
+      },
+    })
+    snapshot.households.family = {
+      id: 'family',
+      homeBuildingId: 'home',
+      members: 2,
+      workerIds: ['worker-1'],
+      income: 0,
+      satisfaction: 70,
+      needs: {
+        food: 100,
+        goods: 100,
+        health: 20,
+        education: 100,
+        entertainment: 100,
+      },
+    }
+    snapshot.agents['worker-1'] = {
+      id: 'worker-1',
+      role: 'worker',
+      householdId: 'family',
+      position: { x: 0, y: 1 },
+      path: [],
+      pathIndex: 0,
+      activity: 'home',
+    }
+    const engine = new SimulationEngine(snapshot, {
+      buildingDefinitions: definitions,
+      migrationIntervalTicks: 100,
+    })
+
+    const absentEvents = engine.step()
+    expect(absentEvents).toContainEqual({
+      type: 'worker-employment-changed',
+      workerId: 'worker-1',
+      householdId: 'family',
+      buildingId: 'work',
+    })
+    expect(absentEvents).toContainEqual({
+      type: 'worker-attendance-changed',
+      workerId: 'worker-1',
+      householdId: 'family',
+      buildingId: 'work',
+      status: 'absent',
+      reason: 'low-health',
+    })
+    expect(engine.snapshot.agents['worker-1']).toMatchObject({
+      employerBuildingId: 'work',
+      workStatus: 'absent',
+      absenceReason: 'low-health',
+      activity: 'home',
+    })
+
+    const recovered = engine.snapshot
+    recovered.households.family.needs.health = 80
+    recovered.households.family.satisfaction = 80
+    const recoveredEngine = new SimulationEngine(recovered, {
+      buildingDefinitions: definitions,
+      migrationIntervalTicks: 100,
+    })
+    expect(recoveredEngine.step()).toContainEqual({
+      type: 'worker-attendance-changed',
+      workerId: 'worker-1',
+      householdId: 'family',
+      buildingId: 'work',
+      status: 'present',
+      reason: 'recovered',
+    })
+    expect(['commuting', 'working']).toContain(recoveredEngine.snapshot.agents['worker-1'].activity)
+  })
+
   it('keeps migrants away when city attraction is too low', () => {
     const snapshot = createInitialSimulationSnapshot({
       taxRate: 0.5,
@@ -355,6 +434,33 @@ describe('SimulationEngine', () => {
     expect(events.some((event) => event.type === 'migration-candidate-arrived')).toBe(false)
     expect(engine.snapshot.metrics.cityAttraction).toBeLessThan(35)
     expect(engine.snapshot.migrationCandidates).toEqual({})
+  })
+
+  it('feeds public service coverage into the city attraction score', () => {
+    const snapshot = createInitialSimulationSnapshot({
+      buildings: { home: building('home', 'house') },
+    })
+    snapshot.households = {
+      family: {
+        id: 'family',
+        homeBuildingId: 'home',
+        members: 2,
+        workerIds: [],
+        income: 0,
+        satisfaction: 70,
+        needs: { food: 100, goods: 100, health: 100, education: 100, entertainment: 100 },
+      },
+    }
+    const healthy = new SimulationEngine(snapshot, { buildingDefinitions: definitions })
+    const pressuredSnapshot = healthy.snapshot
+    pressuredSnapshot.households.family.needs.health = 30
+    pressuredSnapshot.households.family.needs.education = 30
+    pressuredSnapshot.households.family.needs.entertainment = 30
+    const pressured = new SimulationEngine(pressuredSnapshot, { buildingDefinitions: definitions })
+
+    expect(healthy.snapshot.metrics.publicServiceCoverage).toBe(100)
+    expect(pressured.snapshot.metrics.publicServiceCoverage).toBe(30)
+    expect(healthy.snapshot.metrics.cityAttraction).toBeGreaterThan(pressured.snapshot.metrics.cityAttraction ?? 0)
   })
 
   it('lets waiting migrants leave when no housing opens before patience expires', () => {
@@ -426,13 +532,83 @@ describe('SimulationEngine', () => {
       buildingDefinitions: definitions,
       migrationIntervalTicks: 100,
     })
-    expect(engine.step()).toContainEqual({
+    const result = engine.advance(200)
+    expect(result.events).toContainEqual({
       type: 'household-migrated',
       householdId: 'unhappy',
       direction: 'out',
+      reason: 'critical-needs',
+      need: 'food',
     })
     expect(engine.snapshot.households).toEqual({})
     expect(engine.snapshot.agents).toEqual({})
+    expect(result.departedResidents?.unhappy).toMatchObject({
+      phase: 'departed', members: 2, workerCount: 1, employedCount: 0,
+      occupations: ['待业'], satisfaction: 0,
+    })
+    expect(engine.snapshot.populationFlow).toMatchObject({
+      householdsOut: 1,
+      residentsOut: 2,
+      departuresByReason: { 'critical-needs': 1 },
+      departuresByHousing: { house: 1 },
+      departuresByOccupation: { unemployed: 1 },
+      employedWorkersOut: 0,
+      unemployedWorkersOut: 1,
+    })
+  })
+
+  it('keeps an employed resident profile and occupation ledger when a household leaves', () => {
+    const snapshot = createInitialSimulationSnapshot({
+      buildings: {
+        home: building('home', 'house'),
+        work: building('work', 'workshop'),
+      },
+    })
+    snapshot.buildings.work.workers = ['worker-1']
+    snapshot.households.employed = {
+      id: 'employed',
+      homeBuildingId: 'home',
+      members: 2,
+      workerIds: ['worker-1'],
+      income: 20,
+      satisfaction: 10,
+      needs: { food: 0, goods: 100, health: 100, education: 100, entertainment: 100 },
+    }
+    snapshot.agents['worker-1'] = {
+      id: 'worker-1',
+      role: 'worker',
+      householdId: 'employed',
+      employerBuildingId: 'work',
+      position: { x: 0, y: 0 },
+      path: [],
+      pathIndex: 0,
+      activity: 'working',
+    }
+
+    const engine = new SimulationEngine(snapshot, {
+      buildingDefinitions: definitions,
+      migrationIntervalTicks: 100,
+    })
+    const result = engine.advance(200)
+
+    expect(result.events).toContainEqual({
+      type: 'household-migrated',
+      householdId: 'employed',
+      direction: 'out',
+      reason: 'critical-needs',
+      need: 'food',
+    })
+    expect(result.departedResidents?.employed).toMatchObject({
+      phase: 'departed',
+      employedCount: 1,
+      occupations: ['木作坊'],
+    })
+    expect(engine.snapshot.populationFlow).toMatchObject({
+      employedWorkersOut: 1,
+      unemployedWorkersOut: 0,
+      departuresByOccupation: { workshop: 1 },
+    })
+    expect(engine.snapshot.buildings.work.workers).toEqual([])
   })
 
   it('makes a critical service shortage plus unemployment trigger migration pressure', () => {
@@ -475,6 +651,65 @@ describe('SimulationEngine', () => {
       type: 'household-migrated',
       householdId: 'family',
       direction: 'out',
+      reason: 'critical-needs',
+      need: 'food',
+    })
+  })
+
+  it('records chronic absence as the migration pressure when needs are stable', () => {
+    const snapshot = createInitialSimulationSnapshot({
+      buildings: {
+        home: building('home', 'house'),
+        work: building('work', 'workshop'),
+      },
+    })
+    snapshot.households.family = {
+      id: 'family',
+      homeBuildingId: 'home',
+      members: 2,
+      workerIds: ['worker-1'],
+      income: 0,
+      satisfaction: 20,
+      needs: {
+        food: 100,
+        goods: 100,
+        health: 100,
+        education: 100,
+        entertainment: 100,
+      },
+      absenceTicks: 4,
+    }
+    snapshot.agents['worker-1'] = {
+      id: 'worker-1',
+      role: 'worker',
+      householdId: 'family',
+      employerBuildingId: 'work',
+      workStatus: 'absent',
+      position: { x: 0, y: 0 },
+      path: [],
+      pathIndex: 0,
+      activity: 'home',
+    }
+    snapshot.buildings.work.workers = ['worker-1']
+
+    const engine = new SimulationEngine(snapshot, {
+      buildingDefinitions: definitions,
+      migrationIntervalTicks: 100,
+      systems: [{
+        id: 'test.keep-low-satisfaction',
+        update(state) {
+          state.households.family.satisfaction = 20
+          return []
+        },
+      }],
+    })
+
+    expect(engine.step()).toContainEqual({
+      type: 'household-migrated',
+      householdId: 'family',
+      direction: 'out',
+      reason: 'chronic-absence',
+      absenceTicks: 5,
     })
   })
 
@@ -575,6 +810,103 @@ describe('SimulationEngine', () => {
     expect(family.needs.food).toBeLessThan(35)
     expect(family.satisfaction).toBeLessThan(60)
     expect(engine.snapshot.buildings.market.statusReason).toBe('missing-service-resource:food')
+  })
+
+  it('records blockage consequences and their duration delta through the real engine loop', () => {
+    const snapshot = createInitialSimulationSnapshot({
+      buildings: {
+        home: building('home', 'house'),
+        work: building('work', 'workshop'),
+      },
+    })
+    const blockageLifecycle: SimulationSystem = {
+      id: 'test.blockage-lifecycle',
+      update(state) {
+        const work = state.buildings.work
+        if (state.tick === 1) {
+          work.status = 'blocked'
+          work.statusReason = 'missing-input:wood'
+          work.inventory.wood = 2
+        } else if (state.tick === 2) {
+          work.inventory.wood = 5
+        } else if (state.tick === 3) {
+          work.status = 'working'
+          delete work.statusReason
+        }
+        return []
+      },
+    }
+    const engine = new SimulationEngine(snapshot, {
+      buildingDefinitions: definitions,
+      systems: [blockageLifecycle],
+      migrationIntervalTicks: 100,
+    })
+
+    const started = engine.step()
+    engine.step()
+    const cleared = engine.step()
+
+    expect(started).toContainEqual(expect.objectContaining({
+      type: 'building-blockage-started',
+      buildingId: 'work',
+      consequences: expect.objectContaining({ inventoryTotal: 2 }),
+    }))
+    expect(cleared).toContainEqual(expect.objectContaining({
+      type: 'building-blockage-cleared',
+      buildingId: 'work',
+      durationTicks: 2,
+      consequencesAtStart: expect.objectContaining({ inventoryTotal: 2 }),
+      consequences: expect.objectContaining({ inventoryTotal: 5 }),
+      consequenceDelta: expect.objectContaining({ inventoryDelta: 3 }),
+    }))
+  })
+
+  it('closes and restarts the lifecycle when a blockage reason changes', () => {
+    const snapshot = createInitialSimulationSnapshot({
+      buildings: {
+        home: building('home', 'house'),
+        work: building('work', 'workshop'),
+      },
+    })
+    const changingBlockage: SimulationSystem = {
+      id: 'test.changing-blockage',
+      update(state) {
+        const work = state.buildings.work
+        work.status = state.tick < 3 ? 'blocked' : 'working'
+        if (state.tick === 1) {
+          work.statusReason = 'missing-input:wood'
+          work.inventory.wood = 2
+        } else if (state.tick === 2) {
+          work.statusReason = 'logistics-failed:wood:no-route'
+          work.inventory.wood = 3
+        } else {
+          delete work.statusReason
+          work.inventory.wood = 5
+        }
+        return []
+      },
+    }
+    const engine = new SimulationEngine(snapshot, {
+      buildingDefinitions: definitions,
+      systems: [changingBlockage],
+      migrationIntervalTicks: 100,
+    })
+
+    const firstTick = engine.step()
+    const secondTick = engine.step()
+    const thirdTick = engine.step()
+
+    expect(firstTick.filter((event) => event.type === 'building-blockage-started')).toHaveLength(1)
+    expect(secondTick).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'building-blockage-cleared', reason: 'missing-input:wood', durationTicks: 1 }),
+      expect.objectContaining({ type: 'building-blockage-started', reason: 'logistics-failed:wood:no-route', blockedSinceTick: 2 }),
+    ]))
+    expect(thirdTick).toContainEqual(expect.objectContaining({
+      type: 'building-blockage-cleared',
+      reason: 'logistics-failed:wood:no-route',
+      durationTicks: 1,
+      consequenceDelta: expect.objectContaining({ inventoryDelta: 2 }),
+    }))
   })
 
   it('is reproducible from the same snapshot and seed', () => {

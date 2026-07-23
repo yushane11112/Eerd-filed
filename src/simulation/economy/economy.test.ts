@@ -831,6 +831,75 @@ describe('fiscal system', () => {
     expect(state.economy.lastTaxIncome).toBe(20)
     expect(state.economy.lastMaintenanceCost).toBe(6)
     expect(state.economy.treasury).toBe(114)
+    expect(state.economy.fiscalHistory).toEqual([
+      expect.objectContaining({
+        tick: 10,
+        treasuryBefore: 100,
+        treasuryAfter: 114,
+        taxIncome: 20,
+        maintenanceCost: 6,
+        operationalPressure: { blockedBuildings: 0, logisticsBacklog: 0, inventoryPressureBuildings: 0, pressuredHouseholds: 0 },
+      }),
+    ])
+  })
+
+  it('breaks public-service maintenance out of the total fiscal charge', () => {
+    const service = building('clinic', 'clinic', { x: 0, y: 0 })
+    const state = snapshot({ tick: 10, buildings: { clinic: service } })
+    const system = new FiscalSystem({
+      definitions: {
+        ...definitions,
+        clinic: { ...definitions.farm, type: 'clinic', category: 'service', jobs: 2 },
+      },
+      settlementIntervalTicks: 10,
+      maintenanceCost: () => 4,
+    })
+
+    system.update(state)
+
+    expect(state.economy.lastMaintenanceCost).toBe(4)
+    expect(state.economy.lastServiceMaintenanceCost).toBe(4)
+  })
+
+  it('emits a settlement event with operational pressure delta', () => {
+    const state = snapshot({
+      tick: 20,
+      buildings: { farm: building('farm', 'farm', { x: 0, y: 0 }) },
+    })
+    state.buildings.farm.status = 'blocked'
+    state.buildings.farm.statusReason = 'output-full'
+    state.economy.fiscalHistory = [{
+      tick: 10,
+      treasuryBefore: 100,
+      treasuryAfter: 90,
+      taxIncome: 10,
+      maintenanceCost: 20,
+      serviceMaintenanceCost: 0,
+      operationalPressure: {
+        blockedBuildings: 0,
+        logisticsBacklog: 0,
+        inventoryPressureBuildings: 0,
+        pressuredHouseholds: 0,
+      },
+    }]
+    const events = new FiscalSystem({
+      definitions,
+      settlementIntervalTicks: 10,
+      maintenanceCost: () => 3,
+    }).update(state)
+
+    expect(events).toContainEqual(expect.objectContaining({
+      type: 'fiscal-settlement',
+      settlementTick: 20,
+      operationalPressure: expect.objectContaining({ blockedBuildings: 1, inventoryPressureBuildings: 1 }),
+      operationalPressureDelta: expect.objectContaining({ blockedBuildingsDelta: 1, inventoryPressureBuildingsDelta: 1 }),
+    }))
+    expect(state.economy.fiscalHistory?.at(-1)?.operationalPressureDelta).toEqual({
+      blockedBuildingsDelta: 1,
+      logisticsBacklogDelta: 0,
+      inventoryPressureBuildingsDelta: 1,
+      pressuredHouseholdsDelta: 0,
+    })
   })
 })
 
@@ -921,12 +990,12 @@ describe('service system', () => {
       amount: 1,
       taxPaid: 0.5,
     })
-    expect(arrivalEvents).toContainEqual({
+    expect(arrivalEvents).toContainEqual(expect.objectContaining({
       type: 'service-delivered',
       buildingId: market.id,
       householdId: 'household',
       need: 'food',
-    })
+    }))
     expect(state.households.household.needs.food).toBe(36)
     expect(state.households.household.income).toBe(15)
     expect(market.inventory.food).toBe(2)
@@ -984,12 +1053,12 @@ describe('service system', () => {
       amount: 1,
       taxPaid: 0.3,
     })
-    expect(arrivalEvents).toContainEqual({
+    expect(arrivalEvents).toContainEqual(expect.objectContaining({
       type: 'service-delivered',
       buildingId: market.id,
       householdId: 'household',
       need: 'goods',
-    })
+    }))
     expect(state.households.household.needs.goods).toBe(32)
     expect(state.households.household.income).toBe(17)
     expect(market.inventory.cloth).toBe(1)
@@ -1079,12 +1148,12 @@ describe('service system', () => {
     state.tick = 4
     const arrivalEvents = system.update(state)
 
-    expect(arrivalEvents).toContainEqual({
+    expect(arrivalEvents).toContainEqual(expect.objectContaining({
       type: 'service-delivered',
       buildingId: pharmacy.id,
       householdId: 'household',
       need: 'health',
-    })
+    }))
     expect(state.households.household.needs.health).toBe(44)
     expect(pharmacy.inventory.medicine).toBe(1)
     expect(pharmacy.status).toBe('serving')
@@ -1122,18 +1191,18 @@ describe('service system', () => {
     }
 
     expect(completionEvents).toEqual(expect.arrayContaining([
-      {
+      expect.objectContaining({
         type: 'service-delivered',
         buildingId: academy.id,
         householdId: 'household',
         need: 'education',
-      },
-      {
+      }),
+      expect.objectContaining({
         type: 'service-delivered',
         buildingId: theatre.id,
         householdId: 'household',
         need: 'entertainment',
-      },
+      }),
     ]))
     expect(state.households.household.needs.education).toBe(35)
     expect(state.households.household.needs.entertainment).toBe(47)
@@ -1373,6 +1442,30 @@ describe('service system', () => {
     expect(noWorkers.statusReason).toBe('no-workers')
     expect(noStock.statusReason).toBe('missing-service-resource:food')
     expect(state.households.household.needs.food).toBe(16)
+    expect(state.households.household.needPressure?.food).toEqual({
+      ticks: 1,
+      cause: 'missing-resource',
+      buildingId: 'market-2',
+    })
+
+    new ServiceSystem({ definitions }).update(state)
+    expect(state.households.household.needPressure?.food?.ticks).toBe(2)
+
+    noWorkers.workers = ['worker-restored']
+    noStock.inventory.food = 1
+    const recoveryEvents = new ServiceSystem({ definitions }).update(state)
+    expect(recoveryEvents).toContainEqual({
+      type: 'service-bottleneck-cleared',
+      buildingId: noStock.id,
+      need: 'food',
+      previousCause: 'missing-resource',
+      pressureClearedHouseholds: 1,
+      maxPressureTicks: 2,
+      buildingStatusBefore: 'blocked',
+      buildingStatusAfter: 'serving',
+    })
+    expect(noStock.status).toBe('serving')
+    expect(state.households.household.needPressure?.food).toBeUndefined()
   })
 
   it('does not provide pharmacy service without required medicine stock', () => {
@@ -1469,12 +1562,12 @@ describe('integrated economy order', () => {
       amount: 1,
       taxPaid: 0.5,
     })
-    expect(allEvents).toContainEqual({
+    expect(allEvents).toContainEqual(expect.objectContaining({
       type: 'service-delivered',
       buildingId: market.id,
       householdId: 'family',
       need: 'food',
-    })
+    }))
     expect(state.households.family.needs.food).toBeGreaterThan(10)
     expect(state.households.family.needs.food).toBeLessThanOrEqual(100)
     expect(market.status).toBe('serving')

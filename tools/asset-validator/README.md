@@ -15,6 +15,7 @@ It checks JSON-only gates from `docs/project/gold-slice/model-animation-spec.md`
 - source triangle/layer/emitter budget declarations
 - required animation states, slots, state priority, independent `storage_full`
 - animation anchor/part references
+- runtime animation budgets: total slots, part-transform slots, particle slots, per-slot parts/anchors, and particle LOD fallback
 
 Run:
 
@@ -81,6 +82,11 @@ node tools/asset-validator/asset-validator.js \
 Known limitations:
 
 - Does not inspect `.blend` files, real atlas JSON/image files, or Pixi runtime behavior.
+- Runtime budgets are manifest-time limits; they do not replace real-device frame-time, texture-memory, or browser pixel validation.
 - Default mode intentionally accepts template manifests with only `L0`, `L1`, `L4`, and `L8`; use `--require-all-levels` for final production completeness.
+
+## Production package audit
+
+`npm run asset:production-package:audit` audits the real DCC delivery directory. It is stricter than manifest validation and requires nine transparent previews, `dcc-export-manifest.json`, `runtime-atlas-manifest.json`, `anchor-manifest.json`, and `state-evidence.json` for every gold asset. Run `npm run asset:production-package:self-test` to verify the gate itself. A passing JSON template or the existing runtime PNG set cannot make this gate green.
 - Treats `none: true` sprite-layer entries as explicit not-applicable declarations, but the current TypeScript spec has not formalized that shape yet.
 - Budget gates are hard failures and do not model approval-record exceptions.

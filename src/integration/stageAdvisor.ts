@@ -11,6 +11,7 @@ import {
   isRuntimeBuildingUnlocked,
 } from '../content/runtimeBuildings'
 import { quoteBuildingConstruction, roadConstructionCost } from '../simulation/economy/construction'
+import type { LogisticsQueueState } from '../simulation/contracts'
 
 export type StageRequirementId = 'population' | 'attraction' | 'activeDistricts'
 export type StageAdvisorOverlayMode = 'housing' | 'service' | 'logistics' | 'roads' | 'activity'
@@ -29,6 +30,12 @@ export interface StageAdvisorOverlayPoint {
   kind: StageAdvisorOverlayKind
   label: string
   position: GridPoint
+}
+
+export interface StageAdvisorOverlayBadge {
+  label: string
+  position: GridPoint
+  kind?: StageAdvisorOverlayKind
 }
 
 export interface StageAdvisorOverlayPath {
@@ -56,6 +63,7 @@ export interface StageAdvisorOverlay {
   id: number
   label: string
   points: StageAdvisorOverlayPoint[]
+  badges?: StageAdvisorOverlayBadge[]
   paths?: StageAdvisorOverlayPath[]
   areas?: StageAdvisorOverlayArea[]
   cells?: StageAdvisorOverlayCell[]
@@ -184,6 +192,26 @@ export function deriveStageGovernanceCards(
     })
   }
 
+  const missingFacilities = deriveMissingServiceFacilities(snapshot)
+  for (const gap of missingFacilities) {
+    const target = weakestHouseholdHome(snapshot)
+    const recommendation = missingFacilityRecommendation(gap.need, snapshot)
+    const score = 98 + Math.round(82 - gap.averageNeed)
+    cards.push({
+      id: `governance-missing-service-${gap.need}`,
+      title: `缺少${gap.label}设施`,
+      detail: `居民${gap.label}平均满足度仅 ${Math.round(gap.averageNeed)}%，城市当前没有可提供该服务的设施。`,
+      cause: `没有对应服务设施，居民无法通过正常服务访问恢复${gap.label}需求。`,
+      action: actionWithAvailability(gap.candidateType ? `优先营造${gap.candidateName}，再观察${gap.label}需求恢复。` : `先在服务图层定位${gap.label}短板，再补充对应时代建筑。`, recommendation),
+      recommendation,
+      score,
+      severity: severityFromScore(score),
+      overlayMode: 'service',
+      metricLabel: '缺失设施',
+      target: target && { point: target.entrance, label: `${gap.label}短板` },
+    })
+  }
+
   const roads = overlays.roads
   const disconnectedEntrances = roads?.metrics?.disconnectedEntrances ?? 0
   const isolatedRoadNetworks = roads?.metrics?.isolatedRoadNetworks ?? 0
@@ -297,6 +325,88 @@ export function deriveStageGovernanceCards(
   return cards.sort((left, right) => (
     right.score - left.score || left.id.localeCompare(right.id)
   ))
+}
+
+interface MissingServiceFacility {
+  need: 'food' | 'goods' | 'health' | 'education' | 'entertainment'
+  label: string
+  averageNeed: number
+  candidateType?: string
+  candidateName?: string
+}
+
+const SERVICE_FACILITY_ALIASES: Record<MissingServiceFacility['need'], readonly string[]> = {
+  food: ['market'],
+  goods: ['market'],
+  health: ['pharmacy', 'clinic', 'hospital'],
+  education: ['academy', 'school'],
+  entertainment: ['theatre', 'theater', 'culture'],
+}
+
+function deriveMissingServiceFacilities(snapshot: Readonly<SimulationSnapshot>): MissingServiceFacility[] {
+  const households = Object.values(snapshot.households)
+  if (households.length === 0) return []
+  return (Object.entries(SERVICE_FACILITY_ALIASES) as Array<[MissingServiceFacility['need'], readonly string[]]>)
+    .map(([need, aliases]) => {
+      const averageNeed = households.reduce((sum, household) => sum + household.needs[need], 0) / households.length
+      const hasFacility = Object.values(snapshot.buildings).some((building) => aliases.includes(building.type))
+      const candidateType = aliases.find((type) => Boolean(BUILDING_DEFINITIONS[type]))
+      if (hasFacility || averageNeed >= 70) return undefined
+      return {
+        need,
+        label: needName(need),
+        averageNeed,
+        ...(candidateType ? {
+          candidateType,
+          candidateName: BUILDING_DEFINITIONS[candidateType]?.name ?? candidateType,
+        } : {}),
+      }
+    })
+    .filter((gap): gap is MissingServiceFacility => Boolean(gap))
+    .sort((left, right) => left.averageNeed - right.averageNeed || left.need.localeCompare(right.need))
+}
+
+function missingFacilityRecommendation(
+  need: MissingServiceFacility['need'],
+  snapshot: Readonly<SimulationSnapshot>,
+): StageGovernanceRecommendation {
+  const candidateType = SERVICE_FACILITY_ALIASES[need].find((type) => Boolean(BUILDING_DEFINITIONS[type]))
+  if (!candidateType) {
+    return {
+      label: '打开服务图层定位短板',
+      tool: 'inspect',
+      overlayMode: 'service',
+    }
+  }
+  const base = explainStageRecommendationAvailability({
+    label: `营造${BUILDING_DEFINITIONS[candidateType]?.name ?? candidateType}`,
+    tool: 'building',
+    buildingType: candidateType,
+    overlayMode: 'service',
+  }, snapshot)
+  return candidateType === 'market'
+    ? withServiceGapExecution(base, snapshot)
+    : base
+}
+
+function needName(need: string): string {
+  return ({
+    food: '粮食',
+    goods: '日用品',
+    health: '医疗',
+    education: '教育',
+    entertainment: '娱乐',
+  } as Record<string, string>)[need] ?? need
+}
+
+function weakestHouseholdHome(snapshot: Readonly<SimulationSnapshot>) {
+  const weakest = Object.values(snapshot.households)
+    .map((household) => ({
+      household,
+      averageNeed: Object.values(household.needs).reduce((sum, value) => sum + value, 0) / 5,
+    }))
+    .sort((left, right) => left.averageNeed - right.averageNeed || left.household.id.localeCompare(right.household.id))[0]
+  return weakest ? snapshot.buildings[weakest.household.homeBuildingId] : undefined
 }
 
 export function deriveStageAdvisorOverlay(
@@ -507,7 +617,7 @@ export function deriveStageMapOverlay(
       0,
     )
     const maxUnloadQueue = unloadQueues[0]
-    return compactOverlay(id, '物流线路', [
+    const overlay = compactOverlay(id, '物流线路', [
       ...activeOrders.flatMap((order) => {
       const source = snapshot.buildings[order.sourceBuildingId]
       const destination = snapshot.buildings[order.destinationBuildingId]
@@ -548,6 +658,17 @@ export function deriveStageMapOverlay(
       maxUnloadCapacity: maxUnloadQueue?.unloadCapacityPerTick ?? 0,
       maxUnloadWaiting: maxUnloadQueue?.waitingToUnloadCount ?? 0,
     }, [], true)
+    if (!overlay) return undefined
+    overlay.badges = unloadQueues.slice(0, 4).flatMap((queue) => {
+      const building = snapshot.buildings[queue.buildingId]
+      if (!building) return []
+      return [{
+        kind: 'bottleneck' as const,
+        label: formatUnloadCapacitySourceLabel(queue),
+        position: building.entrance,
+      }]
+    })
+    return overlay
   }
 
   if (mode === 'activity') {
@@ -728,6 +849,19 @@ export function deriveStageMapOverlay(
     isolatedRoadNetworks,
     suggestedRoadLinks: suggestedRoadLinks.length,
   })
+}
+
+export function formatUnloadCapacitySourceLabel(queue: LogisticsQueueState): string {
+  const breakdown = queue.unloadCapacityBreakdown
+  if (!breakdown) return `能力 ${queue.unloadCapacityPerTick}/刻`
+  if (breakdown.source === 'override') return `固定 ${queue.unloadCapacityPerTick}/刻`
+  const parts = [
+    `基${breakdown.base}`,
+    breakdown.levelBonus > 0 ? `级+${breakdown.levelBonus}` : '',
+    breakdown.workerBonus > 0 ? `工+${breakdown.workerBonus}` : '',
+    breakdown.entranceBonus > 0 ? `路+${breakdown.entranceBonus}` : '',
+  ].filter(Boolean)
+  return `能力 ${queue.unloadCapacityPerTick}/刻·${parts.join('+')}`
 }
 
 export function withRecommendationExecutionOverlay(

@@ -4,6 +4,7 @@ import {
   deriveStageAdvisorOverlay,
   deriveStageGovernanceCards,
   deriveStageMapOverlay,
+  formatUnloadCapacitySourceLabel,
   explainStageRecommendationAvailability,
   withRecommendationExecutionOverlay,
 } from './stageAdvisor'
@@ -186,6 +187,9 @@ describe('stage advisor overlays', () => {
     expect(deriveStageMapOverlay('logistics', snapshot, 13)?.points).toEqual(expect.arrayContaining([
       { kind: 'bottleneck', label: '卸货排队x2', position: { x: 4, y: 5 } },
     ]))
+    expect(deriveStageMapOverlay('logistics', snapshot, 13)?.badges).toEqual([
+      { kind: 'bottleneck', label: '能力 1/刻', position: { x: 4, y: 5 } },
+    ])
     expect(deriveStageMapOverlay('roads', snapshot, 14)).toMatchObject({
       label: '道路连通',
       points: expect.arrayContaining([
@@ -196,6 +200,28 @@ describe('stage advisor overlays', () => {
       summary: ['道路点 1', '缺路 4'],
       metrics: { roadCells: 1, roadGaps: 4 },
     })
+  })
+
+  it('formats unload capacity source labels for the logistics layer', () => {
+    expect(formatUnloadCapacitySourceLabel({
+      buildingId: 'market',
+      unloadCapacityPerTick: 5,
+      unloadCapacityBreakdown: {
+        source: 'building',
+        base: 3,
+        levelBonus: 1,
+        workerBonus: 0,
+        entranceBonus: 1,
+        roadAccess: 2,
+        workerCount: 5,
+        cappedAt: 8,
+        total: 5,
+      },
+      unloadedThisTick: 0,
+      waitingToUnloadCount: 2,
+      longestWaitTicks: 4,
+      waitingOrderIds: [],
+    })).toBe('能力 5/刻·基3+级+1+路+1')
   })
 
   it('diagnoses building entrances that touch isolated roads but are not connected to the main road network', () => {
@@ -1004,6 +1030,42 @@ describe('stage advisor overlays', () => {
       rotation: 0,
       roadAnchors: 2,
     })
+  })
+
+  it('surfaces a city-level warning when a low-need service has no facility', () => {
+    const snapshot = makeSnapshot({
+      buildings: {
+        home: building('home', 'house', { x: 3, y: 4 }),
+      },
+      households: {
+        family: {
+          id: 'family',
+          homeBuildingId: 'home',
+          members: 4,
+          workerIds: [],
+          income: 12,
+          satisfaction: 52,
+          needs: { food: 82, goods: 82, health: 34, education: 82, entertainment: 82 },
+        },
+      },
+    })
+
+    const card = deriveStageGovernanceCards(snapshot)
+      .find((item) => item.id === 'governance-missing-service-health')
+
+    expect(card).toMatchObject({
+      title: '缺少医疗设施',
+      overlayMode: 'service',
+      metricLabel: '缺失设施',
+      target: { point: { x: 3, y: 4 }, label: '医疗短板' },
+      recommendation: {
+        label: '先解锁商贸镇',
+        tool: 'inspect',
+        overlayMode: 'service',
+        availability: { unlocked: false, requiredStageLabel: '商贸镇' },
+      },
+    })
+    expect(card?.detail).toContain('城市当前没有可提供该服务的设施')
   })
 })
 

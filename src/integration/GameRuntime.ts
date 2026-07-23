@@ -7,7 +7,10 @@ import type {
   ResourceKind,
   RoadKind,
   SimulationSnapshot,
+  CityTimelineResidentProfile,
   LogisticsStorageIntervention,
+  LogisticsStorageInterventionRecord,
+  BuildingCityStage,
 } from '../simulation/contracts'
 import {
   BUILDING_DEFINITIONS,
@@ -24,6 +27,7 @@ import {
   summarizeDistrictProsperity,
 } from '../simulation/districts'
 import { SimulationEngine, createInitialSimulationSnapshot } from '../simulation/core'
+import { appendLogisticsStorageIntervention } from '../simulation/economy/logisticsInterventions'
 import {
   advanceBuildingUpgrades,
   buildingUpgradeCost,
@@ -50,7 +54,26 @@ import {
   type DropSpawnState,
 } from '../simulation/rewards'
 import { pointKey, WorldGrid, type PlacementIssue, type QuarterRotation } from '../simulation/world'
-import { CityNoticeTracker, deriveCityNotices, type CityNotice } from './cityNotices'
+import {
+  CityNoticeAnalyticsQueue,
+  CityNoticeTracker,
+  deriveCityNotices,
+  type CityNotice,
+  type CityNoticeLifecycleEvent,
+} from './cityNotices'
+import {
+  CityNoticeAnalyticsDispatcher,
+  type CityNoticeAnalyticsFlushResult,
+  type CityNoticeAnalyticsTransport,
+} from './analyticsTransport'
+import { appendCityTimelineEvents } from './cityTimeline'
+import { auditUpgradeForBuilding } from '../qa/upgradeEconomyAudit'
+import {
+  compactStressScenarioForViewport,
+  createStressScenario,
+  stressScenarioDefinitions,
+} from '../qa/stressScenario'
+
 
 export type BuildTool =
   | { kind: 'inspect' }
@@ -161,10 +184,17 @@ export type RuntimeDebugScenario =
   | 'logistics-hotspot'
   | 'logistics-storage-build'
   | 'logistics-source-shortage'
+  | 'civilization-resident-timeline'
+  | 'civilization-scale'
+  | 'service-facility-runtime'
 
 export interface GameRuntimeOptions {
   initialTreasury?: number
   debugScenario?: RuntimeDebugScenario
+  /** QA-only stage fixture; production callers should rely on simulated metrics. */
+  debugUnlockedStage?: BuildingCityStage
+  /** Optional production analytics adapter; absent means events remain offline. */
+  cityNoticeAnalyticsTransport?: CityNoticeAnalyticsTransport
 }
 
 export interface BuildingPlacementPreviewCell {
@@ -203,6 +233,17 @@ export interface BuildingUpgradeQuote {
     capacity: number
     jobs: number
   }
+  economic?: {
+    capacityDelta: number
+    jobsDelta: number
+    productionValueDelta: number
+    serviceCapacityDelta: number
+    maintenanceDelta: number
+    netValuePerSettlement: number
+    paybackSettlements: number | null
+    verdict: 'healthy' | 'slow' | 'no-return'
+    warnings: string[]
+  }
 }
 
 export {
@@ -232,8 +273,18 @@ export class GameRuntime {
   private randomState = 0x4f1bbcdc
   private lastDropTick = 0
   private cityNoticeTracker = new CityNoticeTracker()
+  private cityNoticeAnalyticsQueue = new CityNoticeAnalyticsQueue()
+  private cityNoticeAnalyticsDispatcher: CityNoticeAnalyticsDispatcher
+  private readonly debugUnlockedStage?: BuildingCityStage
+  private readonly debugScenario?: RuntimeDebugScenario
 
   constructor(options: GameRuntimeOptions = {}) {
+    this.debugUnlockedStage = options.debugUnlockedStage
+    this.debugScenario = options.debugScenario
+    this.cityNoticeAnalyticsDispatcher = new CityNoticeAnalyticsDispatcher(
+      this.cityNoticeAnalyticsQueue,
+      options.cityNoticeAnalyticsTransport,
+    )
     this.grid = new WorldGrid(28, 22, [], 'land')
     this.seedTerrainAndRoads()
     const buildings = this.seedBuildings()
@@ -243,21 +294,34 @@ export class GameRuntime {
     if (options.debugScenario === 'bridge-gap') {
       this.applyBridgeGapScenario()
     }
-    const initial = createInitialSimulationSnapshot({
+    let initial = createInitialSimulationSnapshot({
       seed: 20260625,
       buildings,
       treasury: options.initialTreasury ?? debugScenarioInitialTreasury(options.debugScenario) ?? 2400,
       dayKey: localDayKey(Date.now()),
     })
     initial.cells = this.grid.toCells()
-    initial.agents['carrier-1'] = {
-      id: 'carrier-1', role: 'cart', position: { x: 13, y: 11 },
-      path: [], pathIndex: 0, activity: 'idle',
+    if (options.debugScenario === 'civilization-scale') {
+      // QA-only browser fixture: use the agreed scale with the normal 28×22
+      // viewport footprint so the browser can exercise entity lifecycle and
+      // rendering without changing the production default world size.
+      initial = compactStressScenarioForViewport(createStressScenario({
+        households: 500,
+        buildings: 300,
+        visibleAgents: 150,
+        width: 28,
+        height: 22,
+      }))
+    } else {
+      initial.agents['carrier-1'] = {
+        id: 'carrier-1', role: 'cart', position: { x: 13, y: 11 },
+        path: [], pathIndex: 0, activity: 'idle',
+      }
     }
     this.dropState = createDropSpawnState()
     this.applyDistrictProsperity(initial)
     this.engine = this.createEngine(initial)
-    this.engine.step(45)
+    if (options.debugScenario !== 'civilization-scale') this.engine.step(45)
     if (options.debugScenario === 'logistics-hotspot') {
       const debugSnapshot = this.engine.snapshot
       this.applyLogisticsHotspotScenario(debugSnapshot)
@@ -273,14 +337,70 @@ export class GameRuntime {
       this.applyLogisticsSourceShortageScenario(debugSnapshot)
       this.engine = this.createEngine(debugSnapshot)
     }
+    if (options.debugScenario === 'civilization-resident-timeline') {
+      const debugSnapshot = this.engine.snapshot
+      this.applyCivilizationResidentTimelineScenario(debugSnapshot)
+      this.engine = this.createEngine(debugSnapshot)
+    }
+    if (options.debugScenario === 'service-facility-runtime') {
+      const debugSnapshot = this.engine.snapshot
+      this.applyServiceFacilityScenario(debugSnapshot)
+      this.engine = this.createEngine(debugSnapshot)
+    }
     this.snapshotCache = this.withDistrictProsperity(this.engine.snapshot)
+    this.syncCityNoticeAnalytics()
   }
 
   getSnapshot = (): SimulationSnapshot => this.snapshotCache
 
   getCityNotices = (): CityNotice[] => deriveCityNotices(this.snapshotCache)
 
-  consumeCityNoticeEvents = (): CityNotice[] => this.cityNoticeTracker.update(this.snapshotCache)
+  consumeCityNoticeEvents = (): CityNotice[] => {
+    const notices = this.cityNoticeTracker.update(this.snapshotCache)
+    this.persistCityNoticeLifecycleEvents()
+    return notices
+  }
+
+  consumeCityNoticeLifecycleEvents = (): CityNoticeLifecycleEvent[] => {
+    this.syncCityNoticeAnalytics()
+    return this.cityNoticeAnalyticsQueue.consume()
+  }
+
+  peekCityNoticeLifecycleEvents = (limit = 50): CityNoticeLifecycleEvent[] => {
+    this.syncCityNoticeAnalytics()
+    return this.cityNoticeAnalyticsQueue.peek(limit)
+  }
+
+  acknowledgeCityNoticeLifecycleEvents = (eventIds: readonly string[]): number => {
+    return this.cityNoticeAnalyticsQueue.acknowledge(eventIds)
+  }
+
+  getCityNoticeAnalyticsQueueSize = (): number => {
+    this.syncCityNoticeAnalytics()
+    return this.cityNoticeAnalyticsQueue.size()
+  }
+
+  flushCityNoticeAnalytics = async (): Promise<CityNoticeAnalyticsFlushResult> => {
+    this.syncCityNoticeAnalytics()
+    return this.cityNoticeAnalyticsDispatcher.flush()
+  }
+
+  acknowledgeCityNotice = (noticeId: string): boolean => {
+    this.syncCityNoticeAnalytics()
+    const acknowledged = this.cityNoticeTracker.acknowledge(noticeId, this.snapshotCache.tick)
+    this.persistCityNoticeLifecycleEvents()
+    return acknowledged
+  }
+
+  private syncCityNoticeAnalytics() {
+    this.cityNoticeTracker.update(this.snapshotCache)
+    this.persistCityNoticeLifecycleEvents()
+  }
+
+  private persistCityNoticeLifecycleEvents() {
+    const events = this.cityNoticeTracker.consumeLifecycleEvents()
+    this.cityNoticeAnalyticsQueue.enqueue(events)
+  }
 
   getBuildingUpgradeQuote(buildingId: string): BuildingUpgradeQuote | undefined {
     const snapshot = this.engine.snapshot
@@ -302,6 +422,18 @@ export class GameRuntime {
 
     const maxLevel = definition.maxLevel
     const cost = buildingUpgradeCost(building, definition)
+    const economic = auditUpgradeForBuilding(definition, building.level)
+    const economicSummary = {
+      capacityDelta: economic.capacityDelta,
+      jobsDelta: economic.jobsDelta,
+      productionValueDelta: economic.productionValueDelta,
+      serviceCapacityDelta: economic.serviceCapacityDelta,
+      maintenanceDelta: economic.maintenanceDelta,
+      netValuePerSettlement: economic.netValuePerSettlement,
+      paybackSettlements: economic.paybackSettlements,
+      verdict: economic.verdict,
+      warnings: economic.warnings,
+    }
     if (building.status === 'upgrading') {
       return {
         buildingId,
@@ -313,6 +445,7 @@ export class GameRuntime {
         missing: {},
         canUpgrade: false,
         reason: 'upgrading',
+        economic: economicSummary,
       }
     }
 
@@ -336,6 +469,7 @@ export class GameRuntime {
         missing: result.missing ?? {},
         canUpgrade: false,
         reason: result.reason,
+        economic: economicSummary,
       }
     }
 
@@ -348,6 +482,7 @@ export class GameRuntime {
       cost: result.cost,
       missing: {},
       canUpgrade: true,
+      economic: economicSummary,
       effect: result.effect,
     }
   }
@@ -361,6 +496,36 @@ export class GameRuntime {
     const result = this.engine.advance(elapsedMs)
     if (result.ticks === 0) return
     let snapshot = this.engine.snapshot
+    snapshot.cityTimeline = appendCityTimelineEvents(
+      snapshot.cityTimeline ?? [],
+      result.events,
+      snapshot.tick,
+      {
+        buildingName: (buildingId) => BUILDING_DEFINITIONS[snapshot.buildings[buildingId]?.type]?.name ?? buildingId,
+        resourceName: (resource) => resourceName(resource as ResourceKind),
+        residentProfile: (householdId) => residentTimelineProfile(snapshot, householdId),
+        departedResidentProfile: (householdId) => result.departedResidents?.[householdId],
+        fiscalSnapshot: () => {
+          const settlement = snapshot.economy.fiscalHistory?.at(-1);
+          if (!settlement) return undefined;
+
+          return {
+            treasury: settlement.treasuryAfter,
+            treasuryBefore: settlement.treasuryBefore,
+            taxIncome: settlement.taxIncome,
+            maintenanceCost: settlement.maintenanceCost,
+            serviceMaintenanceCost: settlement.serviceMaintenanceCost,
+            settlementTick: settlement.tick,
+          };
+        },
+      },
+    )
+    // Keep the lifecycle fixture visible while the browser runner waits for
+    // the panel. Production timelines remain append-only; this branch only
+    // refreshes the explicit debug scenario's two resident records.
+    if (this.debugScenario === 'civilization-resident-timeline') {
+      this.applyCivilizationResidentTimelineScenario(snapshot)
+    }
     this.applyDistrictProsperity(snapshot)
     const hasUpgradingBuildings = Object.values(snapshot.buildings)
       .some((building) => building.status === 'upgrading')
@@ -382,6 +547,7 @@ export class GameRuntime {
       this.rebuild(snapshot)
     } else {
       this.snapshotCache = this.withDistrictProsperity(snapshot)
+      this.syncCityNoticeAnalytics()
       this.emit()
     }
   }
@@ -982,7 +1148,7 @@ export class GameRuntime {
       }
     }
 
-    const stage = deriveRuntimeCityStage(this.snapshotCache.metrics)
+    const stage = this.runtimeBuildingStage()
     if (!isRuntimeBuildingUnlocked(buildingType, stage)) {
       return {
         ok: false,
@@ -1080,6 +1246,23 @@ export class GameRuntime {
         queuesCleared,
       } satisfies LogisticsStorageIntervention,
     }
+    const intervention: LogisticsStorageInterventionRecord = {
+      eventId: `logistics-storage-${id}-${snapshot.tick}`,
+      buildingId: id,
+      buildingType,
+      tick: snapshot.tick,
+      orderIds: uniqueOrderIds.filter((orderId) => Boolean(snapshot.logisticsOrders[orderId])),
+      ordersReset: stats.ordersReset,
+      carriersReleased: stats.carriersReleased,
+      queuesCleared,
+    }
+    const persistedInterventions = appendLogisticsStorageIntervention(
+      snapshot.logisticsStorageInterventionHistory ?? [],
+      snapshot.logisticsStorageInterventionArchive,
+      intervention,
+    )
+    snapshot.logisticsStorageInterventionHistory = persistedInterventions.history
+    snapshot.logisticsStorageInterventionArchive = persistedInterventions.archive
     snapshot.logisticsQueues = {}
     this.rebuild(snapshot)
 
@@ -1104,7 +1287,7 @@ export class GameRuntime {
         cells: [],
       }
     }
-    const stage = deriveRuntimeCityStage(this.snapshotCache.metrics)
+    const stage = this.runtimeBuildingStage()
     if (!isRuntimeBuildingUnlocked(type, stage)) {
       return {
         type,
@@ -1164,7 +1347,7 @@ export class GameRuntime {
   placeBuilding(type: string, point: GridPoint, rotation: QuarterRotation): RuntimeActionResult {
     const definition = BUILDING_DEFINITIONS[type]
     if (!definition) return { ok: false, message: '未知建筑类型' }
-    const stage = deriveRuntimeCityStage(this.snapshotCache.metrics)
+    const stage = this.runtimeBuildingStage()
     if (!isRuntimeBuildingUnlocked(type, stage)) {
       return {
         ok: false,
@@ -1643,12 +1826,91 @@ export class GameRuntime {
     snapshot.agents['carrier-1'].activity = 'working'
   }
 
+  private applyCivilizationResidentTimelineScenario(snapshot: SimulationSnapshot) {
+    const household = Object.values(snapshot.households).sort((left, right) => left.id.localeCompare(right.id))[0]
+    const profile = household
+      ? residentTimelineProfile(snapshot, household.id)
+      : undefined
+    snapshot.cityTimeline = [
+      {
+        id: 'city-debug-resident-arrived',
+        tick: Math.max(1, snapshot.tick - 2),
+        kind: 'population',
+        source: 'migration-candidate-arrived',
+        title: '外来人口抵达城门',
+        detail: '一批新家庭正在等待住房与工作安排。',
+        resident: {
+          phase: 'arrived',
+          origin: '候选家庭',
+          members: 4,
+          workerCount: 2,
+          employedCount: 0,
+          occupations: ['待安置'],
+        },
+      },
+      {
+        id: 'city-debug-resident-settled',
+        tick: snapshot.tick,
+        kind: 'population',
+        source: 'household-migrated',
+        title: '新家庭入住',
+        detail: '一户新家庭已完成入住，人口与劳动力池更新。',
+        buildingId: profile?.homeBuildingId,
+        resident: profile ?? {
+          phase: 'settled',
+          origin: '外来家庭',
+          members: 3,
+          workerCount: 1,
+          employedCount: 0,
+          occupations: ['待分配'],
+          satisfaction: 80,
+        },
+      },
+    ]
+  }
+
+  private applyServiceFacilityScenario(snapshot: SimulationSnapshot) {
+    const households = Object.values(snapshot.households)
+      .sort((left, right) => left.id.localeCompare(right.id))
+    // Larger households move this fixture into the trade-town stage while the
+    // first household provides a visible health need for the service loop.
+    households.forEach((household) => {
+      household.members = Math.max(household.members, 8)
+      household.satisfaction = 72
+    })
+    const patient = households[0]
+    if (patient) {
+      patient.needs.health = 30
+      patient.unmetNeedTicks = { health: 3 }
+      patient.needPressure = {
+        health: { ticks: 3, cause: 'no-workers' },
+      }
+      for (const workerId of patient.workerIds) {
+        const worker = snapshot.agents[workerId]
+        if (worker?.employerBuildingId) {
+          const employer = snapshot.buildings[worker.employerBuildingId]
+          if (employer) employer.workers = employer.workers.filter((id) => id !== workerId)
+          delete worker.employerBuildingId
+        }
+      }
+    }
+    snapshot.metrics.cityAttraction = 50
+    snapshot.metrics.activeDistricts = Math.max(snapshot.metrics.activeDistricts ?? 0, 2)
+  }
+
+  private runtimeBuildingStage(): BuildingCityStage {
+    return this.debugUnlockedStage ?? deriveRuntimeCityStage(this.snapshotCache.metrics)
+  }
+
   private createEngine(snapshot: SimulationSnapshot) {
+    const definitions = this.debugScenario === 'civilization-scale'
+      ? { ...BUILDING_DEFINITIONS, ...stressScenarioDefinitions }
+      : BUILDING_DEFINITIONS
     return new SimulationEngine(snapshot, {
-      buildingDefinitions: BUILDING_DEFINITIONS,
+      buildingDefinitions: definitions,
       systems: [
         new EconomySystem({
-          definitions: BUILDING_DEFINITIONS,
+          definitions,
           routePlanner: new RoadRoutePlanner(),
           settlementIntervalTicks: 75,
         }),
@@ -1664,11 +1926,13 @@ export class GameRuntime {
     this.applyDistrictProsperity(snapshot)
     this.engine = this.createEngine(snapshot)
     this.snapshotCache = this.withDistrictProsperity(this.engine.snapshot)
+    this.syncCityNoticeAnalytics()
     this.emit()
   }
 
   private refresh() {
     this.snapshotCache = this.withDistrictProsperity(this.engine.snapshot)
+    this.syncCityNoticeAnalytics()
     this.emit()
   }
 
@@ -1753,6 +2017,30 @@ function isIsolatedRoadNetworkScenario(scenario: RuntimeDebugScenario | undefine
 function debugScenarioInitialTreasury(scenario: RuntimeDebugScenario | undefined): number | undefined {
   if (scenario === 'isolated-road-network-low-treasury') return 4
   return undefined
+}
+
+function residentTimelineProfile(
+  snapshot: SimulationSnapshot,
+  householdId: string,
+): CityTimelineResidentProfile | undefined {
+  const household = snapshot.households[householdId]
+  if (!household) return undefined
+  const occupations = household.workerIds.map((workerId) => {
+    const worker = snapshot.agents[workerId]
+    const building = worker?.employerBuildingId ? snapshot.buildings[worker.employerBuildingId] : undefined
+    return building ? (BUILDING_DEFINITIONS[building.type]?.name ?? building.type) : '待业'
+  })
+  const uniqueOccupations = [...new Set(occupations)]
+  return {
+    phase: 'settled',
+    origin: '外来家庭',
+    members: household.members,
+    workerCount: household.workerIds.length,
+    employedCount: household.workerIds.filter((workerId) => Boolean(snapshot.agents[workerId]?.employerBuildingId)).length,
+    occupations: uniqueOccupations.length > 0 ? uniqueOccupations : ['待分配'],
+    homeBuildingId: household.homeBuildingId,
+    satisfaction: Math.round(household.satisfaction),
+  }
 }
 
 function cloneBuildings(buildings: Record<string, BuildingEntity>): Record<string, BuildingEntity> {

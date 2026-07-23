@@ -35,6 +35,8 @@ export function browserE2eContractPayload() {
       path: scenario.path,
       mustContainText: scenario.mustContainText,
       forbiddenConsoleLevels: scenario.forbiddenConsoleLevels,
+      renderEntityAssertions: scenario.renderEntityAssertions ?? null,
+      renderEntityMinimums: scenario.renderEntityMinimums ?? null,
       interaction: scenario.interaction ?? null,
     })),
   }

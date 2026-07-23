@@ -13,6 +13,7 @@ import type {
   SimulationSystem,
   WorldCell,
 } from '../contracts'
+import { activeWorkerCount } from '../core/workforce'
 import type { ServiceRule } from './service'
 import {
   addInventory,
@@ -208,7 +209,7 @@ export class LogisticsSystem implements SimulationSystem {
       ),
     )
     if (!sourceMatch.ok) {
-      this.markFailure(destination, resource, sourceMatch.reason)
+      this.markFailure(destination, resource, sourceMatch.reason, snapshot.tick)
       return undefined
     }
 
@@ -224,7 +225,7 @@ export class LogisticsSystem implements SimulationSystem {
       ),
     )
     if (amount <= 0) {
-      this.markFailure(destination, resource, 'destination-capacity')
+      this.markFailure(destination, resource, 'destination-capacity', snapshot.tick)
       return undefined
     }
 
@@ -336,7 +337,7 @@ export class LogisticsSystem implements SimulationSystem {
       for (const order of waitingOrders) {
         this.markOrderFailure(order, 'no-carrier')
         const destination = snapshot.buildings[order.destinationBuildingId]
-        if (destination) this.markFailure(destination, order.resource, 'no-carrier')
+        if (destination) this.markFailure(destination, order.resource, 'no-carrier', snapshot.tick)
       }
       return
     }
@@ -347,7 +348,7 @@ export class LogisticsSystem implements SimulationSystem {
       const source = snapshot.buildings[order.sourceBuildingId]
       if (!source || inventoryAmount(source, order.resource) < order.amount) {
         const destination = snapshot.buildings[order.destinationBuildingId]
-        if (destination) this.markFailure(destination, order.resource, 'source-inventory-insufficient')
+        if (destination) this.markFailure(destination, order.resource, 'source-inventory-insufficient', snapshot.tick)
         this.markOrderCancelled(order, 'source-inventory-insufficient')
         order.state = 'cancelled'
         continue
@@ -355,7 +356,7 @@ export class LogisticsSystem implements SimulationSystem {
       const route = this.routePlanner.findRoute(snapshot.cells, carrier.position, source.entrance)
       if (!route) {
         const destination = snapshot.buildings[order.destinationBuildingId]
-        if (destination) this.markFailure(destination, order.resource, 'no-route')
+        if (destination) this.markFailure(destination, order.resource, 'no-route', snapshot.tick)
         this.markOrderFailure(order, 'no-route')
         freeCarriers.unshift(carrier)
         continue
@@ -422,12 +423,12 @@ export class LogisticsSystem implements SimulationSystem {
     const source = snapshot.buildings[order.sourceBuildingId]
     const destination = snapshot.buildings[order.destinationBuildingId]
     if (!source || !destination) {
-      if (destination) this.markFailure(destination, order.resource, 'no-source-inventory')
+      if (destination) this.markFailure(destination, order.resource, 'no-source-inventory', snapshot.tick)
       this.cancel(order, carrier, 'no-source-inventory')
       return
     }
     if (!removeInventory(source, order.resource, order.amount).ok) {
-      this.markFailure(destination, order.resource, 'source-inventory-insufficient')
+      this.markFailure(destination, order.resource, 'source-inventory-insufficient', snapshot.tick)
       this.cancel(order, carrier, 'source-inventory-insufficient')
       return
     }
@@ -435,7 +436,7 @@ export class LogisticsSystem implements SimulationSystem {
     const route = this.routePlanner.findRoute(snapshot.cells, source.entrance, destination.entrance)
     if (!route) {
       addInventory(source, this.effectiveDefinition(source), order.resource, order.amount)
-      this.markFailure(destination, order.resource, 'no-route')
+      this.markFailure(destination, order.resource, 'no-route', snapshot.tick)
       this.cancel(order, carrier, 'no-route')
       return
     }
@@ -469,7 +470,7 @@ export class LogisticsSystem implements SimulationSystem {
     const unloadCapacity = this.resolveUnloadCapacity(snapshot, destination, unloadState)
     if (unloadedThisTick >= unloadCapacity) {
       order.throughputQueuedSinceTick ??= snapshot.tick
-      this.markFailure(destination, order.resource, 'destination-throughput')
+      this.markFailure(destination, order.resource, 'destination-throughput', snapshot.tick)
       this.markOrderFailure(order, 'destination-throughput')
       this.recordLogisticsQueue(snapshot, destination, unloadState)
       return
@@ -481,7 +482,7 @@ export class LogisticsSystem implements SimulationSystem {
         order.amount,
       ).ok) {
       // Cargo remains represented by the in-transit order until capacity is available.
-      this.markFailure(destination, order.resource, 'destination-capacity')
+      this.markFailure(destination, order.resource, 'destination-capacity', snapshot.tick)
       this.markOrderFailure(order, 'destination-capacity')
       return
     }
@@ -559,8 +560,13 @@ export class LogisticsSystem implements SimulationSystem {
     building: BuildingEntity,
     resource: ResourceKind,
     reason: LogisticsFailureReason,
+    tick: number,
   ): void {
-    building.statusReason = logisticsFailureReason(resource, reason)
+    const nextReason = logisticsFailureReason(resource, reason)
+    if (building.statusReason !== nextReason) {
+      building.blockedSinceTick = tick
+    }
+    building.statusReason = nextReason
   }
 
   private effectiveDefinition(building: BuildingEntity): BuildingDefinition {
@@ -597,7 +603,7 @@ export class LogisticsSystem implements SimulationSystem {
           workerBonus: 0,
           entranceBonus: 0,
           roadAccess: this.countRoadAccess(snapshot, destination),
-          workerCount: destination.workers.length,
+          workerCount: activeWorkerCount(snapshot, destination),
           cappedAt: this.unloadCapacityPerTick,
           total: this.unloadCapacityPerTick,
         }
@@ -623,7 +629,8 @@ export class LogisticsSystem implements SimulationSystem {
           ? 2
           : 1
     const levelBonus = Math.floor(Math.max(0, destination.level - 1) / 3)
-    const workerBonus = Math.floor(destination.workers.length / 6)
+    const workerCount = activeWorkerCount(snapshot, destination)
+    const workerBonus = Math.floor(workerCount / 6)
     const roadAccess = this.countRoadAccess(snapshot, destination)
     const entranceBonus = Math.min(2, Math.max(0, roadAccess - 1))
     const cappedAt = 8
@@ -636,7 +643,7 @@ export class LogisticsSystem implements SimulationSystem {
       workerBonus,
       entranceBonus,
       roadAccess,
-      workerCount: destination.workers.length,
+      workerCount,
       cappedAt,
       total,
     }
@@ -658,6 +665,8 @@ export class LogisticsSystem implements SimulationSystem {
   private clearFailure(building: BuildingEntity, resource: ResourceKind): void {
     if (building.statusReason?.startsWith(`logistics-failed:${resource}:`)) {
       delete building.statusReason
+      delete building.blockedSinceTick
+      delete building.blockedAuditBaseline
     }
   }
 

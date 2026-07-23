@@ -23,6 +23,16 @@ export const GOLD_ASSET_IDS = [
 export const REQUIRED_LEVELS = ['L0', 'L1', 'L4', 'L8'];
 export const REQUIRED_ALL_LEVELS = ['L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8'];
 
+export const REQUIRED_VISUAL_IDENTITY_FIELDS = [
+  'era',
+  'buildingClass',
+  'silhouetteFamily',
+  'functionalSignature',
+  'materialPalette',
+];
+
+export const REQUIRED_STRUCTURAL_MILESTONES = ['L1', 'L3', 'L5', 'L7'];
+
 export const REQUIRED_DCC_COLLECTIONS = [
   'COL_ANIM',
   'COL_COLLISION',
@@ -123,6 +133,14 @@ export const PIXI_BUDGETS = {
     LOD1: { maxDrawCalls: 6, maxTextureMB: 6 },
     LOD2: { maxDrawCalls: 3, maxTextureMB: 2 },
   },
+};
+
+export const ANIMATION_RUNTIME_BUDGETS = {
+  maxSlots: 20,
+  maxPartsPerSlot: 4,
+  maxAnchorsPerSlot: 8,
+  maxPartTransformSlots: 4,
+  maxParticleSlots: 2,
 };
 
 const FACING_VALUES = new Set([0, 1, 2, 3, 4, 5, 6, 7]);
@@ -258,6 +276,99 @@ function validateLevels(building, issues, options = {}) {
       push(issues, 'level.occlusion_profile', `${originalLevel} missing occlusionProfile.`, `building.levels.${originalLevel}.occlusionProfile`);
     }
   }
+}
+
+function validateVisualIdentity(building, issues, options = {}) {
+  const identity = building.visualIdentity;
+  if (!isObject(identity)) {
+    push(
+      issues,
+      'visual_identity.missing',
+      'visualIdentity is required for production assets; it must explain the building-specific silhouette, function and material language.',
+      'building.visualIdentity',
+    );
+    return;
+  }
+
+  for (const field of REQUIRED_VISUAL_IDENTITY_FIELDS) {
+    if (typeof identity[field] !== 'string' || identity[field].trim().length === 0) {
+      push(issues, 'visual_identity.required_field', `visualIdentity.${field} must be a non-empty string.`, `building.visualIdentity.${field}`);
+    }
+  }
+
+  const levelArc = identity.levelArc;
+  if (!isObject(levelArc)) {
+    push(issues, 'visual_identity.level_arc', 'visualIdentity.levelArc must declare the visual progression for every production level.', 'building.visualIdentity.levelArc');
+    return;
+  }
+
+  const requiredLevels = options.requireAllLevels ? REQUIRED_ALL_LEVELS : REQUIRED_LEVELS;
+  const silhouettes = [];
+  for (const levelKey of requiredLevels) {
+    const level = levelArc[levelKey];
+    const levelPath = `building.visualIdentity.levelArc.${levelKey}`;
+    if (!isObject(level)) {
+      push(issues, 'visual_identity.level.missing', `${levelKey} must declare a visual progression record.`, levelPath);
+      continue;
+    }
+    for (const field of ['stage', 'silhouette', 'functionalRead', 'environment']) {
+      if (typeof level[field] !== 'string' || level[field].trim().length === 0) {
+        push(issues, 'visual_identity.level.required_field', `${levelKey}.${field} must be a non-empty string.`, `${levelPath}.${field}`);
+      }
+    }
+    if (!Array.isArray(level.activeElements) || level.activeElements.length === 0) {
+      push(issues, 'visual_identity.level.active_elements', `${levelKey}.activeElements must list at least one visible element.`, `${levelPath}.activeElements`);
+    }
+    if (typeof level.structuralMilestone !== 'boolean') {
+      push(issues, 'visual_identity.level.structural_milestone', `${levelKey}.structuralMilestone must be boolean.`, `${levelPath}.structuralMilestone`);
+    }
+    if (typeof level.silhouette === 'string') silhouettes.push(level.silhouette);
+  }
+
+  for (const milestone of REQUIRED_STRUCTURAL_MILESTONES) {
+    if (levelArc[milestone]?.structuralMilestone !== true) {
+      push(issues, 'visual_identity.milestone.missing', `${milestone} must be marked as a structural silhouette milestone.`, `building.visualIdentity.levelArc.${milestone}.structuralMilestone`);
+    }
+  }
+
+  if (options.requireAllLevels) {
+    if (levelArc.L0?.stage !== 'ruin') {
+      push(issues, 'visual_identity.stage.l0', 'L0 must read as the original ruin/foundation state.', 'building.visualIdentity.levelArc.L0.stage');
+    }
+    if (levelArc.L8?.stage !== 'thriving') {
+      push(issues, 'visual_identity.stage.l8', 'L8 must read as a thriving, fully operating building state.', 'building.visualIdentity.levelArc.L8.stage');
+    }
+    if (silhouettes.length >= 2 && silhouettes[0] === silhouettes[silhouettes.length - 1]) {
+      push(issues, 'visual_identity.silhouette.no_end_change', 'L0 and L8 cannot share the same silhouette signature.', 'building.visualIdentity.levelArc');
+    }
+    if (new Set(silhouettes).size < 3) {
+      push(issues, 'visual_identity.silhouette.too_few_stages', 'L0-L8 must contain at least three distinct silhouette signatures.', 'building.visualIdentity.levelArc');
+    }
+  }
+}
+
+export function validateVisualIdentitySet(buildings) {
+  const issues = [];
+  const fields = ['buildingClass', 'silhouetteFamily', 'functionalSignature'];
+  for (const field of fields) {
+    const seen = new Map();
+    for (const building of buildings ?? []) {
+      const value = building?.visualIdentity?.[field];
+      if (typeof value !== 'string' || value.trim().length === 0) continue;
+      const previous = seen.get(value);
+      if (previous) {
+        push(
+          issues,
+          `visual_identity.cross_asset_duplicate.${field}`,
+          `${field} "${value}" is shared by ${previous} and ${building.assetId}; each production building needs an independent visual read.`,
+          `buildings.${building.assetId}.visualIdentity.${field}`,
+        );
+      } else {
+        seen.set(value, building.assetId);
+      }
+    }
+  }
+  return issues;
 }
 
 function validateSpriteLayers(level, levelKey, issues) {
@@ -442,6 +553,32 @@ function validateAnimation(animation, building, issues) {
   if (slotNames.length === 0) {
     push(issues, 'animation.slots.empty', 'animation slots must not be empty.', 'animation.slots');
   }
+  if (slotNames.length > ANIMATION_RUNTIME_BUDGETS.maxSlots) {
+    push(
+      issues,
+      'animation.budget.slots',
+      `Animation slot count ${slotNames.length} exceeds runtime budget ${ANIMATION_RUNTIME_BUDGETS.maxSlots}.`,
+      'animation.slots',
+    );
+  }
+  const partTransformSlots = Object.values(slots).filter((slot) => slot?.technique === 'part-transform').length;
+  if (partTransformSlots > ANIMATION_RUNTIME_BUDGETS.maxPartTransformSlots) {
+    push(
+      issues,
+      'animation.budget.part_transform_slots',
+      `part-transform slot count ${partTransformSlots} exceeds runtime budget ${ANIMATION_RUNTIME_BUDGETS.maxPartTransformSlots}.`,
+      'animation.slots',
+    );
+  }
+  const particleSlots = Object.values(slots).filter((slot) => slot?.technique === 'particle').length;
+  if (particleSlots > ANIMATION_RUNTIME_BUDGETS.maxParticleSlots) {
+    push(
+      issues,
+      'animation.budget.particle_slots',
+      `particle slot count ${particleSlots} exceeds runtime budget ${ANIMATION_RUNTIME_BUDGETS.maxParticleSlots}.`,
+      'animation.slots',
+    );
+  }
 
   for (const slotName of REQUIRED_ANIMATION_SLOTS) {
     if (!slots[slotName]) {
@@ -487,6 +624,25 @@ function validateAnimationSlot(slotName, slot, building, issues) {
   if (!slot.technique) push(issues, 'animation.slot.technique', `Slot ${slotName} missing technique.`, `${path}.technique`);
   if (!slot.playbackRateSource) push(issues, 'animation.slot.playback_rate', `Slot ${slotName} missing playbackRateSource.`, `${path}.playbackRateSource`);
 
+  const parts = asArray(slot.parts);
+  const anchors = asArray(slot.anchors);
+  if (parts.length > ANIMATION_RUNTIME_BUDGETS.maxPartsPerSlot) {
+    push(
+      issues,
+      'animation.budget.parts_per_slot',
+      `Slot ${slotName} has ${parts.length} parts; runtime budget is ${ANIMATION_RUNTIME_BUDGETS.maxPartsPerSlot}.`,
+      `${path}.parts`,
+    );
+  }
+  if (anchors.length > ANIMATION_RUNTIME_BUDGETS.maxAnchorsPerSlot) {
+    push(
+      issues,
+      'animation.budget.anchors_per_slot',
+      `Slot ${slotName} has ${anchors.length} anchors; runtime budget is ${ANIMATION_RUNTIME_BUDGETS.maxAnchorsPerSlot}.`,
+      `${path}.anchors`,
+    );
+  }
+
   if (slotName === 'production-primary' && slot.requiredState === 'working' && slot.playbackRateSource === 'sceneTime') {
     push(
       issues,
@@ -508,6 +664,15 @@ function validateAnimationSlot(slotName, slot, building, issues) {
   for (const lodKey of LOD_KEYS) {
     if (!slot.lodPolicy?.[lodKey]) {
       push(issues, 'animation.slot.lod_policy', `Slot ${slotName} missing lodPolicy.${lodKey}.`, `${path}.lodPolicy.${lodKey}`);
+    }
+  }
+
+  if (slot.technique === 'particle') {
+    if (slot.lodPolicy?.LOD3 !== 'off') {
+      push(issues, 'animation.budget.particle_lod3', `Particle slot ${slotName} must be off at LOD3.`, `${path}.lodPolicy.LOD3`);
+    }
+    if (slot.lodPolicy?.LOD2 === 'full') {
+      push(issues, 'animation.budget.particle_lod2', `Particle slot ${slotName} cannot be full at LOD2.`, `${path}.lodPolicy.LOD2`);
     }
   }
 
@@ -537,6 +702,7 @@ export function validateGoldManifests({ building, animation }, options = {}) {
     validateAnchors(building, issues);
     validateCollision(building, issues);
     validateBudgets(building, issues);
+    if (options.requireVisualIdentity) validateVisualIdentity(building, issues, options);
   }
   validateAnimation(animation, building ?? {}, issues);
 
@@ -560,18 +726,19 @@ async function readJson(path) {
 
 function printUsage() {
   console.error(
-    'Usage: node tools/asset-validator/asset-validator.js --building <building-manifest.json> --animation <animation-manifest.json> [--json] [--require-all-levels]',
+    'Usage: node tools/asset-validator/asset-validator.js --building <building-manifest.json> --animation <animation-manifest.json> [--json] [--require-all-levels] [--require-visual-identity]',
   );
 }
 
 function parseArgs(argv) {
-  const args = { json: false, requireAllLevels: false };
+  const args = { json: false, requireAllLevels: false, requireVisualIdentity: false };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === '--building') args.buildingPath = argv[++index];
     else if (arg === '--animation') args.animationPath = argv[++index];
     else if (arg === '--json') args.json = true;
     else if (arg === '--require-all-levels') args.requireAllLevels = true;
+    else if (arg === '--require-visual-identity') args.requireVisualIdentity = true;
     else if (arg === '--help' || arg === '-h') args.help = true;
     else throw new Error(`Unknown argument: ${arg}`);
   }

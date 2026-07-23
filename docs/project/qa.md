@@ -1072,3 +1072,673 @@
 - 生产构建：浏览器命令内置 `npm run build` 通过，Vite 产物正常生成。
 - 浏览器仅记录 Chromium/WebGL 驱动 warning，无应用 console error。
 - 本轮变更尚未完成全量回归；提交前将继续运行 `npm test`、`npm run build` 和 `git diff --check`。
+
+## 2026-07-16 第一百一十六轮验证
+
+- 目标 GREEN：`npm test -- src/qa/upgradeEconomyAudit.test.ts src/simulation/economy/economy.test.ts src/simulation/economy/upgrades.test.ts` 通过，49 项测试覆盖升级审计、服务吞吐联动和既有经济行为。
+- 审计命令：`npm run qa:upgrade-economy-audit` 通过，覆盖 5 类建筑、40 个升级节点，输出健康/慢回本/无回报分类及生产联动缺口。
+- 服务联动：服务队列容量由等级函数驱动，1 级兼容旧口径；现有经济测试通过。
+- 全量回归：`npm test` 通过，42 个测试文件、272 项测试；长稳文明场景通过。
+- 生产构建：`npm run build` 通过；`git diff --check` 通过。
+
+## 2026-07-17 第一百一十七轮验证
+
+- 目标 GREEN：`npm test -- src/integration/GameRuntime.test.ts src/qa/upgradeEconomyAudit.test.ts src/simulation/economy/upgrades.test.ts` 通过，43 项测试覆盖经济摘要、升级运行时和审计口径。
+- 生产构建：`npm run build` 通过，升级详情 UI 和新增样式可打包。
+- 差异检查：`git diff --check` 通过。
+- 浏览器 QA：`npm run qa:browser-e2e` 重试 2 次均在本地预览服务启动后等待 `http://127.0.0.1:4173` 超时；构建本身成功，未取得浏览器交互证据，因此本轮不宣称浏览器验收通过。
+
+## 2026-07-17 第一百一十八轮验证
+
+- 目标 GREEN：`npm test -- src/integration/GameRuntime.test.ts src/qa/upgradeEconomyAudit.test.ts src/integration/stageAdvisor.test.ts` 通过，50 项测试覆盖顾问依赖的运行时快照、升级审计和城市治理逻辑。
+- 生产构建：`npm run build` 通过，城市顾问新增“升级经济风险”卡可打包。
+- 差异检查：`git diff --check` 通过。
+- 浏览器验收：调试日志确认 Vite preview 在监听 `127.0.0.1:4173` 时返回 `listen EPERM: operation not permitted`；当前沙箱禁止本地 socket 监听，不能把静态构建当作真实交互证据，需在允许本地监听的环境补跑。
+
+## 2026-07-17 第一百一十九轮验证
+
+- 目标 GREEN：`npm test -- src/integration/stageAdvisor.test.ts src/rendering/DynamicScene.test.ts` 通过，34 项测试覆盖物流图层徽标、治理叠加层和动态场景同步。
+- 全量回归：`npm test` 通过，当前测试集全部通过。
+- 生产构建：`npm run build` 通过；`git diff --check` 通过。
+- 浏览器验收：本轮不宣称通过；当前环境仍需允许 `127.0.0.1:4173` 本地监听后补跑真实场景。
+
+## 2026-07-17 第一百二十轮验证
+
+- 目标 GREEN：`npm test -- src/qa/logisticsStorageInterventionAudit.test.ts src/integration/GameRuntime.test.ts src/simulation/core/SimulationEngine.test.ts` 通过，43 项测试覆盖历史审计、扩仓运行时结果和模拟重建。
+- 全量回归：`npm test` 通过，当前测试集全部通过。
+- 审计命令：`npm run qa:logistics-storage-audit` 通过，输出当前快照历史有效；初始场景无干预记录属于预期。
+- 生产构建：`npm run build` 通过；`git diff --check` 通过。
+- 浏览器验收：仍未取得真实交互证据，原因仍是当前环境禁止本地预览服务监听。
+
+## 2026-07-17 第一百二十一轮验证
+
+- 目标 GREEN：`npm test -- src/ui/cityAdvisorUi.test.ts src/integration/GameRuntime.test.ts` 通过，32 项测试覆盖物流历史汇总和建筑详情既有动作链路。
+- 生产构建：`npm run build` 通过，历史记录卡和样式正常打包。
+- 浏览器验收：尚未取得真实点击证据；本地预览监听限制仍未解除。
+
+## 2026-07-17 第一百二十二轮验证
+
+- 目标 GREEN：`npm test -- src/simulation/economy/logisticsInterventions.test.ts src/qa/logisticsStorageInterventionAudit.test.ts src/integration/GameRuntime.test.ts` 通过，31 项测试覆盖 205 条事件保留边界、归档审计和扩仓运行时。
+- 生产构建：`npm run build` 通过，新增归档契约和运行时策略正常打包。
+- 浏览器验收：本轮未取得真实交互证据；当前环境仍禁止本地预览监听。
+
+## 2026-07-17 第一百二十三轮验证
+
+- 目标 GREEN：`npm test -- src/ui/cityAdvisorUi.test.ts src/simulation/economy/logisticsInterventions.test.ts src/qa/logisticsStorageInterventionAudit.test.ts src/integration/GameRuntime.test.ts` 通过，38 项测试覆盖城市管理归档文案、归档边界审计和运行时持久化。
+- 全量回归：`npm test` 通过，44 个测试文件、280 项测试全部通过；其中包含多日压力场景。
+- 生产构建：`npm run build` 通过，2353 个模块正常打包；`git diff --check` 通过。
+- 浏览器验收：本轮仍未取得真实点击证据；当前环境禁止 `127.0.0.1:4173` 本地监听，需在允许本地 socket 的环境补跑。
+
+## 2026-07-17 第一百二十四轮验证
+
+- 目标 GREEN：`npm test -- src/ui/cityAdvisorUi.test.ts src/integration/GameRuntime.test.ts src/qa/logisticsStorageInterventionAudit.test.ts` 通过，38 项测试覆盖时间线格式、建筑定位依赖的运行时快照和归档审计。
+- 全量回归：`npm test` 通过，44 个测试文件、281 项测试全部通过；多日压力场景通过。
+- 生产构建：`npm run build` 通过；`git diff --check` 通过。
+- 浏览器验收：本轮仍未取得真实点击证据；当前环境禁止 `127.0.0.1:4173` 本地监听，需在允许本地 socket 的环境补跑时间线点击场景。
+
+## 2026-07-17 第一百二十五轮验证
+
+- 目标 GREEN：`npm test -- src/integration/cityTimeline.test.ts src/ui/cityAdvisorUi.test.ts src/integration/GameRuntime.test.ts src/simulation/core/SimulationEngine.test.ts` 通过，51 项测试覆盖文明事件映射、窗口边界、UI 分类和运行时推进。
+- 全量回归：`npm test` 通过，45 个测试文件、284 项测试全部通过；多日压力场景通过。
+- 生产构建：`npm run build` 通过，2354 个模块正常打包；`git diff --check` 通过。
+- 浏览器验收：本轮仍未取得真实点击证据；当前环境禁止 `127.0.0.1:4173` 本地监听，需在允许本地 socket 的环境补跑城市运行时间线场景。
+
+## 2026-07-17 第一百二十六轮验证
+
+- 目标 GREEN：`npm test -- --run src/integration/cityTimeline.test.ts src/ui/cityAdvisorUi.test.ts src/ui/runtimeOptions.test.ts src/qa/browserE2eScenarios.test.ts src/integration/GameRuntime.test.ts` 通过，49 项测试覆盖居民状态映射、文案、调试场景和运行时推进。
+- 全量回归：`npm test` 通过，45 个测试文件、285 项测试全部通过；多日压力场景通过。
+- 生产构建：`npm run build` 通过，2354 个模块正常打包；`git diff --check` 通过。
+- 浏览器验收：新增 `civilization-resident-timeline` 场景契约，但本轮仍未取得真实点击证据；当前环境禁止 `127.0.0.1:4173` 本地监听，需在允许本地 socket 的环境补跑。
+
+## 2026-07-17 第一百二十七轮验证
+
+- 目标 GREEN：`npm test -- --run src/integration/residentGovernance.test.ts src/rendering/DynamicScene.test.ts src/ui/cityAdvisorUi.test.ts src/qa/browserE2eScenarios.test.ts` 通过，28 项测试覆盖居民生活摘要、职业活动和既有动态场景。
+- 全量回归：`npm test` 通过，45 个测试文件、287 项测试；长时间文明压力场景保持通过。
+- 生产构建：`npm run build` 通过，2355 个模块正常打包；`git diff --check` 通过。
+- 浏览器验收：本轮没有取得真实点击证据；居民卡复用既有城市管理入口，待允许 `127.0.0.1:4173` 本地监听后补跑并留存截图/日志。
+- 浏览器契约补强：`civilization-resident-timeline` 额外断言“居民生活”和“就业”文本，定向场景契约测试通过。
+
+## 2026-07-17 第一百二十八轮验证
+
+- 目标 GREEN：定向模拟、经济、时间线和居民治理测试通过，覆盖岗位变更、低健康缺勤、恢复出勤和有效劳动力计算。
+- 全量回归：`npm test` 通过，46 个测试文件、289 项测试；长时间文明压力场景保持通过。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包；`git diff --check` 通过。
+- 浏览器验收：居民治理场景契约已更新，但本轮仍未取得真实点击证据；当前环境禁止 `127.0.0.1:4173` 本地监听，需在允许本地 socket 的环境补跑。
+
+## 2026-07-17 第一百二十九轮验证
+
+- 目标 GREEN：定向迁移/时间线测试通过，覆盖关键需求、失业和低满意度三类离城原因及旧记录回退。
+- 全量回归：`npm test` 通过，46 个测试文件、289 项测试；长时间文明压力场景通过。
+- 生产构建：上一轮同一代码变更后的 `npm run build` 已通过，2356 个模块；本轮文档更新后的 `git diff --check` 已通过。
+- 浏览器验收：仍未取得真实点击证据；本地 `127.0.0.1:4173` 监听限制未解除。
+
+## 2026-07-17 第一百三十轮验证
+
+- 目标 GREEN：定向模拟引擎与城市时间线测试通过，覆盖需求短板累计、具体需求类型、长期缺勤累计和迁出文案。
+- 全量回归：`npm test` 通过，46 个测试文件、291 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包；`git diff --check` 通过。
+- 浏览器验收：本轮仍未取得真实点击证据；当前环境禁止 `127.0.0.1:4173` 本地监听，待允许本地 socket 的环境补跑居民治理与迁出原因场景。
+
+## 2026-07-17 第一百三十一轮验证
+
+- 目标 GREEN：定向服务经济、居民治理、模拟引擎和城市时间线测试通过，覆盖五类服务短板原因、持续刻数、恢复清除和迁出解释。
+- 全量回归：`npm test` 通过，46 个测试文件、292 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包；`git diff --check` 通过。
+- 浏览器验收：本轮仍未取得真实点击证据；当前环境禁止 `127.0.0.1:4173` 本地监听，待允许本地 socket 的环境补跑。
+
+## 2026-07-17 第一百三十二轮验证
+
+- 目标 GREEN：`src/integration/stageAdvisor.test.ts` 23 项测试通过，覆盖无服务设施的城市级提示、住宅入口定位和服务图层建议。
+- 全量回归：`npm test` 通过，46 个测试文件、293 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包；`git diff --check` 通过。
+- 浏览器验收：本轮未取得真实点击证据；当前环境禁止 `127.0.0.1:4173` 本地监听，待允许本地 socket 的环境补跑。
+
+## 2026-07-17 第一百三十七轮验证
+
+- 定向回归：54 项通过，覆盖人口迁入账本、净迁入指标、居民治理派生和公共服务维护成本拆分。
+- 全量回归：`npm test` 通过，47 个测试文件、300 项测试。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，居民治理卡的真实点击截图/日志保留到可监听环境执行。
+
+## 2026-07-17 第一百三十八轮验证
+
+- 定向回归：21 项通过，覆盖迁出结构账本和居民治理人口流动解释器。
+- 全量回归：`npm test` 通过，47 个测试文件、301 项测试。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，结构审计面板真实点击证据待可监听环境补跑。
+
+## 2026-07-17 第一百三十六轮验证
+
+- 定向服务与模拟引擎回归通过：服务设施覆盖回升、公共服务短板降低覆盖和城市吸引力均有断言。
+- 全量回归：`npm test` 通过，47 个测试文件、299 项测试。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：尚未取得真实点击画面，原因仍是当前环境禁止 `127.0.0.1:4173` 本地监听；下一轮保留浏览器层验证。
+
+## 2026-07-17 第一百三十四轮验证
+
+- 定向服务设施闭环：`src/qa/serviceFacilityScenarios.test.ts` 通过，覆盖药铺公共建造接口、配工、药材库存、服务访问和健康恢复。
+- 新增 `npm run qa:service-facility-runtime`，作为后续浏览器场景的确定性灰盒基准。
+- 代码层验证：`npm test` 通过，47 个测试文件、295 项测试；`npm run build` 通过，2356 个模块；`git diff --check` 通过。
+- 浏览器验收：仍受当前环境禁止 `127.0.0.1:4173` 本地监听限制，暂未取得真实点击截图/日志。
+
+## 2026-07-17 第一百三十五轮验证
+
+- 定向服务设施回归：3 个场景通过，覆盖药铺、书院、戏台的建造、配工、服务事件和对应居民需求恢复；3 个故障夹具通过，覆盖缺工、缺药材和断路。
+- 全量回归：`npm test` 通过，47 个测试文件、298 项测试。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：仍受当前环境禁止 `127.0.0.1:4173` 本地监听限制，尚未取得真实点击截图/日志；代码层 QA 已完成，浏览器层保留为下一轮验收项。
+
+## 2026-07-17 第一百三十九轮验证
+
+- 定向回归：48 项通过，覆盖离城居民档案生成、运行时桥接和时间线渲染。
+- 全量回归：`npm test` 通过，47 个测试文件、302 项测试。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，离城居民卡片真实点击证据待可监听环境补跑。
+
+## 2026-07-17 第一百四十轮验证
+
+- 定向回归：65 项通过，覆盖财政结算刻度、迁出原因/服务瓶颈与财政快照时间线关联。
+- 全量回归：`npm test` 通过，47 个测试文件、302 项测试。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，财政关联文本真实点击证据待可监听环境补跑。
+
+## 2026-07-17 第一百四十一轮验证
+
+- 定向回归：31 项通过，覆盖财政历史消费、运行时桥接和人口时间线兼容行为。
+- 全量回归：`npm test` 通过，47 个测试文件、302 项测试。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，人口时间线财政前后变化的真实点击证据待可监听环境补跑。
+
+## 2026-07-17 第一百四十二轮验证
+
+- 定向回归：40 项通过，覆盖服务恢复前后值、财政快照关联和旧事件兼容。
+- 全量回归：`npm test` 通过，47 个测试文件、303 项测试。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，服务恢复时间线的真实点击证据待可监听环境补跑。
+
+## 2026-07-17 第一百四十三轮验证
+
+- 定向回归：67 项通过，覆盖服务瓶颈解除事件、建筑 `blocked→serving` 转换、压力清除和时间线展示。
+- 全量回归：`npm test` 通过，47 个测试文件、304 项测试。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，服务恢复真实点击证据待可监听环境补跑。
+
+## 2026-07-17 第一百四十四轮验证
+
+- 定向回归：44 项通过，覆盖恢复记录共用文案、时间线消费、治理定位和建筑详情构建。
+- 全量回归：`npm test` 通过，47 个测试文件、305 项测试。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，恢复面板真实点击证据待可监听环境补跑。
+
+## 2026-07-17 第一百四十五轮验证
+
+- 定向回归：78 项通过，覆盖服务系统恢复事件、时间线结构化映射、建筑状态与财政读数展示契约。
+- 全量回归：`npm test` 通过，47 个测试文件、305 项测试。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，恢复详情的真实点击证据待可监听环境补跑。
+
+## 2026-07-17 第一百四十六轮验证
+
+- 定向回归：13 项通过，覆盖动态场景图层和服务恢复脉冲状态层。
+- 全量回归：`npm test` 通过，47 个测试文件、306 项测试。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，画布动效与恢复详情的真实点击证据待可监听环境补跑。
+
+## 2026-07-17 第一百四十七轮验证
+
+- 定向回归：13 项通过，覆盖阻塞原因图形层、恢复脉冲和动态场景对象复用。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，阻塞/恢复画布动效的真实点击证据待可监听环境补跑。
+
+## 2026-07-17 第一百四十八轮验证
+
+- 定向回归：69 项通过，覆盖居民治理、生产、服务、物流、升级、模拟引擎和动态场景。
+- 全量回归：`npm test -- --run` 通过，47 个测试文件、307 项测试。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，治理摘要的真实点击与画布反馈证据待可监听环境补跑。
+
+## 2026-07-17 第一百四十九轮验证
+
+- 定向回归：67 项通过，覆盖时间线、模拟引擎、运行时、居民治理和管理 UI。
+- 全量回归：`npm test -- --run` 通过，47 个测试文件、308 项测试。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，阻塞生命周期的真实时间线与建筑详情点击证据待可监听环境补跑。
+
+## 2026-07-17 第一百五十轮验证
+
+- 定向回归：56 项通过，覆盖时间线、模拟引擎、运行时和居民治理。
+- 全量回归：`npm test -- --run` 通过，47 个测试文件、308 项测试。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，因果链的真实时间线与建筑详情点击证据待可监听环境补跑。
+
+## 2026-07-17 第一百五十一轮验证
+
+- 定向回归：26 项通过，覆盖模拟引擎阻塞生命周期与城市时间线增量映射。
+- 全量回归：`npm test -- --run` 通过，47 个测试文件、309 项测试。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，阻塞期间增量的真实时间线与建筑详情点击证据待可监听环境补跑。
+
+## 2026-07-17 第一百五十二轮验证
+
+- 定向回归：57 项通过，覆盖财政结算、居民治理和阻塞生命周期。
+- 全量回归：`npm test -- --run` 通过，47 个测试文件、309 项测试。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，财政周期运营压力的真实面板点击证据待可监听环境补跑。
+
+## 2026-07-17 第一百五十三轮验证
+
+- 定向回归：27 项通过，覆盖原因变化时的引擎生命周期分段和时间线映射。
+- 全量回归：`npm test -- --run` 通过，47 个测试文件、310 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，多段阻塞时间线的真实点击证据待可监听环境补跑。
+
+## 2026-07-17 第一百五十四轮验证
+
+- 定向回归：44 项通过，覆盖财政事件、结算历史、周期压力差值和城市时间线投影。
+- 全量回归：`npm test -- --run` 通过，47 个测试文件、312 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，财政结算和多段阻塞时间线的真实点击证据待可监听环境补跑。
+
+## 2026-07-17 第一百五十五轮验证
+
+- 定向回归：54 项通过，覆盖财政压力差值、时间线投影、治理消费和可定位 finance 提示。
+- 全量回归：`npm test -- --run` 通过，47 个测试文件、313 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，财政压力提示的真实点击、定位和消退证据待可监听环境补跑。
+
+## 2026-07-17 第一百五十六轮验证
+
+- 定向回归：12 项通过，覆盖财政提示重复抑制、压力消退和再次触发。
+- 全量回归：`npm test -- --run` 通过，47 个测试文件、315 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，尚未取得财政提示生命周期的真实点击证据。
+
+## 2026-07-17 第一百五十七轮验证
+
+- 定向回归：15 项通过，覆盖粮食、物流、迁移和财政提示的生命周期去重与重新触发。
+- 全量回归：`npm test -- --run` 通过，47 个测试文件、318 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，尚未取得城市提示流的真实点击证据。
+
+## 2026-07-17 第一百五十八轮验证
+
+- 定向回归：42 项通过，覆盖提示生命周期事件、GameRuntime 消费接口和界面确认接入。
+- 全量回归：`npm test -- --run` 通过，47 个测试文件、319 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，提示分析事件的真实点击和浏览器确认链尚未取得证据。
+
+## 2026-07-17 第一百五十九轮验证
+
+- 定向回归：43 项通过，覆盖 durable outbox、稳定事件键、批次窥视/消费/确认和 GameRuntime 接线。
+- 全量回归：`npm test -- --run` 通过，47 个测试文件、320 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，尚未取得重载恢复和批次消费的真实浏览器证据。
+
+## 2026-07-17 第一百六十轮验证
+
+- 定向回归：46 项通过，覆盖未配置传输器、全量确认、部分确认、失败保留和指数退避。
+- 全量回归：`npm test -- --run` 通过，47 个测试文件、323 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，尚未取得真实网络确认与刷新恢复证据。
+
+## 2026-07-17 第一百六十一轮验证
+
+- 定向回归：35 项通过，覆盖 HTTP 批次请求、幂等键、超时中止、非 2xx 响应、非法响应和未知 ID过滤。
+- 全量回归：`npm test -- --run` 通过，47 个测试文件、326 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2357 个模块正常打包。
+- 变更检查：`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，尚未取得真实网络确认与刷新恢复证据。
+
+## 2026-07-17 第一百三十三轮验证
+
+- 定向建筑/顾问/Prefab 测试：35 项通过，覆盖三类设施定义、阶段解锁、缺失设施建议和资产映射。
+- 全量回归：`npm test` 通过，46 个测试文件、294 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2356 个模块正常打包；`git diff --check` 通过。
+- 升级经济审计：新增三类设施后覆盖 8 类运行时建筑、64 个升级节点；格式化审计测试通过。
+- 浏览器验收：本轮未取得真实点击证据；当前环境禁止 `127.0.0.1:4173` 本地监听，待允许本地 socket 的环境补跑。
+## 2026-07-17 第一百六十二轮验证
+
+- 美术覆盖自检：`npm run asset:coverage-audit:self-test` 通过。
+- 全量回归：`npm test -- --run` 通过，49 个测试文件、326 项测试；其中长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2357 个模块正常打包；`git diff --check` 通过。
+- 生产美术门禁：`npm run asset:coverage-audit` 正确返回红灯：六类首批金样中 0 个达到生产绿灯；2 个仅有 manifest 契约，1 个缺 5 个等级，3 个缺完整样本目录。
+- 严格等级验证：`npm run asset:validate:gold-samples:strict` 继续正确拒绝 `main-pier` 的 L2/L3/L5/L6/L7 缺失；没有通过放宽校验掩盖缺口。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，本轮未声称获得真实浏览器证据。
+## 2026-07-17 第一百六十三轮验证
+
+- 资产 validator 自检：通过，既有通用 fixture 保持兼容；新增完整视觉身份样本通过，L0/L8 轮廓复用会被拒绝。
+- 美术覆盖自检：`npm run asset:coverage-audit:self-test` 通过。
+- 全量回归：`npm test -- --run` 通过，49 个测试文件、326 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2357 个模块正常打包；`git diff --check` 通过。
+- 生产美术门禁：`npm run asset:coverage-audit` 按预期红灯；现有样本缺 `visualIdentity`，码头同时缺 L2/L3/L5/L6/L7，三类建筑完全缺金样目录。
+- 浏览器验收：本轮未声称获得浏览器证据；本地 socket 限制仍在。
+
+## 2026-07-17 第一百六十四轮验证
+
+- 定向建筑内容回归：11 项通过，覆盖 28 类视觉身份、L0–L8 完整成长弧、运行时别名映射和等级读取边界。
+- 资产 validator 自检：通过；跨建筑重复 `buildingClass`/`silhouetteFamily`/`functionalSignature` 会被拒绝。
+- 美术覆盖审计：按预期红灯；当前 6 类金样为 0 个生产绿灯，缺口仍是 DCC 源文件、图集/二进制导出和部分 manifest 等级/视觉身份。
+- 全量回归：`npm test -- --run` 通过，49 个测试文件、327 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2358 个模块；`git diff --check` 通过。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，本轮未声称取得真实浏览器证据。
+
+## 2026-07-17 第一百六十五轮验证
+
+- 动态场景定向回归：13 项通过；未注册 Prefab 的 `main-pier` 按视觉身份目录显示可见 fallback，并正确读取 L4 `cross-berth-wharf`。
+- 全量回归：`npm test -- --run` 通过，49 个测试文件、327 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2358 个模块；`git diff --check` 通过。
+- 资产覆盖门禁仍未转绿；本轮只是运行时身份化灰盒渲染，不代表模型、贴图、图集和动画交付完成。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，本轮未声称取得真实浏览器证据。
+
+## 2026-07-17 第一百六十六轮验证
+
+- 运行时美术审计：`npm run asset:runtime-artwork:audit` 通过；28 个建筑文件夹、252 个等级文件、252 个唯一 512×512 RGBA PNG。
+- 定向回归：16 项通过，覆盖建筑 PNG 路径钳制、纹理缓存、等距 sprite footprint 和动态场景回退/接线。
+- 全量回归：`npm test -- --run` 通过，50 个测试文件、330 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2359 个模块正常打包；`git diff --check` 通过。
+- 商业美术覆盖门禁：`npm run asset:coverage-audit` 仍按预期红灯，因为 DCC 源文件、完整 manifest 和动画二进制尚未交付；本轮未将 PNG 文件误判为商业级资产全链路完成。
+- 浏览器验收：当前环境仍无法监听 `127.0.0.1:4173`，未取得真实像素渲染与加载证据。
+
+## 2026-07-17 第一百六十八轮验证
+
+- DCC 生产契约：`npm run asset:pipeline:contract` 通过，10 项脚本门禁、5 项规格门禁通过。
+- 运行时美术覆盖：`npm run asset:runtime-artwork:audit` 通过，28 个建筑目录、252 个九级 PNG 保持唯一且为 512×512 RGBA。
+- `git diff --check` 通过。
+- 未执行 Blender 导出：当前机器无 Blender；因此没有新增真实 `.blend`、骨骼/序列动画、分层图集或浏览器像素证据。
+- 商业美术覆盖审计仍保持红灯，符合“契约通过不等于资产交付”的验收口径。
+- Prefab 动画计划定向回归：7 项通过，覆盖工作状态进度、施工状态确定性和 LOD-off 过滤。
+- 全量回归：`npm test -- --run` 通过，51 个测试文件、333 项测试；压力场景通过。
+- 生产构建：`npm run build` 通过，2359 个模块；`git diff --check` 通过。
+
+## 2026-07-17 第一百六十九轮验证
+
+- 动画计划接线定向回归：16 项通过，包含动态场景状态槽位消费和对象池复用清理。
+- 全量回归：`npm test -- --run` 通过，51 个测试文件、333 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2360 个模块；`git diff --check` 通过。
+- DCC 生产契约：`npm run asset:pipeline:contract` 通过；运行时 PNG 审计通过。
+- 商业美术覆盖仍未转绿：真实 Blender 源文件、分层图集、骨骼/序列动画和浏览器像素证据缺失。
+
+## 2026-07-17 第一百七十轮验证
+
+- 图集驱动定向回归：`src/rendering/artwork/buildingAnimation.test.ts` 3 项通过；动态场景回归 13 项通过。
+- 全量回归：`npm test -- --run` 通过，52 个测试文件、336 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2361 个模块；`git diff --check` 通过。
+- DCC 生产契约：`npm run asset:pipeline:contract` 通过，10 项脚本门禁、5 项规格门禁通过。
+- 运行时美术覆盖：`npm run asset:runtime-artwork:audit` 通过，28 个建筑目录、252 个九级 PNG，均为唯一 512×512 RGBA。
+- 未执行 Blender 导出，未新增真实 `.blend`、spritesheet PNG/JSON、部件动画或浏览器像素/帧率证据；商业美术覆盖审计继续保持红灯。
+
+## 2026-07-17 第一百七十一轮验证
+
+- 图集加载定向回归：加载器 2 项、AnimatedSprite 驱动 3 项、动态场景 13 项通过。
+- 全量回归：`npm test -- --run` 通过，53 个测试文件、338 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2361 个模块；`git diff --check` 通过。
+- DCC 生产契约：`npm run asset:pipeline:contract` 通过，10 项脚本门禁、5 项规格门禁通过。
+- 运行时美术覆盖：`npm run asset:runtime-artwork:audit` 通过，28 个建筑目录、252 个九级 PNG，均为唯一 512×512 RGBA。
+- 测试期间 Pixi/jsdom 输出既有 `HTMLCanvasElement.getContext` 警告，但测试本身通过；未执行真实浏览器、Blender 导出或帧率测量，商业美术覆盖仍保持红灯。
+
+## 2026-07-17 第一百七十二轮验证
+
+- 部件/粒子定向回归：`buildingAnimation.test.ts` 4 项、图集加载 2 项、动态场景 13 项、动画计划 3 项通过。
+- 全量回归：`npm test -- --run` 通过，53 个测试文件、339 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2361 个模块；`git diff --check` 通过。
+- DCC 生产契约：`npm run asset:pipeline:contract` 通过，10 项脚本门禁、5 项规格门禁通过。
+- 运行时美术覆盖：`npm run asset:runtime-artwork:audit` 通过，28 个建筑目录、252 个九级 PNG，均为唯一 512×512 RGBA。
+- 未执行真实 Blender 部件/粒子导出、浏览器像素/帧率和显存基准；商业美术覆盖仍保持红灯。
+
+## 2026-07-17 第一百七十三轮验证
+
+- 资产预算自测：`npm run asset:validate:self-test` 通过，超预算动画清单被正确拒绝。
+- gold sample 验证：`npm run asset:validate:gold-samples` 通过，main-eatery、main-homes、main-pier 均 0 warnings。
+- 全量回归：`npm test -- --run` 通过，53 个测试文件、339 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2361 个模块；`git diff --check` 通过。
+- DCC 生产契约：10 项脚本门禁、5 项规格门禁通过；运行时 PNG 审计通过 28 个建筑目录、252 个唯一 512×512 RGBA PNG。
+- 尚未取得真实 Blender、浏览器帧率、纹理内存和 300 栋建筑动画压力证据；预算门禁不能替代这些证据。
+
+## 2026-07-17 第一百七十四轮验证
+
+- 动画压力基准：`npm run qa:animation-runtime-budget` 通过；300 个动画宿主、150 个可见建筑，单建筑最多 5 个动画子节点，二次同步复用对象。
+- 全量回归：`npm test -- --run` 通过，54 个测试文件、340 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2361 个模块；`git diff --check` 通过。
+- 资产与生产契约：资产自测、3 个 gold samples、10 项脚本/5 项规格门禁、28 个建筑 252 张运行时 PNG 审计均通过。
+- 未完成：真实 Blender 部件/粒子资源、浏览器 GPU 帧率、显存和目标设备实测；jsdom canvas 警告仍为测试环境已知限制。
+
+## 2026-07-17 第一百七十五轮验证
+
+- 生产包自测：`npm run asset:production-package:self-test` 通过；完整临时包 GREEN，删除状态证据后 RED。
+- 真实生产包审计：`npm run asset:production-package:audit` 正确报告六类金样均 RED，缺少 DCC 导出包、运行时图集、锚点清单、状态证据和九级导出预览。
+- 该 RED 是当前项目真实状态的记录，不是测试失败；不得以 252 张运行时静态 PNG 或模板 manifest 代替商业资产交付。
+
+## 2026-07-17 第一百七十六轮验证
+
+- 居民生命周期定向回归：`src/simulation/core/SimulationEngine.test.ts` 20 项通过。
+- 新增覆盖点：候选人尚未进入 `households`；入住后才创建家庭与 worker；就业家庭迁出前保存职业快照，离城 profile 的 `employedCount`、职业分类、岗位释放和 `populationFlow` 一致。
+- 迁出场景使用关键需求压力触发，避免依赖人工直接修改“最终居民状态”；断言来自真实 `SimulationEngine` 事件和 snapshot。
+- 本轮尚未取得真实浏览器人物动画、入住前后像素差异或目标设备帧率证据；商业级人物美术验收仍保持未完成。
+
+## 2026-07-17 第一百六十七轮验证
+
+- 定向动效/渲染回归：16 项通过，覆盖建筑状态层、对象池复用、PNG Provider 和动效层接线。
+- 运行时美术审计：`npm run asset:runtime-artwork:audit` 通过；28 个建筑文件夹、252 个等级文件、252 个唯一 512×512 RGBA PNG。
+- 全量回归：`npm test -- --run` 通过，50 个测试文件、330 项测试；长时间文明压力场景通过。
+- 生产构建：`npm run build` 通过，2359 个模块正常打包；`git diff --check` 通过。
+- 商业美术覆盖门禁仍保持红灯：代码动效不能替代 DCC 源文件、骨骼/粒子图集、碰撞和完整 manifest；浏览器真实帧率/像素证据尚未取得。
+
+## 2026-07-17 第一百七十七轮验证
+
+- 定向验证：`src/rendering/DynamicScene.test.ts` 与 `src/simulation/core/SimulationEngine.test.ts` 共 34 项通过。
+- 全量验证：`npm test -- --run` 通过，54 个测试文件、342 项测试；既有 Pixi/jsdom Canvas `getContext` 警告不影响结果。
+- 生产构建：`npm run build` 通过，2361 个模块；`git diff --check` 通过。
+- 动画预算：`npm run qa:animation-runtime-budget` 通过；DCC 流水线契约、运行时 252 张 PNG 覆盖审计和生产包自测通过。
+- 商业生产包真实审计仍保持 RED：六类金样缺少真实 `.blend`、atlas、锚点、状态证据和九级透明导出；浏览器人物视觉与实机性能证据也未取得。
+## 2026-07-17 第一百七十八轮验证
+
+- 定向居民/资源回归：34 项通过；`GameRuntime` 新增 live-engine 生命周期 fixture 断言。
+- 全量回归：`npm test -- --run` 通过；测试环境仍输出 Pixi/jsdom `HTMLCanvasElement.getContext` 已知 warning。
+- 真实浏览器：`BROWSER_E2E_SCENARIO=civilization-resident-timeline npm run qa:browser-e2e` 通过；已验证“城市运行”“居民生活”“就业”“居民状态：”“候选家庭”“外来家庭”均可见。
+- 浏览器非阻断 warning：GPU stall due to ReadPixels、`WebGL: INVALID_VALUE: texImage2D: bad image data`；当前仅将其记录为渲染质量风险，未过滤或宣称商业级性能通过。
+- 生产构建：`npm run build` 通过，2361 个模块；`git diff --check` 通过。
+- 动画预算、DCC 流水线契约、运行时 252 张 PNG 审计和生产包自测通过。
+- 生产包真实审计仍为 RED：六类金样缺 `.blend`、atlas、锚点、状态证据和九级透明导出。
+## 2026-07-17 第一百七十九轮验证
+
+- 定向回归：`buildingArtwork`、`DynamicScene`、`GameRuntime` 共 44 项通过。
+- 生产构建：`npm run build` 通过，2361 个模块；`git diff --check` 通过。
+- 真实浏览器：`BROWSER_E2E_SCENARIO=civilization-resident-timeline npm run qa:browser-e2e` 通过；居民状态文本证据保持有效。
+- 资源质量观察：上一轮 `texImage2D: bad image data` 已不再出现；仍有 GPU `ReadPixels` stall warning，当前不能作为目标设备性能通过证据。
+- 商业生产包真实审计仍为 RED：当前仓库没有真实 `.blend`、运行时 atlas、锚点和七类状态证据。
+
+## 2026-07-17 第一百八十轮验证
+
+- 定向回归：`buildingArtwork`、`DynamicScene`、`GameRuntime` 共 47 项通过。
+- 生产构建：`npm run build` 通过，2361 个模块；`git diff --check` 通过。
+- 新增门禁证据：重复建筑类型只生成一份九级资源清单；超过纹理预算和已取消信号均在网络加载前失败。
+- 商业生产包真实审计仍为 RED；GPU `ReadPixels` stall 仍未完成真实设备性能验收。
+
+- 真实浏览器复测：`BROWSER_E2E_SCENARIO=civilization-resident-timeline npm run qa:browser-e2e` 通过；“城市运行”“居民生活”“就业”“居民状态：”“候选家庭”“外来家庭”均可见。
+- 复测仍有 GPU `ReadPixels` stall warning；没有 `texImage2D: bad image data`，但这不等于目标设备帧率验收通过。
+
+## 2026-07-18 第一百八十一轮验证
+
+- 真实浏览器场景通过：居民状态、候选家庭和外来家庭文本均可见。
+- 帧时间基线：45 帧/约 1.03 秒，平均 23.48ms，P95 34.7ms，最大 67.6ms，画布 1366×768。
+- WebGL 读回归因：应用层 `readPixels` 计数为 0；浏览器仍输出 GPU stall warning，暂定为浏览器/驱动合成层风险，待多环境复测。
+- 当前结论：功能场景通过，商业级性能不通过；需继续做 DynamicScene 分段采样与目标设备基准。
+
+## 2026-07-18 第一百八十二轮验证
+
+- 定向回归：`DynamicScene`、`GameRuntime`、浏览器场景契约共 45 项通过。
+- 生产构建：`npm run build` 通过，2361 个模块；`git diff --check` 通过。
+- 真实浏览器：居民生命周期场景通过；107 次 DynamicScene 同步，总耗时平均 0.368ms/P95 0.500ms，建筑平均 0.237ms/P95 0.300ms。
+- 同轮帧时间：54 帧/约 1.02 秒，平均 19.15ms，P95 33.6ms，最大 34.7ms，画布 1366×768；应用层 `readPixels` 为 0。
+- 结论：CPU 同步阶段基线已建立，但 headless 帧时间和 GPU stall 仍不足以通过商业级验收；真实 DCC/atlas/粒子资源、多环境和目标设备测试仍为 RED。
+
+## 2026-07-18 第一百八十三轮验证
+
+- 定向回归：`DynamicScene` 与浏览器场景契约共 18 项通过。
+- 生产构建：`npm run build` 通过，2361 个模块；`git diff --check` 通过。
+- 真实浏览器：居民生命周期场景通过；88 次同步的实体范围为建筑 5、居民 3、运输 1、掉落物 1、可见 14、池化 63。
+- 同轮 rAF：50 帧/约 1.02 秒，平均 20.75ms，P95 33.4ms，最大 33.4ms，画布 1366×768；应用层 `readPixels` 为 0。
+- 结论：实体证据链已覆盖垂直切片，但不代表 500 户/300 栋/150 可见实体的生产规模验收；真实 DCC/atlas/粒子、多环境和目标设备仍为 RED。
+- 全量回归：54 个测试文件、346 个测试全部通过；已知 jsdom 的 Pixi `HTMLCanvasElement.prototype.getContext` 警告不影响退出码，但仍应在真实浏览器和目标设备环境复测。
+
+## 2026-07-18 第一百八十四轮验证
+
+- 性能契约定向回归：3 项通过；生产构建通过，2361 个模块。
+- `npm run qa:performance-baseline` 三环境均完成真实 Chromium 采样，居民生命周期场景和应用层 `readPixels=0` 均通过。
+- 桌面 GPU：平均 19.90ms、P95 33.4ms、最大 35.2ms；软件渲染：平均 30.41ms、P95 48.6ms、最大 49.4ms；嵌入容器代理：平均 31.34ms、P95 50ms、最大 65.8ms。
+- DynamicScene 同步 P95：0.5ms、0.8ms、1.1ms；说明当前采样场景的 JS 同步不是主要瓶颈，但不能排除纹理上传、渲染提交和浏览器合成层问题。
+- 结论：三环境帧时间门禁均为 RED；本轮是性能证据与工具完成，不是商业级性能通过。
+- 全量回归：55 个测试文件、349 个测试全部通过；已知 jsdom Pixi canvas 警告仍只出现在测试环境，不影响退出码。
+
+## 2026-07-18 第一百八十五轮验证
+
+- 静态视觉失效优化后的全量回归：55 个测试文件、349 个测试全部通过；已知 jsdom Pixi canvas 警告仍只出现在测试环境，不影响退出码。
+- `npm run build` 通过，2361 个模块；`git diff --check` 通过。
+- 三环境重复性能采样功能场景均通过，DynamicScene 同步 P95 为 0.5/0.8/0.5ms，应用层 `readPixels` 为 0。
+- 帧时间门禁仍为 RED：桌面 GPU平均/P95/最大 36.96/51.9/98.1ms，软件渲染 29.05/35.2/35.4ms，嵌入容器代理 35.63/50.1/50.8ms；结果较上一轮波动，不能归因于优化有效或无效。
+- 验收结论：缓存边界和功能正确性通过；商业级性能、真实目标设备、真实 DCC/atlas/粒子包仍未通过。
+
+## 2026-07-18 第一百八十六轮验证
+
+- 性能聚合定向测试：4 项通过；DynamicScene 定向回归共 18 项通过。
+- 全量回归：55 个测试文件、350 个测试全部通过；已知 jsdom Pixi canvas 警告仍只出现在测试环境。
+- `npm run build` 通过，2361 个模块；`git diff --check` 通过。
+- 本轮只验证重复采样统计逻辑，没有重新运行完整三环境矩阵；上一轮真实三环境帧时间门禁继续保持 RED，不能据此宣称性能通过。
+
+## 2026-07-19 第一百八十七轮验证
+
+- `npm run qa:performance-baseline` 完成 3 环境 × 3 次真实 Chromium 采样；9 次场景均通过功能与 console error 门禁，应用层 `readPixels=0`。
+- DynamicScene 同步 P95：桌面 GPU 0.6ms、软件渲染 1.1ms、嵌入代理 1.4ms，均低于 4ms 目标。
+- 帧时间门禁全部 RED：桌面 GPU平均/P95/最大 42.37/66.6/68.2ms，软件 42.36/64.8/66.6ms，嵌入代理 53.57/67.1/67.1ms。
+- 结论：当前证据排除应用主动读回和 JS 同步主瓶颈，但还不能区分 Pixi 提交、纹理上传、GPU 驱动与浏览器合成层；商业级性能仍未验收。
+
+## 2026-07-19 第一百八十八轮验证
+
+- 新增 renderer 提交采样后的单场景验证通过；桌面 GPU 场景功能通过，应用层 `readPixels=0`。
+- DynamicScene 总同步 P95 0.8ms；Pixi `renderer.render` 平均 1.818ms、P95 4.3ms、最大 62.1ms。
+- 该 profile 是 CPU 调用耗时，不等价于 GPU 完成时间；最大值只能作为长尾线索，不能直接当作根因证明。
+- 下一步将 renderer profile 加入三环境重复矩阵，并补静态画布、纹理禁用/预加载、动画粒子开关对照；商业性能门禁继续 RED。
+- 本轮最终全量回归：55 个测试文件、350 个测试全部通过；`git diff --check` 通过，构建已在本轮归因采样前后均通过。
+
+## 2026-07-20 第一百八十九轮验证
+
+- 新增渲染差分契约测试 2 项；定向渲染/性能聚合测试 6 项通过。
+- 全量回归：55 个测试文件、352 个测试全部通过；已知 jsdom Pixi canvas `getContext` 警告仍只出现在测试环境，不影响退出码。
+- `npm run build` 通过，2362 个模块；`git diff --check` 通过。
+- 真实桌面 GPU `civilization-resident-timeline` 禁用 authored artwork 与 authored animation：场景通过，配置回传正确，DynamicScene P95 0.6ms，renderer 平均/P95/最大 1.732/2.4/74.3ms，应用层 `readPixels=0`。
+- 验收结论：诊断链路通过；商业级帧率门禁仍 RED，单场景样本不能替代同场景多开关重复矩阵。
+- 新增 `npm run qa:render-ablation`，可用 `RENDER_ABLATION_MODES`、`RENDER_ABLATION_REPEATS` 和 `RENDER_ABLATION_PROFILE` 控制差分矩阵；本轮只验证构建和执行器契约，未将未稳定返回的嵌套进程结果纳入性能结论。
+
+## 2026-07-21 第一百九十轮验证
+
+- 建筑原画按等级预加载测试通过；全量回归 55 个测试文件、353 个测试通过，已知 jsdom Pixi canvas 警告不影响退出码。
+- `npm run build` 通过，2362 个模块；`git diff --check` 通过。
+- 真实桌面 GPU 方向性样本：full 24.81/33.6/49.8ms，no-animation 19.19/33.4/34.3ms，no-terrain 16.67/17.6/17.8ms（平均/P95/最大）；三者场景、配置和 readPixels=0 均通过。
+- 之前同场景两次 ablation 聚合中，full 42.37ms、no-artwork 17.84ms 平均帧耗时；headless 波动明显，不能视为稳定提升或商业级性能通过。
+- 验收结论：贴图/地形差分已能提供归因方向，性能红线仍 RED；下一步做纹理尺寸、上传批次和真实 DCC 导出预算审计。
+
+## 2026-07-21 第一百九十一轮验证
+
+- `npm run asset:runtime-artwork:budget` 已执行：28 个建筑包、252 张 PNG；总下载 125,331,330 bytes，估算解码 RGBA 264,241,152 bytes。
+- 门禁结果 RED：全量下载预算 96 MiB，实际约 119.5 MiB；单张纹理和单建筑九级包未超本轮阈值。
+- `npm run build` 通过，2362 个模块；`git diff --check` 通过。
+- 验收结论：资源预算现在有客观基线，但发行包尚未达到商业红线；后续必须验证 WebP/atlas/LOD 分层后的实际首屏和升级路径。
+
+## 2026-07-21 第一百九十二轮验证
+
+- `npm run asset:runtime-artwork:release-audit` 通过：28 个建筑文件夹、252 张唯一 384×384 RGBA 等级图。
+- `npm run asset:runtime-artwork:budget` 通过：运行时发行包下载 51,926,857 bytes，估算解码 RGBA 148,635,648 bytes，低于 96 MiB/256 MiB 预算。
+- 运行时 Provider 已切换到 `buildings-runtime-384`，源 512px 资产保留为源素材层；构建和前一轮全量测试结果仍通过。
+- 验收结论：运行时发行包预算 GREEN，但真实 DCC/atlas/粒子、目标设备帧率和视觉质量仍未完成验收。
+- 真实桌面 GPU 回归：场景通过，5 建筑、居民/运输实体和运行时配置正常，DynamicScene P95 0.6ms，renderer 平均/P95/最大 1.679/3.7/74.4ms，应用层 `readPixels=0`；rAF 平均/P95/最大 36.34/50.9/66ms，商业帧率仍 RED。
+
+## 2026-07-21 第一百九十三轮验证
+
+- `npm run asset:runtime-artwork:build` 已生成 252 张运行时派生图和 provenance manifest。
+- `npm run asset:runtime-artwork:release-audit` 通过：252 张唯一 384×384 RGBA 图，manifest 文件数和尺寸匹配。
+- `npm run asset:runtime-artwork:budget` 通过：51,926,857 bytes 下载，148,635,648 bytes 解码 RGBA。
+- `npm run build` 通过，2362 个模块；`git diff --check` 通过。
+- 验收结论：运行时发行工程可重复验证；Blender/DCC/atlas/粒子/目标设备帧率仍未完成，项目不能收口。
+
+## 2026-07-21 第一百九十四轮验证
+
+- `npm run qa:civilization-scale` 通过：2 个测试；实际快照为 500 户、300 栋、150 初始 agent；连续两次动态场景同步均为 300 building、135 resident、15 transport、450 visible。
+- `npm run qa:civilization-long-run` 通过：7,200 tick；三层快照均保持 500 户/300 栋，最终 226 agents；人口 1,750，物流效率 99.998%，数值字段无效项 0，最终阻塞建筑 172，服务队列 42。
+- jsdom 测试仍会输出 Pixi `HTMLCanvasElement.prototype.getContext` 的已知 warning，但退出码为 0；这不是浏览器性能证据。
+- 验收结论：模拟规模和动态实体生命周期首次有直接证据；真实浏览器 300 栋规模帧时间、真实 DCC/atlas/动画/粒子和商业级性能仍未通过。
+
+## 2026-07-21 第一百九十五轮验证
+
+- `npm run qa:browser-e2e`（`BROWSER_E2E_SCENARIO=civilization-scale`）真实桌面 GPU 运行通过：页面文案和 console error 门禁通过，300 buildings、135 residents、15 transport，visible entity min/max/last 为 335/351/344。
+- 应用层 `readPixels=0`，但浏览器控制台仍报告 GPU stall due to ReadPixels；该警告来自浏览器/驱动路径，不应被应用层计数为 0 掩盖。
+- 性能门禁 RED：rAF 平均/P95/最大 118.52/166.4/166.4ms；DynamicScene 平均/P95 7.66/10.9ms；renderer 平均/P95/最大 15.09/17.2/117.7ms。
+- 结论：规模实体真实进入浏览器渲染链路，规模验收通过；商业级流畅度未通过。下一步应在同一压力场景下做建筑纹理、对象提交、动画和地形的成组差分，并定位 GPU stall/renderer 长尾。
+
+## 2026-07-21 第一百九十六轮验证
+
+- 定向测试：`src/rendering/DynamicScene.test.ts` 与 `src/qa/civilizationScale.test.ts` 共 16 项通过；构建和 `git diff --check` 通过。
+- 真实桌面 GPU `civilization-scale`：实体门禁通过，visible 335–349；应用层 `readPixels=0`，但 GPU stall 警告仍出现。
+- 优化后 profile：DynamicScene 平均/P95 2.78/12.6ms；renderer 平均/P95/最大 6.885/18.4/123.9ms；rAF 平均/P95/最大 129.14/216.7/216.7ms。
+- 验收结论：缓存优化对应用层提交有明确方向性收益，但总帧时间没有通过，且本次 rAF 长尾恶化；不能把该优化描述为商业性能达标。下一轮需做分辨率、抗锯齿、纹理/画布上传和浏览器合成差分。
+
+## 2026-07-21 第一百九十七轮验证
+
+- 定向测试 16 项通过；`npm run build`、`npm test -- --run`、`git diff --check` 通过。
+- 真实桌面 GPU `civilization-scale` 使用 `disableAntialias=1&resolution=1`：实体门禁通过，300 buildings、135 residents、15 transport，visible 331–348；应用层 `readPixels=0`，浏览器仍报告 GPU stall due to ReadPixels。
+- 差分 profile：DynamicScene 平均/P95 2.236/11.8ms；renderer 平均/P95/最大 5.26/18.1/114.7ms；rAF 平均/P95/最大 54.35/83.3/83.3ms。
+- 结论：降低像素负载和关闭抗锯齿能显著降低本次采样的帧时间，但 P95 仍远高于 16.7ms，且会牺牲正式画质；只作为定位证据，不作为发行配置。
+
+## 2026-07-21 第一百九十八轮验证
+
+- 静态建筑缓存实验使用正式原画、动画、地形全开和相同 `civilization-scale` 压力场景，实体门禁通过，visible 331–349。
+- 开启 `staticBuildingCache=1` 后：DynamicScene 平均/P95 3.753/24.5ms；renderer 平均/P95/最大 8.953/31.8/160ms；rAF 平均/P95/最大 122.26/166.4/166.4ms。
+- 无缓存全画质基线为 DynamicScene 2.58/8.1ms、renderer 5.889/18.2/114.2ms、rAF 91.63/133.3/133.3ms；实验结果明确为负收益。
+- 结论：独立建筑缓存纹理在当前环境产生更高初始化和合成成本，保留开关但关闭默认；商业优化转向共享 atlas、纹理批次、视口 LOD 与合成提交控制。
+- 全量测试 57 文件/355 测试通过；已知 jsdom Canvas warning 仍存在但无失败。
+
+## 2026-07-21 第一百九十九轮验证
+
+- `npm run asset:runtime-artwork:atlas` 通过：28 张共享 atlas、252 个等级帧；运行时完整性与预算审计通过。
+- `npm run build` 通过；建筑 artwork 与 render diagnostics 定向测试 9 项通过；已知 jsdom Canvas warning 不影响退出码；`git diff --check` 通过。
+- 桌面 GPU 单次差分：full 为 rAF 41.36/66/83.3ms、renderer 1.714/3/74ms；atlas 为 37.66/50/50.2ms、renderer 1.497/3/69.3ms（平均/P95/最大）。功能门禁通过，但两者均超过商业目标，GPU stall 警告仍存在。
+- 验收结论：atlas 是有实测收益的候选路径，但证据只够进入下一轮扩大验证，不能切换为默认发行方案。
+
+## 2026-07-22 第二百轮验证
+
+- 默认渲染配置回归：`buildingAtlas=true`；`?disableAtlas=1` 可显式验证独立 PNG 回退；配置解析和 provider 定向测试共 9 项通过。
+- `npm run build` 通过，`git diff --check` 通过。atlas 资源仍通过生成器、完整性审计和预算审计。
+- 本轮尝试重复/多环境浏览器差分时，子进程没有稳定返回 JSON，因此没有新增性能数值，也没有宣称性能改善已被多环境证实。
+- 验收结论：共享 atlas 已成为正式默认发行路径，但商业帧率门禁仍 RED；下一轮优先修复 QA runner 生命周期并重跑完整矩阵。
+
+## 2026-07-22 第二百零一轮验证
+
+- `npm run asset:runtime-artwork:atlas` 与 `npm run asset:runtime-artwork:atlas:audit` 通过：28 张 WebP atlas、252 帧、约 16.80 MiB；PNG 对照包约 52 MiB。
+- `npm run build`、建筑 artwork/diagnostics 定向测试 9 项和 `git diff --check` 通过；已知 jsdom Canvas warning 不影响退出码。
+- 默认 WebP atlas 桌面浏览器场景功能门禁通过：5 buildings、3 residents、1 transport、14 visible、readPixels=0；rAF 平均/P95/最大 32.79/49.3/66.7ms，renderer 1.15/2.2/69.6ms。
+- 结论：WebP 明显降低发行资源体积并已成为默认路径，但帧率仍未达到 16.7ms 商业目标；独立 PNG 对照本轮未稳定返回，不能纳入性能结论。

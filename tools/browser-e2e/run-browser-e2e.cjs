@@ -8,6 +8,26 @@ const host = '127.0.0.1'
 const port = Number(process.env.BROWSER_E2E_PORT || 4173)
 const baseUrl = `http://${host}:${port}`
 const scenarioFilter = process.env.BROWSER_E2E_SCENARIO
+const profile = process.env.BROWSER_E2E_PROFILE || 'desktop-gpu'
+const renderQuery = process.env.BROWSER_E2E_RENDER_QUERY
+
+const profiles = {
+  'desktop-gpu': {
+    viewport: { width: 1366, height: 768 },
+    deviceScaleFactor: 1,
+    launchArgs: [],
+  },
+  'software-renderer': {
+    viewport: { width: 1366, height: 768 },
+    deviceScaleFactor: 1,
+    launchArgs: ['--disable-gpu', '--use-angle=swiftshader'],
+  },
+  'embedded-container': {
+    viewport: { width: 1280, height: 720 },
+    deviceScaleFactor: 1,
+    launchArgs: ['--disable-features=CalculateNativeWinOcclusion'],
+  },
+}
 
 main().catch((error) => {
   console.error(error?.stack || error)
@@ -42,7 +62,9 @@ async function main() {
 
   try {
     await waitForHttp(baseUrl, 20_000)
-    const browser = await chromium.launch({ headless: true })
+    const browserProfile = profiles[profile]
+    if (!browserProfile) throw new Error(`Unknown BROWSER_E2E_PROFILE: ${profile}`)
+    const browser = await chromium.launch({ headless: true, args: browserProfile.launchArgs })
     const results = []
     try {
       for (const scenario of selected) {
@@ -55,6 +77,7 @@ async function main() {
     console.log(JSON.stringify({
       ok: results.every((result) => result.ok),
       baseUrl,
+      profile,
       scenarioCount: results.length,
       results,
     }, null, 2))
@@ -105,7 +128,30 @@ async function loadScenarioContract() {
 }
 
 async function runScenario(browser, scenario) {
-  const page = await browser.newPage({ viewport: { width: 1366, height: 768 } })
+  const browserProfile = profiles[profile]
+  const page = await browser.newPage({
+    viewport: browserProfile.viewport,
+    deviceScaleFactor: browserProfile.deviceScaleFactor,
+  })
+  await page.addInitScript(() => {
+    window.__littleEarReadPixels = { count: 0, samples: [] }
+    window.__littleEarRenderProfiles = []
+    const install = (prototype) => {
+      if (!prototype || prototype.__littleEarReadPixelsWrapped) return
+      const original = prototype.readPixels
+      if (typeof original !== 'function') return
+      prototype.readPixels = function (...args) {
+        window.__littleEarReadPixels.count += 1
+        if (window.__littleEarReadPixels.samples.length < 3) {
+          window.__littleEarReadPixels.samples.push({ width: args[2], height: args[3] })
+        }
+        return original.apply(this, args)
+      }
+      prototype.__littleEarReadPixelsWrapped = true
+    }
+    install(window.WebGLRenderingContext?.prototype)
+    install(window.WebGL2RenderingContext?.prototype)
+  })
   const consoleMessages = []
   page.on('console', (message) => {
     consoleMessages.push({
@@ -122,8 +168,17 @@ async function runScenario(browser, scenario) {
 
   const failures = []
   try {
-    await page.goto(`${baseUrl}${scenario.path}`, { waitUntil: 'networkidle', timeout: 20_000 })
-    await page.getByLabel('城市瓶颈管理').getByRole('button', { name: /瓶颈/ }).click()
+    const scenarioUrl = new URL(`${baseUrl}${scenario.path}`)
+    if (renderQuery) {
+      const query = new URLSearchParams(renderQuery.replace(/^\?/, ''))
+      for (const [key, value] of query) scenarioUrl.searchParams.set(key, value)
+    }
+    await page.goto(scenarioUrl.toString(), { waitUntil: 'networkidle', timeout: 20_000 })
+    const bottleneckButton = page.getByLabel('城市瓶颈管理').getByRole('button', { name: /瓶颈/ })
+    if (await bottleneckButton.getAttribute('aria-expanded') !== 'true') {
+      await bottleneckButton.scrollIntoViewIfNeeded()
+      await bottleneckButton.click()
+    }
 
     for (const text of scenario.mustContainText) {
       const locator = page.getByText(text, { exact: false }).first()
@@ -131,6 +186,61 @@ async function runScenario(browser, scenario) {
         await locator.waitFor({ state: 'visible', timeout: 5_000 })
       } catch {
         failures.push(`Missing visible text: ${text}`)
+      }
+    }
+
+    const frameMetrics = await sampleFrameMetrics(page)
+    const renderProfile = await page.evaluate(() => {
+      const profiles = window.__littleEarRenderProfiles ?? []
+      if (profiles.length === 0) return { sampleCount: 0 }
+      const timingFields = ['totalMs', 'districtsMs', 'buildingsMs', 'residentsMs', 'dropsMs', 'cleanupMs', 'sortMs']
+      const countFields = ['buildings', 'residents', 'transport', 'drops', 'visible', 'pooled']
+      const percentile = (values, ratio) => {
+        const sorted = [...values].sort((left, right) => left - right)
+        return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * ratio))]
+      }
+      const average = {}
+      const p95 = {}
+      for (const field of timingFields) {
+        const values = profiles.map((profile) => Number(profile[field]) || 0)
+        average[field] = Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(3))
+        p95[field] = Number(percentile(values, 0.95).toFixed(3))
+      }
+      const entityRange = {}
+      for (const field of countFields) {
+        const values = profiles.map((profile) => Number(profile[field]) || 0)
+        entityRange[field] = {
+          min: Math.min(...values),
+          max: Math.max(...values),
+          last: values[values.length - 1],
+        }
+      }
+      return { sampleCount: profiles.length, average, p95, entityRange }
+    })
+    const rendererProfile = await page.evaluate(() => {
+      const values = window.__littleEarRendererProfiles ?? []
+      if (values.length === 0) return { sampleCount: 0 }
+      const sorted = [...values].sort((left, right) => left - right)
+      const sum = values.reduce((total, value) => total + value, 0)
+      return {
+        sampleCount: values.length,
+        averageMs: Number((sum / values.length).toFixed(3)),
+        p95Ms: Number(sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))].toFixed(3)),
+        maxMs: Number(sorted[sorted.length - 1].toFixed(3)),
+      }
+    })
+    const renderConfiguration = await page.evaluate(() => window.__littleEarRenderConfiguration ?? null)
+
+    for (const [field, expected] of Object.entries(scenario.renderEntityAssertions || {})) {
+      const actual = renderProfile.entityRange?.[field]?.last
+      if (actual !== expected) {
+        failures.push(`Render entity assertion ${field}: expected ${expected}, got ${actual ?? 'missing'}`)
+      }
+    }
+    for (const [field, minimum] of Object.entries(scenario.renderEntityMinimums || {})) {
+      const actual = renderProfile.entityRange?.[field]?.last
+      if (typeof actual !== 'number' || actual < minimum) {
+        failures.push(`Render entity minimum ${field}: expected >= ${minimum}, got ${actual ?? 'missing'}`)
       }
     }
 
@@ -167,6 +277,11 @@ async function runScenario(browser, scenario) {
       path: scenario.path,
       ok: failures.length === 0,
       checkedTexts: scenario.mustContainText,
+      frameMetrics,
+      renderProfile,
+      rendererProfile,
+      renderConfiguration,
+      readPixels: await page.evaluate(() => window.__littleEarReadPixels ?? { count: 0, samples: [] }),
       interaction: scenario.interaction || null,
       consoleMessages,
       failures,
@@ -174,6 +289,40 @@ async function runScenario(browser, scenario) {
   } finally {
     await page.close()
   }
+}
+
+async function sampleFrameMetrics(page) {
+  return page.evaluate(async () => {
+    const frameTimes = []
+    const startedAt = performance.now()
+    let previous = startedAt
+    let frameCount = 0
+    await new Promise((resolve) => {
+      const sample = (now) => {
+        frameCount += 1
+        frameTimes.push(now - previous)
+        previous = now
+        if (now - startedAt >= 1_000) {
+          resolve()
+          return
+        }
+        requestAnimationFrame(sample)
+      }
+      requestAnimationFrame(sample)
+    })
+    const sorted = frameTimes.slice(1).sort((left, right) => left - right)
+    const sum = sorted.reduce((total, value) => total + value, 0)
+    const canvas = document.querySelector('canvas')
+    return {
+      durationMs: Math.round(performance.now() - startedAt),
+      frameCount,
+      averageFrameMs: sorted.length ? Number((sum / sorted.length).toFixed(2)) : 0,
+      p95FrameMs: sorted.length ? Number(sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))].toFixed(2)) : 0,
+      maxFrameMs: sorted.length ? Number(sorted[sorted.length - 1].toFixed(2)) : 0,
+      canvasWidth: canvas?.width ?? 0,
+      canvasHeight: canvas?.height ?? 0,
+    }
+  })
 }
 
 function waitForHttp(url, timeoutMs) {

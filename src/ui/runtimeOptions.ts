@@ -7,6 +7,9 @@ const DEBUG_SCENARIOS = new Set<GameRuntimeOptions['debugScenario']>([
   'logistics-hotspot',
   'logistics-storage-build',
   'logistics-source-shortage',
+  'civilization-resident-timeline',
+  'civilization-scale',
+  'service-facility-runtime',
 ])
 
 export function runtimeOptionsFromSearch(search: string): GameRuntimeOptions {

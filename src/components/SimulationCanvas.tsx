@@ -1,11 +1,28 @@
 import { Application, Graphics } from 'pixi.js'
 import { useEffect, useRef, useState } from 'react'
-import { DynamicScene, createDefaultPrefabRegistry, gridToScreen, screenToGrid } from '../rendering'
+import {
+  DynamicScene,
+  createDefaultBuildingArtworkProvider,
+  createDefaultPrefabRegistry,
+  createSpritesheetBuildingAnimationProvider,
+  gridToScreen,
+  loadBuildingAnimationAtlases,
+  loadDefaultBuildingArtworkProvider,
+  loadDefaultBuildingArtworkAtlasProvider,
+  parseRenderDiagnostics,
+  screenToGrid,
+} from '../rendering'
+import type {
+  BuildingAnimationAtlasManifest,
+  BuildingAnimationDriverOptions,
+  SceneSyncPerformanceProfile,
+} from '../rendering'
 import { roadVisualStyle } from '../rendering/roads'
 import type { CameraState, GridPoint, SimulationSnapshot } from '../simulation/contracts'
 import { CameraController, DragController, PlacementController, deriveRuntimePlacementPreview, runtimePlacementValidator } from '../ui'
 import type { BuildingPlacementPreview, BuildTool, GameRuntime } from '../integration/GameRuntime'
 import type { StageAdvisorOverlay } from '../integration/stageAdvisor'
+import { resolvePrefabAssetIdForBuildingType } from '../rendering/prefab'
 
 type CameraFocusTarget =
   | { kind: 'building'; buildingId: string }
@@ -26,6 +43,8 @@ interface SimulationCanvasProps {
   tool: BuildTool
   cameraFocusRequest?: CameraFocusRequest | null
   stageAdvisorOverlay?: StageAdvisorOverlay | null
+  buildingAnimationAtlasManifest?: BuildingAnimationAtlasManifest
+  buildingAnimationOptions?: BuildingAnimationDriverOptions
   onToolChange(tool: BuildTool): void
   onToast(message: string): void
   onBuildingSelect(id: string | null): void
@@ -44,6 +63,8 @@ export function SimulationCanvas({
   tool,
   cameraFocusRequest,
   stageAdvisorOverlay,
+  buildingAnimationAtlasManifest,
+  buildingAnimationOptions,
   onToolChange,
   onToast,
   onBuildingSelect,
@@ -64,10 +85,13 @@ export function SimulationCanvas({
   }))
   const [placementPreview, setPlacementPreview] = useState<BuildingPlacementPreview | null>(null)
   const placementControllerRef = useRef<PlacementController | null>(null)
+  const scaleQaCamera = new URLSearchParams(window.location.search).get('debugScenario') === 'civilization-scale'
   const cameraRef = useRef(new CameraController({
     bounds: WORLD_BOUNDS,
     zoom: { min: 0.48, max: 1.65 },
-    initial: { x: 0, y: 520, zoom: 0.72 },
+    initial: scaleQaCamera
+      ? { x: -1120, y: -180, zoom: 0.48 }
+      : { x: 0, y: 520, zoom: 0.72 },
   }))
   const dragRef = useRef(new DragController(5))
   const sweepRef = useRef<{
@@ -94,36 +118,107 @@ export function SimulationCanvas({
     if (!host) return
     let disposed = false
     const app = new Application()
-    const scene = new DynamicScene(undefined, { prefabRegistry: createDefaultPrefabRegistry() })
+    let scene: DynamicScene | null = null
+    const artworkAbortController = new AbortController()
     const terrain = new Graphics()
+    const renderConfig = parseRenderDiagnostics(window.location.search)
     appRef.current = app
-    sceneRef.current = scene
     terrainRef.current = terrain
 
     const initialise = async () => {
       await app.init({
         resizeTo: host,
-        antialias: true,
+        antialias: renderConfig.antialias,
         autoDensity: true,
-        resolution: Math.min(window.devicePixelRatio || 1, 2),
+        resolution: renderConfig.resolutionOverride ?? Math.min(window.devicePixelRatio || 1, 2),
         backgroundColor: 0x74b8bc,
       })
       if (disposed) {
         app.destroy(true)
         return
       }
+      let buildingAnimationProvider
+      if (renderConfig.authoredAnimation && buildingAnimationAtlasManifest?.length) {
+        try {
+          const sheets = await loadBuildingAnimationAtlases(buildingAnimationAtlasManifest)
+          buildingAnimationProvider = createSpritesheetBuildingAnimationProvider(sheets)
+        } catch (error) {
+          console.warn('Building animation atlases could not be loaded; using procedural fallback.', error)
+        }
+      }
+      if (disposed) {
+        app.destroy(true)
+        return
+      }
+      const artworkAssetIds = [...new Set(
+        Object.values(snapshotRef.current.buildings)
+          .map((building) => resolvePrefabAssetIdForBuildingType(building.type))
+          .filter((assetId): assetId is string => Boolean(assetId)),
+      )]
+      let buildingArtworkProvider = undefined
+      if (renderConfig.authoredArtwork) {
+        try {
+          buildingArtworkProvider = await (renderConfig.buildingAtlas ? loadDefaultBuildingArtworkAtlasProvider : loadDefaultBuildingArtworkProvider)(artworkAssetIds, {
+          signal: artworkAbortController.signal,
+          timeoutMs: 15_000,
+          maxTextures: 512,
+          preloadLevels: [...new Set(Object.values(snapshotRef.current.buildings).map((building) => building.level))],
+        })
+        } catch (error) {
+          if (disposed) {
+            app.destroy(true)
+            return
+          }
+          console.warn('Building artwork preload failed; using procedural fallback.', error)
+          buildingArtworkProvider = createDefaultBuildingArtworkProvider()
+        }
+      }
+      if (disposed) {
+        app.destroy(true)
+        return
+      }
+      const renderProfileEnabled = renderConfig.enabled
+      ;(window as Window & { __littleEarRenderConfiguration?: typeof renderConfig }).__littleEarRenderConfiguration = renderConfig
+      const renderProfiles = renderProfileEnabled
+        ? ((window as Window & { __littleEarRenderProfiles?: SceneSyncPerformanceProfile[] }).__littleEarRenderProfiles ??= [])
+        : undefined
+      if (renderProfileEnabled) {
+        const rendererProfiles = ((window as Window & { __littleEarRendererProfiles?: number[] }).__littleEarRendererProfiles ??= [])
+        const originalRender = app.renderer.render.bind(app.renderer)
+        app.renderer.render = ((...args: Parameters<typeof app.renderer.render>) => {
+          const startedAt = performance.now()
+          try {
+            return originalRender(...args)
+          } finally {
+            if (rendererProfiles.length < 120) rendererProfiles.push(performance.now() - startedAt)
+          }
+        }) as typeof app.renderer.render
+      }
+      scene = new DynamicScene(undefined, {
+        prefabRegistry: createDefaultPrefabRegistry(),
+        buildingArtworkProvider,
+        buildingAnimationProvider,
+        buildingAnimationOptions: renderConfig.authoredAnimation ? buildingAnimationOptions : undefined,
+        staticBuildingCache: renderConfig.staticBuildingCache,
+        onSyncProfile: renderProfiles
+          ? (profile) => {
+              if (renderProfiles.length < 120) renderProfiles.push(profile)
+            }
+          : undefined,
+      })
+      sceneRef.current = scene
       host.appendChild(app.canvas)
-      scene.layers.terrain.addChild(terrain)
+      if (renderConfig.terrain) scene.layers.terrain.addChild(terrain)
       app.stage.addChild(scene.root)
       cameraRef.current.setViewport({ width: host.clientWidth, height: host.clientHeight })
       setCameraView({ ...cameraRef.current.getState() })
-      drawTerrain(terrain, snapshotRef.current)
+      if (renderConfig.terrain) drawTerrain(terrain, snapshotRef.current)
       syncScene()
       app.ticker.add(syncScene)
     }
 
     const syncScene = () => {
-      if (!app.ticker) return
+      if (!app.ticker || !scene) return
       const camera = cameraRef.current.getState()
       scene.root.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2)
       scene.sync(snapshotRef.current, camera, app.ticker.deltaMS / 200)
@@ -141,20 +236,21 @@ export function SimulationCanvas({
 
     return () => {
       disposed = true
+      artworkAbortController.abort()
       unsubscribe()
       resize.disconnect()
       if (appRef.current === app) appRef.current = null
       if (sceneRef.current === scene) sceneRef.current = null
       cancelFocusAnimation(focusAnimationRef)
       app.ticker.remove(syncScene)
-      scene.destroy()
+      scene?.destroy()
       app.destroy(true)
     }
-  }, [])
+  }, [buildingAnimationAtlasManifest])
 
   useEffect(() => {
     const terrain = terrainRef.current
-    if (terrain) drawTerrain(terrain, snapshot)
+    if (terrain && parseRenderDiagnostics(window.location.search).terrain) drawTerrain(terrain, snapshot)
   }, [snapshot.cells])
 
   useEffect(() => {
@@ -545,6 +641,21 @@ export function SimulationCanvas({
                 } as React.CSSProperties}
               >
                 <i>{point.label}</i>
+              </span>
+            )
+          })}
+          {stageAdvisorOverlay.badges?.map((badge, index) => {
+            const position = pointToViewport(badge.position, cameraView)
+            return (
+              <span
+                key={`${stageAdvisorOverlay.id}-badge-${index}`}
+                className={`stage-overlay-badge stage-overlay-badge--${badge.kind ?? 'bottleneck'}`}
+                style={{
+                  '--stage-badge-x': `${position.x}px`,
+                  '--stage-badge-y': `${position.y + 18}px`,
+                } as React.CSSProperties}
+              >
+                {badge.label}
               </span>
             )
           })}

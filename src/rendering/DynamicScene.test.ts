@@ -144,6 +144,33 @@ describe('DynamicScene', () => {
     expect(scene.layers.drops.children).toHaveLength(1)
   })
 
+  it('renders a short-lived recovery pulse from the city timeline', async () => {
+    const { DynamicScene } = await import('./DynamicScene')
+    const snapshot = createSnapshot()
+    snapshot.cityTimeline = [{
+      id: 'recovery-1',
+      tick: 10,
+      kind: 'service',
+      source: 'service-bottleneck-cleared',
+      title: '服务瓶颈解除',
+      detail: '药铺恢复医疗服务。',
+      buildingId: 'kiln',
+      serviceRecovery: {
+        need: 'health',
+        pressureClearedHouseholds: 1,
+        maxPressureTicks: 3,
+        buildingStatusBefore: 'blocked',
+        buildingStatusAfter: 'serving',
+      },
+    }]
+    const scene = new DynamicScene()
+    scene.sync(snapshot, camera)
+
+    const buildingDisplay = scene.layers.buildings.children[0]
+    const statusLayer = buildingDisplay.children.find((child) => child.label?.startsWith('building-status-layer:recovery:'))
+    expect(statusLayer).toBeDefined()
+  })
+
   it('returns removed entities to their pools', async () => {
     const { DynamicScene } = await import('./DynamicScene')
     const scene = new DynamicScene()
@@ -189,6 +216,62 @@ describe('DynamicScene', () => {
       drops: 0,
     })
     expect(scene.layers.residents.children).toHaveLength(1)
+    expect(childLabels(scene.layers.residents.children[0])).toContain('resident-lifecycle-state:candidate-waiting')
+  })
+
+  it('distinguishes a walking candidate from a newly settled resident', async () => {
+    const { DynamicScene } = await import('./DynamicScene')
+    const scene = new DynamicScene()
+    const snapshot = createSnapshot()
+    snapshot.tick = 12
+    snapshot.buildings = {}
+    snapshot.worldDrops = []
+    snapshot.migrationCandidates = {
+      visitor: {
+        id: 'visitor',
+        members: 3,
+        workerCount: 1,
+        status: 'walking',
+        position: { x: 4, y: 4 },
+        path: [{ x: 4, y: 4 }, { x: 5, y: 4 }],
+        pathIndex: 0,
+        arrivedTick: 8,
+        patienceTicks: 4,
+        attractionAtArrival: 72,
+      },
+    }
+    snapshot.agents = {
+      settledWorker: {
+        id: 'settledWorker',
+        role: 'worker',
+        householdId: 'new-household',
+        position: { x: 6, y: 4 },
+        path: [],
+        pathIndex: 0,
+        activity: 'home',
+      },
+    }
+    snapshot.households = {
+      'new-household': {
+        id: 'new-household',
+        homeBuildingId: 'home',
+        members: 3,
+        workerIds: ['settledWorker'],
+        income: 0,
+        satisfaction: 70,
+        origin: 'migrated',
+        settledTick: 10,
+        needs: { food: 100, goods: 100, health: 100, education: 100, entertainment: 100 },
+      },
+    }
+
+    scene.sync(snapshot, camera)
+
+    const labels = scene.layers.residents.children.map((display) => childLabels(display))
+    expect(labels).toEqual(expect.arrayContaining([
+      expect.arrayContaining(['resident-lifecycle-state:candidate-walking']),
+      expect.arrayContaining(['resident-lifecycle-state:new-arrival']),
+    ]))
   })
 
   it('adds stable activity trail and marker layers for visible agents', async () => {
@@ -362,6 +445,9 @@ describe('DynamicScene', () => {
       return {
         displayChildCount: buildingDisplay.children.length,
         layerLabel: statusLayer?.label,
+        motionLayer: buildingDisplay.children.find((child) => (
+          typeof child.label === 'string' && child.label.startsWith('building-artwork-motion-layer:')
+        ))?.label,
         statusChildCount: statusLayer?.children.length,
         statusChildLabels: statusLayer ? childLabels(statusLayer) : [],
         hintLayer: statusLayer?.children.find((child) => (
@@ -380,6 +466,9 @@ describe('DynamicScene', () => {
       'building-status-layer:blocked:no-workers',
       'building-status-layer:blocked:logistics-failed',
     ]))
+    expect(layers.map((layer) => layer.motionLayer)).toEqual(expect.arrayContaining([
+      expect.stringMatching(/^building-artwork-motion-layer:/),
+    ]))
     expect(layers.map((layer) => layer.hintLayer?.label)).toEqual(expect.arrayContaining([
       'building-status-hint:blocked:missing-input:缺料',
       'building-status-hint:blocked:storage-full:仓满',
@@ -387,7 +476,7 @@ describe('DynamicScene', () => {
       'building-status-hint:blocked:logistics-failed:物流失败',
     ]))
     for (const layer of layers) {
-      expect(layer.displayChildCount).toBe(2)
+      expect(layer.displayChildCount).toBe(3)
       expect(layer.statusChildCount).toBe(4)
       expect(layer.statusChildLabels).toEqual(expect.arrayContaining([
         expect.stringMatching(/^building-status-mask:/),
@@ -455,6 +544,10 @@ describe('DynamicScene', () => {
       'prefab-placeholder-main-pier-details:L4',
       'prefab-placeholder-label:main-pier:L4',
     ])
+    const blockedMotionLayer = scene.layers.buildings.children[0]?.children.find((child) => (
+      typeof child.label === 'string' && child.label.startsWith('building-artwork-motion-layer:')
+    ))
+    expect(blockedMotionLayer?.label).toContain('storage-full')
 
     snapshot.tick += 1
     snapshot.buildings.pier = createBuilding({
@@ -481,6 +574,10 @@ describe('DynamicScene', () => {
       'prefab-placeholder-main-pier-details:L8',
       'prefab-placeholder-label:main-pier:L8',
     ])
+    const workingMotionLayer = scene.layers.buildings.children[0]?.children.find((child) => (
+      typeof child.label === 'string' && child.label.startsWith('building-artwork-motion-layer:')
+    ))
+    expect(workingMotionLayer?.label).toContain('production-primary')
   })
 
   it('draws stable level-specific procedural main-pier placeholder detail layers', async () => {
@@ -772,7 +869,7 @@ describe('DynamicScene', () => {
     expect(prefabLayer?.visible).toBe(false)
   })
 
-  it('keeps mapped but unregistered prefab assets on the gray-box fallback', async () => {
+  it('renders a catalog-driven identity fallback for mapped but unregistered prefab assets', async () => {
     const { DynamicScene } = await import('./DynamicScene')
     const { PrefabRuntimeRegistry } = await import('./prefab')
     const scene = new DynamicScene(undefined, { prefabRegistry: new PrefabRuntimeRegistry() })
@@ -794,7 +891,7 @@ describe('DynamicScene', () => {
       typeof child.label === 'string' && child.label.startsWith('prefab-placeholder:')
     ))
     expect(prefabLayer?.label).toBe('prefab-placeholder:main-pier:missing')
-    expect(prefabLayer?.visible).toBe(false)
+    expect(prefabLayer?.visible).toBe(true)
     expect(childLabels(prefabLayer ?? { children: [] })).toEqual([
       'prefab-placeholder-shell',
       'prefab-placeholder-outline',
@@ -803,5 +900,7 @@ describe('DynamicScene', () => {
       'prefab-placeholder-level-marks',
       'prefab-placeholder-label',
     ])
+    const label = prefabLayer?.children.find((child) => child.label === 'prefab-placeholder-label')
+    expect(label?.text).toContain('cross-berth-wharf')
   })
 })

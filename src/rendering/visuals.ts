@@ -1,4 +1,4 @@
-import { Container, Graphics, Text } from 'pixi.js'
+import { Container, Graphics, Sprite, Text } from 'pixi.js'
 import type {
   AgentEntity,
   BuildingEntity,
@@ -10,7 +10,16 @@ import type {
 import { gridToScreen, interpolateGridPoint, isoDepth } from './isometric'
 import { resolvePrefabAssetIdForBuildingType } from './prefab'
 import type { PrefabRuntimeRegistry, ResolvedPrefabBuilding } from './prefab'
+import { resolvePrefabAnimationPlan, type PrefabAnimationPlan } from './prefab/animationRuntime'
 import type { EntityVisual, IsoMetrics, RenderEntityKind } from './types'
+import { BUILDING_DEFINITIONS } from '../content/runtimeBuildings'
+import { getBuildingVisualIdentity, getBuildingVisualLevel } from '../content/buildingVisualIdentity'
+import { configureBuildingArtworkSprite, type BuildingArtworkProvider } from './artwork/buildingArtwork'
+import {
+  BuildingAnimationDriver,
+  type BuildingAnimationDriverOptions,
+  type BuildingAnimationProvider,
+} from './artwork/buildingAnimation'
 
 type BlockedReasonKind = 'missing-input' | 'no-workers' | 'logistics-failed' | 'storage-full' | 'generic'
 type BuildingStatusPresentation =
@@ -100,6 +109,30 @@ function statusPresentation(building: Readonly<BuildingEntity>): BuildingStatusP
   return `blocked:${blockedReasonKind(building.statusReason)}`
 }
 
+function agentBodyColor(snapshot: Readonly<SimulationSnapshot>, agent: Readonly<AgentEntity>): number {
+  if (agent.role !== 'worker' || !agent.employerBuildingId) return ROLE_COLOR[agent.role]
+  const employer = snapshot.buildings[agent.employerBuildingId]
+  const category = employer ? BUILDING_DEFINITIONS[employer.type]?.category : undefined
+  return ({
+    production: 0x9c7048,
+    market: 0xc0785d,
+    service: 0x8b668e,
+    storage: 0x9b834c,
+    harbor: 0x477f9d,
+    landmark: 0x7b638e,
+    housing: 0x5f7693,
+  } as Record<string, number>)[category ?? ''] ?? ROLE_COLOR[agent.role]
+}
+
+function visualIdentityColor(materialPalette: string): number {
+  let hash = 0
+  for (let index = 0; index < materialPalette.length; index += 1) {
+    hash = (hash * 33 + materialPalette.charCodeAt(index)) >>> 0
+  }
+  const palette = [0x8b7355, 0x6f8b76, 0x9b6f60, 0x71879b, 0xa68a55, 0x7e6d91, 0x5f807f]
+  return palette[hash % palette.length]
+}
+
 abstract class BaseVisual implements EntityVisual {
   readonly display = new Container()
   entityId: EntityId | null = null
@@ -132,6 +165,7 @@ abstract class BaseVisual implements EntityVisual {
 export class BuildingVisual extends BaseVisual {
   kind = 'building' as const
   private readonly body = new Graphics()
+  private readonly staticLayer = new Container({ label: 'building-static-layer' })
   private readonly prefabPlaceholder: Container | null
   private readonly prefabShell: Graphics | null
   private readonly prefabOutline: Graphics | null
@@ -147,6 +181,12 @@ export class BuildingVisual extends BaseVisual {
   private readonly prefabGoldAssetStructure: Graphics | null
   private readonly prefabGoldAssetActivity: Graphics | null
   private readonly prefabLabel: Text | null
+  private readonly artworkSprite: Sprite | null
+  private readonly animationDriver: BuildingAnimationDriver | null
+  private prefabAnimationPlan: PrefabAnimationPlan | null = null
+  private readonly artworkMotionLayer = new Container({ label: 'building-artwork-motion-layer' })
+  private readonly artworkMotionPrimary = new Graphics({ label: 'building-artwork-motion-primary' })
+  private readonly artworkMotionSecondary = new Graphics({ label: 'building-artwork-motion-secondary' })
   private readonly statusLayer = new Container({ label: 'building-status-layer' })
   private readonly statusSymbol = new Graphics({ label: 'building-status-symbol' })
   private readonly statusMotion = new Graphics({ label: 'building-status-motion' })
@@ -164,16 +204,29 @@ export class BuildingVisual extends BaseVisual {
     },
     label: 'building-status-hint-text',
   })
+  private bodySignature: string | null = null
+  private artworkSignature: string | null = null
+  private prefabIdleSignature: string | null = null
+  private staticCacheSignature: string | null = null
 
   constructor(
     metrics: Readonly<IsoMetrics>,
     private readonly prefabRegistry?: PrefabRuntimeRegistry,
+    private readonly buildingArtworkProvider?: BuildingArtworkProvider,
+    buildingAnimationProvider?: BuildingAnimationProvider,
+    buildingAnimationOptions?: BuildingAnimationDriverOptions,
+    private readonly staticBuildingCache = false,
   ) {
     super(metrics)
+    this.animationDriver = this.prefabRegistry && buildingAnimationProvider
+      ? new BuildingAnimationDriver(buildingAnimationProvider, buildingAnimationOptions)
+      : null
     this.body.label = 'building-body'
     this.statusHint.addChild(this.statusHintBadge, this.statusHintText)
+    this.artworkMotionLayer.addChild(this.artworkMotionPrimary, this.artworkMotionSecondary)
     this.statusLayer.addChild(this.statusMask, this.statusSymbol, this.statusMotion, this.statusHint)
     if (this.prefabRegistry) {
+      this.artworkSprite = this.buildingArtworkProvider ? new Sprite({ label: 'building-artwork-sprite' }) : null
       this.prefabPlaceholder = new Container({ label: 'prefab-placeholder:unresolved' })
       this.prefabShell = new Graphics({ label: 'prefab-placeholder-shell' })
       this.prefabOutline = new Graphics({ label: 'prefab-placeholder-outline' })
@@ -217,8 +270,13 @@ export class BuildingVisual extends BaseVisual {
         this.prefabLevelMarks,
         this.prefabLabel,
       )
-      this.display.addChild(this.body, this.prefabPlaceholder, this.statusLayer)
+      this.staticLayer.addChild(this.body)
+      if (this.artworkSprite) this.staticLayer.addChild(this.artworkSprite)
+      this.display.addChild(this.staticLayer, this.prefabPlaceholder)
+      this.display.addChild(this.statusLayer, this.artworkMotionLayer)
+      if (this.animationDriver) this.display.addChild(this.animationDriver.display)
     } else {
+      this.artworkSprite = null
       this.prefabPlaceholder = null
       this.prefabShell = null
       this.prefabOutline = null
@@ -234,8 +292,20 @@ export class BuildingVisual extends BaseVisual {
       this.prefabGoldAssetStructure = null
       this.prefabGoldAssetActivity = null
       this.prefabLabel = null
-      this.display.addChild(this.body, this.statusLayer)
+      this.staticLayer.addChild(this.body)
+      this.display.addChild(this.staticLayer, this.statusLayer, this.artworkMotionLayer)
     }
+  }
+
+  reset(): void {
+    super.reset()
+    this.prefabAnimationPlan = null
+    this.bodySignature = null
+    this.artworkSignature = null
+    this.prefabIdleSignature = null
+    if (this.staticCacheSignature !== null) this.staticLayer.cacheAsTexture?.(false)
+    this.staticCacheSignature = null
+    this.animationDriver?.reset()
   }
 
   update(snapshot: Readonly<SimulationSnapshot>, _alpha: number): void {
@@ -250,23 +320,211 @@ export class BuildingVisual extends BaseVisual {
     const phase = animationPhase(snapshot, building.id)
     const presentation = statusPresentation(building)
 
-    this.body.clear()
-      .poly([-width, 0, 0, width * 0.48, width, 0, 0, -width * 0.48])
-      .fill({ color: 0xd8c69d })
-      .rect(-width * 0.72, -height, width * 1.44, height)
-      .fill({ color: BUILDING_STATUS_COLOR[building.status] })
-      .poly([-width * 0.9, -height, 0, -height - width * 0.42, width * 0.9, -height, 0, -height + width * 0.2])
-      .fill({ color: level === 0 ? 0x82796b : 0x4f6e62 })
+    const bodySignature = `${building.status}|${level}`
+    if (this.bodySignature !== bodySignature) {
+      this.body.clear()
+        .poly([-width, 0, 0, width * 0.48, width, 0, 0, -width * 0.48])
+        .fill({ color: 0xd8c69d })
+        .rect(-width * 0.72, -height, width * 1.44, height)
+        .fill({ color: BUILDING_STATUS_COLOR[building.status] })
+        .poly([-width * 0.9, -height, 0, -height - width * 0.42, width * 0.9, -height, 0, -height + width * 0.2])
+        .fill({ color: level === 0 ? 0x82796b : 0x4f6e62 })
+      this.bodySignature = bodySignature
+    }
 
     this.drawStatusPresentation(presentation, width, height, phase, building.productionProgress)
-    this.drawPrefabPlaceholder(building, width, height)
+    this.drawRecoveryPulse(snapshot, building.id, width, height, phase)
+    this.drawPrefabPlaceholder(building, width, height, snapshot.tick)
+    this.drawBuildingArtwork(building, width, height)
+    this.updateStaticCache(building)
+    if (this.animationDriver && this.prefabAnimationPlan) {
+      this.animationDriver.update(this.prefabAnimationPlan, width, height)
+    } else if (this.animationDriver) {
+      this.animationDriver.display.visible = false
+    }
+    this.drawBuildingArtworkMotion(building, width, height, phase)
     this.display.alpha = building.status === 'blocked' ? 0.72 : 1
+  }
+
+  private updateStaticCache(building: Readonly<BuildingEntity>): void {
+    if (!this.staticBuildingCache || !this.artworkSprite?.visible) return
+    const signature = `${this.bodySignature ?? ''}|${this.artworkSignature ?? ''}|${building.status}`
+    if (signature === this.staticCacheSignature) return
+    if (this.staticCacheSignature !== null) this.staticLayer.cacheAsTexture?.(false)
+    this.staticLayer.cacheAsTexture?.(true)
+    this.staticCacheSignature = signature
+  }
+
+  private drawBuildingArtwork(
+    building: Readonly<BuildingEntity>,
+    width: number,
+    height: number,
+  ): void {
+    if (!this.artworkSprite) return
+    const assetId = resolvePrefabAssetIdForBuildingType(building.type)
+    const texture = assetId ? this.buildingArtworkProvider?.get(assetId, building.level) : undefined
+    if (!texture) {
+      this.artworkSprite.visible = false
+      this.artworkSignature = null
+      return
+    }
+    // The placeholder can be toggled by the per-frame fallback pass. Keep
+    // the artwork/placeholder relationship correct even when the artwork
+    // configuration itself is unchanged.
+    if (this.prefabPlaceholder) this.prefabPlaceholder.visible = false
+    const signature = `${assetId}|${Math.max(0, Math.min(8, Math.round(building.level)))}|${building.status}`
+    if (this.artworkSignature === signature) return
+    configureBuildingArtworkSprite(this.artworkSprite, texture, width, height)
+    this.artworkSprite.visible = true
+    this.artworkSprite.alpha = building.status === 'blocked' ? 0.72 : 1
+    this.artworkSprite.label = `building-artwork:${assetId}:L${Math.max(0, Math.min(8, Math.round(building.level)))}`
+    this.artworkSignature = signature
+  }
+
+  private drawBuildingArtworkMotion(
+    building: Readonly<BuildingEntity>,
+    width: number,
+    height: number,
+    phase: number,
+  ): void {
+    const assetId = resolvePrefabAssetIdForBuildingType(building.type)
+    const identity = assetId ? getBuildingVisualIdentity(assetId) : undefined
+    this.artworkMotionPrimary.clear()
+    this.artworkMotionSecondary.clear()
+    if (!identity) {
+      this.artworkMotionLayer.visible = false
+      return
+    }
+
+    const level = getBuildingVisualLevel(assetId ?? building.type, building.level)
+    const isRuined = level?.stage === 'ruin'
+    const isConstruction = building.status === 'constructing' || building.status === 'upgrading'
+    const buildingClass = identity.buildingClass
+    const authoredPhase = this.prefabAnimationPlan
+      ? this.prefabAnimationPlan.playback.reduce((sum, slot) => sum + slot.progress, phase) * Math.PI * 2
+      : phase
+    const motionAlpha = isRuined ? 0.25 : isConstruction ? 0.7 : 0.9
+    this.artworkMotionLayer.visible = true
+    const authoredSlots = this.prefabAnimationPlan?.playback.map((slot) => slot.slotId).join(',') || 'procedural-fallback'
+    this.artworkMotionLayer.label = `building-artwork-motion-layer:${assetId}:${building.status}:${authoredSlots}`
+
+    if (isConstruction) {
+      const scaffold = 0.7 + Math.abs(Math.sin(authoredPhase)) * 0.3
+      this.artworkMotionPrimary
+        .moveTo(-width * 0.72, -height * 0.08)
+        .lineTo(-width * 0.58, -height * 1.3)
+        .lineTo(width * 0.58, -height * 1.3)
+        .lineTo(width * 0.72, -height * 0.08)
+        .moveTo(-width * 0.64, -height * 0.6)
+        .lineTo(width * 0.64, -height * 0.6)
+        .stroke({ color: 0xd9b978, alpha: scaffold, width: 1.3 })
+      this.artworkMotionSecondary
+        .circle(Math.sin(authoredPhase * 1.7) * width * 0.45, -height * (0.45 + Math.abs(Math.sin(authoredPhase)) * 0.35), 2.5)
+        .fill({ color: 0xf6d47a, alpha: scaffold })
+      return
+    }
+
+    if (buildingClass.includes('field') || buildingClass.includes('orchard') || buildingClass.includes('estate') || buildingClass.includes('garden')) {
+      for (let index = 0; index < 5; index += 1) {
+        const x = -width * 0.52 + index * width * 0.26
+        const sway = Math.sin(authoredPhase + index * 0.8) * 2.2
+        this.artworkMotionPrimary
+          .moveTo(x, -height * 0.12)
+          .lineTo(x + sway, -height * (0.28 + (index % 2) * 0.08))
+      }
+      this.artworkMotionPrimary.stroke({ color: 0xa8c477, alpha: motionAlpha, width: 1.4 })
+      this.artworkMotionSecondary
+        .ellipse(Math.sin(authoredPhase * 0.45) * width * 0.72, -height * 0.94, width * 0.16, height * 0.04)
+        .fill({ color: 0xf3e5af, alpha: 0.12 })
+      return
+    }
+
+    if (buildingClass.includes('harbor') || buildingClass.includes('pier') || buildingClass.includes('ferry') || buildingClass.includes('shipyard') || buildingClass.includes('salt')) {
+      const wave = Math.sin(authoredPhase * 1.4) * 2
+      this.artworkMotionPrimary
+        .moveTo(-width * 0.78, -height * 0.08 + wave)
+        .quadraticCurveTo(-width * 0.38, -height * 0.16 - wave, 0, -height * 0.08 + wave)
+        .quadraticCurveTo(width * 0.38, 0 - wave, width * 0.78, -height * 0.08 + wave)
+        .stroke({ color: 0x8fd0d0, alpha: motionAlpha * 0.7, width: 1.4 })
+      this.artworkMotionSecondary
+        .moveTo(width * 0.34, -height * 1.24)
+        .lineTo(width * 0.34, -height * 0.75)
+        .stroke({ color: 0x684f3d, alpha: motionAlpha, width: 1 })
+        .circle(width * 0.34, -height * 1.23, 2.5)
+        .fill({ color: 0xf6d47a, alpha: 0.5 + Math.sin(authoredPhase) * 0.2 })
+      return
+    }
+
+    if (buildingClass.includes('lighthouse')) {
+      const sweep = authoredPhase % (Math.PI * 2)
+      this.artworkMotionPrimary
+        .moveTo(0, -height * 1.35)
+        .lineTo(Math.cos(sweep) * width * 1.05, -height * 1.35 + Math.sin(sweep) * width * 0.18)
+        .stroke({ color: 0xffedb0, alpha: 0.34, width: 3 })
+      this.artworkMotionSecondary
+        .circle(0, -height * 1.35, 3.5)
+        .fill({ color: 0xfff1bd, alpha: 0.8 })
+      return
+    }
+
+    if (buildingClass.includes('water-mill')) {
+      const wheelX = width * 0.52
+      const wheelY = -height * 0.36
+      this.artworkMotionPrimary
+        .circle(wheelX, wheelY, Math.max(4, width * 0.15))
+        .stroke({ color: 0xb98855, alpha: motionAlpha, width: 1.6 })
+      for (let index = 0; index < 4; index += 1) {
+        const angle = authoredPhase + index * Math.PI / 2
+        this.artworkMotionPrimary
+          .moveTo(wheelX, wheelY)
+          .lineTo(wheelX + Math.cos(angle) * width * 0.15, wheelY + Math.sin(angle) * width * 0.15)
+      }
+      this.artworkMotionPrimary.stroke({ color: 0xb98855, alpha: motionAlpha, width: 1 })
+      return
+    }
+
+    if (!isRuined && (buildingClass.includes('housing') || buildingClass.includes('market') || building.status === 'serving')) {
+      const smokeX = -width * 0.2
+      const smokeY = -height * 1.18 - Math.abs(Math.sin(authoredPhase)) * 4
+      this.artworkMotionPrimary
+        .circle(smokeX, smokeY, 2.5)
+        .circle(smokeX + 3, smokeY - 4, 2)
+        .fill({ color: 0xf4ead4, alpha: 0.2 + Math.abs(Math.sin(authoredPhase)) * 0.18 })
+    }
+  }
+
+  private drawRecoveryPulse(
+    snapshot: Readonly<SimulationSnapshot>,
+    buildingId: EntityId,
+    width: number,
+    height: number,
+    phase: number,
+  ): void {
+    const recovery = [...(snapshot.cityTimeline ?? [])]
+      .reverse()
+      .find((record) => record.source === 'service-bottleneck-cleared' && record.buildingId === buildingId)
+    if (!recovery) return
+    const elapsed = snapshot.tick - recovery.tick
+    if (elapsed < 0 || elapsed > 12) return
+
+    const progress = Math.max(0, Math.min(1, 1 - elapsed / 12))
+    const y = -height - 13
+    const radius = width * (0.28 + (1 - progress) * 0.18)
+    this.statusLayer.visible = true
+    this.statusLayer.label = `building-status-layer:recovery:${buildingId}`
+    this.statusMotion.label = `building-status-motion:recovery:${buildingId}`
+    this.statusMotion
+      .circle(0, y, radius + Math.sin(phase) * 1.5)
+      .stroke({ color: 0xf6d47a, alpha: 0.18 + progress * 0.5, width: 2.2 })
+      .circle(0, y, Math.max(4, radius * 0.35))
+      .fill({ color: 0xf6d47a, alpha: 0.18 + progress * 0.28 })
   }
 
   private drawPrefabPlaceholder(
     building: Readonly<BuildingEntity>,
     fallbackWidth: number,
     fallbackHeight: number,
+    tick: number,
   ): void {
     if (
       !this.prefabRegistry
@@ -282,7 +540,11 @@ export class BuildingVisual extends BaseVisual {
     }
 
     const assetId = resolvePrefabAssetIdForBuildingType(building.type)
+    const idleSignature = `${assetId ?? 'unmapped'}|${Math.max(0, Math.min(8, Math.round(building.level)))}|${building.status}|${building.statusReason ?? ''}`
+    if (building.status === 'idle' && this.prefabIdleSignature === idleSignature) return
+    this.prefabIdleSignature = building.status === 'idle' ? idleSignature : null
     this.clearPrefabPlaceholder()
+    this.prefabAnimationPlan = null
     if (!assetId) {
       this.prefabPlaceholder.label = `prefab-placeholder:${building.type}:unmapped`
       this.prefabPlaceholder.visible = false
@@ -299,9 +561,17 @@ export class BuildingVisual extends BaseVisual {
 
     if (!resolved) {
       this.prefabPlaceholder.label = `prefab-placeholder:${assetId}:missing`
-      this.prefabPlaceholder.visible = false
+      this.prefabPlaceholder.visible = true
+      this.drawCatalogIdentityFallback(building, assetId, fallbackWidth, fallbackHeight)
       return
     }
+
+    this.prefabAnimationPlan = resolvePrefabAnimationPlan(resolved, {
+      tick,
+      productionProgress: building.productionProgress,
+      constructionProgress: building.productionProgress,
+      lod: 'LOD1',
+    })
 
     this.prefabPlaceholder.visible = true
     this.prefabPlaceholder.label = prefabPlaceholderLabel(resolved)
@@ -359,6 +629,94 @@ export class BuildingVisual extends BaseVisual {
 
     this.prefabLabel.text = `${resolved.assetId} · ${resolved.levelKey}`
     this.prefabLabel.label = `prefab-placeholder-label:${resolved.assetId}:${resolved.levelKey}`
+    this.prefabLabel.position.set(left + 6, top + 3)
+  }
+
+  private drawCatalogIdentityFallback(
+    building: Readonly<BuildingEntity>,
+    assetId: string,
+    fallbackWidth: number,
+    fallbackHeight: number,
+  ): void {
+    if (!this.prefabShell || !this.prefabOutline || !this.prefabInfoBar || !this.prefabStatusBar || !this.prefabLevelMarks || !this.prefabLabel) return
+    const identity = getBuildingVisualIdentity(assetId)
+    const level = getBuildingVisualLevel(assetId, building.level)
+    if (!identity || !level) return
+
+    const normalizedLevel = Math.max(0, Math.min(8, Math.floor(building.level)))
+    const width = fallbackWidth * (1.18 + normalizedLevel * 0.035)
+    const height = fallbackHeight * (1.02 + normalizedLevel * 0.025)
+    const left = -width / 2
+    const top = -height
+    const accent = visualIdentityColor(identity.materialPalette)
+    const settled = level.stage !== 'ruin'
+    const thriving = level.stage === 'thriving'
+    const groundY = top + height * 0.72
+
+    this.prefabShell
+      .poly([left + width * 0.04, groundY, 0, groundY + height * 0.18, left + width * 0.96, groundY, 0, groundY - height * 0.18])
+      .fill({ color: settled ? 0xd4be8e : 0x847866, alpha: 0.68 })
+
+    if (identity.buildingClass.includes('housing')) {
+      for (let index = 0; index < (thriving ? 5 : settled ? 3 : 1); index += 1) {
+        const houseLeft = left + width * (0.16 + index * 0.15)
+        const houseTop = top + height * (0.34 + (index % 2) * 0.07)
+        this.prefabShell
+          .rect(houseLeft, houseTop, width * 0.14, height * 0.24)
+          .fill({ color: accent, alpha: 0.75 })
+          .poly([houseLeft - 3, houseTop, houseLeft + width * 0.07, houseTop - height * 0.14, houseLeft + width * 0.17, houseTop])
+          .fill({ color: 0x4f6e62, alpha: 0.82 })
+      }
+    } else if (identity.buildingClass.includes('field') || identity.buildingClass.includes('orchard') || identity.buildingClass.includes('estate') || identity.buildingClass.includes('garden')) {
+      const rows = thriving ? 6 : settled ? 4 : 2
+      for (let index = 0; index < rows; index += 1) {
+        const y = top + height * (0.44 + index * 0.055)
+        this.prefabShell.moveTo(left + width * 0.18, y).lineTo(left + width * 0.82, y + height * 0.08).stroke({ color: accent, alpha: 0.82, width: 2 })
+      }
+    } else if (identity.buildingClass.includes('harbor') || identity.buildingClass.includes('pier') || identity.buildingClass.includes('ferry') || identity.buildingClass.includes('shipyard') || identity.buildingClass.includes('salt')) {
+      this.prefabShell
+        .rect(left + width * 0.06, groundY + height * 0.08, width * 0.88, height * 0.08)
+        .fill({ color: 0x477f9d, alpha: 0.62 })
+        .rect(left + width * 0.24, top + height * 0.47, width * (thriving ? 0.52 : 0.32), 5)
+        .fill({ color: accent, alpha: 0.84 })
+    } else if (identity.buildingClass.includes('lighthouse') || identity.buildingClass.includes('academy')) {
+      const towerHeight = height * (thriving ? 0.56 : settled ? 0.38 : 0.2)
+      this.prefabShell
+        .rect(-width * 0.1, groundY - towerHeight, width * 0.2, towerHeight)
+        .fill({ color: accent, alpha: 0.82 })
+        .poly([-width * 0.16, groundY - towerHeight, 0, groundY - towerHeight - 8, width * 0.16, groundY - towerHeight])
+        .fill({ color: 0x4f6e62, alpha: 0.8 })
+    } else {
+      const bays = thriving ? 4 : settled ? 2 : 1
+      for (let index = 0; index < bays; index += 1) {
+        this.prefabShell
+          .rect(left + width * (0.2 + index * (0.58 / bays)), top + height * 0.39, width * (0.34 / bays), height * 0.31)
+          .fill({ color: accent, alpha: 0.78 })
+      }
+      this.prefabShell
+        .poly([left + width * 0.14, top + height * 0.39, 0, top + height * (thriving ? 0.2 : 0.28), left + width * 0.86, top + height * 0.39])
+        .fill({ color: 0x4f6e62, alpha: 0.84 })
+    }
+
+    this.prefabOutline
+      .rect(left, top, width, height)
+      .stroke({ color: 0x283643, alpha: 0.48, width: 1.2 })
+    this.prefabInfoBar
+      .roundRect(left + 3, top + 3, width - 6, 8, 2)
+      .fill({ color: 0xf4ecd7, alpha: 0.78 })
+      .rect(left + 5, top + 5, Math.max(4, (width - 10) * (normalizedLevel / 8)), 4)
+      .fill({ color: accent, alpha: 0.72 })
+    this.prefabStatusBar
+      .rect(left + 3, -5, width - 6, 3)
+      .fill({ color: 0x283643, alpha: 0.18 })
+      .rect(left + 3, -5, (width - 6) * Math.max(0.08, Math.min(1, building.productionProgress || 0)), 3)
+      .fill({ color: accent, alpha: 0.75 })
+    this.prefabLevelMarks.stroke({ color: 0x283643, alpha: 0.42, width: 1 })
+    for (let index = 0; index <= 8; index += 1) {
+      const x = left + 5 + ((width - 10) * index) / 8
+      this.prefabLevelMarks.moveTo(x, top + 12).lineTo(x, top + 8 - (index === normalizedLevel ? 4 : 0))
+    }
+    this.prefabLabel.text = `${assetId} · L${normalizedLevel} · ${level.silhouette}`
     this.prefabLabel.position.set(left + 6, top + 3)
   }
 
@@ -1140,6 +1498,7 @@ export class BuildingVisual extends BaseVisual {
     this.statusLayer.label = `building-status-layer:${presentation}`
     this.statusSymbol.label = `building-status-symbol:${presentation}`
     this.statusMotion.label = `building-status-motion:${presentation}`
+    this.statusMotion.alpha = 1
     this.statusMask.label = `building-status-mask:${presentation}`
     this.drawStatusHint(presentation, width, height, accent)
     this.statusSymbol.clear()
@@ -1255,6 +1614,9 @@ export class BuildingVisual extends BaseVisual {
     accent: number,
     phase: number,
   ): void {
+    // Keep the obstruction readable while making the warning breathe with the
+    // simulation clock. Each cause still owns its own symbol below.
+    this.statusMotion.alpha = 0.58 + (Math.sin(phase) + 1) * 0.14
     this.statusMask
       .moveTo(-16, y - 10)
       .lineTo(16, y + 10)
@@ -1455,11 +1817,12 @@ export class AgentVisual extends BaseVisual {
   private readonly trail = new Graphics({ label: 'agent-activity-trail' })
   private readonly body = new Graphics({ label: 'agent-body' })
   private readonly marker = new Graphics({ label: 'agent-activity-marker' })
+  private readonly residentState = new Graphics({ label: 'resident-lifecycle-state' })
 
   constructor(metrics: Readonly<IsoMetrics>, kind: 'resident' | 'transport') {
     super(metrics)
     this.kind = kind
-    this.display.addChild(this.trail, this.body, this.marker)
+    this.display.addChild(this.trail, this.body, this.marker, this.residentState)
   }
 
   update(snapshot: Readonly<SimulationSnapshot>, alpha: number): void {
@@ -1508,9 +1871,10 @@ export class AgentVisual extends BaseVisual {
       }
     } else {
       this.body.circle(0, -12 - bob, 4).fill({ color: 0xe7c6a5 })
-      this.body.roundRect(-4, -8 - bob, 8, 12, 3).fill({ color: ROLE_COLOR[agent.role] })
+      this.body.roundRect(-4, -8 - bob, 8, 12, 3).fill({ color: agentBodyColor(snapshot, agent) })
     }
     this.drawAgentActivityMarker(activityKind, bob, phase)
+    this.drawResidentLifecycleState(snapshot, agent, bob, phase)
   }
 
   private drawAgentActivityTrail(
@@ -1599,6 +1963,35 @@ export class AgentVisual extends BaseVisual {
     }
   }
 
+  private drawResidentLifecycleState(
+    snapshot: Readonly<SimulationSnapshot>,
+    agent: Readonly<AgentEntity>,
+    bob: number,
+    phase: number,
+  ): void {
+    this.residentState.clear()
+    this.residentState.label = 'resident-lifecycle-state:none'
+    if (this.kind !== 'resident') return
+    const household = agent.householdId ? snapshot.households[agent.householdId] : undefined
+    const settledTick = household?.settledTick
+    const recentlySettled = household?.origin === 'migrated'
+      && settledTick !== undefined
+      && snapshot.tick >= settledTick
+      && snapshot.tick - settledTick <= 24
+    if (!recentlySettled) return
+
+    this.residentState.label = 'resident-lifecycle-state:new-arrival'
+    const pulse = 0.68 + Math.abs(Math.sin(phase)) * 0.2
+    this.residentState
+      .ellipse(0, -10 - bob, 9 + pulse * 2, 14 + pulse * 2)
+      .stroke({ color: 0xf2d77c, alpha: 0.38 + pulse * 0.2, width: 1.4 })
+      .moveTo(7, -22 - bob)
+      .lineTo(7, -31 - bob)
+      .stroke({ color: 0xd69a72, alpha: 0.9, width: 1.2 })
+      .poly([7, -31 - bob, 14, -28 - bob, 7, -25 - bob])
+      .fill({ color: 0xf2d77c, alpha: 0.95 })
+  }
+
   private updateMigrationCandidate(snapshot: Readonly<SimulationSnapshot>): void {
     if (!this.entityId) return
     const candidateId = this.entityId.startsWith('migration-candidate:')
@@ -1610,18 +2003,30 @@ export class AgentVisual extends BaseVisual {
     const phase = animationPhase(snapshot, candidate.id)
     this.place(candidate.position)
     this.body.clear()
+    this.residentState.clear()
+    const statusColor = candidate.status === 'walking'
+      ? 0x7fb08a
+      : candidate.status === 'arriving'
+        ? 0x83a9c7
+        : 0xd7b75b
+    this.residentState.label = `resident-lifecycle-state:candidate-${candidate.status}`
     const count = Math.min(3, Math.max(1, candidate.members))
     for (let index = 0; index < count; index += 1) {
       const offset = (index - (count - 1) / 2) * 7
       const bob = Math.sin(phase + index * 0.75) * 1.5
       this.body.circle(offset, -13 - bob, 3.5).fill({ color: 0xe7c6a5 })
       this.body.roundRect(offset - 3.5, -9 - bob, 7, 11, 3)
-        .fill({ color: 0x6f7f95 })
+        .fill({ color: statusColor })
     }
     this.body.roundRect(-13, 3, 26, 6, 3)
-      .fill({ color: 0xd7b75b, alpha: 0.85 })
+      .fill({ color: statusColor, alpha: 0.85 })
     this.body.circle(10, -16 + Math.sin(phase) * 1.5, 3)
-      .fill({ color: 0xf2d77c, alpha: 0.95 })
+      .fill({ color: statusColor, alpha: 0.95 })
+    this.residentState
+      .circle(0, -29, 5.5)
+      .fill({ color: statusColor, alpha: 0.2 + Math.abs(Math.sin(phase)) * 0.16 })
+      .circle(0, -29, 2.2)
+      .fill({ color: statusColor, alpha: 0.95 })
   }
 }
 

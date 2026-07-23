@@ -16,6 +16,22 @@ describe('GameRuntime integration', () => {
     expect(snapshot.districts?.some((district) => district.kind === 'market-street')).toBe(true)
   })
 
+  it('injects the resident lifecycle browser fixture into the live engine', () => {
+    const runtime = new GameRuntime({ debugScenario: 'civilization-resident-timeline' })
+    const timeline = runtime.getSnapshot().cityTimeline ?? []
+
+    expect(timeline).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        source: 'migration-candidate-arrived',
+        resident: expect.objectContaining({ phase: 'arrived', origin: '候选家庭' }),
+      }),
+      expect.objectContaining({
+        source: 'household-migrated',
+        resident: expect.objectContaining({ phase: 'settled', origin: '外来家庭' }),
+      }),
+    ]))
+  })
+
   it('places roads and road-connected buildings into the shared snapshot', () => {
     const runtime = new GameRuntime()
     const before = runtime.getSnapshot()
@@ -666,6 +682,16 @@ describe('GameRuntime integration', () => {
       carriersReleased: 1,
       queuesCleared: 1,
     })
+    expect(after.logisticsStorageInterventionHistory).toEqual([{
+      eventId: `logistics-storage-${result.logisticsStorage!.buildingId}-${after.tick}`,
+      buildingId: result.logisticsStorage!.buildingId,
+      buildingType: 'granary',
+      tick: after.tick,
+      orderIds: ['storage-order'],
+      ordersReset: 1,
+      carriersReleased: 1,
+      queuesCleared: 1,
+    }])
   })
 
   it('previews building placement footprint and conflicts without mutating the city', () => {
@@ -853,6 +879,12 @@ describe('GameRuntime integration', () => {
       missing: {},
       canUpgrade: true,
       effect: { capacity: 14, jobs: 0 },
+      economic: {
+        capacityDelta: 2,
+        productionValueDelta: 0,
+        serviceCapacityDelta: 0,
+        verdict: 'no-return',
+      },
     })
     expect(before.buildings['granary-1'].inventory.wood).toBe(14)
     expect(before.buildings['granary-1'].inventory.stone).toBe(8)

@@ -4,6 +4,7 @@ import type {
   BuildingEntity,
   GridPoint,
   HouseholdState,
+  HouseholdNeedPressureCause,
   ResourceKind,
   SimulationEvent,
   SimulationSnapshot,
@@ -11,6 +12,7 @@ import type {
 } from '../contracts'
 import { inventoryAmount, removeInventory } from './inventory'
 import { RoadRoutePlanner, type RoutePlanner } from './logistics'
+import { activeWorkerCount } from '../core/workforce'
 
 type NeedKind = keyof HouseholdState['needs']
 
@@ -104,6 +106,8 @@ export class ServiceSystem implements SimulationSystem {
     const unmetNeeds = new Map<string, {
       household: HouseholdState
       rule: ServiceRule
+      cause: HouseholdNeedPressureCause
+      buildingId: string
     }>()
     const serviceBuildings = Object.values(snapshot.buildings)
       .filter((building) => this.rulesFor(building).length > 0)
@@ -115,41 +119,43 @@ export class ServiceSystem implements SimulationSystem {
 
       for (const rule of this.rulesFor(serviceBuilding)) {
         const queueId = serviceQueueId(serviceBuilding.id, rule.need)
+        const previousStatus = serviceBuilding.status
+        const previousStatusReason = serviceBuilding.statusReason
         touchedQueues.add(queueId)
         const demandingHouseholds = this.demandingHouseholds(snapshot, rule)
         const candidates = this.reachableHouseholds(snapshot, serviceBuilding, rule)
-        if (serviceBuilding.workers.length === 0) {
-          markBlocked(serviceBuilding, 'no-workers')
+        if (activeWorkerCount(snapshot, serviceBuilding) === 0) {
+          markBlocked(serviceBuilding, 'no-workers', snapshot.tick)
           this.recordServiceQueue(snapshot, serviceBuilding, rule, {
             servedThisTick: 0,
             rejectedThisTick: candidates.length,
             waiting: [],
           })
-          this.markUnmet(unmetNeeds, candidates, rule)
+          this.markUnmet(unmetNeeds, candidates, rule, 'no-workers', serviceBuilding.id)
           continue
         }
         if (candidates.length === 0) {
           if (demandingHouseholds.length === 0) continue
-          markBlocked(serviceBuilding, 'no-service-route')
+          markBlocked(serviceBuilding, 'no-service-route', snapshot.tick)
           this.recordServiceQueue(snapshot, serviceBuilding, rule, {
             servedThisTick: 0,
             rejectedThisTick: demandingHouseholds.length,
             waiting: [],
           })
           if (demandingHouseholds.length > 0) {
-            this.markUnmet(unmetNeeds, demandingHouseholds, rule)
+            this.markUnmet(unmetNeeds, demandingHouseholds, rule, 'no-route', serviceBuilding.id)
           }
           continue
         }
         const consume = rule.amountPerHousehold ?? 1
         if (rule.resource && inventoryAmount(serviceBuilding, rule.resource) < consume) {
-          markBlocked(serviceBuilding, `missing-service-resource:${rule.resource}`)
+          markBlocked(serviceBuilding, `missing-service-resource:${rule.resource}`, snapshot.tick)
           this.recordServiceQueue(snapshot, serviceBuilding, rule, {
             servedThisTick: 0,
             rejectedThisTick: candidates.length,
             waiting: [],
           })
-          this.markUnmet(unmetNeeds, candidates, rule)
+          this.markUnmet(unmetNeeds, candidates, rule, 'missing-resource', serviceBuilding.id)
           continue
         }
         const saleValue = definition.category === 'market'
@@ -162,22 +168,24 @@ export class ServiceSystem implements SimulationSystem {
           markBlocked(
             serviceBuilding,
             `insufficient-household-income:${rule.resource ?? rule.need}`,
+            snapshot.tick,
           )
           this.recordServiceQueue(snapshot, serviceBuilding, rule, {
             servedThisTick: 0,
             rejectedThisTick: candidates.length,
             waiting: [],
           })
-          this.markUnmet(unmetNeeds, candidates, rule)
+          this.markUnmet(unmetNeeds, candidates, rule, 'unaffordable', serviceBuilding.id)
           continue
         }
 
         let served = 0
         const servedHouseholdIds = new Set<string>()
         const activeVisitCount = activeVisits.counts.get(serviceQueueId(serviceBuilding.id, rule.need)) ?? 0
-        const maxConcurrentVisits = rule.maxConcurrentVisits ?? rule.maxHouseholdsPerTick * 2
+        const capacityPerTick = serviceCapacityPerTick(rule, serviceBuilding.level)
+        const maxConcurrentVisits = rule.maxConcurrentVisits ?? capacityPerTick * 2
         const remainingConcurrentSlots = Math.max(0, maxConcurrentVisits - activeVisitCount)
-        const dispatchCapacity = Math.min(rule.maxHouseholdsPerTick, remainingConcurrentSlots)
+        const dispatchCapacity = Math.min(capacityPerTick, remainingConcurrentSlots)
         const queueCandidates = affordableCandidates.filter((household) => (
           !activeVisits.keys.has(activeServiceVisitKey(serviceBuilding.id, household.id, rule.need))
         ))
@@ -200,6 +208,23 @@ export class ServiceSystem implements SimulationSystem {
         if (served > 0) {
           serviceBuilding.status = 'serving'
           delete serviceBuilding.statusReason
+          delete serviceBuilding.blockedSinceTick
+          delete serviceBuilding.blockedAuditBaseline
+          const pressuredHouseholds = candidates.filter((household) => (
+            servedHouseholdIds.has(household.id) && Boolean(household.needPressure?.[rule.need])
+          ))
+          if (previousStatusReason || pressuredHouseholds.length > 0) {
+            events.push({
+              type: 'service-bottleneck-cleared',
+              buildingId: serviceBuilding.id,
+              need: rule.need,
+              ...(previousStatusReason ? { previousCause: serviceCauseFromStatus(previousStatusReason) } : {}),
+              pressureClearedHouseholds: pressuredHouseholds.length,
+              maxPressureTicks: Math.max(0, ...pressuredHouseholds.map((household) => household.needPressure?.[rule.need]?.ticks ?? 0)),
+              buildingStatusBefore: previousStatus,
+              buildingStatusAfter: serviceBuilding.status,
+            })
+          }
         }
         if (served < candidates.length) {
           this.markUnmet(
@@ -209,6 +234,8 @@ export class ServiceSystem implements SimulationSystem {
               && !activeVisits.keys.has(activeServiceVisitKey(serviceBuilding.id, household.id, rule.need))
             )),
             rule,
+            'capacity',
+            serviceBuilding.id,
           )
         }
         this.recordServiceQueue(snapshot, serviceBuilding, rule, {
@@ -222,7 +249,7 @@ export class ServiceSystem implements SimulationSystem {
     for (const queueId of Object.keys(snapshot.serviceQueues)) {
       if (!touchedQueues.has(queueId)) delete snapshot.serviceQueues[queueId]
     }
-    this.applyUnmetNeedPressure(unmetNeeds, servedNeeds)
+    this.applyUnmetNeedPressure(snapshot, unmetNeeds, servedNeeds)
     return events
   }
 
@@ -270,23 +297,30 @@ export class ServiceSystem implements SimulationSystem {
     unmetNeeds: Map<string, {
       household: HouseholdState
       rule: ServiceRule
+      cause: HouseholdNeedPressureCause
+      buildingId: string
     }>,
     households: readonly HouseholdState[],
     rule: ServiceRule,
+    cause: HouseholdNeedPressureCause,
+    buildingId: string,
   ): void {
     for (const household of households) {
-      unmetNeeds.set(needKey(household.id, rule.need), { household, rule })
+      unmetNeeds.set(needKey(household.id, rule.need), { household, rule, cause, buildingId })
     }
   }
 
   private applyUnmetNeedPressure(
+    snapshot: SimulationSnapshot,
     unmetNeeds: ReadonlyMap<string, {
       household: HouseholdState
       rule: ServiceRule
+      cause: HouseholdNeedPressureCause
+      buildingId: string
     }>,
     servedNeeds: ReadonlySet<string>,
   ): void {
-    for (const [key, { household, rule }] of unmetNeeds) {
+    for (const [key, { household, rule, cause, buildingId }] of unmetNeeds) {
       if (servedNeeds.has(key)) continue
       household.needs[rule.need] = clamp(
         household.needs[rule.need] - (rule.unmetNeedPenalty ?? 1),
@@ -298,6 +332,20 @@ export class ServiceSystem implements SimulationSystem {
         0,
         100,
       )
+      household.needPressure ??= {}
+      const previous = household.needPressure[rule.need]
+      household.needPressure[rule.need] = {
+        ticks: Math.min(10_000, (previous?.ticks ?? 0) + 1),
+        cause,
+        buildingId,
+      }
+    }
+    for (const key of servedNeeds) {
+      const [householdId, need] = key.split(':') as [string, NeedKind]
+      const household = snapshot.households[householdId]
+      if (household?.needPressure?.[need]) {
+        delete household.needPressure[need]
+      }
     }
   }
 
@@ -381,7 +429,7 @@ export class ServiceSystem implements SimulationSystem {
     snapshot.serviceQueues[id] = {
       buildingId: serviceBuilding.id,
       need: rule.need,
-      capacityPerTick: rule.maxHouseholdsPerTick,
+      capacityPerTick: serviceCapacityPerTick(rule, serviceBuilding.level),
       servedThisTick: state.servedThisTick,
       rejectedThisTick: state.rejectedThisTick,
       waitingCount: state.waiting.length,
@@ -429,7 +477,7 @@ export class ServiceSystem implements SimulationSystem {
     if (intent.resource) {
       const removed = removeInventory(serviceBuilding, intent.resource, intent.amount)
       if (!removed.ok) {
-        markBlocked(serviceBuilding, `missing-service-resource:${intent.resource}`)
+        markBlocked(serviceBuilding, `missing-service-resource:${intent.resource}`, snapshot.tick)
         return []
       }
       if (intent.saleValue > 0) {
@@ -447,27 +495,44 @@ export class ServiceSystem implements SimulationSystem {
         })
       }
     }
+    const needBefore = household.needs[intent.need]
     household.needs[intent.need] = clamp(
       household.needs[intent.need] + intent.restoreAmount,
       0,
       100,
     )
+    const needAfter = household.needs[intent.need]
     serviceBuilding.status = 'serving'
     delete serviceBuilding.statusReason
+    delete serviceBuilding.blockedSinceTick
+    delete serviceBuilding.blockedAuditBaseline
     intent.completed = true
     events.push({
       type: 'service-delivered',
       buildingId: serviceBuilding.id,
       householdId: household.id,
       need: intent.need,
+      needBefore,
+      needAfter,
     })
     return events
   }
 }
 
-function markBlocked(building: BuildingEntity, reason: string): void {
+function markBlocked(building: BuildingEntity, reason: string, tick: number): void {
+  if (building.status !== 'blocked' || building.statusReason !== reason) {
+    building.blockedSinceTick = tick
+  }
   building.status = 'blocked'
   building.statusReason = reason
+}
+
+function serviceCauseFromStatus(reason: string): HouseholdNeedPressureCause | undefined {
+  if (reason === 'no-workers') return 'no-workers'
+  if (reason === 'no-service-route') return 'no-route'
+  if (reason.startsWith('missing-service-resource:')) return 'missing-resource'
+  if (reason.startsWith('insufficient-household-income:')) return 'unaffordable'
+  return undefined
 }
 
 function needKey(householdId: string, need: NeedKind): string {
@@ -476,6 +541,11 @@ function needKey(householdId: string, need: NeedKind): string {
 
 function serviceQueueId(buildingId: string, need: NeedKind): string {
   return `${buildingId}:${need}`
+}
+
+export function serviceCapacityPerTick(rule: ServiceRule, level: number): number {
+  const normalizedLevel = Math.max(1, Math.floor(level))
+  return rule.maxHouseholdsPerTick + Math.floor(Math.max(0, normalizedLevel - 1) / 2)
 }
 
 function clamp(value: number, min: number, max: number): number {

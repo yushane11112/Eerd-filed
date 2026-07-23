@@ -11,6 +11,7 @@ import type {
 import {
   CIVILIZATION_LONG_RUN_THRESHOLDS,
   createStressScenario,
+  TARGET_STRESS_SIZE,
   stressScenarioDefinitions,
   stressScenarioServiceRules,
   summarizeStressScenario,
@@ -50,6 +51,11 @@ export interface CivilizationLongRunLayerSummary extends StressScenarioSummary {
 
 export interface CivilizationLongRunReport {
   ticks: number
+  scaleBaseline: {
+    households: number
+    buildings: number
+    visibleAgents: number
+  }
   layers: CivilizationLongRunLayerSummary[]
   final: CivilizationLongRunLayerSummary
   queuePressureProbe: CivilizationLongRunLayerSummary
@@ -87,6 +93,11 @@ export function runCivilizationLongRunScenario(): CivilizationLongRunReport {
   const final = layers[layers.length - 1]
   return {
     ticks: CIVILIZATION_30_DAY_TICKS,
+    scaleBaseline: {
+      households: TARGET_STRESS_SIZE.households,
+      buildings: TARGET_STRESS_SIZE.buildings,
+      visibleAgents: TARGET_STRESS_SIZE.visibleAgents,
+    },
     layers,
     final,
     queuePressureProbe: runCivilizationQueuePressureProbe(),

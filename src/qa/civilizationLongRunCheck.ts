@@ -10,6 +10,9 @@ export function runCivilizationLongRunCheck(): void {
   assertEqual(CIVILIZATION_30_DAY_TICKS, 7_200, '30-day long run ticks')
   assertDeepEqual(CIVILIZATION_LONG_RUN_LAYER_TICKS, [2_400, 4_800, 7_200], 'layer ticks')
   assertEqual(report.final.tick, CIVILIZATION_30_DAY_TICKS, 'final tick')
+  assertEqual(report.scaleBaseline.households, 500, 'scale baseline households')
+  assertEqual(report.scaleBaseline.buildings, 300, 'scale baseline buildings')
+  assertEqual(report.scaleBaseline.visibleAgents, 150, 'scale baseline visible agents')
   assertDeepEqual(report.layers.map((layer) => layer.tick), CIVILIZATION_LONG_RUN_LAYER_TICKS, 'report layer ticks')
   assertEqual(report.layers.length, 3, 'layer count')
 

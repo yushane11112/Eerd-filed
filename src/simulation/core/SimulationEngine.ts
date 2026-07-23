@@ -2,8 +2,13 @@ import type {
   AgentEntity,
   BuildingDefinition,
   BuildingEntity,
+  BuildingBlockageConsequences,
+  BuildingBlockageConsequenceDelta,
+  BuildingRuntimeStatus,
+  CityTimelineResidentProfile,
   EntityId,
   HouseholdState,
+  HouseholdNeedPressureCause,
   MigrationCandidateState,
   SimulationEvent,
   SimulationSnapshot,
@@ -26,6 +31,7 @@ export interface SimulationEngineOptions {
 export interface SimulationAdvanceResult {
   ticks: number
   events: SimulationEvent[]
+  departedResidents?: Record<EntityId, CityTimelineResidentProfile>
 }
 
 const VALID_SPEEDS = new Set([0, 1, 2, 4])
@@ -48,10 +54,18 @@ export class SimulationEngine {
   private readonly initialSatisfaction: number
   private readonly migrationOutThreshold: number
   private accumulatedMs = 0
+  private departedResidents: Record<EntityId, CityTimelineResidentProfile> = {}
 
   constructor(snapshot: SimulationSnapshot, options: SimulationEngineOptions = {}) {
     this.state = structuredClone(snapshot)
     this.state.migrationCandidates ??= {}
+    this.state.populationFlow ??= emptyPopulationFlow()
+    this.state.populationFlow.arrivalsByHousing ??= {}
+    this.state.populationFlow.departuresByReason ??= {}
+    this.state.populationFlow.departuresByHousing ??= {}
+    this.state.populationFlow.departuresByOccupation ??= {}
+    this.state.populationFlow.employedWorkersOut ??= 0
+    this.state.populationFlow.unemployedWorkersOut ??= 0
     this.definitions = options.buildingDefinitions ?? {}
     this.systems = options.systems ?? []
     const ticksPerSecond = options.ticksPerSecond ?? 5
@@ -102,7 +116,13 @@ export class SimulationEngine {
     this.accumulatedMs += elapsedMs * this.state.speed
     const ticks = Math.floor(this.accumulatedMs / this.tickDurationMs)
     this.accumulatedMs -= ticks * this.tickDurationMs
-    return { ticks, events: this.runTicks(ticks) }
+    this.departedResidents = {}
+    const events = this.runTicks(ticks)
+    return {
+      ticks,
+      events,
+      ...(Object.keys(this.departedResidents).length > 0 ? { departedResidents: structuredClone(this.departedResidents) } : {}),
+    }
   }
 
   step(ticks = 1): SimulationEvent[] {
@@ -120,25 +140,127 @@ export class SimulationEngine {
   private runTick(): SimulationEvent[] {
     this.state.tick += 1
     const events: SimulationEvent[] = []
+    const blockageBefore = new Map(Object.values(this.state.buildings).map((building) => [building.id, blockageSnapshot(building)]))
 
     this.updateHouseholdNeedsAndSatisfaction()
     this.advanceWorkerCommutes()
     this.updateWorkerShifts()
-    this.matchEmployment()
+    events.push(...this.matchEmployment())
+    events.push(...this.updateWorkerAttendance())
     events.push(...this.updateMigrationCandidates())
 
     if (this.state.tick % this.migrationIntervalTicks === 0) {
       const arrived = this.createMigrationCandidate()
       if (arrived) events.push(arrived)
-      this.matchEmployment()
+      events.push(...this.matchEmployment())
     }
 
     for (const system of this.systems) {
       events.push(...system.update(this.state))
     }
+    events.push(...this.detectBlockageTransitions(blockageBefore, events))
     events.push(...this.migrateOutDissatisfiedHouseholds())
     this.recalculateMetrics()
     return events
+  }
+
+  private detectBlockageTransitions(
+    previous: ReadonlyMap<EntityId, { reason?: string; blockedSinceTick?: number }>,
+    existingEvents: readonly SimulationEvent[],
+  ): SimulationEvent[] {
+    const events: SimulationEvent[] = []
+    for (const building of Object.values(this.state.buildings).sort(byId)) {
+      const before = previous.get(building.id)
+      const after = blockageSnapshot(building)
+      const startsNewBlockage = Boolean(after.reason && (
+        !before?.reason
+        || before.reason !== after.reason
+        || before.blockedSinceTick !== after.blockedSinceTick
+      ))
+      if (startsNewBlockage) {
+        const reason = after.reason
+        if (!reason) continue
+        if (before?.reason && (before.reason !== reason || before.blockedSinceTick !== after.blockedSinceTick)) {
+          if (!existingEvents.some((event) => event.type === 'service-bottleneck-cleared' && event.buildingId === building.id)) {
+            const blockedSinceTick = before.blockedSinceTick ?? this.state.tick
+            const consequences = this.blockageConsequences(building)
+            const consequencesAtStart = building.blockedAuditBaseline
+            const consequenceDelta = consequencesAtStart
+              ? blockageConsequenceDelta(consequencesAtStart, consequences)
+              : undefined
+            events.push({
+              type: 'building-blockage-cleared',
+              buildingId: building.id,
+              reason: before.reason,
+              blockedSinceTick,
+              durationTicks: Math.max(0, this.state.tick - blockedSinceTick),
+              resolvedStatus: building.status,
+              consequences,
+              ...(consequencesAtStart ? { consequencesAtStart } : {}),
+              ...(consequenceDelta ? { consequenceDelta } : {}),
+            })
+          }
+          delete building.blockedAuditBaseline
+        }
+        const consequences = this.blockageConsequences(building)
+        const blockageStartedTick = before?.reason && before.reason !== reason
+          ? this.state.tick
+          : (after.blockedSinceTick ?? this.state.tick)
+        building.blockedSinceTick = blockageStartedTick
+        building.blockedAuditBaseline = consequences
+        events.push({
+          type: 'building-blockage-started',
+          buildingId: building.id,
+          reason,
+          blockedSinceTick: blockageStartedTick,
+          consequences,
+        })
+      } else if (before?.reason && !after.reason) {
+        if (existingEvents.some((event) => event.type === 'service-bottleneck-cleared' && event.buildingId === building.id)) {
+          continue
+        }
+        const blockedSinceTick = before.blockedSinceTick ?? this.state.tick
+        const consequences = this.blockageConsequences(building)
+        const consequencesAtStart = building.blockedAuditBaseline
+        const consequenceDelta = consequencesAtStart
+          ? blockageConsequenceDelta(consequencesAtStart, consequences)
+          : undefined
+        events.push({
+          type: 'building-blockage-cleared',
+          buildingId: building.id,
+          reason: before.reason,
+          blockedSinceTick,
+          durationTicks: Math.max(0, this.state.tick - blockedSinceTick),
+          resolvedStatus: building.status,
+          consequences,
+          ...(consequencesAtStart ? { consequencesAtStart } : {}),
+          ...(consequenceDelta ? { consequenceDelta } : {}),
+        })
+        delete building.blockedAuditBaseline
+      }
+    }
+    return events
+  }
+
+  private blockageConsequences(building: BuildingEntity): BuildingBlockageConsequences {
+    const definition = this.definitions[building.type]
+    const absentWorkers = building.workers.filter((workerId) => this.state.agents[workerId]?.workStatus === 'absent').length
+    const relatedLogisticsOrders = Object.values(this.state.logisticsOrders).filter((order) => (
+      order.state !== 'delivered'
+      && order.state !== 'cancelled'
+      && (order.sourceBuildingId === building.id || order.destinationBuildingId === building.id)
+    )).length
+    const inventoryTotal = Object.values(building.inventory).reduce((total, amount) => total + (amount ?? 0), 0)
+    const pressuredHouseholds = Object.values(this.state.households).filter((household) => (
+      Object.values(household.needPressure ?? {}).some((pressure) => pressure?.buildingId === building.id && (pressure.ticks ?? 0) > 0)
+    )).length
+    return {
+      absentWorkers,
+      relatedLogisticsOrders,
+      inventoryTotal,
+      ...(definition ? { inventoryCapacity: effectiveBuildingDefinition(definition, building).capacity } : {}),
+      pressuredHouseholds,
+    }
   }
 
   private createMigrationCandidate(): SimulationEvent | undefined {
@@ -284,6 +406,8 @@ export class SimulationEngine {
       workerIds,
       income: 0,
       satisfaction: this.initialSatisfaction,
+      origin: 'migrated',
+      settledTick: this.state.tick,
       needs: {
         food: 100,
         goods: 100,
@@ -293,6 +417,11 @@ export class SimulationEngine {
       },
     }
     delete this.state.migrationCandidates?.[candidateId]
+    const flow = this.state.populationFlow!
+    flow.householdsIn += 1
+    flow.residentsIn += candidate.members
+    flow.lastInTick = this.state.tick
+    increment(flow.arrivalsByHousing, home.type)
     this.state.seed = random.seed
     return { type: 'household-migrated', householdId, direction: 'in' }
   }
@@ -305,6 +434,16 @@ export class SimulationEngine {
       .sort(byId)
 
     for (const household of leaving) {
+      const workerProfiles = household.workerIds.map((workerId) => {
+        const worker = this.state.agents[workerId]
+        const employerId = worker?.employerBuildingId
+        const employer = employerId ? this.state.buildings[employerId] : undefined
+        return {
+          workerId,
+          employerId,
+          occupation: employer ? (this.definitions[employer.type]?.name ?? employer.type) : '待业',
+        }
+      })
       for (const workerId of household.workerIds) {
         const employerId = this.state.agents[workerId]?.employerBuildingId
         if (employerId) {
@@ -315,17 +454,56 @@ export class SimulationEngine {
         }
         delete this.state.agents[workerId]
       }
+      const migration = migrationOutReason(household, this.state)
+      this.departedResidents[household.id] = this.departedResidentProfile(household, workerProfiles)
+      const flow = this.state.populationFlow!
+      flow.householdsOut += 1
+      flow.residentsOut += household.members
+      flow.lastOutTick = this.state.tick
+      flow.departuresByReason[migration.reason] = (flow.departuresByReason[migration.reason] ?? 0) + 1
+      const housingType = this.state.buildings[household.homeBuildingId]?.type ?? 'unknown'
+      increment(flow.departuresByHousing, housingType)
+      for (const worker of workerProfiles) {
+        if (worker.employerId) {
+          flow.employedWorkersOut += 1
+          const buildingType = this.state.buildings[worker.employerId]?.type ?? worker.employerId
+          increment(flow.departuresByOccupation, buildingType)
+        } else {
+          flow.unemployedWorkersOut += 1
+          increment(flow.departuresByOccupation, 'unemployed')
+        }
+      }
       delete this.state.households[household.id]
       events.push({
         type: 'household-migrated',
         householdId: household.id,
         direction: 'out',
+        ...migration,
       })
     }
     return events
   }
 
-  private matchEmployment(): void {
+  private departedResidentProfile(
+    household: HouseholdState,
+    workerProfiles: readonly { workerId: string; employerId?: string; occupation: string }[],
+  ): CityTimelineResidentProfile {
+    const occupations = workerProfiles.map((worker) => worker.occupation)
+    const uniqueOccupations = [...new Set(occupations)]
+    return {
+      phase: 'departed',
+      origin: '离城家庭',
+      members: household.members,
+      workerCount: household.workerIds.length,
+      employedCount: workerProfiles.filter((worker) => Boolean(worker.employerId)).length,
+      occupations: uniqueOccupations.length > 0 ? uniqueOccupations : ['无劳动力'],
+      homeBuildingId: household.homeBuildingId,
+      satisfaction: Math.round(household.satisfaction),
+    }
+  }
+
+  private matchEmployment(): SimulationEvent[] {
+    const events: SimulationEvent[] = []
     const employers = Object.values(this.state.buildings)
       .filter((building) => this.jobCapacity(building) > 0)
       .sort(byId)
@@ -341,6 +519,7 @@ export class SimulationEngine {
     }
 
     for (const worker of workers) {
+      const previousBuildingId = worker.employerBuildingId
       if (
         worker.employerBuildingId
         && this.state.buildings[worker.employerBuildingId]
@@ -353,12 +532,85 @@ export class SimulationEngine {
       )
       if (!employer) {
         worker.activity = 'home'
+        if (previousBuildingId) {
+          events.push({
+            type: 'worker-employment-changed',
+            workerId: worker.id,
+            ...(worker.householdId ? { householdId: worker.householdId } : {}),
+            previousBuildingId,
+          })
+        }
         continue
       }
       worker.employerBuildingId = employer.id
       this.startWorkerCommute(worker, employer)
       employer.workers.push(worker.id)
+      if (previousBuildingId !== employer.id) {
+        events.push({
+          type: 'worker-employment-changed',
+          workerId: worker.id,
+          ...(worker.householdId ? { householdId: worker.householdId } : {}),
+          ...(previousBuildingId ? { previousBuildingId } : {}),
+          buildingId: employer.id,
+        })
+      }
     }
+    return events
+  }
+
+  private updateWorkerAttendance(): SimulationEvent[] {
+    const events: SimulationEvent[] = []
+    for (const worker of Object.values(this.state.agents)
+      .filter((agent) => agent.role === 'worker' && agent.employerBuildingId)
+      .sort(byId)) {
+      const household = worker.householdId ? this.state.households[worker.householdId] : undefined
+      if (!household) continue
+      const health = household.needs.health
+      const shouldBeAbsent = health <= 25 || household.satisfaction <= 25
+      const absenceReason = health <= 25 ? 'low-health' as const : 'low-satisfaction' as const
+      if (worker.workStatus === 'absent') {
+        if (health < 45 || household.satisfaction < 45) continue
+        worker.workStatus = 'present'
+        delete worker.absenceReason
+        const employer = worker.employerBuildingId ? this.state.buildings[worker.employerBuildingId] : undefined
+        if (employer) this.startWorkerCommute(worker, employer)
+        events.push({
+          type: 'worker-attendance-changed',
+          workerId: worker.id,
+          householdId: household.id,
+          ...(worker.employerBuildingId ? { buildingId: worker.employerBuildingId } : {}),
+          status: 'present',
+          reason: 'recovered',
+        })
+        continue
+      }
+      if (!shouldBeAbsent) {
+        worker.workStatus ??= 'present'
+        continue
+      }
+      worker.workStatus = 'absent'
+      worker.absenceReason = absenceReason
+      worker.activity = 'home'
+      worker.path = []
+      worker.pathIndex = 0
+      events.push({
+        type: 'worker-attendance-changed',
+        workerId: worker.id,
+        householdId: household.id,
+        ...(worker.employerBuildingId ? { buildingId: worker.employerBuildingId } : {}),
+        status: 'absent',
+        reason: absenceReason,
+      })
+    }
+    for (const household of Object.values(this.state.households)) {
+      const absentWorkers = household.workerIds.filter(
+        (workerId) => this.state.agents[workerId]?.workStatus === 'absent',
+      ).length
+      if (absentWorkers > 0) {
+        household.absenceTicks = (household.absenceTicks ?? 0) + 1
+      }
+    }
+    return events
   }
 
   private startWorkerCommute(worker: AgentEntity, employer: BuildingEntity): void {
@@ -461,6 +713,12 @@ export class SimulationEngine {
         0,
         100,
       )
+      household.unmetNeedTicks ??= {}
+      for (const [need, value] of Object.entries(household.needs) as [keyof HouseholdState['needs'], number][]) {
+        household.unmetNeedTicks[need] = value <= CRITICAL_NEED_THRESHOLD
+          ? Math.min(10_000, (household.unmetNeedTicks[need] ?? 0) + 1)
+          : 0
+      }
 
       const employed = household.workerIds.filter(
         (id) => Boolean(this.state.agents[id]?.employerBuildingId),
@@ -584,7 +842,11 @@ export class SimulationEngine {
       logisticsEfficiency: this.state.metrics.logisticsEfficiency,
       openHousingCapacity,
       cityAttraction: Math.round(this.calculateCityAttraction()),
+      publicServiceCoverage: Math.round(this.calculatePublicServiceCoverage()),
       waitingMigrants: Object.keys(this.state.migrationCandidates ?? {}).length,
+      migrationIn: this.state.populationFlow?.householdsIn ?? 0,
+      migrationOut: this.state.populationFlow?.householdsOut ?? 0,
+      netMigration: (this.state.populationFlow?.householdsIn ?? 0) - (this.state.populationFlow?.householdsOut ?? 0),
     }
   }
 
@@ -622,6 +884,7 @@ export class SimulationEngine {
     const housingScore = Math.min(1, openHousingCapacity / Math.max(1, this.householdSize[1] * 2))
     const jobsScore = Math.min(1, availableJobs / Math.max(1, this.householdSize[0]))
     const satisfactionScore = satisfaction / 100
+    const publicServiceScore = this.calculatePublicServiceCoverage() / 100
     const logisticsScore = clamp(this.state.metrics.logisticsEfficiency / 100, 0, 1)
     const taxScore = clamp(1 - this.state.economy.taxRate * 2, 0, 1)
 
@@ -629,12 +892,23 @@ export class SimulationEngine {
       housingScore * 30
         + jobsScore * 25
         + foodCoverage * 18
-        + satisfactionScore * 15
+        + satisfactionScore * 10
+        + publicServiceScore * 5
         + logisticsScore * 7
         + taxScore * 5,
       0,
       100,
     )
+  }
+
+  private calculatePublicServiceCoverage(): number {
+    const households = Object.values(this.state.households)
+    if (households.length === 0) return 70
+    return average(households.flatMap((household) => [
+      household.needs.health,
+      household.needs.education,
+      household.needs.entertainment,
+    ]))
   }
 
   private uniqueId(prefix: string, random: DeterministicRandom): string {
@@ -669,6 +943,57 @@ function criticalNeedPenaltyForNeed(need: number): number {
   )
 }
 
+function migrationOutReason(
+  household: HouseholdState,
+  snapshot: SimulationSnapshot,
+): {
+  reason: 'critical-needs' | 'unemployment' | 'chronic-absence' | 'low-satisfaction'
+  need?: keyof HouseholdState['needs']
+  needCause?: HouseholdNeedPressureCause
+  serviceBuildingId?: EntityId
+  absenceTicks?: number
+} {
+  const criticalNeed = Object.entries(household.unmetNeedTicks ?? {})
+    .filter(([, ticks]) => (ticks ?? 0) > 0)
+    .sort((left, right) => (right[1] ?? 0) - (left[1] ?? 0))[0]?.[0] as keyof HouseholdState['needs'] | undefined
+  if (criticalNeed) {
+    const pressure = household.needPressure?.[criticalNeed]
+    return {
+      reason: 'critical-needs',
+      need: criticalNeed,
+      ...(pressure?.cause ? { needCause: pressure.cause } : {}),
+      ...(pressure?.buildingId ? { serviceBuildingId: pressure.buildingId } : {}),
+    }
+  }
+  const employed = household.workerIds.some(
+    (workerId) => Boolean(snapshot.agents[workerId]?.employerBuildingId),
+  )
+  if ((household.absenceTicks ?? 0) >= 3) {
+    return { reason: 'chronic-absence', absenceTicks: household.absenceTicks }
+  }
+  if (household.workerIds.length > 0 && !employed) return { reason: 'unemployment' }
+  return { reason: 'low-satisfaction' }
+}
+
+function emptyPopulationFlow(): NonNullable<SimulationSnapshot['populationFlow']> {
+  return {
+    householdsIn: 0,
+    householdsOut: 0,
+    residentsIn: 0,
+    residentsOut: 0,
+    arrivalsByHousing: {},
+    departuresByReason: {},
+    departuresByHousing: {},
+    departuresByOccupation: {},
+    employedWorkersOut: 0,
+    unemployedWorkersOut: 0,
+  }
+}
+
+function increment(record: Record<string, number>, key: string): void {
+  record[key] = (record[key] ?? 0) + 1
+}
+
 function positiveInteger(value: number, name: string): number {
   if (!Number.isInteger(value) || value < 1) {
     throw new RangeError(`${name} must be a positive integer`)
@@ -678,6 +1003,35 @@ function positiveInteger(value: number, name: string): number {
 
 function byId<T extends { id: string }>(left: T, right: T): number {
   return left.id.localeCompare(right.id)
+}
+
+function blockageSnapshot(building: BuildingEntity): { reason?: string; blockedSinceTick?: number } {
+  const statusReason = building.statusReason ?? ''
+  const operational = building.status === 'blocked'
+    || statusReason === 'no-workers'
+    || statusReason === 'output-full'
+    || statusReason === 'storage-full'
+    || statusReason === 'no-service-route'
+    || statusReason.startsWith('missing-input:')
+    || statusReason.startsWith('missing-service-resource:')
+    || statusReason.startsWith('logistics-failed:')
+  if (!operational) return {}
+  return {
+    reason: statusReason || 'blocked',
+    ...(building.blockedSinceTick === undefined ? {} : { blockedSinceTick: building.blockedSinceTick }),
+  }
+}
+
+function blockageConsequenceDelta(
+  start: BuildingBlockageConsequences,
+  end: BuildingBlockageConsequences,
+): BuildingBlockageConsequenceDelta {
+  return {
+    absentWorkersDelta: end.absentWorkers - start.absentWorkers,
+    relatedLogisticsOrdersDelta: end.relatedLogisticsOrders - start.relatedLogisticsOrders,
+    inventoryDelta: end.inventoryTotal - start.inventoryTotal,
+    pressuredHouseholdsDelta: end.pressuredHouseholds - start.pressuredHouseholds,
+  }
 }
 
 function distanceSquared(

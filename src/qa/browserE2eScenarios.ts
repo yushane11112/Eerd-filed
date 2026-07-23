@@ -6,6 +6,8 @@ export interface BrowserE2eScenario {
   path: string
   mustContainText: string[]
   forbiddenConsoleLevels: BrowserConsoleLevel[]
+  renderEntityAssertions?: Partial<Record<'buildings' | 'residents' | 'transport' | 'drops' | 'visible', number>>
+  renderEntityMinimums?: Partial<Record<'buildings' | 'residents' | 'transport' | 'drops' | 'visible', number>>
   interaction?: {
     clickText: string
     expectToastText: string
@@ -91,6 +93,26 @@ export const BROWSER_E2E_SCENARIOS: BrowserE2eScenario[] = [
     interaction: {
       clickText: '打开服务图层并营造市场',
       expectToastText: '服务覆盖缺口：打开服务图层并营造市场。',
+    },
+  },
+  {
+    id: 'civilization-resident-timeline',
+    title: '居民入住与职业状态浏览器场景',
+    path: '/?debugScenario=civilization-resident-timeline&renderProfile=1',
+    mustContainText: ['城市运行', '居民生活', '就业', '居民状态：', '外来家庭', '候选家庭'],
+    forbiddenConsoleLevels: ['error'],
+  },
+  {
+    id: 'civilization-scale',
+    title: '文明规模动态场景浏览器压力场景',
+    path: '/?debugScenario=civilization-scale&renderProfile=1&disableArtwork=1&disableAnimation=1&disableTerrain=1',
+    mustContainText: ['城市运行'],
+    forbiddenConsoleLevels: ['error'],
+    renderEntityMinimums: {
+      buildings: 300,
+      residents: 135,
+      transport: 15,
+      visible: 150,
     },
   },
 ]

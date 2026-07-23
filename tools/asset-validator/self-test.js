@@ -48,6 +48,22 @@ assert(
   `strict all-level mode should report a clear missing L2 error:\n${JSON.stringify(strictMissingLevelsResult.issues, null, 2)}`,
 );
 
+const overBudgetAnimation = structuredClone(await readFixture('valid-animation-manifest.json'));
+for (let index = 0; index < 6; index += 1) {
+  overBudgetAnimation.slots[`extra-slot-${index}`] = {
+    ...overBudgetAnimation.slots['idle-detail'],
+    clip: `extra-${index}`,
+  };
+}
+const overBudgetResult = validateGoldManifests({
+  building: await readFixture('valid-building-manifest.json'),
+  animation: overBudgetAnimation,
+});
+assert(
+  overBudgetResult.issues.some((issue) => issue.code === 'animation.budget.slots'),
+  `runtime animation slot budget should be enforced:\n${JSON.stringify(overBudgetResult.issues, null, 2)}`,
+);
+
 console.log(
   `OK: self-test passed. valid errors=${validResult.errorCount}; invalid errors=${invalidResult.errorCount}; strict missing-level errors=${strictMissingLevelsResult.errorCount}.`,
 );

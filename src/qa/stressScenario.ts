@@ -257,6 +257,44 @@ export function createStressScenario(
   }
 }
 
+/**
+ * Browser-only viewport fixture: keep the stress population inside the first
+ * camera frame so the visible-entity assertion measures renderer pressure,
+ * rather than camera placement or agent drift.
+ */
+export function compactStressScenarioForViewport(snapshot: SimulationSnapshot): SimulationSnapshot {
+  const agents = Object.fromEntries(
+    Object.values(snapshot.agents).map((agent, index) => {
+      const position = {
+        x: 6 + (index % 16),
+        y: 4 + (Math.floor(index / 16) % 10),
+      }
+      return [agent.id, {
+        ...agent,
+        position,
+        path: [position, { x: Math.min(21, position.x + 1), y: position.y }],
+        pathIndex: 0,
+      }]
+    }),
+  )
+
+  const buildings = Object.fromEntries(
+    Object.values(snapshot.buildings).map((building, index) => {
+      const origin = {
+        x: 5 + (index % 18),
+        y: 3 + (Math.floor(index / 18) % 12),
+      }
+      return [building.id, {
+        ...building,
+        origin,
+        entrance: { x: origin.x, y: Math.min(16, origin.y + 1) },
+      }]
+    }),
+  )
+
+  return { ...snapshot, agents, buildings }
+}
+
 export function samplePerformance<T>(label: string, operation: () => T) {
   const start = performance.now()
   const result = operation()

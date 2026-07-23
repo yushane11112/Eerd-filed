@@ -2176,3 +2176,11 @@
 | `src/qa/browserE2eScenarios.test.ts` | 回归测试 | 防止 civilization-scale 压力场景再次被默认降级为模拟专用夹具 |
 | `tools/qa/run-render-ablation.ts` | 目标规模运行证据 | 桌面 GPU full/no-atlas 与三种禁用层差分均稳定返回 JSON，readPixels=0 |
 | `docs/project/qa.md` | 商业门禁记录 | 记录 300 栋全画质帧时间，明确功能通过但 60fps 门禁仍 RED |
+
+## 2026-07-23 第二百零四轮：视口预裁剪
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/DynamicScene.ts` | 视口预裁剪实现 | 在更新 Graphics 前过滤不可见建筑、区域、居民、迁移候选和掉落，镜头移入时恢复视觉 |
+| `src/rendering/DynamicScene.test.ts` | 裁剪回归测试 | 验证远端建筑不重建、镜头移入后恢复可见 |
+| `docs/project/qa.md` | 性能验收证据 | 记录目标规模裁剪后的 renderer 与 rAF 数据，商业帧率继续 RED |

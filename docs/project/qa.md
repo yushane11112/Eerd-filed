@@ -1757,3 +1757,10 @@
 - 桌面 GPU `full` 目标规模：300 buildings、135 residents、15 transport、至少 150 visible，`ok=true`、readPixels=0；rAF 平均/P95/最大 41.33/66.6/66.6ms，renderer 平均/P95/最大 3.783/10.6/97.4ms，render sync P95 6.1ms。
 - 同规模 `no-atlas`：46.39/66.8/66.9ms，renderer 3.828/10.5/102.7ms；`no-artwork` 50.83/83/83ms，`no-animation` 42.39/66.7/67.1ms，`no-terrain` 32.79/50/50ms；全部 `ok=true`、readPixels=0，配置差异与模式一致。
 - 验收结论：目标规模动态场景可以稳定运行，生命周期和功能门禁 GREEN；商业 16.7ms 帧预算仍 RED，且 GPU/合成长尾最大约 97–103ms。后续必须优化视口裁剪、纹理上传节流、提交批次和目标设备实测，不能将本轮称为商业级性能通过。
+
+## 2026-07-23 第二百零四轮验证
+
+- 定向验证：`src/rendering/DynamicScene.test.ts`、`src/rendering/culling.test.ts`、`src/qa/civilizationScale.test.ts` 共 20 项通过；全量 `npm test` 为 57 个测试文件、357 项通过；`npm run build` 与 `git diff --check` 通过。
+- 视口裁剪回归确认：远端建筑在当前镜头下保持隐藏且不执行完整视觉重建；镜头进入远端区域后恢复显示并刷新视觉。
+- 桌面 GPU 目标规模 full 复测：300 buildings、135 residents、15 transport、150+ visible、readPixels=0；rAF 平均/P95/最大 41.02/66.6/66.7ms，renderer 3.146/8.1/93ms，render sync P95 6.2ms。
+- 验收结论：应用层 renderer 平均/P95 有方向性改善，但 16.7ms 商业帧预算仍 RED；当前需继续做可见区域 LOD、纹理上传节流、提交批次和目标设备矩阵。已知 jsdom Canvas warning 仍不影响退出码。

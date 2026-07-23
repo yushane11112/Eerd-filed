@@ -1238,3 +1238,9 @@
 - 桌面 GPU 目标规模全画质样本：rAF 41.33/66.6/66.6ms，renderer 3.783/10.6/97.4ms，render sync P95 6.1ms；配置回传为 authoredArtwork=true、authoredAnimation=true、terrain=true、buildingAtlas=true，readPixels=0。
 - 同规模 no-atlas 为 46.39/66.8/66.9ms；no-artwork、no-animation、no-terrain 也均稳定返回并通过实体/功能/readPixels 门禁。全画质和图集差异均未达到 16.7ms 帧预算。
 - 该轮有效证明了目标规模渲染夹具和生命周期，不证明商业设备帧率；下一步继续解决渲染长尾与资源上传策略。
+
+## 2026-07-23：第二百零四轮视口预裁剪
+
+- `src/rendering/DynamicScene.ts` 增加统一 `syncVisual` 预裁剪路径：建筑、区域、居民、迁移候选和掉落在进入 `visual.update` 前先判断等距视口；不可见项只更新世界坐标并隐藏，镜头重新覆盖时再触发视觉刷新。
+- `src/rendering/DynamicScene.test.ts` 新增远端建筑在镜头移入后恢复可见的回归，避免裁剪优化造成实体永久不刷新。
+- 目标规模 full 复测显示 renderer 平均/P95 从 3.783/10.6ms 降至 3.146/8.1ms；rAF 仍为 41.02/66.6ms，商业帧率门禁保持 RED。该结果支持继续推进可见区域 LOD 与资源提交优化，不支持关闭性能风险项。

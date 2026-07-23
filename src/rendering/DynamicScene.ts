@@ -129,7 +129,10 @@ export class DynamicScene {
     if (snapshotVisualsUnchanged && this.lastStats) {
       let visible = 0
       for (const visual of this.active.values()) {
-        visible += this.applyVisibility(visual, camera)
+        const wasVisible = visual.display.visible
+        const isVisible = this.applyVisibility(visual, camera)
+        if (isVisible && !wasVisible) visual.update(snapshot, 0)
+        visible += isVisible
       }
       const stats = { ...this.lastStats, visible }
       this.lastCameraKey = cameraKey
@@ -162,8 +165,7 @@ export class DynamicScene {
     for (const district of snapshot.districts ?? []) {
       expected.add(district.id)
       const visual = this.ensureDistrict(district.id)
-      visual.update(snapshot, interpolationAlpha)
-      visible += this.applyVisibility(visual, camera)
+      visible += this.syncVisual(visual, district.center, snapshot, camera, interpolationAlpha)
       districts += 1
     }
     if (this.onSyncProfile) {
@@ -174,8 +176,7 @@ export class DynamicScene {
     for (const building of Object.values(snapshot.buildings)) {
       expected.add(building.id)
       const visual = this.ensureBuilding(building.id)
-      visual.update(snapshot, interpolationAlpha)
-      visible += this.applyVisibility(visual, camera)
+      visible += this.syncVisual(visual, building.origin, snapshot, camera, interpolationAlpha)
       buildings += 1
     }
     if (this.onSyncProfile) {
@@ -187,8 +188,14 @@ export class DynamicScene {
       expected.add(agent.id)
       const agentIsTransport = isTransport(agent)
       const visual = this.ensureAgent(agent.id, agentIsTransport)
-      visual.update(snapshot, interpolationAlpha)
-      visible += this.applyVisibility(visual, camera)
+      const next = agent.path[Math.min(agent.pathIndex + 1, agent.path.length - 1)]
+      const position = next
+        ? {
+            x: agent.position.x + (next.x - agent.position.x) * interpolationAlpha,
+            y: agent.position.y + (next.y - agent.position.y) * interpolationAlpha,
+          }
+        : agent.position
+      visible += this.syncVisual(visual, position, snapshot, camera, interpolationAlpha)
       if (agentIsTransport) transport += 1
       else residents += 1
     }
@@ -197,8 +204,7 @@ export class DynamicScene {
       const visualId = migrationCandidateVisualId(candidate.id)
       expected.add(visualId)
       const visual = this.ensureAgent(visualId, false)
-      visual.update(snapshot, interpolationAlpha)
-      visible += this.applyVisibility(visual, camera)
+      visible += this.syncVisual(visual, candidate.position, snapshot, camera, interpolationAlpha)
       residents += 1
     }
     if (this.onSyncProfile) {
@@ -209,8 +215,7 @@ export class DynamicScene {
     for (const drop of snapshot.worldDrops) {
       expected.add(drop.id)
       const visual = this.ensureDrop(drop.id)
-      visual.update(snapshot, interpolationAlpha)
-      visible += this.applyVisibility(visual, camera)
+      visible += this.syncVisual(visual, drop.position, snapshot, camera, interpolationAlpha)
     }
     if (this.onSyncProfile) {
       dropsMs = performance.now() - phaseStart
@@ -346,6 +351,26 @@ export class DynamicScene {
     visual.display.visible = visible
     visual.display.renderable = visible
     return visible ? 1 : 0
+  }
+
+  private syncVisual(
+    visual: EntityVisual,
+    position: { x: number; y: number },
+    snapshot: Readonly<SimulationSnapshot>,
+    camera: Readonly<SceneCamera>,
+    interpolationAlpha: number,
+  ): number {
+    const visible = gridPointVisible(position, camera, this.metrics)
+    if (!visible) {
+      // Keep the latest world coordinate so a later camera move can reveal and
+      // refresh the pooled visual without rebuilding it while off-screen.
+      visual.worldPosition = position
+      visual.display.visible = false
+      visual.display.renderable = false
+      return 0
+    }
+    visual.update(snapshot, interpolationAlpha)
+    return this.applyVisibility(visual, camera)
   }
 
   private release(id: EntityId, visual: EntityVisual): void {

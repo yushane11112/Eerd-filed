@@ -144,6 +144,35 @@ describe('DynamicScene', () => {
     expect(scene.layers.drops.children).toHaveLength(1)
   })
 
+  it('culls offscreen entities before rebuilding their visuals and refreshes them on reveal', async () => {
+    const { DynamicScene } = await import('./DynamicScene')
+    const scene = new DynamicScene()
+    const snapshot = createSnapshot()
+    snapshot.buildings.remote = createBuilding({
+      id: 'remote',
+      origin: { x: 200, y: 200 },
+      entrance: { x: 200, y: 201 },
+    })
+
+    const culled = scene.sync(snapshot, camera)
+
+    expect(culled.buildings).toBe(2)
+    expect(culled.visible).toBe(4)
+    expect(scene.layers.buildings.children).toHaveLength(2)
+    expect(scene.layers.buildings.children.filter((child) => child.visible)).toHaveLength(1)
+
+    const revealed = scene.sync(snapshot, {
+      x: -1000,
+      y: -1000,
+      zoom: 1,
+      viewportWidth: 10000,
+      viewportHeight: 20000,
+    })
+
+    expect(revealed.visible).toBe(5)
+    expect(scene.layers.buildings.children.filter((child) => child.visible)).toHaveLength(2)
+  })
+
   it('renders a short-lived recovery pulse from the city timeline', async () => {
     const { DynamicScene } = await import('./DynamicScene')
     const snapshot = createSnapshot()

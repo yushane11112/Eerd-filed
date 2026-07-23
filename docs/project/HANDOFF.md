@@ -590,3 +590,10 @@ npm run build
 - no-atlas 为 46.39/66.8/66.9ms；其余 no-artwork/no-animation/no-terrain 也稳定返回，证明差分 runner 已能覆盖真实目标规模。
 - 完整回归 57 个测试文件/356 个测试通过，构建和 diff 检查通过；仓库既有 `npm run lint` 因 ESLint 9 缺少 `eslint.config.*` 无法启动，需后续单独修复。
 - 本轮下一步：将证据转入优化轮，优先处理视口裁剪、资源上传节流、渲染提交批次和 GPU 合成长尾；完成目标设备复测后才能关闭 `RENDER-SCALE-LONGTAIL-01`、`RENDER-GPU-COMPOSITOR-01`、`RENDER-ATLAS-PRODUCTION-GATE-01`。本轮仍需提交并推送。
+
+## 2026-07-23 本轮交接：第二百零四轮
+
+- `DynamicScene` 已接入等距视口预裁剪；建筑、区域、居民、迁移候选和掉落不可见时不再执行完整视觉更新，镜头移入会恢复刷新。对应回归已加入 `src/rendering/DynamicScene.test.ts`。
+- 定向 20 项、全量 57 文件/357 项、构建和 diff 检查通过；目标规模 full renderer 3.146/8.1ms，rAF 41.02/66.6/66.7ms，功能/实体/readPixels 门禁 GREEN，商业帧率仍 RED。
+- 下一步优先级：在保持正式画质的前提下做可见区域 LOD、纹理上传节流和提交批次；继续使用 `civilization-scale` 真实浏览器矩阵，不以小场景或关闭画质开关替代商业证据。
+- 本轮改动待提交并推送；推送后以本节作为下一会话接续入口。

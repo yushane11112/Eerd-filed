@@ -1,5 +1,19 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百三十一轮验证
+
+- 验证等级：Tier 3，首帧 preview atlas、atlas provider 双 manifest、建筑贴图替换逻辑、资产管线输出和目标规模浏览器证据均有变更。
+- 资产生成：`ATLAS_OUT=public/assets/buildings-runtime-atlas-webp-192 ATLAS_TILE_SIZE=192 ATLAS_EMBEDDED_MANIFEST=src/rendering/artwork/runtime-artwork-atlas-preview-manifest.json npm run asset:runtime-artwork:atlas` 通过，生成 28 个 preview atlas、252 帧。
+- 定向测试：`npm test -- src/rendering/artwork/buildingArtwork.test.ts src/qa/performanceBaseline.test.ts src/rendering/artwork/artworkPreloadPlan.test.ts src/rendering/DynamicScene.test.ts` 通过，4 个测试文件、33 项测试。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码。
+- 生产构建：`npm run build` 通过，Vite 构建 2368 个模块。现有大 chunk warning 仍存在；主包增加 preview manifest 体积，属于本轮有意成本。
+- 目标规模 preview atlas 单样本：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_PROFILES=desktop-gpu RENDER_ABLATION_MODES=full RENDER_ABLATION_REPEATS=1 RENDER_ABLATION_TIMEOUT_MS=120000 npm run qa:render-ablation` 通过。
+- 单样本结果：`artworkAtlasBlockingLoadMs≈515.9ms`、`artworkProviderMs≈516.9ms`、`artworkAtlasFullQualityDispatchMs≈0.2ms`、rAF P95≈`166.7ms`、`pageLoadStall=2`。
+- 目标规模三次重复样本：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_PROFILES=desktop-gpu RENDER_ABLATION_MODES=full RENDER_ABLATION_REPEATS=3 RENDER_ABLATION_TIMEOUT_MS=120000 npm run qa:render-ablation` 通过。
+- 三次重复中位结果：`artworkAtlasManifestMs=0ms`、`artworkAtlasBlockingLoadMs≈478.6ms`、`artworkAtlasDeferredDispatchMs≈0.3ms`、`artworkAtlasFullQualityDispatchMs≈0.3ms`、`artworkProviderMs≈479.7ms`、`totalMs≈726.8ms`、rAF P95≈`183.3ms`。
+- 性能边界：`gpuStall=2` 且 `pageLoadStall=2` 仍存在。本轮证明 preview atlas 降低了首帧 blocking load 中位数，但还不能宣称目标规模商业帧率完成。
+- 完整测试：`npm test` 通过，60 个测试文件、372 项测试，耗时约 103 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百三十轮验证
 
 - 验证等级：Tier 3，atlas provider、manifest 来源、渲染差分汇总、性能基线聚合和目标规模浏览器证据均有变更。

@@ -24,9 +24,9 @@ codex/commercial-launch-plan-docs
 
 真实游戏持续预览：`https://little-ear-island-game-preview.netlify.app`。该地址直接运行本仓库的 Vite/Pixi 游戏构建，并已绑定 GitHub 自动部署；推送当前开发分支后会自动更新。不要把该需求重新解释成独立宣传落地页。
 
-最近完成：第二百三十轮已完成嵌入 atlas manifest 与加载 breakdown。runtime artwork atlas manifest 已进入源码包，首帧 artwork 阶段不再等待 public JSON fetch；`loadProfile`、`qa:render-ablation` 和性能基线会输出 manifest/blocking/deferred breakdown。目标规模三次重复样本全部功能通过，300 栋、96 detailed / 204 reduced 保持；中位 `artworkAtlasManifestMs=0ms`、`artworkAtlasBlockingLoadMs≈528.9ms`、`artworkAtlasDeferredDispatchMs≈0.3ms`、`artworkProviderMs≈529.5ms`。`pageLoadStall=2` 仍存在，不能宣称加载性能完成。
+最近完成：第二百三十一轮已完成首帧 preview atlas。新增 192px runtime artwork preview atlas，首帧 blocking artwork await preview entries，384px full-quality atlas 后台补载；`BuildingVisual` 会在 provider texture 对象变化时把 preview 替换成 full-quality。目标规模三次重复样本全部功能通过，300 栋、96 detailed / 204 reduced 保持；中位 `artworkAtlasBlockingLoadMs≈478.6ms`、`artworkProviderMs≈479.7ms`、`totalMs≈726.8ms`、rAF P95≈183.3ms。`pageLoadStall=2` 仍存在，不能宣称商业帧率完成。
 
-下一轮默认任务：继续做目标规模渲染专项，重点转向 3 张 blocking atlas 的加载/解码：审计 Pixi Assets.load cache 命中、WebP 解码是否串行、是否能在 loading 层先预热关键 atlas 或拆更小首屏图集，并补真实硬件或目标容器样本。不要继续把 ticker 启动时机、manifest fetch、单个 artwork/atlas 或 terrain 当作 `GPU stall` 单点根因。仍需保留 `graphicsContext` 解释边界，不要把本地 `desktop-gpu` 样本宣称成真实硬件 GPU 表现。不要把“manifestMs=0”“blocking asset 变少”“加载层可见”“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
+下一轮默认任务：继续做目标规模渲染专项，重点转向 preview/full-quality 补载的运行时稳定性：验证 full-quality 后台补载是否会在首帧后抢主线程、是否需要延迟到 ready 后一两个 tick、以及真实硬件/目标容器下 preview atlas 是否同样降低 blocking load。不要继续把 ticker 启动时机、manifest fetch、单个 artwork/atlas 或 terrain 当作 `GPU stall` 单点根因。仍需保留 `graphicsContext` 解释边界，不要把本地 `desktop-gpu` 样本宣称成真实硬件 GPU 表现。不要把“preview atlas 生效”“manifestMs=0”“blocking asset 变少”“加载层可见”“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
 
 如果另一台电脑路径不同，不影响项目，只要 clone 同一个 GitHub 仓库并 checkout 同一个分支即可。
 

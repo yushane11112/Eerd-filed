@@ -95,10 +95,13 @@ interface BrowserResult {
     artworkAtlasManifestMs?: number
     artworkAtlasBlockingLoadMs?: number
     artworkAtlasDeferredDispatchMs?: number
+    artworkAtlasFullQualityDispatchMs?: number
     artworkAtlasBlockingEntryCount?: number
     artworkAtlasDeferredEntryCount?: number
+    artworkAtlasFullQualityEntryCount?: number
     artworkAtlasBlockingTextureCount?: number
     artworkAtlasDeferredTextureCount?: number
+    artworkAtlasFullQualityTextureCount?: number
     sceneSetupMs?: number
     terrainMs?: number
     firstSyncMs?: number
@@ -288,7 +291,7 @@ const summarizeGraphicsContext = (samples: BrowserResult[]) => {
 }
 
 const summarizeLoadProfile = (samples: BrowserResult[]) => {
-  const fields = ['appInitMs', 'animationAtlasMs', 'artworkProviderMs', 'artworkPreloadAssetCount', 'artworkDeferredAssetCount', 'artworkPreloadLevelCount', 'artworkPreloadVisibleBuildings', 'artworkPreloadDetailedBuildings', 'artworkTotalAssetCount', 'artworkAtlasManifestMs', 'artworkAtlasBlockingLoadMs', 'artworkAtlasDeferredDispatchMs', 'artworkAtlasBlockingEntryCount', 'artworkAtlasDeferredEntryCount', 'artworkAtlasBlockingTextureCount', 'artworkAtlasDeferredTextureCount', 'sceneSetupMs', 'terrainMs', 'firstSyncMs', 'firstSyncDelayMs', 'totalMs'] as const
+  const fields = ['appInitMs', 'animationAtlasMs', 'artworkProviderMs', 'artworkPreloadAssetCount', 'artworkDeferredAssetCount', 'artworkPreloadLevelCount', 'artworkPreloadVisibleBuildings', 'artworkPreloadDetailedBuildings', 'artworkTotalAssetCount', 'artworkAtlasManifestMs', 'artworkAtlasBlockingLoadMs', 'artworkAtlasDeferredDispatchMs', 'artworkAtlasFullQualityDispatchMs', 'artworkAtlasBlockingEntryCount', 'artworkAtlasDeferredEntryCount', 'artworkAtlasFullQualityEntryCount', 'artworkAtlasBlockingTextureCount', 'artworkAtlasDeferredTextureCount', 'artworkAtlasFullQualityTextureCount', 'sceneSetupMs', 'terrainMs', 'firstSyncMs', 'firstSyncDelayMs', 'totalMs'] as const
   if (!samples.some((sample) => sample.loadProfile)) return null
   const latestProfile = samples.findLast((sample) => sample.loadProfile)?.loadProfile
   return {

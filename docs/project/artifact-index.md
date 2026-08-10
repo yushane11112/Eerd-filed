@@ -2,6 +2,25 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百三十一轮首帧 preview atlas
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `public/assets/buildings-runtime-atlas-webp-192/**` | preview atlas 资产 | 192px 首帧 blocking artwork 图集 |
+| `src/rendering/artwork/runtime-artwork-atlas-preview-manifest.json` | 嵌入 preview manifest | 运行时首帧无需 fetch preview manifest |
+| `src/rendering/artwork/buildingArtwork.ts` | atlas provider | 首帧 await preview atlas，后台补载 full-quality atlas |
+| `src/rendering/visuals.ts` | 建筑视觉 | provider texture 变化时可把 preview 替换成 full-quality |
+| `src/components/SimulationCanvas.tsx` | 加载接入 | 将 full-quality dispatch 统计写入 load profile |
+| `src/qa/performanceBaseline.ts` | 性能基线聚合 | 聚合 full-quality dispatch 字段 |
+| `src/qa/performanceBaseline.test.ts` | 自动测试 | 固定 full-quality dispatch 聚合契约 |
+| `tools/qa/run-render-ablation.ts` | 渲染差分工具 | 汇总 full-quality dispatch 字段 |
+| `tools/art-pipeline/build-runtime-artwork-atlases.js` | 资产管线 | 支持 preview atlas 输出目录元数据 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录 preview atlas 目标规模证据 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮集成事实 |
+| `docs/project/qa.md` | QA 记录 | 记录资产生成、测试、构建和目标规模样本 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `RENDER-PREVIEW-ATLAS-BLOCKING-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认方向 |
+
 ## 2026-08-10：第二百三十轮嵌入 atlas manifest 与加载 breakdown
 
 | 文件 | 产物类型 | 用途 |

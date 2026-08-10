@@ -1,5 +1,13 @@
 # 集成记录
 
+## 2026-08-10 第二百三十一轮：首帧 preview atlas
+
+- 启动并完成 `RENDER-PREVIEW-ATLAS-BLOCKING-01`：新增 192px runtime artwork preview atlas，首帧 blocking artwork 不再等待 384px full atlas。
+- `loadDefaultBuildingArtworkAtlasProvider` 同时读取 preview/full 两份嵌入 manifest；首帧 await preview entries，deferred entries 与 full-quality blocking entries 后台补载。
+- `BuildingVisual` 在同一 asset/level/status 下检测 provider texture 对象变化，允许 preview 贴图在后续同步中替换成 full-quality 贴图。
+- `tools/art-pipeline/build-runtime-artwork-atlases.js` 修正 manifest `outputRoot` 元数据，生成 preview atlas 时写入真实输出目录。
+- 目标规模三次重复样本通过，中位 `artworkAtlasBlockingLoadMs≈478.6ms`、`artworkProviderMs≈479.7ms`、rAF P95≈183.3ms；`pageLoadStall=2` 仍存在。
+
 ## 2026-08-10 第二百三十轮：嵌入 atlas manifest 与加载 breakdown
 
 - 启动并完成 `RENDER-ATLAS-MANIFEST-EMBED-01`：runtime artwork atlas manifest 进入源码包，首帧 artwork 阶段不再等待 public JSON fetch。

@@ -74,7 +74,9 @@ const manifest = {
   schemaVersion: 'runtime-artwork-atlas.v1',
   generatedBy: 'tools/art-pipeline/build-runtime-artwork-atlases.js',
   sourceRoot: 'public/assets/buildings-runtime-384',
-  outputRoot: 'public/assets/buildings-runtime-atlas-webp',
+  outputRoot: outputRoot.includes('/public/')
+    ? `public/${outputRoot.split('/public/').at(-1)}`
+    : outputRoot,
   tileSize,
   columns,
   rows,

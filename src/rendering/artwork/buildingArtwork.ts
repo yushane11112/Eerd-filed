@@ -1,5 +1,6 @@
 import { Assets, Rectangle, Sprite, Texture } from 'pixi.js'
 import embeddedArtworkAtlasManifest from './runtime-artwork-atlas-manifest.json'
+import embeddedArtworkAtlasPreviewManifest from './runtime-artwork-atlas-preview-manifest.json'
 
 export const BUILDING_ARTWORK_LEVELS = 9
 export const BUILDING_ARTWORK_RUNTIME_ROOT = '/assets/buildings-runtime-384'
@@ -28,10 +29,13 @@ export interface BuildingArtworkAtlasLoadProfile {
   manifestMs: number
   blockingLoadMs: number
   deferredDispatchMs: number
+  fullQualityDispatchMs: number
   blockingEntryCount: number
   deferredEntryCount: number
+  fullQualityEntryCount: number
   blockingTextureCount: number
   deferredTextureCount: number
+  fullQualityTextureCount: number
 }
 
 export interface BuildingArtworkAtlasFrame { x: number; y: number; w: number; h: number }
@@ -128,10 +132,13 @@ export async function loadDefaultBuildingArtworkAtlasProvider(
   const manifestStartedAt = performance.now()
   if (options.signal?.aborted) throw createAbortError('Building artwork preload was cancelled.')
   const manifest = embeddedArtworkAtlasManifest as BuildingArtworkAtlasManifest
+  const previewManifest = embeddedArtworkAtlasPreviewManifest as BuildingArtworkAtlasManifest
   const manifestMs = performance.now() - manifestStartedAt
   if (manifest.schemaVersion !== 'runtime-artwork-atlas.v1') throw new Error('Unsupported building artwork atlas manifest.')
+  if (previewManifest.schemaVersion !== 'runtime-artwork-atlas.v1') throw new Error('Unsupported preview building artwork atlas manifest.')
   const wanted = new Set([...assetIds, ...(options.deferredAssetIds ?? [])])
   const entries = manifest.entries.filter((entry) => wanted.has(entry.assetId))
+  const previewEntries = previewManifest.entries.filter((entry) => assetIds.includes(entry.assetId))
   const textures = new Map<string, Texture>()
   const levels = options.preloadLevels?.length
     ? [...new Set(options.preloadLevels.map((level) => Math.max(0, Math.min(BUILDING_ARTWORK_LEVELS - 1, Math.round(level)))))]
@@ -139,9 +146,10 @@ export async function loadDefaultBuildingArtworkAtlasProvider(
   const blockingEntries = entries.filter((entry) => assetIds.includes(entry.assetId))
   const deferredEntries = entries.filter((entry) => !assetIds.includes(entry.assetId))
   const blockingStartedAt = performance.now()
-  const blockingTextureCount = await loadAtlasEntriesIntoTextures(blockingEntries, textures, levels, options)
+  const blockingTextureCount = await loadAtlasEntriesIntoTextures(previewEntries, textures, levels, options)
   const blockingLoadMs = performance.now() - blockingStartedAt
   let deferredDispatchMs = 0
+  let fullQualityDispatchMs = 0
   if (deferredEntries.length > 0) {
     const deferredStartedAt = performance.now()
     void loadAtlasEntriesIntoTextures(deferredEntries, textures, levels, options).catch((error) => {
@@ -150,14 +158,25 @@ export async function loadDefaultBuildingArtworkAtlasProvider(
     })
     deferredDispatchMs = performance.now() - deferredStartedAt
   }
+  if (blockingEntries.length > 0) {
+    const fullQualityStartedAt = performance.now()
+    void loadAtlasEntriesIntoTextures(blockingEntries, textures, levels, options).catch((error) => {
+      if (options.signal?.aborted) return
+      console.warn('Full-quality building artwork atlas preload failed.', error)
+    })
+    fullQualityDispatchMs = performance.now() - fullQualityStartedAt
+  }
   options.onAtlasLoadProfile?.({
     manifestMs,
     blockingLoadMs,
     deferredDispatchMs,
-    blockingEntryCount: blockingEntries.length,
+    fullQualityDispatchMs,
+    blockingEntryCount: previewEntries.length,
     deferredEntryCount: deferredEntries.length,
+    fullQualityEntryCount: blockingEntries.length,
     blockingTextureCount,
     deferredTextureCount: deferredEntries.length * levels.length,
+    fullQualityTextureCount: blockingEntries.length * levels.length,
   })
   return createBuildingArtworkAtlasProvider(textures)
 }

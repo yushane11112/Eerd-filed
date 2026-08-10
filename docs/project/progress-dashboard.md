@@ -8,6 +8,14 @@
 
 当前判断：
 
+### 第二百三十一轮产出（2026-08-10）
+
+- 新增 192px 首帧 preview atlas：`public/assets/buildings-runtime-atlas-webp-192/**` 与 `runtime-artwork-atlas-preview-manifest.json` 用于首帧 blocking artwork，384px full-quality atlas 继续后台补载。
+- `loadDefaultBuildingArtworkAtlasProvider` 改为首帧 await preview atlas，随后后台派发 deferred asset 与 full-quality blocking asset；`BuildingVisual` 在 provider 返回的 texture 对象变化时会替换贴图，让近景建筑可从 preview 升级到 full-quality。
+- atlas 生成脚本支持自定义输出目录元数据，并用于生成 preview manifest，避免 192px manifest 与真实目录不一致。
+- 目标规模 `desktop-gpu/full` 三次重复样本全部功能通过；中位 `artworkAtlasBlockingLoadMs≈478.6ms`、`artworkProviderMs≈479.7ms`、`totalMs≈726.8ms`、rAF P95≈`183.3ms`，相比上一轮中位 `blockingLoadMs≈528.9ms` 有方向性下降。
+- 结论：preview atlas 让首帧 blocking atlas 解码成本有所下降，但 `pageLoadStall=2` 仍存在，且本地 SwiftShader 样本仍有波动。下一轮应继续处理 full-quality 后台补载时机、cache 命中与真实硬件样本。
+
 ### 第二百三十轮产出（2026-08-10）
 
 - 新增 atlas 加载 breakdown：`loadDefaultBuildingArtworkAtlasProvider` 记录 manifest、blocking atlas load、deferred dispatch、entry 数和 texture 数，并写入浏览器 `loadProfile`、`qa:render-ablation` 与性能基线聚合。

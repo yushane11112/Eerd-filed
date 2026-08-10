@@ -74,10 +74,13 @@ interface BrowserLoadPhaseProfile {
   artworkAtlasManifestMs?: number
   artworkAtlasBlockingLoadMs?: number
   artworkAtlasDeferredDispatchMs?: number
+  artworkAtlasFullQualityDispatchMs?: number
   artworkAtlasBlockingEntryCount?: number
   artworkAtlasDeferredEntryCount?: number
+  artworkAtlasFullQualityEntryCount?: number
   artworkAtlasBlockingTextureCount?: number
   artworkAtlasDeferredTextureCount?: number
+  artworkAtlasFullQualityTextureCount?: number
   sceneSetupMs?: number
   terrainMs?: number
   firstSyncMs?: number
@@ -243,10 +246,13 @@ export function SimulationCanvas({
                   loadProfile.artworkAtlasManifestMs = profile.manifestMs
                   loadProfile.artworkAtlasBlockingLoadMs = profile.blockingLoadMs
                   loadProfile.artworkAtlasDeferredDispatchMs = profile.deferredDispatchMs
+                  loadProfile.artworkAtlasFullQualityDispatchMs = profile.fullQualityDispatchMs
                   loadProfile.artworkAtlasBlockingEntryCount = profile.blockingEntryCount
                   loadProfile.artworkAtlasDeferredEntryCount = profile.deferredEntryCount
+                  loadProfile.artworkAtlasFullQualityEntryCount = profile.fullQualityEntryCount
                   loadProfile.artworkAtlasBlockingTextureCount = profile.blockingTextureCount
                   loadProfile.artworkAtlasDeferredTextureCount = profile.deferredTextureCount
+                  loadProfile.artworkAtlasFullQualityTextureCount = profile.fullQualityTextureCount
                 }
               : undefined,
           })

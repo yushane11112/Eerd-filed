@@ -110,10 +110,13 @@ export interface PerformanceSample {
     artworkAtlasManifestMs?: number
     artworkAtlasBlockingLoadMs?: number
     artworkAtlasDeferredDispatchMs?: number
+    artworkAtlasFullQualityDispatchMs?: number
     artworkAtlasBlockingEntryCount?: number
     artworkAtlasDeferredEntryCount?: number
+    artworkAtlasFullQualityEntryCount?: number
     artworkAtlasBlockingTextureCount?: number
     artworkAtlasDeferredTextureCount?: number
+    artworkAtlasFullQualityTextureCount?: number
     sceneSetupMs?: number
     terrainMs?: number
     firstSyncMs?: number
@@ -279,7 +282,7 @@ function aggregateLoadProfile(
   median: (values: number[]) => number,
 ): PerformanceSample['loadProfile'] {
   if (!samples.some((sample) => sample.loadProfile)) return undefined
-  const fields: LoadProfileField[] = ['appInitMs', 'animationAtlasMs', 'artworkProviderMs', 'artworkPreloadAssetCount', 'artworkDeferredAssetCount', 'artworkPreloadLevelCount', 'artworkPreloadVisibleBuildings', 'artworkPreloadDetailedBuildings', 'artworkTotalAssetCount', 'artworkAtlasManifestMs', 'artworkAtlasBlockingLoadMs', 'artworkAtlasDeferredDispatchMs', 'artworkAtlasBlockingEntryCount', 'artworkAtlasDeferredEntryCount', 'artworkAtlasBlockingTextureCount', 'artworkAtlasDeferredTextureCount', 'sceneSetupMs', 'terrainMs', 'firstSyncMs', 'firstSyncDelayMs', 'totalMs']
+  const fields: LoadProfileField[] = ['appInitMs', 'animationAtlasMs', 'artworkProviderMs', 'artworkPreloadAssetCount', 'artworkDeferredAssetCount', 'artworkPreloadLevelCount', 'artworkPreloadVisibleBuildings', 'artworkPreloadDetailedBuildings', 'artworkTotalAssetCount', 'artworkAtlasManifestMs', 'artworkAtlasBlockingLoadMs', 'artworkAtlasDeferredDispatchMs', 'artworkAtlasFullQualityDispatchMs', 'artworkAtlasBlockingEntryCount', 'artworkAtlasDeferredEntryCount', 'artworkAtlasFullQualityEntryCount', 'artworkAtlasBlockingTextureCount', 'artworkAtlasDeferredTextureCount', 'artworkAtlasFullQualityTextureCount', 'sceneSetupMs', 'terrainMs', 'firstSyncMs', 'firstSyncDelayMs', 'totalMs']
   return Object.fromEntries(fields
     .map((field) => [field, median(samples.map((sample) => sample.loadProfile?.[field] ?? Number.POSITIVE_INFINITY))] as const)
     .filter(([, value]) => Number.isFinite(value)))

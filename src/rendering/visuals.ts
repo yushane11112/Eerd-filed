@@ -421,7 +421,7 @@ export class BuildingVisual extends BaseVisual {
     // configuration itself is unchanged.
     if (this.prefabPlaceholder) this.prefabPlaceholder.visible = false
     const signature = `${assetId}|${Math.max(0, Math.min(8, Math.round(building.level)))}|${building.status}`
-    if (this.artworkSignature === signature) return
+    if (this.artworkSignature === signature && this.artworkSprite.texture === texture) return
     configureBuildingArtworkSprite(this.artworkSprite, texture, width, height)
     this.artworkSprite.visible = true
     this.artworkSprite.alpha = building.status === 'blocked' ? 0.72 : 1

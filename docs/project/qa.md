@@ -1,5 +1,16 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百一十一轮验证
+
+- 验证等级：Tier 3，浏览器 E2E runner、渲染差分报告和性能基线聚合结构有变更。
+- 定向测试：`npm test -- src/qa/performanceBaseline.test.ts src/qa/browserE2eScenarios.test.ts` 通过，2 个测试文件、9 项测试。
+- 完整测试：`npm test` 通过，57 个测试文件、358 项测试。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码。
+- 生产构建：`npm run build` 通过，Vite 构建 2363 个模块。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模空白页基线：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_MODES=full RENDER_ABLATION_REPEATS=1 npm run qa:render-ablation` 通过。
+- 同一 Playwright page 的空白页 rAF 为 16.45/16.7/16.8ms；加载游戏目标规模后 rAF 为 150/183.3/183.3ms，render sync P95 19.2ms，renderer P95 24ms，ticker callback/elapsed P95 19.3/183.3ms。
+- 结论：runner/headless 的基础 rAF 没有全局节流，红灯发生在游戏页加载 Pixi/WebGL/主应用之后；商业帧率门禁继续 RED。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百一十轮验证
 
 - 验证等级：Tier 3，渲染诊断参数、Pixi ticker 设置、浏览器报告和性能聚合口径均有变更。

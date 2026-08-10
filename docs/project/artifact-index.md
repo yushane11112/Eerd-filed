@@ -2,6 +2,20 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百一十一轮空白页 rAF 基线
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 浏览器执行器 | 进入游戏 URL 前采集同 page 空白页 rAF 基线并输出 `browserFrameBaseline` |
+| `tools/qa/run-render-ablation.ts` | 渲染差分工具 | 汇总输出空白页 rAF 平均/P95/最大 |
+| `src/qa/performanceBaseline.ts` | 性能基线聚合 | 三环境性能样本保留空白页 rAF 基线 |
+| `src/qa/performanceBaseline.test.ts` | 自动测试 | 固定空白页基线中位数聚合 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录第二百一十一轮空白页对照证据 |
+| `docs/project/integration-log.md` | 集成记录 | 记录 runner 基线采集事实和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录定向测试、构建和目标规模浏览器证据 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `BROWSER-RAF-BASELINE-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认诊断方向 |
+
 ## 2026-08-10：第二百一十轮 Ticker minFPS 对照
 
 | 文件 | 产物类型 | 用途 |

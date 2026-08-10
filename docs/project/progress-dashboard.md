@@ -8,6 +8,14 @@
 
 当前判断：
 
+### 第二百一十一轮产出（2026-08-10）
+
+- 浏览器 E2E runner 新增空白页 rAF 基线：同一个 Playwright page 在加载游戏前先采样 1 秒 `requestAnimationFrame`，再加载目标场景并采样游戏页稳态窗口。
+- `qa:render-ablation` 和 `qa:performance-baseline` 均会保留 `browserFrameBaseline`，后续可直接对比“浏览器本身帧调度”和“游戏页帧调度”。
+- 目标规模桌面 GPU 样本：空白页 rAF 平均/P95/最大 16.45/16.7/16.8ms，说明本机 headless Chromium 的基础 rAF 调度正常；同页加载 `civilization-scale` 后 rAF 为 150/183.3/183.3ms。
+- 游戏页同次 render sync P95 19.2ms、renderer P95 24ms、ticker callback/elapsed P95 19.3/183.3ms，300 栋/135 居民/15 运输和 96 detailed / 204 reduced 仍通过。
+- 结论：红灯不是 runner 或 headless 全局 rAF 节流；问题发生在游戏页加载 Pixi/WebGL/主应用后。下一步应优先隔离 WebGL/GPU stall、Pixi render loop 与 React/应用外围更新，而不是继续怀疑空白浏览器环境。
+
 ### 第二百一十轮产出（2026-08-10）
 
 - 渲染诊断新增 `tickerMinFps=<number>` 参数；生产默认不变，QA 可用 `tickerMinFps=0` 关闭 Pixi ticker 的 delta cap，用于区分 `deltaMS` 封顶和真实帧间隔。

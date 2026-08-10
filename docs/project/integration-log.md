@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百一十一轮：空白页 rAF 基线
+
+- 启动并完成 `BROWSER-RAF-BASELINE-01`：浏览器 runner 在进入游戏 URL 前先采集 about:blank 的 rAF 基线，并随场景结果输出 `browserFrameBaseline`。
+- render ablation 与 performance baseline 聚合已保留该字段，可用于判断红灯是否来自 Playwright/headless 全局节流。
+- 本轮目标规模样本中，空白页 rAF P95 为 16.7ms，游戏页 rAF P95 为 183.3ms；同一浏览器实例证明基础 rAF 调度正常，红灯在游戏页加载后出现。
+- 客观限制：本轮只排除了“runner 全局 rAF 节流”这一类原因，尚未定位 Pixi/WebGL、GPU stall 或 React/应用外围更新的具体来源。
+
 ## 2026-08-10 第二百一十轮：Ticker minFPS 对照
 
 - 启动并完成 `RENDER-TICKER-MINFPS-ABLATION-01`：新增 `tickerMinFps` 渲染诊断参数，并在目标规模差分中加入 `no-ticker-min-fps` 模式。

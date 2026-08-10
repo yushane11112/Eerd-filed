@@ -24,9 +24,9 @@ codex/commercial-launch-plan-docs
 
 真实游戏持续预览：`https://little-ear-island-game-preview.netlify.app`。该地址直接运行本仓库的 Vite/Pixi 游戏构建，并已绑定 GitHub 自动部署；推送当前开发分支后会自动更新。不要把该需求重新解释成独立宣传落地页。
 
-最近完成：第二百一十轮已完成 Pixi ticker `minFPS` 对照。`tickerMinFps=0` 证明默认 `deltaMS=100ms` 来自 Pixi `minFPS=10` cap；关闭 cap 后 `deltaMS` 与 `elapsedMS` 同步到 316.6ms，但 rAF 仍 300ms 级红灯。
+最近完成：第二百一十一轮已新增空白页 rAF 基线。目标规模样本中，同一 Playwright page 的空白页 rAF 为 16.45/16.7/16.8ms，加载游戏后 rAF 为 150/183.3/183.3ms；这排除了 headless/runner 全局 rAF 节流，红灯发生在 Pixi/WebGL/主应用加载后。
 
-下一轮默认任务：继续做目标规模渲染专项，优先审计 runner 采样机制、浏览器后台/前台调度、GPU stall 警告来源和目标设备差异；当前不要继续盲目削建筑 update。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
+下一轮默认任务：继续做目标规模渲染专项，优先隔离 WebGL/GPU stall、Pixi render loop 和 React/应用外围更新；当前不要继续盲目削建筑 update，也不要再把问题归因于 runner 全局节流。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
 
 如果另一台电脑路径不同，不影响项目，只要 clone 同一个 GitHub 仓库并 checkout 同一个分支即可。
 

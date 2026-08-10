@@ -50,6 +50,11 @@ export const PERFORMANCE_THRESHOLDS = {
 
 export interface PerformanceSample {
   ok: boolean
+  browserFrameBaseline?: {
+    averageFrameMs?: number
+    p95FrameMs?: number
+    maxFrameMs?: number
+  }
   frameMetrics?: {
     averageFrameMs?: number
     p95FrameMs?: number
@@ -98,6 +103,11 @@ export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSa
     samples.map((sample) => sample.frameMetrics?.[field] ?? Number.POSITIVE_INFINITY)
   return {
     ok: samples.every((sample) => sample.ok),
+    browserFrameBaseline: {
+      averageFrameMs: median(samples.map((sample) => sample.browserFrameBaseline?.averageFrameMs ?? Number.POSITIVE_INFINITY)),
+      p95FrameMs: median(samples.map((sample) => sample.browserFrameBaseline?.p95FrameMs ?? Number.POSITIVE_INFINITY)),
+      maxFrameMs: median(samples.map((sample) => sample.browserFrameBaseline?.maxFrameMs ?? Number.POSITIVE_INFINITY)),
+    },
     frameMetrics: {
       averageFrameMs: median(frameValues('averageFrameMs')),
       p95FrameMs: median(frameValues('p95FrameMs')),

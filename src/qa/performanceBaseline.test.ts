@@ -45,6 +45,7 @@ describe('performance baseline contract', () => {
     const aggregate = aggregatePerformanceSamples([
       {
         ok: true,
+        browserFrameBaseline: { averageFrameMs: 16, p95FrameMs: 17, maxFrameMs: 18 },
         frameMetrics: { averageFrameMs: 15, p95FrameMs: 20, maxFrameMs: 30 },
         renderProfile: { p95: { totalMs: 1 } },
         rendererProfile: { p95Ms: 2, maxMs: 4 },
@@ -53,6 +54,7 @@ describe('performance baseline contract', () => {
       },
       {
         ok: true,
+        browserFrameBaseline: { averageFrameMs: 50, p95FrameMs: 55, maxFrameMs: 60 },
         frameMetrics: { averageFrameMs: 80, p95FrameMs: 90, maxFrameMs: 100 },
         renderProfile: { p95: { totalMs: 5 } },
         rendererProfile: { p95Ms: 9, maxMs: 20 },
@@ -61,6 +63,7 @@ describe('performance baseline contract', () => {
       },
       {
         ok: true,
+        browserFrameBaseline: { averageFrameMs: 17, p95FrameMs: 18, maxFrameMs: 20 },
         frameMetrics: { averageFrameMs: 16, p95FrameMs: 22, maxFrameMs: 40 },
         renderProfile: { p95: { totalMs: 2 } },
         rendererProfile: { p95Ms: 3, maxMs: 6 },
@@ -68,6 +71,7 @@ describe('performance baseline contract', () => {
         readPixels: { count: 0 },
       },
     ])
+    expect(aggregate.browserFrameBaseline).toEqual({ averageFrameMs: 17, p95FrameMs: 18, maxFrameMs: 20 })
     expect(aggregate.frameMetrics).toEqual({ averageFrameMs: 16, p95FrameMs: 22, maxFrameMs: 40 })
     expect(aggregate.renderProfile?.p95?.totalMs).toBe(2)
     expect(aggregate.rendererProfile).toEqual({ p95Ms: 3, maxMs: 6 })

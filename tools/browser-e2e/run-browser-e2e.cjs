@@ -198,6 +198,7 @@ async function runScenario(browser, scenario) {
 
   const failures = []
   try {
+    const browserFrameBaseline = await sampleFrameMetrics(page)
     const scenarioUrl = new URL(`${baseUrl}${scenario.path}`)
     if (renderQuery) {
       const query = new URLSearchParams(renderQuery.replace(/^\?/, ''))
@@ -333,6 +334,7 @@ async function runScenario(browser, scenario) {
       path: scenario.path,
       ok: failures.length === 0,
       checkedTexts: scenario.mustContainText,
+      browserFrameBaseline,
       frameMetrics,
       renderProfile,
       rendererProfile,

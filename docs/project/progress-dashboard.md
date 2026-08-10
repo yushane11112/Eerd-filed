@@ -8,6 +8,14 @@
 
 当前判断：
 
+### 第二百二十九轮产出（2026-08-10）
+
+- 新增首帧关键 artwork 预载计划：`createInitialBuildingArtworkPreloadPlan` 会根据首屏相机和建筑 LOD 预算，只让最近 detailed 建筑需要的前 3 类 authored atlas 阻塞首帧，其余 assetId 进入后台补载。
+- `loadDefaultBuildingArtworkAtlasProvider` 支持 `deferredAssetIds`，首帧 awaited 只加载 blocking entries，deferred entries 异步填入同一个 atlas provider；未就绪类型继续走现有程序化表现，不让首帧白屏或卡住。
+- reduced 远景建筑首帧不再强制显示 authored artwork，保持轻量程序化体块和状态表现；近景 full detail 建筑仍优先使用 authored artwork。
+- 目标规模 `desktop-gpu/full` 三次重复样本全部功能通过，300 栋、96 detailed / 204 reduced 保持；加载报告显示 `artworkPreloadAssetCount=3`、`artworkDeferredAssetCount=2`、`artworkPreloadVisibleBuildings=221`、`artworkPreloadDetailedBuildings=96`。
+- 结论：本轮把首帧阻塞 artwork 范围从全量 5 类收窄到关键 3 类，但本地 SwiftShader/headless 下 `artworkProviderMs` 中位数仍约 `846.6ms`、`pageLoadStall=2` 仍存在，不能宣称加载耗时已解决。下一轮应继续追 atlas 解码/cache 命中、deferred 补载时机和真实硬件验证。
+
 ### 第二百二十八轮产出（2026-08-10）
 
 - 新增玩家可见的画布加载层：加载期显示“唤醒水乡画卷 / 铺开街坊灯火 / 搭起城镇骨架 / 描出水岸道路 / 点亮第一帧”等阶段、阶段说明和进度条，避免目标规模场景初始化时呈现无反馈空等。

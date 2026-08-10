@@ -86,6 +86,12 @@ interface BrowserResult {
     appInitMs?: number
     animationAtlasMs?: number
     artworkProviderMs?: number
+    artworkPreloadAssetCount?: number
+    artworkDeferredAssetCount?: number
+    artworkPreloadLevelCount?: number
+    artworkPreloadVisibleBuildings?: number
+    artworkPreloadDetailedBuildings?: number
+    artworkTotalAssetCount?: number
     sceneSetupMs?: number
     terrainMs?: number
     firstSyncMs?: number
@@ -275,7 +281,7 @@ const summarizeGraphicsContext = (samples: BrowserResult[]) => {
 }
 
 const summarizeLoadProfile = (samples: BrowserResult[]) => {
-  const fields = ['appInitMs', 'animationAtlasMs', 'artworkProviderMs', 'sceneSetupMs', 'terrainMs', 'firstSyncMs', 'firstSyncDelayMs', 'totalMs'] as const
+  const fields = ['appInitMs', 'animationAtlasMs', 'artworkProviderMs', 'artworkPreloadAssetCount', 'artworkDeferredAssetCount', 'artworkPreloadLevelCount', 'artworkPreloadVisibleBuildings', 'artworkPreloadDetailedBuildings', 'artworkTotalAssetCount', 'sceneSetupMs', 'terrainMs', 'firstSyncMs', 'firstSyncDelayMs', 'totalMs'] as const
   if (!samples.some((sample) => sample.loadProfile)) return null
   const latestProfile = samples.findLast((sample) => sample.loadProfile)?.loadProfile
   return {

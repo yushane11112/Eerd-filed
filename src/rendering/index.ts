@@ -17,6 +17,10 @@ export {
   type BuildingArtworkAtlasFrame,
 } from './artwork/buildingArtwork'
 export {
+  createInitialBuildingArtworkPreloadPlan,
+  type BuildingArtworkPreloadPlan,
+} from './artwork/artworkPreloadPlan'
+export {
   animationPlaybackUsesAtlas,
   BuildingAnimationDriver,
   createBuildingAnimationProvider,

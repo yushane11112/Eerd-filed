@@ -2,6 +2,22 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百二十九轮首帧关键 artwork 预载
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/artwork/artworkPreloadPlan.ts` | 渲染加载策略 | 根据首屏相机、LOD 和 asset 预算生成 blocking/deferred artwork 预载计划 |
+| `src/rendering/artwork/artworkPreloadPlan.test.ts` | 自动测试 | 固定首屏可见、detailed 预算和 blocking asset 预算契约 |
+| `src/rendering/artwork/buildingArtwork.ts` | atlas provider | 支持 deferred assetId 后台补载 |
+| `src/rendering/visuals.ts` | 建筑视觉 | reduced 远景建筑首帧不强制 authored artwork |
+| `src/components/SimulationCanvas.tsx` | 加载接入 | 使用首屏预载计划，并把 blocking/deferred 统计写入 load profile |
+| `tools/qa/run-render-ablation.ts` | 渲染差分工具 | 汇总 artwork blocking/deferred 数量和 detailed 统计 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录目标规模三次样本和边界结论 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮集成事实 |
+| `docs/project/qa.md` | QA 记录 | 记录定向测试、构建和目标规模重复样本 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `RENDER-CRITICAL-ARTWORK-PRELOAD-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认方向 |
+
 ## 2026-08-10：第二百二十八轮加载体验与阶段门禁
 
 | 文件 | 产物类型 | 用途 |

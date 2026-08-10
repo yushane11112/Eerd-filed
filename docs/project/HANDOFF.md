@@ -24,9 +24,9 @@ codex/commercial-launch-plan-docs
 
 真实游戏持续预览：`https://little-ear-island-game-preview.netlify.app`。该地址直接运行本仓库的 Vite/Pixi 游戏构建，并已绑定 GitHub 自动部署；推送当前开发分支后会自动更新。不要把该需求重新解释成独立宣传落地页。
 
-最近完成：第二百二十八轮已完成画布加载体验与阶段门禁。目标规模初始化期间玩家会看到正式加载阶段、说明和进度条；`__littleEarLoadProfile` 与 `qa:render-ablation` 会输出 `currentPhase` 和 `phaseEvents`。目标规模 `desktop-gpu/full` 样本到达 `ready`，阶段序列为 `graphics → artwork → scene → terrain → first-sync → ready`，加载总耗时约 767.3ms，但 rAF P95 仍约 566.6ms，`pageLoadStall=2` 仍存在。
+最近完成：第二百二十九轮已完成首帧关键 artwork 预载。首屏预载计划会按相机和 detailed 预算只阻塞前 3 类 authored atlas，剩余 2 类后台补载；reduced 远景建筑首帧不强制 authored artwork。目标规模三次重复样本全部功能通过，300 栋、96 detailed / 204 reduced 保持，报告显示 `artworkPreloadAssetCount=3`、`artworkDeferredAssetCount=2`、`artworkPreloadVisibleBuildings=221`、`artworkPreloadDetailedBuildings=96`。但 `artworkProviderMs` 中位数仍约 846.6ms，`pageLoadStall=2` 仍存在，不能宣称加载耗时已解决。
 
-下一轮默认任务：继续做目标规模渲染专项，但节奏应从“继续猜 stall 单点根因”转向更可交付的两条线：一是降低 artwork/首帧内容压力，让 `phaseEvents` 中 `artwork` 与 `first-sync` 明显变短；二是补真实硬件或目标容器验证门禁。不要继续把 ticker 启动时机、单个 artwork/atlas 或 terrain 当作 `GPU stall` 单点根因。仍需保留 `graphicsContext` 解释边界，不要把本地 `desktop-gpu` 样本宣称成真实硬件 GPU 表现。不要把“加载层可见”“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
+下一轮默认任务：继续做目标规模渲染专项，但重点从“缩小首帧阻塞范围”进入“让耗时真的下降”：优先审计 atlas 解码/cache 命中、deferred 补载是否抢占首帧、Pixi Assets.load 是否复用缓存，以及真实硬件或目标容器的加载样本。不要继续把 ticker 启动时机、单个 artwork/atlas 或 terrain 当作 `GPU stall` 单点根因。仍需保留 `graphicsContext` 解释边界，不要把本地 `desktop-gpu` 样本宣称成真实硬件 GPU 表现。不要把“blocking asset 变少”“加载层可见”“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
 
 如果另一台电脑路径不同，不影响项目，只要 clone 同一个 GitHub 仓库并 checkout 同一个分支即可。
 

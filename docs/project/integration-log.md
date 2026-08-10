@@ -1,5 +1,13 @@
 # 集成记录
 
+## 2026-08-10 第二百二十九轮：首帧关键 artwork 预载
+
+- 启动并完成 `RENDER-CRITICAL-ARTWORK-PRELOAD-01`：新增首屏 artwork 预载计划，按当前相机、可见建筑和 detailed 预算生成 blocking/deferred assetId。
+- `SimulationCanvas` 在加载 artwork 前提前同步 viewport，并把 blocking/deferred 数量、首屏可见建筑数和 detailed 建筑数写入 `__littleEarLoadProfile`。
+- `loadDefaultBuildingArtworkAtlasProvider` 新增 deferred atlas 补载：首帧只 await blocking entries，deferred entries 后台补入同一个 provider。
+- `BuildingVisual` 对 reduced 远景建筑不再要求首帧 authored artwork，降低远景贴图首帧压力。
+- 目标规模三次重复样本全部通过，报告显示 blocking 3 类、deferred 2 类；但 `artworkProviderMs` 中位数仍约 846.6ms，说明当前本地样本耗时仍受 atlas/Pixi/SwiftShader 解码与调度波动影响。
+
 ## 2026-08-10 第二百二十八轮：加载体验与阶段门禁
 
 - 启动并完成 `CANVAS-LOADING-PHASE-GATE-01`：新增画布加载层，玩家在目标规模初始化期间可看到阶段文案、说明、耗时和进度条。

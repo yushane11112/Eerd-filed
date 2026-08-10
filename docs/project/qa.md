@@ -1,5 +1,17 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百二十九轮验证
+
+- 验证等级：Tier 3，画布 artwork 首帧预载策略、atlas provider 加载路径、reduced 建筑 artwork 行为、渲染差分汇总和目标规模浏览器证据均有变更。
+- 定向测试：`npm test -- src/rendering/artwork/artworkPreloadPlan.test.ts src/rendering/artwork/buildingArtwork.test.ts src/rendering/DynamicScene.test.ts src/qa/performanceBaseline.test.ts` 通过，4 个测试文件、33 项测试。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码。
+- 生产构建：`npm run build` 通过，Vite 构建 2366 个模块；提交前最终构建同样通过。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模关键 artwork 预载单样本：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_PROFILES=desktop-gpu RENDER_ABLATION_MODES=full RENDER_ABLATION_REPEATS=1 RENDER_ABLATION_TIMEOUT_MS=120000 npm run qa:render-ablation` 通过。
+- 目标规模三次重复样本：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_PROFILES=desktop-gpu RENDER_ABLATION_MODES=full RENDER_ABLATION_REPEATS=3 RENDER_ABLATION_TIMEOUT_MS=120000 npm run qa:render-ablation` 通过。
+- 三次重复中位结果：`artworkPreloadAssetCount=3`、`artworkDeferredAssetCount=2`、`artworkPreloadVisibleBuildings=221`、`artworkPreloadDetailedBuildings=96`、`artworkTotalAssetCount=5`；目标规模仍为 300 栋、96 detailed / 204 reduced。
+- 性能边界：同组三次样本 `artworkProviderMs≈846.6ms`、`totalMs≈1232.2ms`、rAF P95 约 `300ms`，`gpuStall=2` 且 `pageLoadStall=2`。本轮只能证明首帧阻塞范围被收窄，不能宣称加载耗时已经下降。
+- 完整测试：`npm test` 通过，60 个测试文件、372 项测试，耗时约 152 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百二十八轮验证
 
 - 验证等级：Tier 3，玩家可见画布加载层、加载阶段 profile、渲染差分汇总和目标规模浏览器证据均有变更。

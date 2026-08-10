@@ -18,6 +18,8 @@ export interface BuildingArtworkPreloadOptions {
   preloadLevels?: readonly number[]
   /** Shared-atlas path; enabled by default in production with PNG fallback. */
   atlas?: boolean
+  /** Asset ids that can be filled after the first rendered frame is unblocked. */
+  deferredAssetIds?: readonly string[]
 }
 
 export interface BuildingArtworkAtlasFrame { x: number; y: number; w: number; h: number }
@@ -116,13 +118,32 @@ export async function loadDefaultBuildingArtworkAtlasProvider(
     return response.json() as Promise<BuildingArtworkAtlasManifest>
   }), options)
   if (manifest.schemaVersion !== 'runtime-artwork-atlas.v1') throw new Error('Unsupported building artwork atlas manifest.')
-  const wanted = new Set(assetIds)
+  const wanted = new Set([...assetIds, ...(options.deferredAssetIds ?? [])])
   const entries = manifest.entries.filter((entry) => wanted.has(entry.assetId))
-  const loaded = await loadWithGuard(Assets.load<Texture>(entries.map((entry) => entry.url), { strategy: 'throw' }), options)
   const textures = new Map<string, Texture>()
   const levels = options.preloadLevels?.length
     ? [...new Set(options.preloadLevels.map((level) => Math.max(0, Math.min(BUILDING_ARTWORK_LEVELS - 1, Math.round(level)))))]
     : Array.from({ length: BUILDING_ARTWORK_LEVELS }, (_, level) => level)
+  const blockingEntries = entries.filter((entry) => assetIds.includes(entry.assetId))
+  const deferredEntries = entries.filter((entry) => !assetIds.includes(entry.assetId))
+  await loadAtlasEntriesIntoTextures(blockingEntries, textures, levels, options)
+  if (deferredEntries.length > 0) {
+    void loadAtlasEntriesIntoTextures(deferredEntries, textures, levels, options).catch((error) => {
+      if (options.signal?.aborted) return
+      console.warn('Deferred building artwork atlas preload failed.', error)
+    })
+  }
+  return createBuildingArtworkAtlasProvider(textures)
+}
+
+async function loadAtlasEntriesIntoTextures(
+  entries: readonly BuildingArtworkAtlasEntry[],
+  textures: Map<string, Texture>,
+  levels: readonly number[],
+  options: BuildingArtworkPreloadOptions,
+): Promise<void> {
+  if (entries.length === 0) return
+  const loaded = await loadWithGuard(Assets.load<Texture>(entries.map((entry) => entry.url), { strategy: 'throw' }), options)
   for (const entry of entries) {
     const atlas = loaded[entry.url]
     if (!atlas) continue
@@ -135,7 +156,6 @@ export async function loadDefaultBuildingArtworkAtlasProvider(
       }))
     }
   }
-  return createBuildingArtworkAtlasProvider(textures)
 }
 
 export function resolveBuildingArtworkPath(assetId: string, level: number): string {

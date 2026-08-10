@@ -404,6 +404,11 @@ export class BuildingVisual extends BaseVisual {
     height: number,
   ): void {
     if (!this.artworkSprite) return
+    if (this.detailLevel === 'reduced') {
+      this.artworkSprite.visible = false
+      this.artworkSignature = null
+      return
+    }
     const assetId = resolvePrefabAssetIdForBuildingType(building.type)
     const texture = assetId ? this.buildingArtworkProvider?.get(assetId, building.level) : undefined
     if (!texture) {

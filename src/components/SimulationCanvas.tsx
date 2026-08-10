@@ -4,6 +4,7 @@ import {
   DynamicScene,
   createDefaultBuildingArtworkProvider,
   createDefaultPrefabRegistry,
+  createInitialBuildingArtworkPreloadPlan,
   createSpritesheetBuildingAnimationProvider,
   gridToScreen,
   loadBuildingAnimationAtlases,
@@ -64,6 +65,12 @@ interface BrowserLoadPhaseProfile {
   appInitMs?: number
   animationAtlasMs?: number
   artworkProviderMs?: number
+  artworkPreloadAssetCount?: number
+  artworkDeferredAssetCount?: number
+  artworkPreloadLevelCount?: number
+  artworkPreloadVisibleBuildings?: number
+  artworkPreloadDetailedBuildings?: number
+  artworkTotalAssetCount?: number
   sceneSetupMs?: number
   terrainMs?: number
   firstSyncMs?: number
@@ -194,6 +201,11 @@ export function SimulationCanvas({
         return
       }
       markLoadingPhase('artwork')
+      cameraRef.current.setViewport({ width: host.clientWidth, height: host.clientHeight })
+      const initialArtworkPlan = createInitialBuildingArtworkPreloadPlan(
+        snapshotRef.current,
+        cameraRef.current.getState(),
+      )
       let buildingAnimationProvider
       if (renderConfig.authoredAnimation && buildingAnimationAtlasManifest?.length) {
         try {
@@ -209,22 +221,26 @@ export function SimulationCanvas({
         app.destroy(true)
         return
       }
-      const artworkAssetIds = [...new Set(
-        Object.values(snapshotRef.current.buildings)
-          .map((building) => resolvePrefabAssetIdForBuildingType(building.type))
-          .filter((assetId): assetId is string => Boolean(assetId)),
-      )]
       let buildingArtworkProvider = undefined
       if (renderConfig.authoredArtwork) {
         try {
           const artworkStartedAt = performance.now()
-          buildingArtworkProvider = await (renderConfig.buildingAtlas ? loadDefaultBuildingArtworkAtlasProvider : loadDefaultBuildingArtworkProvider)(artworkAssetIds, {
-          signal: artworkAbortController.signal,
-          timeoutMs: 15_000,
-          maxTextures: 512,
-          preloadLevels: [...new Set(Object.values(snapshotRef.current.buildings).map((building) => building.level))],
-        })
-          if (loadProfile) loadProfile.artworkProviderMs = performance.now() - artworkStartedAt
+          buildingArtworkProvider = await (renderConfig.buildingAtlas ? loadDefaultBuildingArtworkAtlasProvider : loadDefaultBuildingArtworkProvider)(initialArtworkPlan.assetIds, {
+            signal: artworkAbortController.signal,
+            timeoutMs: 15_000,
+            maxTextures: 512,
+            preloadLevels: initialArtworkPlan.levels,
+            deferredAssetIds: initialArtworkPlan.deferredAssetIds,
+          })
+          if (loadProfile) {
+            loadProfile.artworkProviderMs = performance.now() - artworkStartedAt
+            loadProfile.artworkPreloadAssetCount = initialArtworkPlan.assetIds.length
+            loadProfile.artworkDeferredAssetCount = initialArtworkPlan.deferredAssetIds.length
+            loadProfile.artworkPreloadLevelCount = initialArtworkPlan.levels.length
+            loadProfile.artworkPreloadVisibleBuildings = initialArtworkPlan.visibleBuildings
+            loadProfile.artworkPreloadDetailedBuildings = initialArtworkPlan.detailedBuildings
+            loadProfile.artworkTotalAssetCount = initialArtworkPlan.totalAssetIds
+          }
         } catch (error) {
           if (disposed) {
             app.destroy(true)

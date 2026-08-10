@@ -24,9 +24,9 @@ codex/commercial-launch-plan-docs
 
 真实游戏持续预览：`https://little-ear-island-game-preview.netlify.app`。该地址直接运行本仓库的 Vite/Pixi 游戏构建，并已绑定 GitHub 自动部署；推送当前开发分支后会自动更新。不要把该需求重新解释成独立宣传落地页。
 
-最近完成：第二百一十九轮已完成建筑视觉签名缓存。`DynamicScene` 会按建筑类型、位置、等级、状态、阻塞原因和生产进度建立视觉签名；签名、LOD 和刷新窗口未变时复用上一轮视觉结果。full detail 仍遵守 2 tick motion 刷新，reduced 建筑在静态签名不变时跳过完整 `BuildingVisual.update`。目标规模 `full` 样本 renderer P95 16.2ms、render sync P95 12.9ms、scene sync 跳过率 0.778。
+最近完成：第二百二十轮已完成 Pixi ticker maxFPS 诊断对照。新增 `tickerMaxFps=<number>` QA 参数和 `qa:render-ablation` 的 `ticker-max-fps-30` 模式；生产默认保持 Pixi 原行为，不直接设置 maxFPS。目标规模同轮对照中，默认 `full` 游戏页 rAF P95 366.7ms，`ticker-max-fps-30` 为 283.3ms，方向性改善但仍 RED，且 WebGL GPU stall warning 继续出现。
 
-下一轮默认任务：继续做目标规模渲染专项，优先聚焦 Pixi/browser ticker 调度、WebGL GPU stall warning 和帧循环控制；不要再把 snapshot clone 或建筑局部同步当作当前主瓶颈，也不要继续只压缩 motion 频率。目标规模 `full` 最新单样本游戏页 rAF P95 仍约 250ms，性能门禁继续 RED。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
+下一轮默认任务：继续做目标规模渲染专项，优先把 `ticker-max-fps-30` 放入多重复/多环境矩阵，同时继续拆 WebGL GPU stall warning 和帧循环控制；不要把 30FPS 上限当作已验证生产默认，也不要再把 snapshot clone 或建筑局部同步当作当前主瓶颈。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
 
 如果另一台电脑路径不同，不影响项目，只要 clone 同一个 GitHub 仓库并 checkout 同一个分支即可。
 

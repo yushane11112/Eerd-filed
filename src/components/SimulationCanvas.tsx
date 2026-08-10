@@ -139,6 +139,9 @@ export function SimulationCanvas({
       if (renderConfig.tickerMinFpsOverride !== undefined) {
         app.ticker.minFPS = renderConfig.tickerMinFpsOverride
       }
+      if (renderConfig.tickerMaxFpsOverride !== undefined) {
+        app.ticker.maxFPS = renderConfig.tickerMaxFpsOverride
+      }
       if (disposed) {
         app.destroy(true)
         return

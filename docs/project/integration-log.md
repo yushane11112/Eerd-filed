@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百二十轮：Ticker maxFPS 诊断对照
+
+- 启动并完成 `RENDER-TICKER-MAXFPS-ABLATION-01`：新增 `tickerMaxFps` 渲染诊断参数，QA 可设置 Pixi `app.ticker.maxFPS`，生产默认保持不变。
+- `run-render-ablation` 新增 `ticker-max-fps-30` 模式，与默认 `full` 使用同一目标规模场景对照帧循环上限。
+- 本轮目标规模单样本中，默认 `full` 的 rAF P95 为 366.7ms，`ticker-max-fps-30` 为 283.3ms，方向性改善但仍远高于商业门禁。
+- 客观限制：单样本波动仍大，且 WebGL GPU stall warning 继续出现；30FPS 上限只能进入候选矩阵，不能作为生产默认修复。
+
 ## 2026-08-10 第二百一十九轮：建筑视觉签名缓存
 
 - 启动并完成 `BUILDING-VISUAL-SIGNATURE-CACHE-01`：`DynamicScene` 为建筑同步增加视觉签名缓存，签名、LOD 和刷新窗口未变化时复用上一轮视觉结果。

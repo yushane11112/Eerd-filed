@@ -1,5 +1,17 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百二十轮验证
+
+- 验证等级：Tier 3，渲染诊断参数、画布 ticker 设置、渲染差分模式和目标规模浏览器对照均有变更。
+- 定向测试：`npm test -- src/rendering/renderDiagnostics.test.ts src/qa/performanceBaseline.test.ts` 通过，2 个测试文件、6 项测试。
+- 生产构建：`npm run build` 通过，Vite 构建 2364 个模块；提交前最终构建同样通过。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模 ticker maxFPS 对照：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_MODES=full,ticker-max-fps-30 RENDER_ABLATION_REPEATS=1 npm run qa:render-ablation` 通过，并隐含完成生产构建。
+- 完整测试：`npm test` 通过，58 个测试文件、365 项测试，耗时约 163 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 默认 `full`：空白页 rAF 16.57/16.7/16.8ms，游戏页 rAF 350/366.7/366.7ms；render sync P95 20.1ms，renderer P95 20.7ms，ticker elapsed P95 433.3ms，ticker maxFPS 0。
+- `ticker-max-fps-30`：空白页 rAF 16.44/16.8/16.8ms，游戏页 rAF 256.66/283.3/283.3ms；render sync P95 16ms，renderer P95 18.5ms，ticker elapsed P95 283.3ms，ticker maxFPS 30。
+- 结论：30FPS ticker 上限是候选方向但不是已验证生产默认；两个样本仍 RED，且 WebGL GPU stall warning 继续出现。下一轮应做多重复/多环境验证或继续拆 WebGL stall。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百一十九轮验证
 
 - 验证等级：Tier 3，建筑同步缓存、LOD/动画刷新窗口和目标规模浏览器性能样本均有变更。

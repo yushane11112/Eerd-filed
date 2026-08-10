@@ -7,6 +7,7 @@ const allModes = [
   { id: 'full', query: 'renderProfile=1' },
   { id: 'no-react-commit', query: 'renderProfile=1&suppressReactCommit=1' },
   { id: 'no-ticker-min-fps', query: 'renderProfile=1&tickerMinFps=0' },
+  { id: 'ticker-max-fps-30', query: 'renderProfile=1&tickerMaxFps=30' },
   { id: 'no-building-lod', query: 'renderProfile=1&disableBuildingLod=1' },
   { id: 'no-atlas', query: 'renderProfile=1&disableAtlas=1' },
   { id: 'no-artwork', query: 'renderProfile=1&disableArtwork=1' },

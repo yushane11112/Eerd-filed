@@ -8,6 +8,14 @@
 
 当前判断：
 
+### 第二百二十轮产出（2026-08-10）
+
+- 新增 Pixi ticker maxFPS 诊断参数：`tickerMaxFps=<number>` 可在 QA URL 中设置 `app.ticker.maxFPS`，生产默认保持 Pixi 原行为，不把 30FPS 上限直接落入正式路径。
+- `qa:render-ablation` 新增 `ticker-max-fps-30` 模式，用同一目标规模场景对照默认 ticker 与 30FPS 上限；报告继续输出实际 `tickerMaxFps`。
+- 目标规模同轮对照：默认 `full` 空白页 rAF 16.57/16.7/16.8ms，游戏页 rAF 350/366.7/366.7ms，ticker maxFPS 为 0；`ticker-max-fps-30` 游戏页 rAF 256.66/283.3/283.3ms，ticker maxFPS 为 30。
+- 两个样本均功能通过、300 栋/135 居民/15 运输保持、readPixels=0，但 WebGL GPU stall warning 仍出现，商业帧率继续 RED。
+- 结论：30FPS 上限在本轮样本中有方向性改善，但波动仍大且未达商业目标；下一步应把它放入多重复/多环境矩阵，并继续拆 WebGL stall 与帧循环，而不是立刻改生产默认。
+
 ### 第二百一十九轮产出（2026-08-10）
 
 - 新增建筑视觉签名缓存：`DynamicScene` 为每栋建筑记录类型、位置、等级、状态、阻塞原因和生产进度签名，签名未变时复用上一轮视觉结果。

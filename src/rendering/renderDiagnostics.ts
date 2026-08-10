@@ -9,6 +9,7 @@ export interface RenderDiagnosticsConfig {
   buildingAtlas: boolean
   buildingLod: boolean
   tickerMinFpsOverride?: number
+  tickerMaxFpsOverride?: number
 }
 
 /**
@@ -30,6 +31,7 @@ export function parseRenderDiagnostics(search: string): RenderDiagnosticsConfig 
     buildingAtlas: params.get('disableAtlas') !== '1',
     buildingLod: params.get('disableBuildingLod') !== '1',
     tickerMinFpsOverride: parseNonNegativeNumber(params.get('tickerMinFps')),
+    tickerMaxFpsOverride: parseNonNegativeNumber(params.get('tickerMaxFps')),
   }
 }
 

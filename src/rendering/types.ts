@@ -88,4 +88,6 @@ export interface SceneTickerPerformanceProfile {
   sceneSyncMs: number
   tickerDeltaMs: number
   tickerElapsedMs: number
+  tickerMinFps: number
+  tickerMaxFps: number
 }

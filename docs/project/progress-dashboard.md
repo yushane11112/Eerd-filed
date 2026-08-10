@@ -8,6 +8,13 @@
 
 当前判断：
 
+### 第二百一十轮产出（2026-08-10）
+
+- 渲染诊断新增 `tickerMinFps=<number>` 参数；生产默认不变，QA 可用 `tickerMinFps=0` 关闭 Pixi ticker 的 delta cap，用于区分 `deltaMS` 封顶和真实帧间隔。
+- `SimulationCanvas` 会在诊断参数存在时设置 `app.ticker.minFPS`，ticker profile 同步回传实际 `tickerMinFps` / `tickerMaxFps`；`qa:render-ablation` 新增 `no-ticker-min-fps` 模式。
+- 目标规模桌面 GPU 对照：默认 `full` 的 `tickerMinFps=10`，ticker delta P95 100ms、elapsed P95 316.6ms，rAF 258.35/300/300ms；`tickerMinFps=0` 后 delta P95 与 elapsed P95 同为 316.6ms，但 rAF 仍为 258.33/300/300ms。
+- 结论：Pixi 默认 `minFPS=10` 确实解释了 `deltaMS=100ms` 封顶，但关闭该 cap 不会改善真实 rAF。当前性能红灯继续指向浏览器/runner 调度、GPU stall 或环境层，而不是 delta cap 本身。
+
 ### 第二百零九轮产出（2026-08-10）
 
 - 三环境性能基线聚合已接入 `tickerProfile`：`qa:performance-baseline` 现在会在桌面 GPU、软件渲染和嵌入容器代理中同时汇总 rAF、render sync、renderer、ticker callback、ticker delta/elapsed 和 readPixels。

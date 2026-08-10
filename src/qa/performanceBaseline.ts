@@ -65,6 +65,8 @@ export interface PerformanceSample {
       sceneSyncMs?: number
       tickerDeltaMs?: number
       tickerElapsedMs?: number
+      tickerMinFps?: number
+      tickerMaxFps?: number
     }
     max?: {
       callbackMs?: number
@@ -112,6 +114,8 @@ export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSa
         sceneSyncMs: median(samples.map((sample) => sample.tickerProfile?.p95?.sceneSyncMs ?? Number.POSITIVE_INFINITY)),
         tickerDeltaMs: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerDeltaMs ?? Number.POSITIVE_INFINITY)),
         tickerElapsedMs: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerElapsedMs ?? Number.POSITIVE_INFINITY)),
+        tickerMinFps: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerMinFps ?? Number.POSITIVE_INFINITY)),
+        tickerMaxFps: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerMaxFps ?? Number.POSITIVE_INFINITY)),
       },
       max: {
         callbackMs: median(samples.map((sample) => sample.tickerProfile?.max?.callbackMs ?? Number.POSITIVE_INFINITY)),

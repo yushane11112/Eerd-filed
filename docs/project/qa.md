@@ -1,5 +1,17 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百一十轮验证
+
+- 验证等级：Tier 3，渲染诊断参数、Pixi ticker 设置、浏览器报告和性能聚合口径均有变更。
+- 定向测试：`npm test -- src/rendering/renderDiagnostics.test.ts src/qa/performanceBaseline.test.ts src/qa/browserE2eScenarios.test.ts` 通过，3 个测试文件、11 项测试。
+- 完整测试：`npm test` 通过，57 个测试文件、358 项测试。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；本轮压力长跑耗时约 305 秒，需后续关注测试时长波动。
+- 生产构建：`npm run build` 通过，Vite 构建 2363 个模块。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模 minFPS 对照：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_MODES=full,no-ticker-min-fps RENDER_ABLATION_REPEATS=1 npm run qa:render-ablation` 通过。
+- 默认 `full`：`tickerMinFps=10`，ticker delta/elapsed P95 100/316.6ms，rAF 258.35/300/300ms，renderer P95 27.8ms，readPixels=0。
+- `tickerMinFps=0`：ticker delta/elapsed P95 316.6/316.6ms，rAF 258.33/300/300ms，renderer P95 34.6ms，readPixels=0。
+- 结论：`minFPS=10` 解释 `deltaMS=100ms` 封顶，但关闭 cap 不改善实际 rAF；商业帧率门禁继续 RED。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百零九轮验证
 
 - 验证等级：Tier 3，性能基线聚合口径和三环境目标规模报告结构有变更。

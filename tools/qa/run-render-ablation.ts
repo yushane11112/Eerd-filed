@@ -5,6 +5,7 @@ const profile = process.env.RENDER_ABLATION_PROFILE ?? 'desktop-gpu'
 const repeats = Math.max(1, Number.parseInt(process.env.RENDER_ABLATION_REPEATS ?? '3', 10) || 1)
 const allModes = [
   { id: 'full', query: 'renderProfile=1' },
+  { id: 'no-ticker-min-fps', query: 'renderProfile=1&tickerMinFps=0' },
   { id: 'no-building-lod', query: 'renderProfile=1&disableBuildingLod=1' },
   { id: 'no-atlas', query: 'renderProfile=1&disableAtlas=1' },
   { id: 'no-artwork', query: 'renderProfile=1&disableArtwork=1' },
@@ -35,6 +36,8 @@ interface BrowserResult {
       sceneSyncMs?: number
       tickerDeltaMs?: number
       tickerElapsedMs?: number
+      tickerMinFps?: number
+      tickerMaxFps?: number
     }
     max?: {
       callbackMs?: number
@@ -144,6 +147,8 @@ const main = async () => {
         tickerSceneSyncP95Ms: median(samples.map((sample) => sample.tickerProfile?.p95?.sceneSyncMs ?? Number.POSITIVE_INFINITY)),
         tickerDeltaP95Ms: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerDeltaMs ?? Number.POSITIVE_INFINITY)),
         tickerElapsedP95Ms: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerElapsedMs ?? Number.POSITIVE_INFINITY)),
+        tickerMinFps: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerMinFps ?? Number.POSITIVE_INFINITY)),
+        tickerMaxFps: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerMaxFps ?? Number.POSITIVE_INFINITY)),
         tickerCallbackMaxMs: median(samples.map((sample) => sample.tickerProfile?.max?.callbackMs ?? Number.POSITIVE_INFINITY)),
         tickerElapsedMaxMs: median(samples.map((sample) => sample.tickerProfile?.max?.tickerElapsedMs ?? Number.POSITIVE_INFINITY)),
         detailedBuildings: median(samples.map((sample) => sample.renderProfile?.entityRange?.detailedBuildings?.last ?? Number.POSITIVE_INFINITY)),

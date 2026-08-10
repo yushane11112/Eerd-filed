@@ -135,6 +135,9 @@ export function SimulationCanvas({
         resolution: renderConfig.resolutionOverride ?? Math.min(window.devicePixelRatio || 1, 2),
         backgroundColor: 0x74b8bc,
       })
+      if (renderConfig.tickerMinFpsOverride !== undefined) {
+        app.ticker.minFPS = renderConfig.tickerMinFpsOverride
+      }
       if (disposed) {
         app.destroy(true)
         return
@@ -240,6 +243,8 @@ export function SimulationCanvas({
           sceneSyncMs,
           tickerDeltaMs: app.ticker.deltaMS,
           tickerElapsedMs: app.ticker.elapsedMS,
+          tickerMinFps: app.ticker.minFPS,
+          tickerMaxFps: app.ticker.maxFPS,
         })
       }
     }

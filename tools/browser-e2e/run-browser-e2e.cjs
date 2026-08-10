@@ -263,7 +263,7 @@ async function runScenario(browser, scenario) {
     const tickerProfile = await page.evaluate(() => {
       const profiles = window.__littleEarTickerProfiles ?? []
       if (profiles.length === 0) return { sampleCount: 0 }
-      const fields = ['callbackMs', 'cameraMs', 'sceneSyncMs', 'tickerDeltaMs', 'tickerElapsedMs']
+      const fields = ['callbackMs', 'cameraMs', 'sceneSyncMs', 'tickerDeltaMs', 'tickerElapsedMs', 'tickerMinFps', 'tickerMaxFps']
       const percentile = (values, ratio) => {
         const sorted = [...values].sort((left, right) => left - right)
         return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * ratio))]

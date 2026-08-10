@@ -8,6 +8,7 @@ export interface RenderDiagnosticsConfig {
   staticBuildingCache: boolean
   buildingAtlas: boolean
   buildingLod: boolean
+  tickerMinFpsOverride?: number
 }
 
 /**
@@ -28,5 +29,12 @@ export function parseRenderDiagnostics(search: string): RenderDiagnosticsConfig 
     // for controlled regression comparisons and emergency asset fallback.
     buildingAtlas: params.get('disableAtlas') !== '1',
     buildingLod: params.get('disableBuildingLod') !== '1',
+    tickerMinFpsOverride: parseNonNegativeNumber(params.get('tickerMinFps')),
   }
+}
+
+function parseNonNegativeNumber(value: string | null): number | undefined {
+  if (value === null || value.trim() === '') return undefined
+  const parsed = Number(value)
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined
 }

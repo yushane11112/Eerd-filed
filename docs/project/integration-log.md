@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百一十轮：Ticker minFPS 对照
+
+- 启动并完成 `RENDER-TICKER-MINFPS-ABLATION-01`：新增 `tickerMinFps` 渲染诊断参数，并在目标规模差分中加入 `no-ticker-min-fps` 模式。
+- 浏览器报告现在回传实际 `tickerMinFps` / `tickerMaxFps`，避免只从 `deltaMS` 反推 Pixi ticker 设置。
+- 对照证明：默认 `minFPS=10` 会把 `deltaMS` 截断到 100ms；`tickerMinFps=0` 后 `deltaMS` 与 `elapsedMS` 同步到 316.6ms。
+- 客观限制：关闭 minFPS cap 没有改善 rAF，说明该 cap 是观测口径因素，不是目标规模帧率红灯的根因。
+
 ## 2026-08-10 第二百零九轮：三环境目标规模 Ticker 矩阵
 
 - 启动并完成 `PERF-TICKER-MATRIX-01`：性能基线聚合纳入 ticker 指标，三环境报告不再只看帧时间、render sync、renderer 和 readPixels。

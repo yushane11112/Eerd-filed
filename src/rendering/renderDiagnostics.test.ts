@@ -13,11 +13,12 @@ describe('parseRenderDiagnostics', () => {
       staticBuildingCache: false,
       buildingAtlas: true,
       buildingLod: true,
+      tickerMinFpsOverride: undefined,
     })
   })
 
   it('supports independent opt-in ablations for the render harness', () => {
-    expect(parseRenderDiagnostics('?renderProfile=1&disableArtwork=1&disableAnimation=1&disableAntialias=1&resolution=1')).toEqual({
+    expect(parseRenderDiagnostics('?renderProfile=1&disableArtwork=1&disableAnimation=1&disableAntialias=1&resolution=1&tickerMinFps=0')).toEqual({
       enabled: true,
       authoredArtwork: false,
       authoredAnimation: false,
@@ -27,10 +28,13 @@ describe('parseRenderDiagnostics', () => {
       staticBuildingCache: false,
       buildingAtlas: true,
       buildingLod: true,
+      tickerMinFpsOverride: 0,
     })
     expect(parseRenderDiagnostics('?staticBuildingCache=1')).toMatchObject({ staticBuildingCache: true })
     expect(parseRenderDiagnostics('?disableAtlas=1')).toMatchObject({ buildingAtlas: false })
     expect(parseRenderDiagnostics('?disableTerrain=1')).toMatchObject({ terrain: false })
     expect(parseRenderDiagnostics('?disableBuildingLod=1')).toMatchObject({ buildingLod: false })
+    expect(parseRenderDiagnostics('?tickerMinFps=24')).toMatchObject({ tickerMinFpsOverride: 24 })
+    expect(parseRenderDiagnostics('?tickerMinFps=-1')).toMatchObject({ tickerMinFpsOverride: undefined })
   })
 })

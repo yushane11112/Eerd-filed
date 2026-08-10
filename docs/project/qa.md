@@ -1,5 +1,17 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百一十二轮验证
+
+- 验证等级：Tier 3，App renderProfile 采集、浏览器 E2E runner、渲染差分报告和性能基线聚合结构均有变更。
+- 定向测试：`npm test -- src/qa/performanceBaseline.test.ts src/qa/browserE2eScenarios.test.ts` 通过，2 个测试文件、9 项测试。
+- 完整测试：`npm test` 通过，57 个测试文件、358 项测试，耗时约 213 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 生产构建：`npm run build` 通过，Vite 构建 2363 个模块。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模应用层 profile：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_MODES=full RENDER_ABLATION_REPEATS=1 npm run qa:render-ablation` 通过。
+- 同一 Playwright page 空白页 rAF 为 16.61/16.7/16.8ms；游戏页 rAF 为 816.65/866.7/866.7ms，render sync P95 73.7ms，renderer P95 96.9ms，ticker elapsed P95 1850ms。
+- 应用层样本：`runtime.advance` 平均/P95/最大 25.16/63.2/63.2ms；React commit interval P95/最大 3511.5/3511.5ms；最后快照 tick 为 8。
+- 结论：应用层推进已进入可观测报告。单样本波动很大，性能门禁继续 RED；下一步应拆分 `GameRuntime.advance` 内部阶段。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百一十一轮验证
 
 - 验证等级：Tier 3，浏览器 E2E runner、渲染差分报告和性能基线聚合结构有变更。

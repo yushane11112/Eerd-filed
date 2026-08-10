@@ -280,6 +280,35 @@ async function runScenario(browser, scenario) {
       }
       return { sampleCount: profiles.length, average, p95, max }
     })
+    const appProfile = await page.evaluate(() => {
+      const profiles = window.__littleEarAppProfiles ?? []
+      if (profiles.length === 0) return { sampleCount: 0 }
+      const advanceValues = profiles
+        .map((profile) => Number(profile.advanceMs))
+        .filter(Number.isFinite)
+      const commitValues = profiles
+        .map((profile) => Number(profile.commitIntervalMs))
+        .filter((value) => Number.isFinite(value) && value > 0)
+      const percentile = (values, ratio) => {
+        const sorted = [...values].sort((left, right) => left - right)
+        return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * ratio))]
+      }
+      const summarize = (values) => {
+        if (values.length === 0) return { sampleCount: 0 }
+        return {
+          sampleCount: values.length,
+          averageMs: Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(3)),
+          p95Ms: Number(percentile(values, 0.95).toFixed(3)),
+          maxMs: Number(Math.max(...values).toFixed(3)),
+        }
+      }
+      return {
+        sampleCount: profiles.length,
+        advance: summarize(advanceValues),
+        commitInterval: summarize(commitValues),
+        lastSnapshotTick: profiles.at(-1)?.snapshotTick ?? null,
+      }
+    })
     const renderConfiguration = await page.evaluate(() => window.__littleEarRenderConfiguration ?? null)
 
     for (const [field, expected] of Object.entries(scenario.renderEntityAssertions || {})) {
@@ -339,6 +368,7 @@ async function runScenario(browser, scenario) {
       renderProfile,
       rendererProfile,
       tickerProfile,
+      appProfile,
       profileWindow: 'steady-state-after-assertions',
       renderConfiguration,
       readPixels: await page.evaluate(() => window.__littleEarReadPixels ?? { count: 0, samples: [] }),
@@ -356,6 +386,7 @@ async function resetRenderProfileSamples(page) {
     if (Array.isArray(window.__littleEarRenderProfiles)) window.__littleEarRenderProfiles.length = 0
     if (Array.isArray(window.__littleEarRendererProfiles)) window.__littleEarRendererProfiles.length = 0
     if (Array.isArray(window.__littleEarTickerProfiles)) window.__littleEarTickerProfiles.length = 0
+    if (Array.isArray(window.__littleEarAppProfiles)) window.__littleEarAppProfiles.length = 0
   })
 }
 

@@ -78,6 +78,10 @@ export interface PerformanceSample {
       tickerElapsedMs?: number
     }
   }
+  appProfile?: {
+    advance?: { p95Ms?: number; maxMs?: number }
+    commitInterval?: { p95Ms?: number; maxMs?: number }
+  }
   readPixels?: { count?: number }
 }
 
@@ -130,6 +134,16 @@ export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSa
       max: {
         callbackMs: median(samples.map((sample) => sample.tickerProfile?.max?.callbackMs ?? Number.POSITIVE_INFINITY)),
         tickerElapsedMs: median(samples.map((sample) => sample.tickerProfile?.max?.tickerElapsedMs ?? Number.POSITIVE_INFINITY)),
+      },
+    },
+    appProfile: {
+      advance: {
+        p95Ms: median(samples.map((sample) => sample.appProfile?.advance?.p95Ms ?? Number.POSITIVE_INFINITY)),
+        maxMs: median(samples.map((sample) => sample.appProfile?.advance?.maxMs ?? Number.POSITIVE_INFINITY)),
+      },
+      commitInterval: {
+        p95Ms: median(samples.map((sample) => sample.appProfile?.commitInterval?.p95Ms ?? Number.POSITIVE_INFINITY)),
+        maxMs: median(samples.map((sample) => sample.appProfile?.commitInterval?.maxMs ?? Number.POSITIVE_INFINITY)),
       },
     },
     readPixels: { count: Math.max(...samples.map((sample) => sample.readPixels?.count ?? Number.POSITIVE_INFINITY)) },

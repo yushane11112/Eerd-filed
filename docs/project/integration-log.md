@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百一十二轮：应用层推进 Profile
+
+- 启动并完成 `APP-RUNTIME-PROFILE-01`：App 在 renderProfile 模式下记录 `runtime.advance` 耗时和 React commit 间隔，浏览器 runner 输出 `appProfile`。
+- render ablation 与 performance baseline 聚合新增应用层指标，性能报告不再只能看到 Pixi/renderer 层。
+- 目标规模单样本显示应用层推进出现 63.2ms P95，React commit 间隔也被拉长；该证据提示下一步要拆开 `GameRuntime.advance` 内部阶段。
+- 客观限制：本轮样本 rAF 波动极大，不能把单次 866ms 当稳定基线；它的价值在于把应用层推进纳入可观测范围。
+
 ## 2026-08-10 第二百一十一轮：空白页 rAF 基线
 
 - 启动并完成 `BROWSER-RAF-BASELINE-01`：浏览器 runner 在进入游戏 URL 前先采集 about:blank 的 rAF 基线，并随场景结果输出 `browserFrameBaseline`。

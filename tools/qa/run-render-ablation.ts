@@ -47,6 +47,11 @@ interface BrowserResult {
       tickerElapsedMs?: number
     }
   }
+  appProfile?: {
+    advance?: { p95Ms?: number; maxMs?: number }
+    commitInterval?: { p95Ms?: number; maxMs?: number }
+    lastSnapshotTick?: number | null
+  }
   renderConfiguration?: {
     authoredArtwork?: boolean
     authoredAnimation?: boolean
@@ -155,6 +160,10 @@ const main = async () => {
         tickerMaxFps: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerMaxFps ?? Number.POSITIVE_INFINITY)),
         tickerCallbackMaxMs: median(samples.map((sample) => sample.tickerProfile?.max?.callbackMs ?? Number.POSITIVE_INFINITY)),
         tickerElapsedMaxMs: median(samples.map((sample) => sample.tickerProfile?.max?.tickerElapsedMs ?? Number.POSITIVE_INFINITY)),
+        appAdvanceP95Ms: median(samples.map((sample) => sample.appProfile?.advance?.p95Ms ?? Number.POSITIVE_INFINITY)),
+        appAdvanceMaxMs: median(samples.map((sample) => sample.appProfile?.advance?.maxMs ?? Number.POSITIVE_INFINITY)),
+        appCommitIntervalP95Ms: median(samples.map((sample) => sample.appProfile?.commitInterval?.p95Ms ?? Number.POSITIVE_INFINITY)),
+        appCommitIntervalMaxMs: median(samples.map((sample) => sample.appProfile?.commitInterval?.maxMs ?? Number.POSITIVE_INFINITY)),
         detailedBuildings: median(samples.map((sample) => sample.renderProfile?.entityRange?.detailedBuildings?.last ?? Number.POSITIVE_INFINITY)),
         reducedBuildings: median(samples.map((sample) => sample.renderProfile?.entityRange?.reducedBuildings?.last ?? Number.POSITIVE_INFINITY)),
         readPixels: Math.max(...samples.map((sample) => sample.readPixels?.count ?? Number.POSITIVE_INFINITY)),

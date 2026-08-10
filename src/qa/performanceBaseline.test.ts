@@ -50,6 +50,7 @@ describe('performance baseline contract', () => {
         renderProfile: { p95: { totalMs: 1 } },
         rendererProfile: { p95Ms: 2, maxMs: 4 },
         tickerProfile: { p95: { callbackMs: 1, sceneSyncMs: 1, tickerDeltaMs: 16, tickerElapsedMs: 20, tickerMinFps: 10, tickerMaxFps: 0 }, max: { callbackMs: 2, tickerElapsedMs: 30 } },
+        appProfile: { advance: { p95Ms: 0.5, maxMs: 1 }, commitInterval: { p95Ms: 16, maxMs: 18 } },
         readPixels: { count: 0 },
       },
       {
@@ -59,6 +60,7 @@ describe('performance baseline contract', () => {
         renderProfile: { p95: { totalMs: 5 } },
         rendererProfile: { p95Ms: 9, maxMs: 20 },
         tickerProfile: { p95: { callbackMs: 5, sceneSyncMs: 4, tickerDeltaMs: 100, tickerElapsedMs: 90, tickerMinFps: 0, tickerMaxFps: 0 }, max: { callbackMs: 7, tickerElapsedMs: 100 } },
+        appProfile: { advance: { p95Ms: 4, maxMs: 7 }, commitInterval: { p95Ms: 80, maxMs: 90 } },
         readPixels: { count: 2 },
       },
       {
@@ -68,6 +70,7 @@ describe('performance baseline contract', () => {
         renderProfile: { p95: { totalMs: 2 } },
         rendererProfile: { p95Ms: 3, maxMs: 6 },
         tickerProfile: { p95: { callbackMs: 2, sceneSyncMs: 2, tickerDeltaMs: 17, tickerElapsedMs: 22, tickerMinFps: 10, tickerMaxFps: 0 }, max: { callbackMs: 3, tickerElapsedMs: 40 } },
+        appProfile: { advance: { p95Ms: 1, maxMs: 2 }, commitInterval: { p95Ms: 17, maxMs: 20 } },
         readPixels: { count: 0 },
       },
     ])
@@ -78,6 +81,10 @@ describe('performance baseline contract', () => {
     expect(aggregate.tickerProfile).toEqual({
       p95: { callbackMs: 2, sceneSyncMs: 2, tickerDeltaMs: 17, tickerElapsedMs: 22, tickerMinFps: 10, tickerMaxFps: 0 },
       max: { callbackMs: 3, tickerElapsedMs: 40 },
+    })
+    expect(aggregate.appProfile).toEqual({
+      advance: { p95Ms: 1, maxMs: 2 },
+      commitInterval: { p95Ms: 17, maxMs: 20 },
     })
     expect(aggregate.readPixels?.count).toBe(2)
   })

@@ -8,6 +8,14 @@
 
 当前判断：
 
+### 第二百一十二轮产出（2026-08-10）
+
+- 浏览器 E2E runner 新增 `appProfile`：renderProfile 模式下记录 `runtime.advance(100)` 耗时、React commit 间隔和最后快照 tick，并在稳态窗口与 render/renderer/ticker 样本一起重置和汇总。
+- `qa:render-ablation` 与 `qa:performance-baseline` 已保留应用层 profile，后续可以同时观察空白页 rAF、游戏页 rAF、ticker、renderer、scene sync、模拟推进和 React 提交间隔。
+- 目标规模桌面 GPU 单样本：空白页 rAF 16.61/16.7/16.8ms，游戏页 rAF 816.65/866.7/866.7ms；render sync P95 73.7ms，renderer P95 96.9ms，ticker elapsed P95 1850ms。
+- 同次 `appProfile` 显示 `runtime.advance` 平均/P95/最大 25.16/63.2/63.2ms，React commit interval P95/最大 3511.5/3511.5ms，最后快照 tick 为 8。
+- 结论：本轮证明浏览器报告已能观察应用层推进；该单样本波动很大，但它提示目标规模红灯不能只归因于 WebGL，模拟推进和 React/订阅节奏也需要进入下一轮诊断。下一步应拆分 `runtime.advance` 阶段耗时，找出 500 户/300 栋下哪个模拟系统在浏览器稳态窗口内产生长任务。
+
 ### 第二百一十一轮产出（2026-08-10）
 
 - 浏览器 E2E runner 新增空白页 rAF 基线：同一个 Playwright page 在加载游戏前先采样 1 秒 `requestAnimationFrame`，再加载目标场景并采样游戏页稳态窗口。

@@ -59,6 +59,12 @@ import { formatCityTimelineRecord, formatCityTimelineResidentProfile, formatLogi
 import { runtimeOptionsFromSearch } from './ui/runtimeOptions'
 import './styles.css'
 
+interface AppRuntimePerformanceProfile {
+  advanceMs?: number
+  commitIntervalMs?: number
+  snapshotTick: number
+}
+
 const INITIAL_FULLSCREEN: FullscreenState = {
   supported: true,
   active: false,
@@ -69,6 +75,7 @@ const INITIAL_FULLSCREEN: FullscreenState = {
 export default function App() {
   const runtime = useMemo(() => new GameRuntime(runtimeOptionsFromSearch(window.location.search)), [])
   const snapshot = useSyncExternalStore(runtime.subscribe, runtime.getSnapshot)
+  const renderProfileEnabled = new URLSearchParams(window.location.search).get('renderProfile') === '1'
   const [tool, setTool] = useState<BuildTool>({ kind: 'inspect' })
   const [toast, setToast] = useState('欢迎回到小耳镇：铺路、建房，让居民真正生活起来。')
   const [ambientStories, setAmbientStories] = useState<AmbientCityStoryItem[]>([])
@@ -85,11 +92,40 @@ export default function App() {
   const fullscreenRef = useRef<FullscreenController | null>(null)
   const cameraFocusIdRef = useRef(0)
   const ambientStoryTrackerRef = useRef(new AmbientCityStoryTracker())
+  const lastCommitAtRef = useRef<number | null>(null)
+  const appProfilesRef = useRef<AppRuntimePerformanceProfile[] | undefined>(
+    renderProfileEnabled
+      ? ((window as Window & { __littleEarAppProfiles?: AppRuntimePerformanceProfile[] }).__littleEarAppProfiles ??= [])
+      : undefined,
+  )
 
   useEffect(() => {
-    const timer = window.setInterval(() => runtime.advance(100), 100)
+    const timer = window.setInterval(() => {
+      const startedAt = performance.now()
+      runtime.advance(100)
+      const profiles = appProfilesRef.current
+      if (profiles && profiles.length < 120) {
+        profiles.push({
+          advanceMs: performance.now() - startedAt,
+          snapshotTick: runtime.getSnapshot().tick,
+        })
+      }
+    }, 100)
     return () => window.clearInterval(timer)
   }, [runtime])
+
+  useEffect(() => {
+    const profiles = appProfilesRef.current
+    const now = performance.now()
+    const previous = lastCommitAtRef.current
+    lastCommitAtRef.current = now
+    if (profiles && profiles.length < 120) {
+      profiles.push({
+        commitIntervalMs: previous === null ? 0 : now - previous,
+        snapshotTick: snapshot.tick,
+      })
+    }
+  })
 
   useEffect(() => {
     const controller = new FullscreenController(

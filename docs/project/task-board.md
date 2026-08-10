@@ -2,6 +2,7 @@
 
 | ID | 会话职责 | 写入范围 | 状态 | 集成条件 |
 | --- | --- | --- | --- | --- |
+| CANVAS-LOADING-PHASE-GATE-01 | 画布加载体验与阶段门禁 | `src/components/SimulationCanvas.tsx`, `src/ui/loadingProgress.ts`, `tools/qa/run-render-ablation.ts`, `docs/project/**` | 已完成 | 玩家可见加载阶段，QA 报告输出 `phaseEvents`，目标规模样本到达 `ready` |
 | RENDER-FIRST-SUBMIT-ABLATION-01 | 首帧/ticker 提交对照 | `src/rendering/renderDiagnostics.ts`, `src/components/SimulationCanvas.tsx`, `tools/qa/run-render-ablation.ts`, `src/qa/**`, `docs/project/**` | 已完成（排除根因） | manual ticker 与 defer initial sync 均不降低 `pageLoadStall=2`，生产默认不改 |
 | RENDER-LOAD-PHASE-PROFILE-01 | 加载期内部画像 | `src/components/SimulationCanvas.tsx`, `tools/browser-e2e/run-browser-e2e.cjs`, `tools/qa/run-render-ablation.ts`, `src/qa/performanceBaseline.ts`, `src/qa/performanceBaseline.test.ts`, `docs/project/**` | 已完成 | artwork/atlas 是加载耗时大头，但 no-artwork/no-atlas/no-terrain 均不消除 `page-load` GPU stall |
 | RENDER-CONSOLE-PHASE-ATTRIBUTION-01 | Console 阶段归因 | `tools/browser-e2e/run-browser-e2e.cjs`, `tools/qa/run-render-ablation.ts`, `src/qa/performanceBaseline.ts`, `src/qa/performanceBaseline.test.ts`, `docs/project/**` | 已完成 | 目标规模样本显示 `gpuStall=2` 全部来自 `page-load`，下一轮转向加载期/Pixi 初始化 |

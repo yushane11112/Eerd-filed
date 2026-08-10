@@ -2,6 +2,21 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百二十八轮加载体验与阶段门禁
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/ui/loadingProgress.ts` | UI 阶段契约 | 定义画布加载阶段顺序、玩家文案和进度 |
+| `src/ui/loadingProgress.test.ts` | 自动测试 | 固定加载阶段顺序、文案和 ready 进度 |
+| `src/components/SimulationCanvas.tsx` | 画布体验 | 接入玩家可见加载层，并输出 `currentPhase` / `phaseEvents` |
+| `src/styles.css` | 视觉样式 | 新增加载面板和进度条样式 |
+| `tools/qa/run-render-ablation.ts` | 渲染差分工具 | 汇总加载阶段序列，减少 rawSamples 钻取成本 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录加载体验改善、目标规模样本和剩余红灯 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮集成事实与客观限制 |
+| `docs/project/qa.md` | QA 记录 | 记录定向测试、构建和目标规模加载阶段门禁 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `CANVAS-LOADING-PHASE-GATE-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认方向 |
+
 ## 2026-08-10：第二百二十七轮首帧/ticker 提交对照
 
 | 文件 | 产物类型 | 用途 |

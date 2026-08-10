@@ -8,6 +8,14 @@
 
 当前判断：
 
+### 第二百二十八轮产出（2026-08-10）
+
+- 新增玩家可见的画布加载层：加载期显示“唤醒水乡画卷 / 铺开街坊灯火 / 搭起城镇骨架 / 描出水岸道路 / 点亮第一帧”等阶段、阶段说明和进度条，避免目标规模场景初始化时呈现无反馈空等。
+- 新增 `src/ui/loadingProgress.ts`，把加载阶段文案、进度和顺序独立成可测契约；`SimulationCanvas` 复用同一套阶段定义，减少 UI 文案和 QA 阶段画像分叉。
+- 渲染诊断模式下 `__littleEarLoadProfile` 新增 `currentPhase` 与 `phaseEvents`，`qa:render-ablation` 汇总直接输出最后阶段和阶段序列，不需要再深入 rawSamples 才能定位加载卡点。
+- 目标规模 `desktop-gpu/full` 单样本功能通过，加载阶段到达 `ready`；阶段序列为 `graphics → artwork → scene → terrain → first-sync → ready`，本机提交前样本 `appInitMs≈176.6ms`、`artworkProviderMs≈499ms`、`firstSyncMs≈76.7ms`、`totalMs≈767.3ms`。
+- 结论：本轮改善的是玩家等待反馈和 QA 阶段门禁，不宣称解决性能红灯；同一样本 rAF P95 仍约 `566.6ms`，`gpuStall=2` 且 `pageLoadStall=2`，下一步应继续压加载耗时/首帧内容压力，并补真实硬件或目标容器验证。
+
 ### 第二百二十七轮产出（2026-08-10）
 
 - `renderDiagnostics` 新增 `manualTickerStart=1` 与 `deferInitialSync=1` QA 开关；`qa:render-ablation` 新增 `manual-ticker-start`、`defer-initial-sync`、`manual-ticker-defer-sync` 三个首帧/自动 ticker 对照模式。

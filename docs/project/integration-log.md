@@ -1,5 +1,13 @@
 # 集成记录
 
+## 2026-08-10 第二百二十八轮：加载体验与阶段门禁
+
+- 启动并完成 `CANVAS-LOADING-PHASE-GATE-01`：新增画布加载层，玩家在目标规模初始化期间可看到阶段文案、说明、耗时和进度条。
+- 新增 `src/ui/loadingProgress.ts` 与单测，固定加载阶段顺序和玩家文案；`SimulationCanvas` 使用同一阶段定义，避免 UI 与 QA 画像维护两套口径。
+- `__littleEarLoadProfile` 新增 `currentPhase` 和 `phaseEvents`；`run-render-ablation` 的 `loadProfile` 汇总直接输出阶段序列。
+- 目标规模 `civilization-scale` × `desktop-gpu` × `full` 单样本通过，阶段序列到达 `ready`，加载总耗时约 767.3ms；性能红灯和 `pageLoadStall=2` 仍存在。
+- 客观限制：本轮是体验与门禁改善，不是帧率修复；下一步继续压 artwork/首帧压力，并补真实硬件或目标容器验证。
+
 ## 2026-08-10 第二百二十七轮：首帧/ticker 提交对照
 
 - 启动并完成 `RENDER-FIRST-SUBMIT-ABLATION-01`：新增 `manualTickerStart` 和 `deferInitialSync` 渲染诊断参数，分别对照 Pixi ticker 自动启动和首次 `syncScene` 时机。

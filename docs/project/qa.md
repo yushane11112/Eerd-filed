@@ -1,5 +1,16 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百二十八轮验证
+
+- 验证等级：Tier 3，玩家可见画布加载层、加载阶段 profile、渲染差分汇总和目标规模浏览器证据均有变更。
+- 定向测试：`npm test -- src/ui/loadingProgress.test.ts src/rendering/renderDiagnostics.test.ts src/qa/performanceBaseline.test.ts src/qa/browserE2eScenarios.test.ts` 通过，4 个测试文件、14 项测试。
+- 生产构建：`npm run build` 通过，Vite 构建 2365 个模块；提交前最终构建同样通过。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模加载阶段门禁：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_PROFILES=desktop-gpu RENDER_ABLATION_MODES=full RENDER_ABLATION_REPEATS=1 RENDER_ABLATION_TIMEOUT_MS=120000 npm run qa:render-ablation` 通过。
+- 样本结果：`currentPhase=ready`，`phaseEvents=graphics → artwork → scene → terrain → first-sync → ready`，`appInitMs≈176.6ms`、`artworkProviderMs≈499ms`、`firstSyncMs≈76.7ms`、`totalMs≈767.3ms`。
+- 性能边界：同一样本功能通过但 rAF P95 约 `566.6ms`，`gpuStall=2` 且 `pageLoadStall=2`。本轮不能宣称性能完成，只能确认加载等待体验和阶段证据已经进入门禁。
+- 完整测试：`npm test` 通过，59 个测试文件、368 项测试，耗时约 154 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百二十七轮验证
 
 - 验证等级：Tier 3，渲染诊断参数、画布初始化路径、渲染差分模式和目标规模首帧矩阵均有变更。

@@ -22,6 +22,8 @@ import type {
 import { roadVisualStyle } from '../rendering/roads'
 import type { CameraState, GridPoint, SimulationSnapshot } from '../simulation/contracts'
 import { CameraController, DragController, PlacementController, deriveRuntimePlacementPreview, runtimePlacementValidator } from '../ui'
+import { canvasLoadingStatus } from '../ui/loadingProgress'
+import type { CanvasLoadingPhase, CanvasLoadingStatus } from '../ui/loadingProgress'
 import type { BuildingPlacementPreview, BuildTool, GameRuntime } from '../integration/GameRuntime'
 import type { StageAdvisorOverlay } from '../integration/stageAdvisor'
 import { resolvePrefabAssetIdForBuildingType } from '../rendering/prefab'
@@ -54,6 +56,11 @@ interface SimulationCanvasProps {
 
 interface BrowserLoadPhaseProfile {
   startedAt: number
+  currentPhase?: CanvasLoadingPhase
+  phaseEvents?: Array<{
+    phase: CanvasLoadingPhase
+    elapsedMs: number
+  }>
   appInitMs?: number
   animationAtlasMs?: number
   artworkProviderMs?: number
@@ -122,6 +129,7 @@ export function SimulationCanvas({
   } | null>(null)
   const focusAnimationRef = useRef<number | null>(null)
   const sceneSyncDirtyRef = useRef(true)
+  const [loadingStatus, setLoadingStatus] = useState<CanvasLoadingStatus>(() => canvasLoadingStatus('graphics'))
 
   snapshotRef.current = snapshot
   toolRef.current = tool
@@ -143,13 +151,29 @@ export function SimulationCanvas({
       ? ((window as Window & { __littleEarLoadProfile?: BrowserLoadPhaseProfile }).__littleEarLoadProfile = {
           startedAt: performance.now(),
           configuration: renderConfig,
+          currentPhase: 'graphics',
+          phaseEvents: [{ phase: 'graphics', elapsedMs: 0 }],
         })
       : undefined
+    const markLoadingPhase = (phase: CanvasLoadingPhase) => {
+      if (disposed) return
+      const elapsedMs = performance.now() - (loadProfile?.startedAt ?? appInitStartedAtRef.current)
+      setLoadingStatus(canvasLoadingStatus(phase, elapsedMs))
+      if (loadProfile) {
+        loadProfile.currentPhase = phase
+        if (loadProfile.phaseEvents?.at(-1)?.phase !== phase) {
+          loadProfile.phaseEvents?.push({ phase, elapsedMs })
+        }
+      }
+    }
+    const appInitStartedAtRef = { current: performance.now() }
     appRef.current = app
     terrainRef.current = terrain
 
     const initialise = async () => {
+      markLoadingPhase('graphics')
       const appInitStartedAt = performance.now()
+      appInitStartedAtRef.current = appInitStartedAt
       await app.init({
         resizeTo: host,
         antialias: renderConfig.antialias,
@@ -169,6 +193,7 @@ export function SimulationCanvas({
         app.destroy(true)
         return
       }
+      markLoadingPhase('artwork')
       let buildingAnimationProvider
       if (renderConfig.authoredAnimation && buildingAnimationAtlasManifest?.length) {
         try {
@@ -213,6 +238,7 @@ export function SimulationCanvas({
         app.destroy(true)
         return
       }
+      markLoadingPhase('scene')
       const sceneSetupStartedAt = performance.now()
       const renderProfileEnabled = renderConfig.enabled
       ;(window as Window & { __littleEarRenderConfiguration?: typeof renderConfig }).__littleEarRenderConfiguration = renderConfig
@@ -255,6 +281,7 @@ export function SimulationCanvas({
       setCameraView({ ...cameraRef.current.getState() })
       if (loadProfile) loadProfile.sceneSetupMs = performance.now() - sceneSetupStartedAt
       if (renderConfig.terrain) {
+        markLoadingPhase('terrain')
         const terrainStartedAt = performance.now()
         drawTerrain(terrain, snapshotRef.current)
         if (loadProfile) loadProfile.terrainMs = performance.now() - terrainStartedAt
@@ -264,6 +291,7 @@ export function SimulationCanvas({
         if (renderConfig.manualTickerStart) app.ticker.start()
       }
       const runFirstSync = () => {
+        markLoadingPhase('first-sync')
         const firstSyncStartedAt = performance.now()
         syncScene()
         if (loadProfile) {
@@ -271,6 +299,7 @@ export function SimulationCanvas({
           loadProfile.totalMs = performance.now() - loadProfile.startedAt
         }
         attachTicker()
+        markLoadingPhase('ready')
       }
       if (renderConfig.deferInitialSync) {
         const queuedAt = performance.now()
@@ -639,6 +668,18 @@ export function SimulationCanvas({
           )
         })}
       </div>
+      {loadingStatus.phase !== 'ready' && (
+        <div className="canvas-loading-panel" role="status" aria-live="polite">
+          <div className="canvas-loading-panel__body">
+            <strong>{loadingStatus.label}</strong>
+            <span>{loadingStatus.detail}</span>
+            <i>{Math.max(0, Math.round(loadingStatus.elapsedMs))} ms</i>
+          </div>
+          <div className="canvas-loading-progress" aria-hidden="true">
+            <span style={{ width: `${loadingStatus.progress}%` }} />
+          </div>
+        </div>
+      )}
       {placementPreview && (
         <div className="placement-preview-layer" aria-hidden="true">
           <div className={`placement-preview-summary ${placementPreview.valid ? 'valid' : 'invalid'}`}>

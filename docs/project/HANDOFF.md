@@ -24,9 +24,9 @@ codex/commercial-launch-plan-docs
 
 真实游戏持续预览：`https://little-ear-island-game-preview.netlify.app`。该地址直接运行本仓库的 Vite/Pixi 游戏构建，并已绑定 GitHub 自动部署；推送当前开发分支后会自动更新。不要把该需求重新解释成独立宣传落地页。
 
-最近完成：第二百二十七轮已完成首帧/ticker 提交对照。新增 `manualTickerStart` 与 `deferInitialSync` QA 参数，并完成目标规模 `full/manual-ticker-start/defer-initial-sync/manual-ticker-defer-sync` 矩阵。四种模式均保持 `pageLoadStall=2`，说明手动启动 Pixi ticker 或延迟首次 `syncScene` 不能消除 `GPU stall due to ReadPixels`。
+最近完成：第二百二十八轮已完成画布加载体验与阶段门禁。目标规模初始化期间玩家会看到正式加载阶段、说明和进度条；`__littleEarLoadProfile` 与 `qa:render-ablation` 会输出 `currentPhase` 和 `phaseEvents`。目标规模 `desktop-gpu/full` 样本到达 `ready`，阶段序列为 `graphics → artwork → scene → terrain → first-sync → ready`，加载总耗时约 767.3ms，但 rAF P95 仍约 566.6ms，`pageLoadStall=2` 仍存在。
 
-下一轮默认任务：继续做目标规模渲染专项，但不要继续把 ticker 启动时机、单个 artwork/atlas 或 terrain 当作 `GPU stall` 单点根因。优先做两个方向：一是降低加载耗时和首帧内容压力，二是补真实硬件/目标容器验证说明或外部可执行门禁。仍需保留 `graphicsContext` 解释边界，不要把本地 `desktop-gpu` 样本宣称成真实硬件 GPU 表现。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
+下一轮默认任务：继续做目标规模渲染专项，但节奏应从“继续猜 stall 单点根因”转向更可交付的两条线：一是降低 artwork/首帧内容压力，让 `phaseEvents` 中 `artwork` 与 `first-sync` 明显变短；二是补真实硬件或目标容器验证门禁。不要继续把 ticker 启动时机、单个 artwork/atlas 或 terrain 当作 `GPU stall` 单点根因。仍需保留 `graphicsContext` 解释边界，不要把本地 `desktop-gpu` 样本宣称成真实硬件 GPU 表现。不要把“加载层可见”“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
 
 如果另一台电脑路径不同，不影响项目，只要 clone 同一个 GitHub 仓库并 checkout 同一个分支即可。
 

@@ -78,6 +78,11 @@ interface BrowserResult {
     deferInitialSync?: boolean
   }
   loadProfile?: {
+    currentPhase?: string
+    phaseEvents?: Array<{
+      phase: string
+      elapsedMs: number
+    }>
     appInitMs?: number
     animationAtlasMs?: number
     artworkProviderMs?: number
@@ -272,9 +277,14 @@ const summarizeGraphicsContext = (samples: BrowserResult[]) => {
 const summarizeLoadProfile = (samples: BrowserResult[]) => {
   const fields = ['appInitMs', 'animationAtlasMs', 'artworkProviderMs', 'sceneSetupMs', 'terrainMs', 'firstSyncMs', 'firstSyncDelayMs', 'totalMs'] as const
   if (!samples.some((sample) => sample.loadProfile)) return null
-  return Object.fromEntries(fields
+  const latestProfile = samples.findLast((sample) => sample.loadProfile)?.loadProfile
+  return {
+    currentPhase: latestProfile?.currentPhase ?? null,
+    phaseEvents: latestProfile?.phaseEvents ?? [],
+    ...Object.fromEntries(fields
     .map((field) => [field, median(samples.map((sample) => sample.loadProfile?.[field] ?? Number.POSITIVE_INFINITY))] as const)
-    .filter(([, value]) => Number.isFinite(value)))
+    .filter(([, value]) => Number.isFinite(value))),
+  }
 }
 
 const maxConsoleCount = (

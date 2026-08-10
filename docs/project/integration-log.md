@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百一十七轮：建筑 motion 更新节流
+
+- 启动并完成 `BUILDING-MOTION-THROTTLE-01`：full detail 建筑的动画图集帧更新与 procedural motion layer 改为每 2 个模拟 tick 刷新一次，状态变化仍立即刷新。
+- `DynamicScene` 新增节流契约测试，通过 motion layer 诊断 label 验证相邻 tick 不重绘、隔 tick 刷新。
+- 目标规模单样本显示：dirty sync 跳过率 0.714，但 render sync P95 仍为 30ms、renderer P95 39.2ms、rAF P95 383.3ms。
+- 客观限制：本轮没有解决商业帧率红灯；WebGL GPU stall warning 与 renderer 长尾仍是下一轮优先项。
+
 ## 2026-08-10 第二百一十六轮：Pixi dirty scene sync
 
 - 启动并完成 `SCENE-DIRTY-SYNC-01`：`SimulationCanvas` 只有在 runtime 快照或相机变脏时调用 `DynamicScene.sync`，干净 ticker 帧跳过同步。

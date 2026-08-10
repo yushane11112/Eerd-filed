@@ -2,6 +2,18 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百一十七轮建筑 motion 更新节流
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/visuals.ts` | 建筑视觉更新策略 | full detail 建筑动画图集与 procedural motion 每 2 tick 刷新一次，状态/主体仍即时同步 |
+| `src/rendering/DynamicScene.test.ts` | 自动测试 | 固定 motion layer 相邻 tick 不重绘、隔 tick 刷新的契约 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录 motion 节流目标规模证据 |
+| `docs/project/integration-log.md` | 集成记录 | 记录 motion 节流接入事实和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录定向测试、构建、浏览器样本和完整测试 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `BUILDING-MOTION-THROTTLE-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认诊断方向 |
+
 ## 2026-08-10：第二百一十六轮 Pixi dirty scene sync
 
 | 文件 | 产物类型 | 用途 |

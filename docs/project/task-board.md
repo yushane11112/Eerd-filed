@@ -2,6 +2,7 @@
 
 | ID | 会话职责 | 写入范围 | 状态 | 集成条件 |
 | --- | --- | --- | --- | --- |
+| BUILDING-MOTION-THROTTLE-01 | 建筑动态图层更新节流 | `src/rendering/visuals.ts`, `src/rendering/DynamicScene.test.ts`, `docs/project/**` | 已完成 | full detail 建筑 motion 每 2 tick 刷新一次并有测试；单样本未改善商业帧率，下一步转向 renderer/GPU stall |
 | SCENE-DIRTY-SYNC-01 | Pixi dirty scene sync | `src/components/SimulationCanvas.tsx`, `src/rendering/types.ts`, `tools/browser-e2e/**`, `tools/qa/run-render-ablation.ts`, `src/qa/**`, `docs/project/**` | 已完成 | 默认目标规模样本 scene sync 跳过率 0.7，减少干净 ticker 帧同步；商业帧率仍 RED |
 | UI-SNAPSHOT-THROTTLE-01 | UI 快照节流与画布解耦 | `src/App.tsx`, `src/components/SimulationCanvas.tsx`, `src/ui/**`, `docs/project/**` | 已完成 | React UI 快照按 250ms 合并刷新，Pixi 画布直接读取 runtime 最新快照；单样本未改善 rAF，下一步转向 Pixi 同步频率与 GPU stall |
 | REACT-COMMIT-ABLATION-01 | React tick 通知抑制对照 | `src/integration/GameRuntime.ts`, `src/ui/runtimeOptions.ts`, `src/App.tsx`, `tools/browser-e2e/**`, `tools/qa/run-render-ablation.ts`, `src/qa/**`, `docs/project/**` | 已完成 | `no-react-commit` 证明 React tick 刷新会增加 scene/renderer 开销，但不是目标规模 rAF 红灯唯一根因 |

@@ -1,5 +1,17 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百一十七轮验证
+
+- 验证等级：Tier 3，建筑动态图层/动画图集更新频率、动态图层诊断 label 和 DynamicScene 渲染契约均有变更。
+- 定向测试：`npm test -- src/rendering/DynamicScene.test.ts src/qa/performanceBaseline.test.ts` 通过，2 个测试文件、21 项测试。
+- 完整测试：`npm test` 通过，58 个测试文件、363 项测试，耗时约 161 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 生产构建：`npm run build` 通过，Vite 构建 2364 个模块。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模 motion 节流样本：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_MODES=full RENDER_ABLATION_REPEATS=1 npm run qa:render-ablation` 通过。
+- `full`：空白页 rAF 16.63/16.7/16.8ms，游戏页 rAF 372.2/383.3/383.3ms；render sync P95 30ms，renderer P95 39.2ms，ticker elapsed P95 550ms，scene sync 跳过率 0.714。
+- 应用层样本：`runtime.advance` P95/最大 35.9/35.9ms，engine advance P95 18.7ms，snapshot clone P95 24ms，cache/emit P95 0.9ms；WebGL GPU stall warning 仍出现。
+- 结论：建筑 motion 节流已通过测试和浏览器样本验证，但性能门禁继续 RED；下一步应聚焦 renderer/WebGL stall 与 snapshot clone 长尾。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百一十六轮验证
 
 - 验证等级：Tier 3，Pixi ticker 同步策略、ticker profile 结构、浏览器 E2E runner、渲染差分报告和性能基线聚合均有变更。

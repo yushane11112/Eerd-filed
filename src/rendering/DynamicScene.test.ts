@@ -657,6 +657,29 @@ describe('DynamicScene', () => {
     expect(workingMotionLayer?.label).toContain('production-primary')
   })
 
+  it('throttles full-detail building motion updates between adjacent simulation ticks', async () => {
+    const { DynamicScene } = await import('./DynamicScene')
+    const scene = new DynamicScene()
+    const snapshot = createSnapshot()
+    snapshot.agents = {}
+    snapshot.worldDrops = []
+
+    scene.sync(snapshot, camera)
+    const motionLayer = scene.layers.buildings.children[0]?.children.find((child) => (
+      typeof child.label === 'string' && child.label.startsWith('building-artwork-motion-layer:')
+    ))
+    const initialLabel = motionLayer?.label
+    expect(initialLabel).toContain('tick-10')
+
+    snapshot.tick += 1
+    scene.sync(snapshot, camera)
+    expect(motionLayer?.label).toBe(initialLabel)
+
+    snapshot.tick += 1
+    scene.sync(snapshot, camera)
+    expect(motionLayer?.label).toContain('tick-12')
+  })
+
   it('draws stable level-specific procedural main-pier placeholder detail layers', async () => {
     const { DynamicScene } = await import('./DynamicScene')
     const { parseRuntimePrefabDescriptor, PrefabRuntimeRegistry } = await import('./prefab')

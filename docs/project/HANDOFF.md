@@ -24,9 +24,9 @@ codex/commercial-launch-plan-docs
 
 真实游戏持续预览：`https://little-ear-island-game-preview.netlify.app`。该地址直接运行本仓库的 Vite/Pixi 游戏构建，并已绑定 GitHub 自动部署；推送当前开发分支后会自动更新。不要把该需求重新解释成独立宣传落地页。
 
-最近完成：第二百一十六轮已新增 Pixi dirty scene sync。`SimulationCanvas` 只有在 runtime 快照或相机变脏时调用 `DynamicScene.sync`，干净 ticker 帧跳过同步；浏览器报告新增 `tickerSceneSyncSkippedRatio`。目标规模默认 `full` 样本中跳过率 0.7，rAF P95 约 233.3ms，renderer P95 21.5ms；性能门禁仍 RED。
+最近完成：第二百一十七轮已新增建筑 motion 更新节流。full detail 建筑的动画图集帧更新与 procedural motion layer 每 2 个模拟 tick 刷新一次，状态/主体仍即时同步，并有 `DynamicScene` 契约测试。目标规模 `full` 样本 rAF P95 约 383.3ms，renderer P95 39.2ms，dirty sync 跳过率 0.714；性能门禁仍 RED。
 
-下一轮默认任务：继续做目标规模渲染专项，优先聚焦 WebGL GPU stall warning、renderer 长尾和纹理/动画更新节流；dirty sync 已能跳过干净帧，下一步不要继续只调 React 或 Canvas 调用频率。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
+下一轮默认任务：继续做目标规模渲染专项，优先聚焦 WebGL GPU stall warning、renderer 长尾和 snapshot clone 长尾；建筑 motion 节流已可测但未解决帧率，不要继续只压缩 motion 频率。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
 
 如果另一台电脑路径不同，不影响项目，只要 clone 同一个 GitHub 仓库并 checkout 同一个分支即可。
 

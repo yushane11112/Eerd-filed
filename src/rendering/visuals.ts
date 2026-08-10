@@ -208,6 +208,8 @@ export class BuildingVisual extends BaseVisual {
   private artworkSignature: string | null = null
   private prefabIdleSignature: string | null = null
   private staticCacheSignature: string | null = null
+  private motionSignature: string | null = null
+  private lastMotionTick: number | null = null
   private detailLevel: 'full' | 'reduced' = 'full'
 
   constructor(
@@ -306,6 +308,8 @@ export class BuildingVisual extends BaseVisual {
     this.prefabIdleSignature = null
     if (this.staticCacheSignature !== null) this.staticLayer.cacheAsTexture?.(false)
     this.staticCacheSignature = null
+    this.motionSignature = null
+    this.lastMotionTick = null
     this.detailLevel = 'full'
     this.animationDriver?.reset()
   }
@@ -318,6 +322,8 @@ export class BuildingVisual extends BaseVisual {
       this.artworkMotionLayer.visible = false
       this.artworkMotionPrimary.clear()
       this.artworkMotionSecondary.clear()
+      this.motionSignature = null
+      this.lastMotionTick = null
       if (this.animationDriver) this.animationDriver.display.visible = false
     }
   }
@@ -351,15 +357,34 @@ export class BuildingVisual extends BaseVisual {
     this.drawPrefabPlaceholder(building, width, height, snapshot.tick)
     this.drawBuildingArtwork(building, width, height)
     this.updateStaticCache(building)
-    if (this.detailLevel === 'full' && this.animationDriver && this.prefabAnimationPlan) {
-      this.animationDriver.update(this.prefabAnimationPlan, width, height)
-    } else if (this.animationDriver) {
-      this.animationDriver.display.visible = false
-    }
-    if (this.detailLevel === 'full') {
-      this.drawBuildingArtworkMotion(building, width, height, phase)
+    const motionSignature = [
+      this.detailLevel,
+      building.type,
+      building.status,
+      building.statusReason ?? '',
+      level,
+      this.prefabAnimationPlan?.assetId ?? '',
+      this.prefabAnimationPlan?.levelKey ?? '',
+      this.prefabAnimationPlan?.playback.map((slot) => `${slot.slotId}:${slot.clip}:${slot.technique}`).join(',') ?? '',
+    ].join('|')
+    const shouldRefreshMotion = this.detailLevel === 'full'
+      && (
+        this.motionSignature !== motionSignature
+        || this.lastMotionTick === null
+        || snapshot.tick - this.lastMotionTick >= 2
+      )
+    if (shouldRefreshMotion) {
+      if (this.animationDriver && this.prefabAnimationPlan) {
+        this.animationDriver.update(this.prefabAnimationPlan, width, height)
+      } else if (this.animationDriver) {
+        this.animationDriver.display.visible = false
+      }
+      this.drawBuildingArtworkMotion(building, width, height, phase, snapshot.tick)
+      this.motionSignature = motionSignature
+      this.lastMotionTick = snapshot.tick
     } else {
-      this.artworkMotionLayer.visible = false
+      if (this.detailLevel !== 'full') this.artworkMotionLayer.visible = false
+      if (this.detailLevel !== 'full' && this.animationDriver) this.animationDriver.display.visible = false
     }
     this.display.alpha = building.status === 'blocked' ? 0.72 : 1
   }
@@ -404,6 +429,7 @@ export class BuildingVisual extends BaseVisual {
     width: number,
     height: number,
     phase: number,
+    tick: number,
   ): void {
     const assetId = resolvePrefabAssetIdForBuildingType(building.type)
     const identity = assetId ? getBuildingVisualIdentity(assetId) : undefined
@@ -424,7 +450,7 @@ export class BuildingVisual extends BaseVisual {
     const motionAlpha = isRuined ? 0.25 : isConstruction ? 0.7 : 0.9
     this.artworkMotionLayer.visible = true
     const authoredSlots = this.prefabAnimationPlan?.playback.map((slot) => slot.slotId).join(',') || 'procedural-fallback'
-    this.artworkMotionLayer.label = `building-artwork-motion-layer:${assetId}:${building.status}:${authoredSlots}`
+    this.artworkMotionLayer.label = `building-artwork-motion-layer:${assetId}:${building.status}:${authoredSlots}:tick-${tick}`
 
     if (isConstruction) {
       const scaffold = 0.7 + Math.abs(Math.sin(authoredPhase)) * 0.3

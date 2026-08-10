@@ -8,6 +8,14 @@
 
 当前判断：
 
+### 第二百一十七轮产出（2026-08-10）
+
+- 新增近景建筑动态图层节流：`BuildingVisual` 对 full detail 建筑的动画图集驱动与 procedural artwork motion 采用每 2 个模拟 tick 更新一次；建筑主体、状态展示、占地/资产和状态变化仍即时同步。
+- `DynamicScene` 单测新增动态图层节流契约：相邻 tick 不重绘 motion layer，隔一个 tick 后刷新，并通过诊断 label 记录最后 motion 更新 tick。
+- 目标规模 `full` 单样本：空白页 rAF 16.63/16.7/16.8ms，游戏页 rAF 372.2/383.3/383.3ms；render sync P95 30ms，renderer P95 39.2ms，ticker elapsed P95 550ms，dirty sync 跳过率 0.714。
+- 同次 `appProfile` 显示 `runtime.advance` P95 35.9ms，engine advance P95 18.7ms，snapshot clone P95 24ms；WebGL GPU stall warning 仍出现。
+- 结论：建筑 motion 节流已落地并可测，但单样本未改善商业帧率；当前红灯继续指向 renderer/WebGL stall 与目标规模快照克隆长尾。下一步应优先处理 renderer 长尾证据和 GPU stall，而不是继续压缩 motion 更新频率。
+
 ### 第二百一十六轮产出（2026-08-10）
 
 - 新增 Pixi 场景 dirty sync：`SimulationCanvas` 只在 runtime 快照更新、相机变化或首帧时调用 `DynamicScene.sync`；干净帧跳过场景同步，避免 ticker 重复做同一份 300 栋快照同步。

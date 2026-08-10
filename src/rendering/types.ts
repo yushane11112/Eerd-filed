@@ -86,6 +86,7 @@ export interface SceneTickerPerformanceProfile {
   callbackMs: number
   cameraMs: number
   sceneSyncMs: number
+  sceneSyncSkipped: boolean
   tickerDeltaMs: number
   tickerElapsedMs: number
   tickerMinFps: number

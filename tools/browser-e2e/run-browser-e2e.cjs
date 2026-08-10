@@ -278,7 +278,17 @@ async function runScenario(browser, scenario) {
         p95[field] = Number(percentile(values, 0.95).toFixed(3))
         max[field] = Number(Math.max(...values).toFixed(3))
       }
-      return { sampleCount: profiles.length, average, p95, max }
+      const skippedCount = profiles.filter((profile) => profile.sceneSyncSkipped === true).length
+      return {
+        sampleCount: profiles.length,
+        average,
+        p95,
+        max,
+        sceneSyncSkipped: {
+          count: skippedCount,
+          ratio: Number((skippedCount / profiles.length).toFixed(3)),
+        },
+      }
     })
     const appProfile = await page.evaluate(() => {
       const profiles = window.__littleEarAppProfiles ?? []

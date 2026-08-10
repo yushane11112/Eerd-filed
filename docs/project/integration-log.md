@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百一十六轮：Pixi dirty scene sync
+
+- 启动并完成 `SCENE-DIRTY-SYNC-01`：`SimulationCanvas` 只有在 runtime 快照或相机变脏时调用 `DynamicScene.sync`，干净 ticker 帧跳过同步。
+- ticker profile 新增 `sceneSyncSkipped`，浏览器 runner 与渲染/性能基线报告会输出跳过比例。
+- 目标规模默认 `full` 单样本中 dirty sync 跳过率为 0.7，render sync P95 14.3ms、renderer P95 21.5ms、rAF P95 233.3ms。
+- 客观限制：性能门禁仍 RED，且 `no-react-commit` 同轮出现极端 renderer/rAF 长尾；下一步继续排查 WebGL GPU stall 与 renderer 长尾，不能把 dirty sync 视为最终解决。
+
 ## 2026-08-10 第二百一十五轮：UI 快照节流与画布解耦
 
 - 启动并完成 `UI-SNAPSHOT-THROTTLE-01`：App UI 订阅通过 `createThrottledSubscription` 合并高频 runtime emit，避免每个模拟 tick 都触发整页 React 快照刷新。

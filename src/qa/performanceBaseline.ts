@@ -77,6 +77,7 @@ export interface PerformanceSample {
       callbackMs?: number
       tickerElapsedMs?: number
     }
+    sceneSyncSkipped?: { ratio?: number }
   }
   appProfile?: {
     advance?: { p95Ms?: number; maxMs?: number }
@@ -153,6 +154,9 @@ export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSa
       max: {
         callbackMs: median(samples.map((sample) => sample.tickerProfile?.max?.callbackMs ?? Number.POSITIVE_INFINITY)),
         tickerElapsedMs: median(samples.map((sample) => sample.tickerProfile?.max?.tickerElapsedMs ?? Number.POSITIVE_INFINITY)),
+      },
+      sceneSyncSkipped: {
+        ratio: median(samples.map((sample) => sample.tickerProfile?.sceneSyncSkipped?.ratio ?? Number.POSITIVE_INFINITY)),
       },
     },
     appProfile: {

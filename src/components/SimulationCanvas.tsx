@@ -107,6 +107,7 @@ export function SimulationCanvas({
     lastMessage: string
   } | null>(null)
   const focusAnimationRef = useRef<number | null>(null)
+  const sceneSyncDirtyRef = useRef(true)
 
   snapshotRef.current = snapshot
   toolRef.current = tool
@@ -232,15 +233,21 @@ export function SimulationCanvas({
       const cameraStartedAt = callbackStartedAt
       const camera = cameraRef.current.getState()
       const cameraMs = performance.now() - cameraStartedAt
-      scene.root.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2)
-      const sceneStartedAt = performance.now()
-      scene.sync(snapshotRef.current, camera, app.ticker.deltaMS / 200)
-      const sceneSyncMs = performance.now() - sceneStartedAt
+      let sceneSyncMs = 0
+      const sceneSyncSkipped = !sceneSyncDirtyRef.current
+      if (!sceneSyncSkipped) {
+        scene.root.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2)
+        const sceneStartedAt = performance.now()
+        scene.sync(snapshotRef.current, camera, app.ticker.deltaMS / 200)
+        sceneSyncMs = performance.now() - sceneStartedAt
+        sceneSyncDirtyRef.current = false
+      }
       if (tickerProfiles && tickerProfiles.length < 120) {
         tickerProfiles.push({
           callbackMs: performance.now() - callbackStartedAt,
           cameraMs,
           sceneSyncMs,
+          sceneSyncSkipped,
           tickerDeltaMs: app.ticker.deltaMS,
           tickerElapsedMs: app.ticker.elapsedMS,
           tickerMinFps: app.ticker.minFPS,
@@ -251,6 +258,7 @@ export function SimulationCanvas({
 
     void initialise()
     const unsubscribe = cameraRef.current.subscribe(() => {
+      sceneSyncDirtyRef.current = true
       syncScene()
       setCameraView({ ...cameraRef.current.getState() })
     })
@@ -276,11 +284,13 @@ export function SimulationCanvas({
   useEffect(() => {
     const terrain = terrainRef.current
     if (terrain && parseRenderDiagnostics(window.location.search).terrain) drawTerrain(terrain, snapshot)
+    sceneSyncDirtyRef.current = true
   }, [snapshot.cells])
 
   useEffect(() => {
     const unsubscribe = runtime.subscribe(() => {
       snapshotRef.current = runtime.getSnapshot()
+      sceneSyncDirtyRef.current = true
     })
     return () => {
       unsubscribe()

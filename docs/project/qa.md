@@ -1,5 +1,17 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百一十六轮验证
+
+- 验证等级：Tier 3，Pixi ticker 同步策略、ticker profile 结构、浏览器 E2E runner、渲染差分报告和性能基线聚合均有变更。
+- 定向测试：`npm test -- src/qa/performanceBaseline.test.ts src/rendering/renderDiagnostics.test.ts src/qa/browserE2eScenarios.test.ts` 通过，3 个测试文件、11 项测试。
+- 完整测试：`npm test` 通过，58 个测试文件、362 项测试，耗时约 249 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 生产构建：`npm run build` 通过，Vite 构建 2364 个模块。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模 dirty sync 对照：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_MODES=full,no-react-commit RENDER_ABLATION_REPEATS=1 npm run qa:render-ablation` 通过。
+- `full`：空白页 rAF 16.65/16.8/16.8ms，游戏页 rAF 180.55/233.3/233.3ms；render sync P95 14.3ms，renderer P95 21.5ms，ticker elapsed P95 250ms，scene sync 跳过率 0.7。
+- `no-react-commit`：空白页 rAF 16.48/16.7/16.8ms，游戏页 rAF 1333.3/2649.9/2649.9ms；render sync P95 228ms，renderer P95 1083.8ms，ticker elapsed P95 2649.9ms，scene sync 跳过率 0.8。
+- 结论：dirty sync 已证明默认路径能跳过大量干净 ticker 帧，但性能门禁继续 RED；`no-react-commit` 单样本波动极大，下一步应聚焦 WebGL GPU stall、renderer 长尾和纹理/动画更新节流。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百一十五轮验证
 
 - 验证等级：Tier 3，App UI 快照订阅、SimulationCanvas runtime 快照读取和 UI 订阅工具均有变更。

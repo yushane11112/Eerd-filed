@@ -8,6 +8,14 @@
 
 当前判断：
 
+### 第二百一十六轮产出（2026-08-10）
+
+- 新增 Pixi 场景 dirty sync：`SimulationCanvas` 只在 runtime 快照更新、相机变化或首帧时调用 `DynamicScene.sync`；干净帧跳过场景同步，避免 ticker 重复做同一份 300 栋快照同步。
+- ticker profile 新增 `sceneSyncSkipped`，浏览器 runner、`qa:render-ablation` 和 `qa:performance-baseline` 已汇总 `tickerSceneSyncSkippedRatio`。
+- 目标规模 `full` 单样本：空白页 rAF 16.65/16.8/16.8ms，游戏页 rAF 180.55/233.3/233.3ms；render sync P95 14.3ms，renderer P95 21.5ms，ticker elapsed P95 250ms，dirty sync 跳过率 0.7。
+- 同轮 `no-react-commit` 样本出现 2649.9ms rAF 极端长尾，虽然 dirty sync 跳过率 0.8，但 renderer P95 1083.8ms，说明该诊断模式在本机样本中波动极大，不能作为优化结论。
+- 结论：dirty sync 已在默认路径实际跳过大量干净帧，属于有效的渲染同步减压；但商业帧率仍 RED，下一步应继续处理 WebGL GPU stall、renderer 长尾和必要的纹理/动画更新节流。
+
 ### 第二百一十五轮产出（2026-08-10）
 
 - 新增生产式 UI 快照节流：App 的 `useSyncExternalStore` 订阅通过 `createThrottledSubscription` 合并高频 runtime emit，默认 UI 面板最短 250ms 刷新一次，减少整页 React commit 压力。

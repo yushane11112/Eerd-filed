@@ -2,6 +2,22 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百一十六轮 Pixi dirty scene sync
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/components/SimulationCanvas.tsx` | 渲染同步策略 | 只在 runtime 快照或相机变脏时调用 `DynamicScene.sync`，干净 ticker 帧跳过同步 |
+| `src/rendering/types.ts` | 性能统计契约 | ticker profile 新增 `sceneSyncSkipped` |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 浏览器执行器 | 汇总 scene sync 跳过次数和比例 |
+| `tools/qa/run-render-ablation.ts` | 渲染差分工具 | 输出 `tickerSceneSyncSkippedRatio` |
+| `src/qa/performanceBaseline.ts` | 性能基线聚合 | 三环境样本保留 scene sync 跳过比例 |
+| `src/qa/performanceBaseline.test.ts` | 自动测试 | 固定跳过比例中位数聚合 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录 dirty sync 目标规模证据 |
+| `docs/project/integration-log.md` | 集成记录 | 记录 dirty sync 接入事实和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录定向测试、构建、浏览器对照和完整测试 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `SCENE-DIRTY-SYNC-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认诊断方向 |
+
 ## 2026-08-10：第二百一十五轮 UI 快照节流与画布解耦
 
 | 文件 | 产物类型 | 用途 |

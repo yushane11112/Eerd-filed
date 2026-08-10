@@ -47,6 +47,7 @@ interface BrowserResult {
       tickerDeltaMs?: number
       tickerElapsedMs?: number
     }
+    sceneSyncSkipped?: { count?: number; ratio?: number }
   }
   appProfile?: {
     advance?: { p95Ms?: number; maxMs?: number }
@@ -163,6 +164,7 @@ const main = async () => {
         tickerMaxFps: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerMaxFps ?? Number.POSITIVE_INFINITY)),
         tickerCallbackMaxMs: median(samples.map((sample) => sample.tickerProfile?.max?.callbackMs ?? Number.POSITIVE_INFINITY)),
         tickerElapsedMaxMs: median(samples.map((sample) => sample.tickerProfile?.max?.tickerElapsedMs ?? Number.POSITIVE_INFINITY)),
+        tickerSceneSyncSkippedRatio: median(samples.map((sample) => sample.tickerProfile?.sceneSyncSkipped?.ratio ?? Number.POSITIVE_INFINITY)),
         appAdvanceP95Ms: median(samples.map((sample) => sample.appProfile?.advance?.p95Ms ?? Number.POSITIVE_INFINITY)),
         appAdvanceMaxMs: median(samples.map((sample) => sample.appProfile?.advance?.maxMs ?? Number.POSITIVE_INFINITY)),
         appCommitIntervalP95Ms: median(samples.map((sample) => sample.appProfile?.commitInterval?.p95Ms ?? Number.POSITIVE_INFINITY)),

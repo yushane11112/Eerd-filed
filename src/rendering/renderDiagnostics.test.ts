@@ -13,13 +13,15 @@ describe('parseRenderDiagnostics', () => {
       staticBuildingCache: false,
       buildingAtlas: true,
       buildingLod: true,
+      manualTickerStart: false,
+      deferInitialSync: false,
       tickerMinFpsOverride: undefined,
       tickerMaxFpsOverride: undefined,
     })
   })
 
   it('supports independent opt-in ablations for the render harness', () => {
-    expect(parseRenderDiagnostics('?renderProfile=1&disableArtwork=1&disableAnimation=1&disableAntialias=1&resolution=1&tickerMinFps=0&tickerMaxFps=0')).toEqual({
+    expect(parseRenderDiagnostics('?renderProfile=1&disableArtwork=1&disableAnimation=1&disableAntialias=1&resolution=1&manualTickerStart=1&deferInitialSync=1&tickerMinFps=0&tickerMaxFps=0')).toEqual({
       enabled: true,
       authoredArtwork: false,
       authoredAnimation: false,
@@ -29,6 +31,8 @@ describe('parseRenderDiagnostics', () => {
       staticBuildingCache: false,
       buildingAtlas: true,
       buildingLod: true,
+      manualTickerStart: true,
+      deferInitialSync: true,
       tickerMinFpsOverride: 0,
       tickerMaxFpsOverride: 0,
     })

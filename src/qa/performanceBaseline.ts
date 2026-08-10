@@ -104,6 +104,7 @@ export interface PerformanceSample {
     sceneSetupMs?: number
     terrainMs?: number
     firstSyncMs?: number
+    firstSyncDelayMs?: number
     totalMs?: number
   }
   graphicsContext?: {
@@ -265,7 +266,7 @@ function aggregateLoadProfile(
   median: (values: number[]) => number,
 ): PerformanceSample['loadProfile'] {
   if (!samples.some((sample) => sample.loadProfile)) return undefined
-  const fields: LoadProfileField[] = ['appInitMs', 'animationAtlasMs', 'artworkProviderMs', 'sceneSetupMs', 'terrainMs', 'firstSyncMs', 'totalMs']
+  const fields: LoadProfileField[] = ['appInitMs', 'animationAtlasMs', 'artworkProviderMs', 'sceneSetupMs', 'terrainMs', 'firstSyncMs', 'firstSyncDelayMs', 'totalMs']
   return Object.fromEntries(fields
     .map((field) => [field, median(samples.map((sample) => sample.loadProfile?.[field] ?? Number.POSITIVE_INFINITY))] as const)
     .filter(([, value]) => Number.isFinite(value)))

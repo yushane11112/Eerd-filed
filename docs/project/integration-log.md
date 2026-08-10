@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百二十七轮：首帧/ticker 提交对照
+
+- 启动并完成 `RENDER-FIRST-SUBMIT-ABLATION-01`：新增 `manualTickerStart` 和 `deferInitialSync` 渲染诊断参数，分别对照 Pixi ticker 自动启动和首次 `syncScene` 时机。
+- `run-render-ablation` 新增 `manual-ticker-start`、`defer-initial-sync`、`manual-ticker-defer-sync` 模式；加载画像新增 `firstSyncDelayMs`。
+- 目标规模 `civilization-scale` × `desktop-gpu` 四模式矩阵显示四者均 `pageLoadStall=2`，手动 ticker 与延迟首帧没有消除 ReadPixels stall warning。
+- 客观限制：本轮没有直接改善帧率；下一步应把本地 SwiftShader 的 page-load stall 视作图形后端初始化/提交警告，并转向可控的加载耗时与真实设备验证。
+
 ## 2026-08-10 第二百二十六轮：加载期内部画像
 
 - 启动并完成 `RENDER-LOAD-PHASE-PROFILE-01`：`SimulationCanvas` 在渲染诊断模式输出 `__littleEarLoadProfile`，拆出 Pixi app 初始化、动画 atlas、建筑 artwork/atlas、场景搭建、terrain 绘制和首帧同步耗时。

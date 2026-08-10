@@ -8,6 +8,13 @@
 
 当前判断：
 
+### 第二百二十七轮产出（2026-08-10）
+
+- `renderDiagnostics` 新增 `manualTickerStart=1` 与 `deferInitialSync=1` QA 开关；`qa:render-ablation` 新增 `manual-ticker-start`、`defer-initial-sync`、`manual-ticker-defer-sync` 三个首帧/自动 ticker 对照模式。
+- `SimulationCanvas` 在 QA 模式下可让 Pixi `app.init({ autoStart: false })`，并可把首次 `syncScene` 延后一个宏任务；加载画像新增 `firstSyncDelayMs`，生产默认不变。
+- 目标规模四模式矩阵全部功能通过：`full`、`manual-ticker-start`、`defer-initial-sync`、`manual-ticker-defer-sync` 均保持 `pageLoadStall=2`，说明手动 ticker 和延迟首帧不能消除 `GPU stall due to ReadPixels`。
+- 结论：page-load stall 不太像单纯由我们的首次 `syncScene` 时机或 Pixi ticker 自动启动造成；下一步应把它作为 SwiftShader/WebGL 初始化或首个底层 renderer submit 的固定警告处理，并转向减少加载耗时、首帧内容压力和真实硬件/容器验证。
+
 ### 第二百二十六轮产出（2026-08-10）
 
 - `SimulationCanvas` 在 `renderProfile=1` 时新增 `__littleEarLoadProfile`，记录 `appInitMs`、`animationAtlasMs`、`artworkProviderMs`、`sceneSetupMs`、`terrainMs`、`firstSyncMs` 和 `totalMs`，并由浏览器 E2E、`qa:render-ablation`、性能基线聚合保留。

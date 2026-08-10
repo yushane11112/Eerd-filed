@@ -15,6 +15,9 @@ const allModes = [
   { id: 'no-antialias', query: 'renderProfile=1&disableAntialias=1' },
   { id: 'resolution-1', query: 'renderProfile=1&resolution=1' },
   { id: 'no-antialias-resolution-1', query: 'renderProfile=1&disableAntialias=1&resolution=1' },
+  { id: 'manual-ticker-start', query: 'renderProfile=1&manualTickerStart=1' },
+  { id: 'defer-initial-sync', query: 'renderProfile=1&deferInitialSync=1' },
+  { id: 'manual-ticker-defer-sync', query: 'renderProfile=1&manualTickerStart=1&deferInitialSync=1' },
   { id: 'no-building-lod', query: 'renderProfile=1&disableBuildingLod=1' },
   { id: 'no-atlas', query: 'renderProfile=1&disableAtlas=1' },
   { id: 'no-artwork', query: 'renderProfile=1&disableArtwork=1' },
@@ -71,6 +74,8 @@ interface BrowserResult {
     antialias?: boolean
     resolutionOverride?: number
     buildingLod?: boolean
+    manualTickerStart?: boolean
+    deferInitialSync?: boolean
   }
   loadProfile?: {
     appInitMs?: number
@@ -79,6 +84,7 @@ interface BrowserResult {
     sceneSetupMs?: number
     terrainMs?: number
     firstSyncMs?: number
+    firstSyncDelayMs?: number
     totalMs?: number
   }
   graphicsContext?: {
@@ -264,7 +270,7 @@ const summarizeGraphicsContext = (samples: BrowserResult[]) => {
 }
 
 const summarizeLoadProfile = (samples: BrowserResult[]) => {
-  const fields = ['appInitMs', 'animationAtlasMs', 'artworkProviderMs', 'sceneSetupMs', 'terrainMs', 'firstSyncMs', 'totalMs'] as const
+  const fields = ['appInitMs', 'animationAtlasMs', 'artworkProviderMs', 'sceneSetupMs', 'terrainMs', 'firstSyncMs', 'firstSyncDelayMs', 'totalMs'] as const
   if (!samples.some((sample) => sample.loadProfile)) return null
   return Object.fromEntries(fields
     .map((field) => [field, median(samples.map((sample) => sample.loadProfile?.[field] ?? Number.POSITIVE_INFINITY))] as const)

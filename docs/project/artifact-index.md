@@ -2,6 +2,22 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百二十七轮首帧/ticker 提交对照
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/renderDiagnostics.ts` | 渲染诊断参数 | 新增 `manualTickerStart` 和 `deferInitialSync` QA 参数 |
+| `src/rendering/renderDiagnostics.test.ts` | 自动测试 | 固定新参数解析契约 |
+| `src/components/SimulationCanvas.tsx` | 画布初始化路径 | QA 可手动启动 Pixi ticker，并延迟首次 `syncScene` |
+| `tools/qa/run-render-ablation.ts` | 渲染差分工具 | 新增三个首帧/ticker 对照模式，并汇总 `firstSyncDelayMs` |
+| `src/qa/performanceBaseline.ts` | 性能基线聚合 | 聚合 `firstSyncDelayMs` |
+| `src/qa/performanceBaseline.test.ts` | 自动测试 | 固定加载期延迟字段聚合契约 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录四模式矩阵和排除结论 |
+| `docs/project/integration-log.md` | 集成记录 | 记录首帧/ticker 对照接入事实 |
+| `docs/project/qa.md` | QA 记录 | 记录目标规模矩阵、测试和构建 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `RENDER-FIRST-SUBMIT-ABLATION-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认方向 |
+
 ## 2026-08-10：第二百二十六轮加载期内部画像
 
 | 文件 | 产物类型 | 用途 |

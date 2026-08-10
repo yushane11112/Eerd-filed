@@ -8,6 +8,8 @@ export interface RenderDiagnosticsConfig {
   staticBuildingCache: boolean
   buildingAtlas: boolean
   buildingLod: boolean
+  manualTickerStart: boolean
+  deferInitialSync: boolean
   tickerMinFpsOverride?: number
   tickerMaxFpsOverride?: number
 }
@@ -30,6 +32,8 @@ export function parseRenderDiagnostics(search: string): RenderDiagnosticsConfig 
     // for controlled regression comparisons and emergency asset fallback.
     buildingAtlas: params.get('disableAtlas') !== '1',
     buildingLod: params.get('disableBuildingLod') !== '1',
+    manualTickerStart: params.get('manualTickerStart') === '1',
+    deferInitialSync: params.get('deferInitialSync') === '1',
     tickerMinFpsOverride: parseNonNegativeNumber(params.get('tickerMinFps')),
     tickerMaxFpsOverride: parseNonNegativeNumber(params.get('tickerMaxFps')),
   }

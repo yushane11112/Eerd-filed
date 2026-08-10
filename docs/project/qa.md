@@ -1,5 +1,16 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百二十七轮验证
+
+- 验证等级：Tier 3，渲染诊断参数、画布初始化路径、渲染差分模式和目标规模首帧矩阵均有变更。
+- 定向测试：`npm test -- src/rendering/renderDiagnostics.test.ts src/qa/performanceBaseline.test.ts src/qa/browserE2eScenarios.test.ts` 通过，3 个测试文件、11 项测试。
+- 生产构建：`npm run build` 通过，Vite 构建 2364 个模块；提交前最终构建同样通过。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模首帧/ticker 矩阵：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_PROFILES=desktop-gpu RENDER_ABLATION_MODES=full,manual-ticker-start,defer-initial-sync,manual-ticker-defer-sync RENDER_ABLATION_REPEATS=1 RENDER_ABLATION_TIMEOUT_MS=120000 npm run qa:render-ablation` 通过。
+- 矩阵结果：`full` rAF 266.68/283.3/283.3ms、`manual-ticker-start` 188.88/200/200ms、`defer-initial-sync` 236.68/266.7/266.7ms、`manual-ticker-defer-sync` 243.32/300/300ms；四者均 `gpuStall=2` 且 `pageLoadStall=2`。
+- 结论：手动 ticker 启动和延迟首次 `syncScene` 不能消除 page-load ReadPixels stall；生产默认不改。下一轮应把精力转向加载耗时/首帧压力和真实硬件/容器验证，而不是继续调 ticker 启动时机。
+- 完整测试：`npm test` 通过，58 个测试文件、365 项测试，耗时约 159 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百二十六轮验证
 
 - 验证等级：Tier 3，加载期 profile、浏览器 E2E 报告结构、渲染差分摘要和性能定位均有变更。

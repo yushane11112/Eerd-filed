@@ -60,6 +60,7 @@ interface BrowserLoadPhaseProfile {
   sceneSetupMs?: number
   terrainMs?: number
   firstSyncMs?: number
+  firstSyncDelayMs?: number
   totalMs?: number
   configuration?: RenderDiagnosticsConfig
 }
@@ -153,6 +154,7 @@ export function SimulationCanvas({
         resizeTo: host,
         antialias: renderConfig.antialias,
         autoDensity: true,
+        autoStart: !renderConfig.manualTickerStart,
         resolution: renderConfig.resolutionOverride ?? Math.min(window.devicePixelRatio || 1, 2),
         backgroundColor: 0x74b8bc,
       })
@@ -257,13 +259,29 @@ export function SimulationCanvas({
         drawTerrain(terrain, snapshotRef.current)
         if (loadProfile) loadProfile.terrainMs = performance.now() - terrainStartedAt
       }
-      const firstSyncStartedAt = performance.now()
-      syncScene()
-      if (loadProfile) {
-        loadProfile.firstSyncMs = performance.now() - firstSyncStartedAt
-        loadProfile.totalMs = performance.now() - loadProfile.startedAt
+      const attachTicker = () => {
+        app.ticker.add(syncScene)
+        if (renderConfig.manualTickerStart) app.ticker.start()
       }
-      app.ticker.add(syncScene)
+      const runFirstSync = () => {
+        const firstSyncStartedAt = performance.now()
+        syncScene()
+        if (loadProfile) {
+          loadProfile.firstSyncMs = performance.now() - firstSyncStartedAt
+          loadProfile.totalMs = performance.now() - loadProfile.startedAt
+        }
+        attachTicker()
+      }
+      if (renderConfig.deferInitialSync) {
+        const queuedAt = performance.now()
+        window.setTimeout(() => {
+          if (disposed) return
+          if (loadProfile) loadProfile.firstSyncDelayMs = performance.now() - queuedAt
+          runFirstSync()
+        }, 0)
+      } else {
+        runFirstSync()
+      }
     }
 
     const syncScene = () => {

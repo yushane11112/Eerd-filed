@@ -35,6 +35,20 @@ describe('GameRuntime integration', () => {
     }))
   })
 
+  it('can advance without notifying React subscribers for frame pacing diagnostics', () => {
+    const runtime = new GameRuntime({ suppressAdvanceEmit: true })
+    let notifications = 0
+    runtime.subscribe(() => {
+      notifications += 1
+    })
+
+    runtime.advance(200)
+
+    expect(runtime.getSnapshot().tick).toBeGreaterThan(45)
+    expect(runtime.getLastAdvanceProfile()?.ticks).toBe(1)
+    expect(notifications).toBe(0)
+  })
+
   it('injects the resident lifecycle browser fixture into the live engine', () => {
     const runtime = new GameRuntime({ debugScenario: 'civilization-resident-timeline' })
     const timeline = runtime.getSnapshot().cityTimeline ?? []

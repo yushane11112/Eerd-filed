@@ -195,6 +195,8 @@ export interface GameRuntimeOptions {
   debugUnlockedStage?: BuildingCityStage
   /** Optional production analytics adapter; absent means events remain offline. */
   cityNoticeAnalyticsTransport?: CityNoticeAnalyticsTransport
+  /** QA-only diagnostic: advance the simulation without notifying React subscribers every tick. */
+  suppressAdvanceEmit?: boolean
 }
 
 export interface GameRuntimeAdvanceProfile {
@@ -293,11 +295,13 @@ export class GameRuntime {
   private cityNoticeAnalyticsDispatcher: CityNoticeAnalyticsDispatcher
   private readonly debugUnlockedStage?: BuildingCityStage
   private readonly debugScenario?: RuntimeDebugScenario
+  private readonly suppressAdvanceEmit: boolean
   private lastAdvanceProfile?: GameRuntimeAdvanceProfile
 
   constructor(options: GameRuntimeOptions = {}) {
     this.debugUnlockedStage = options.debugUnlockedStage
     this.debugScenario = options.debugScenario
+    this.suppressAdvanceEmit = options.suppressAdvanceEmit ?? false
     this.cityNoticeAnalyticsDispatcher = new CityNoticeAnalyticsDispatcher(
       this.cityNoticeAnalyticsQueue,
       options.cityNoticeAnalyticsTransport,
@@ -371,6 +375,8 @@ export class GameRuntime {
   getSnapshot = (): SimulationSnapshot => this.snapshotCache
 
   getLastAdvanceProfile = (): GameRuntimeAdvanceProfile | undefined => this.lastAdvanceProfile
+
+  isAdvanceEmitSuppressed = (): boolean => this.suppressAdvanceEmit
 
   getCityNotices = (): CityNotice[] => deriveCityNotices(this.snapshotCache)
 
@@ -595,17 +601,17 @@ export class GameRuntime {
       snapshot.worldDrops = this.dropState.visible
       dropsMs = runtimeProfileNow() - phaseStartedAt
       phaseStartedAt = runtimeProfileNow()
-      this.rebuild(snapshot)
+      this.rebuild(snapshot, { emit: !this.suppressAdvanceEmit })
       rebuildMs = runtimeProfileNow() - phaseStartedAt
     } else if (hasUpgradingBuildings) {
       phaseStartedAt = runtimeProfileNow()
-      this.rebuild(snapshot)
+      this.rebuild(snapshot, { emit: !this.suppressAdvanceEmit })
       rebuildMs = runtimeProfileNow() - phaseStartedAt
     } else {
       phaseStartedAt = runtimeProfileNow()
       this.snapshotCache = this.withDistrictProsperity(snapshot)
       this.syncCityNoticeAnalytics()
-      this.emit()
+      if (!this.suppressAdvanceEmit) this.emit()
       cacheEmitMs = runtimeProfileNow() - phaseStartedAt
     }
     this.lastAdvanceProfile = {
@@ -1991,14 +1997,14 @@ export class GameRuntime {
     })
   }
 
-  private rebuild(snapshot: SimulationSnapshot) {
+  private rebuild(snapshot: SimulationSnapshot, options: { emit?: boolean } = {}) {
     snapshot.cells = this.grid.toCells()
     snapshot.worldDrops = this.dropState.visible
     this.applyDistrictProsperity(snapshot)
     this.engine = this.createEngine(snapshot)
     this.snapshotCache = this.withDistrictProsperity(this.engine.snapshot)
     this.syncCityNoticeAnalytics()
-    this.emit()
+    if (options.emit ?? true) this.emit()
   }
 
   private refresh() {

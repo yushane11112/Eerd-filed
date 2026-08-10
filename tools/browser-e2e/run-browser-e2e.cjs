@@ -326,6 +326,7 @@ async function runScenario(browser, scenario) {
         advance: summarize(advanceValues),
         commitInterval: summarize(commitValues),
         runtimeAdvance,
+        advanceEmitSuppressed: profiles.some((profile) => profile.advanceEmitSuppressed === true),
         lastSnapshotTick: profiles.at(-1)?.snapshotTick ?? null,
       }
     })

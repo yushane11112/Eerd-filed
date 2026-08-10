@@ -64,6 +64,7 @@ interface AppRuntimePerformanceProfile {
   advanceMs?: number
   commitIntervalMs?: number
   runtimeAdvance?: GameRuntimeAdvanceProfile
+  advanceEmitSuppressed?: boolean
   snapshotTick: number
 }
 
@@ -110,6 +111,7 @@ export default function App() {
         profiles.push({
           advanceMs: performance.now() - startedAt,
           runtimeAdvance: runtime.getLastAdvanceProfile(),
+          advanceEmitSuppressed: runtime.isAdvanceEmitSuppressed(),
           snapshotTick: runtime.getSnapshot().tick,
         })
       }

@@ -2,6 +2,25 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百一十四轮 React commit 抑制对照
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/integration/GameRuntime.ts` | 运行时诊断开关 | 支持 QA-only `suppressAdvanceEmit`，模拟推进不逐 tick 通知 React |
+| `src/integration/GameRuntime.test.ts` | 自动测试 | 固定抑制通知时快照仍推进、订阅者不被 tick 唤醒 |
+| `src/ui/runtimeOptions.ts` | URL 参数解析 | 解析 `suppressReactCommit=1` 为运行时诊断选项 |
+| `src/ui/runtimeOptions.test.ts` | 自动测试 | 固定诊断参数与 debug scenario 可共存 |
+| `src/App.tsx` | 应用层 profile | 在 app profile 中标记 `advanceEmitSuppressed` |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 浏览器执行器 | 输出诊断样本是否抑制 React advance 通知 |
+| `tools/qa/run-render-ablation.ts` | 渲染差分工具 | 新增 `no-react-commit` 模式和汇总字段 |
+| `src/qa/performanceBaseline.ts` | 性能基线聚合 | 聚合保留 `advanceEmitSuppressed` |
+| `src/qa/performanceBaseline.test.ts` | 自动测试 | 固定诊断标记聚合 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录 React commit 对照证据 |
+| `docs/project/integration-log.md` | 集成记录 | 记录诊断开关和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录定向测试、构建和目标规模对照 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `REACT-COMMIT-ABLATION-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认诊断方向 |
+
 ## 2026-08-10：第二百一十三轮 Runtime advance 阶段 Profile
 
 | 文件 | 产物类型 | 用途 |

@@ -1,5 +1,17 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百一十四轮验证
+
+- 验证等级：Tier 3，运行时通知路径、URL 诊断参数、App profile、浏览器 E2E runner、渲染差分模式和性能基线聚合均有变更。
+- 定向测试：`npm test -- src/integration/GameRuntime.test.ts src/ui/runtimeOptions.test.ts src/qa/performanceBaseline.test.ts src/qa/browserE2eScenarios.test.ts` 通过，4 个测试文件、47 项测试。
+- 完整测试：`npm test` 通过，57 个测试文件、361 项测试，耗时约 212 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 生产构建：`npm run build` 通过，Vite 构建 2363 个模块。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模 React commit 对照：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_MODES=full,no-react-commit RENDER_ABLATION_REPEATS=1 npm run qa:render-ablation` 通过。
+- `full`：空白页 rAF 16.66/16.8/16.8ms，游戏页 rAF 295.82/333.4/333.4ms；render sync P95 21.5ms，renderer P95 40.4ms，ticker elapsed P95 400ms，React commit interval P95 635ms。
+- `no-react-commit`：空白页 rAF 16.54/16.7/16.8ms，游戏页 rAF 246.66/266.7/266.7ms；render sync P95 0ms，renderer P95 0.4ms，ticker elapsed P95 283.3ms，React commit interval 无样本，`advanceEmitSuppressed=true`。
+- 结论：诊断开关证明 React tick 通知会制造可见 scene/renderer 成本，但抑制后 rAF 仍红灯；下一步继续排查 Pixi/browser 调度和 WebGL GPU stall。该模式不能作为生产玩法方案。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百一十三轮验证
 
 - 验证等级：Tier 3，`GameRuntime.advance` 阶段 profile、App 采集、浏览器 E2E runner、渲染差分报告和性能基线聚合结构均有变更。

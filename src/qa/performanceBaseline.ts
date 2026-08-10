@@ -81,6 +81,7 @@ export interface PerformanceSample {
   appProfile?: {
     advance?: { p95Ms?: number; maxMs?: number }
     commitInterval?: { p95Ms?: number; maxMs?: number }
+    advanceEmitSuppressed?: boolean
     runtimeAdvance?: {
       totalMs?: { p95Ms?: number; maxMs?: number }
       engineAdvanceMs?: { p95Ms?: number; maxMs?: number }
@@ -163,6 +164,7 @@ export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSa
         p95Ms: median(samples.map((sample) => sample.appProfile?.commitInterval?.p95Ms ?? Number.POSITIVE_INFINITY)),
         maxMs: median(samples.map((sample) => sample.appProfile?.commitInterval?.maxMs ?? Number.POSITIVE_INFINITY)),
       },
+      advanceEmitSuppressed: samples.some((sample) => sample.appProfile?.advanceEmitSuppressed === true),
       runtimeAdvance: {
         totalMs: runtimeAdvancePhase('totalMs'),
         engineAdvanceMs: runtimeAdvancePhase('engineAdvanceMs'),

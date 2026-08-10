@@ -2,6 +2,7 @@
 
 | ID | 会话职责 | 写入范围 | 状态 | 集成条件 |
 | --- | --- | --- | --- | --- |
+| REACT-COMMIT-ABLATION-01 | React tick 通知抑制对照 | `src/integration/GameRuntime.ts`, `src/ui/runtimeOptions.ts`, `src/App.tsx`, `tools/browser-e2e/**`, `tools/qa/run-render-ablation.ts`, `src/qa/**`, `docs/project/**` | 已完成 | `no-react-commit` 证明 React tick 刷新会增加 scene/renderer 开销，但不是目标规模 rAF 红灯唯一根因 |
 | RUNTIME-ADVANCE-PHASE-PROFILE-01 | Runtime advance 阶段性能采集 | `src/integration/GameRuntime.ts`, `src/App.tsx`, `tools/browser-e2e/**`, `tools/qa/run-render-ablation.ts`, `src/qa/**`, `docs/project/**` | 已完成 | 目标规模浏览器报告输出 `GameRuntime.advance` 内部阶段，排除运行时胶水层作为当前最大红灯 |
 | APP-RUNTIME-PROFILE-01 | 应用层推进性能采集 | `src/App.tsx`, `tools/browser-e2e/**`, `tools/qa/run-render-ablation.ts`, `src/qa/performanceBaseline.ts`, `docs/project/**` | 已完成 | 浏览器性能报告输出 `runtime.advance` 和 React commit interval，下一轮可拆解模拟系统长任务 |
 | BROWSER-RAF-BASELINE-01 | 浏览器空白页 rAF 基线 | `tools/browser-e2e/run-browser-e2e.cjs`, `tools/qa/run-render-ablation.ts`, `src/qa/performanceBaseline.ts`, `src/qa/performanceBaseline.test.ts`, `docs/project/**` | 已完成 | 同一 page 在加载游戏前证明空白页 rAF 约 16.7ms，排除 runner 全局节流 |

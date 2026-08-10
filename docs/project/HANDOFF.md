@@ -24,9 +24,9 @@ codex/commercial-launch-plan-docs
 
 真实游戏持续预览：`https://little-ear-island-game-preview.netlify.app`。该地址直接运行本仓库的 Vite/Pixi 游戏构建，并已绑定 GitHub 自动部署；推送当前开发分支后会自动更新。不要把该需求重新解释成独立宣传落地页。
 
-最近完成：第二百一十三轮已新增 `GameRuntime.advance` 阶段 profile。目标规模样本中空白页 rAF 仍约 16.7ms，游戏页 rAF P95 约 233.2ms；`runtime.advance` P95 13ms，其中 engine advance P95 8.5ms、snapshot clone P95 4.2ms、cache/emit P95 0.4ms。当前证据显示运行时推进不是 200ms+ 帧间隔的主要来源。
+最近完成：第二百一十四轮已新增 `suppressReactCommit=1` 诊断对照。目标规模 `full` 中游戏页 rAF P95 约 333.4ms，render sync P95 21.5ms、renderer P95 40.4ms、React commit interval P95 635ms；`no-react-commit` 将 render sync P95 降到 0ms、renderer P95 降到 0.4ms，rAF P95 改善到 266.7ms但仍红灯。当前证据显示 React tick 通知会增加渲染工作，但不是帧间隔红灯唯一根因。
 
-下一轮默认任务：继续做目标规模渲染专项，优先聚焦 Pixi/browser 帧调度、WebGL GPU stall warning 和 React commit 节奏，避免继续盲目削模拟系统；同时保留 `runtimeAdvance` 阶段证据作为排除项。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
+下一轮默认任务：继续做目标规模渲染专项，优先聚焦 Pixi/browser 帧调度和 WebGL GPU stall warning；若做生产优化，应考虑降低 UI 订阅刷新频率，而不是使用 `suppressReactCommit=1` 冻结 tick 刷新。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
 
 如果另一台电脑路径不同，不影响项目，只要 clone 同一个 GitHub 仓库并 checkout 同一个分支即可。
 

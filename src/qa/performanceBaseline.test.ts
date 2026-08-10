@@ -70,6 +70,7 @@ describe('performance baseline contract', () => {
         appProfile: {
           advance: { p95Ms: 4, maxMs: 7 },
           commitInterval: { p95Ms: 80, maxMs: 90 },
+          advanceEmitSuppressed: true,
           runtimeAdvance: {
             engineAdvanceMs: { p95Ms: 20, maxMs: 30 },
             snapshotCloneMs: { p95Ms: 12, maxMs: 18 },
@@ -106,6 +107,7 @@ describe('performance baseline contract', () => {
     expect(aggregate.appProfile).toEqual({
       advance: { p95Ms: 1, maxMs: 2 },
       commitInterval: { p95Ms: 17, maxMs: 20 },
+      advanceEmitSuppressed: true,
       runtimeAdvance: expect.objectContaining({
         engineAdvanceMs: { p95Ms: 5, maxMs: 8 },
         snapshotCloneMs: { p95Ms: 4, maxMs: 7 },

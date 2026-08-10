@@ -8,6 +8,14 @@
 
 当前判断：
 
+### 第二百一十四轮产出（2026-08-10）
+
+- 新增 QA 诊断参数 `suppressReactCommit=1`：模拟仍按 `runtime.advance` 推进，App 仍记录 profile，但 `advance` 不再向 React 订阅者逐 tick 发出刷新通知；玩家操作路径默认不变。
+- `qa:render-ablation` 新增 `no-react-commit` 模式，并在 `appProfile` / 性能基线中标记 `advanceEmitSuppressed`，避免把诊断样本误读为正常玩法样本。
+- 目标规模 `full` 单样本：空白页 rAF 16.66/16.8/16.8ms，游戏页 rAF 295.82/333.4/333.4ms；render sync P95 21.5ms，renderer P95 40.4ms，ticker elapsed P95 400ms，React commit interval P95 635ms。
+- 同轮 `no-react-commit`：空白页 rAF 16.54/16.7/16.8ms，游戏页 rAF 246.66/266.7/266.7ms；render sync P95 0ms，renderer P95 0.4ms，ticker elapsed P95 283.3ms，commit interval 无样本。
+- 结论：抑制 React tick 通知能显著压低 scene sync/renderer 工作，并让 rAF 有一定改善，但 rAF 仍远高于商业目标，说明 React commit 不是唯一根因。下一步继续聚焦 Pixi/browser 帧调度与 WebGL GPU stall，同时另起生产优化分支时可考虑降低 UI 订阅刷新频率，而不是冻结画面。
+
 ### 第二百一十三轮产出（2026-08-10）
 
 - `GameRuntime.advance` 新增分阶段 profile：记录 engine advance、snapshot clone、timeline、debug fixture、district、upgrade、drop、rebuild 和 cache/emit 阶段耗时，并通过 `getLastAdvanceProfile()` 暴露给 App。

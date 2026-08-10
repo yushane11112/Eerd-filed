@@ -5,6 +5,7 @@ const profile = process.env.RENDER_ABLATION_PROFILE ?? 'desktop-gpu'
 const repeats = Math.max(1, Number.parseInt(process.env.RENDER_ABLATION_REPEATS ?? '3', 10) || 1)
 const allModes = [
   { id: 'full', query: 'renderProfile=1' },
+  { id: 'no-react-commit', query: 'renderProfile=1&suppressReactCommit=1' },
   { id: 'no-ticker-min-fps', query: 'renderProfile=1&tickerMinFps=0' },
   { id: 'no-building-lod', query: 'renderProfile=1&disableBuildingLod=1' },
   { id: 'no-atlas', query: 'renderProfile=1&disableAtlas=1' },
@@ -50,6 +51,7 @@ interface BrowserResult {
   appProfile?: {
     advance?: { p95Ms?: number; maxMs?: number }
     commitInterval?: { p95Ms?: number; maxMs?: number }
+    advanceEmitSuppressed?: boolean
     runtimeAdvance?: Record<string, { p95Ms?: number; maxMs?: number }>
     lastSnapshotTick?: number | null
   }
@@ -165,6 +167,7 @@ const main = async () => {
         appAdvanceMaxMs: median(samples.map((sample) => sample.appProfile?.advance?.maxMs ?? Number.POSITIVE_INFINITY)),
         appCommitIntervalP95Ms: median(samples.map((sample) => sample.appProfile?.commitInterval?.p95Ms ?? Number.POSITIVE_INFINITY)),
         appCommitIntervalMaxMs: median(samples.map((sample) => sample.appProfile?.commitInterval?.maxMs ?? Number.POSITIVE_INFINITY)),
+        appAdvanceEmitSuppressed: samples.some((sample) => sample.appProfile?.advanceEmitSuppressed === true),
         runtimeEngineAdvanceP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.engineAdvanceMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
         runtimeSnapshotCloneP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.snapshotCloneMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
         runtimeTimelineP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.timelineMs?.p95Ms ?? Number.POSITIVE_INFINITY)),

@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百一十四轮：React commit 抑制对照
+
+- 启动并完成 `REACT-COMMIT-ABLATION-01`：新增 `suppressReactCommit=1` QA 参数，让模拟推进继续运行但不把每个 `advance` tick 推给 React 订阅者。
+- `run-render-ablation` 新增 `no-react-commit` 模式，浏览器报告和性能基线会标记 `advanceEmitSuppressed`，避免诊断样本与正常样本混淆。
+- 目标规模对照显示：`no-react-commit` 将 render sync P95 从 21.5ms 降到 0ms、renderer P95 从 40.4ms 降到 0.4ms，游戏页 rAF P95 从 333.4ms 改善到 266.7ms。
+- 客观限制：该模式会让 React UI 停止逐 tick 刷新，不是生产方案；且 rAF 仍明显红灯，说明还必须继续排查 Pixi/browser 调度和 WebGL GPU stall。
+
 ## 2026-08-10 第二百一十三轮：Runtime advance 阶段 Profile
 
 - 启动并完成 `RUNTIME-ADVANCE-PHASE-PROFILE-01`：`GameRuntime.advance` 暴露分阶段性能画像，浏览器报告输出 `runtimeAdvance`。

@@ -44,6 +44,13 @@ describe('runtime URL options', () => {
     })
   })
 
+  it('enables the React commit suppression diagnostic without changing the scenario', () => {
+    expect(runtimeOptionsFromSearch('?debugScenario=civilization-scale&suppressReactCommit=1')).toEqual({
+      debugScenario: 'civilization-scale',
+      suppressAdvanceEmit: true,
+    })
+  })
+
   it('ignores unknown debug scenarios', () => {
     expect(runtimeOptionsFromSearch('?debugScenario=unknown')).toEqual({})
   })

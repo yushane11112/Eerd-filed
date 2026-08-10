@@ -539,7 +539,7 @@ export class GameRuntime {
       return
     }
     phaseStartedAt = runtimeProfileNow()
-    let snapshot = this.engine.snapshot
+    let snapshot = this.engine.getMutableSnapshotForRuntime()
     const snapshotCloneMs = runtimeProfileNow() - phaseStartedAt
     phaseStartedAt = runtimeProfileNow()
     snapshot.cityTimeline = appendCityTimelineEvents(
@@ -609,7 +609,7 @@ export class GameRuntime {
       rebuildMs = runtimeProfileNow() - phaseStartedAt
     } else {
       phaseStartedAt = runtimeProfileNow()
-      this.snapshotCache = this.withDistrictProsperity(snapshot)
+      this.snapshotCache = this.materializeSnapshot(snapshot)
       this.syncCityNoticeAnalytics()
       if (!this.suppressAdvanceEmit) this.emit()
       cacheEmitMs = runtimeProfileNow() - phaseStartedAt
@@ -2016,6 +2016,61 @@ export class GameRuntime {
   private withDistrictProsperity(snapshot: SimulationSnapshot): SimulationSnapshot {
     this.applyDistrictProsperity(snapshot)
     return snapshot
+  }
+
+  private materializeSnapshot(snapshot: SimulationSnapshot): SimulationSnapshot {
+    return {
+      ...snapshot,
+      cells: snapshot.cells,
+      buildings: { ...snapshot.buildings },
+      households: { ...snapshot.households },
+      migrationCandidates: snapshot.migrationCandidates ? { ...snapshot.migrationCandidates } : undefined,
+      populationFlow: snapshot.populationFlow ? {
+        ...snapshot.populationFlow,
+        arrivalsByHousing: { ...snapshot.populationFlow.arrivalsByHousing },
+        departuresByReason: { ...snapshot.populationFlow.departuresByReason },
+        departuresByHousing: { ...snapshot.populationFlow.departuresByHousing },
+        departuresByOccupation: { ...snapshot.populationFlow.departuresByOccupation },
+      } : undefined,
+      agents: { ...snapshot.agents },
+      logisticsOrders: { ...snapshot.logisticsOrders },
+      logisticsArchive: snapshot.logisticsArchive ? {
+        ...snapshot.logisticsArchive,
+        cancelReasons: { ...snapshot.logisticsArchive.cancelReasons },
+      } : undefined,
+      logisticsQueues: snapshot.logisticsQueues ? { ...snapshot.logisticsQueues } : undefined,
+      logisticsStorageInterventions: snapshot.logisticsStorageInterventions
+        ? { ...snapshot.logisticsStorageInterventions }
+        : undefined,
+      logisticsStorageInterventionHistory: snapshot.logisticsStorageInterventionHistory
+        ? [...snapshot.logisticsStorageInterventionHistory]
+        : undefined,
+      logisticsStorageInterventionArchive: snapshot.logisticsStorageInterventionArchive
+        ? { ...snapshot.logisticsStorageInterventionArchive }
+        : undefined,
+      cityTimeline: snapshot.cityTimeline ? [...snapshot.cityTimeline] : undefined,
+      serviceQueues: snapshot.serviceQueues ? { ...snapshot.serviceQueues } : undefined,
+      economy: {
+        ...snapshot.economy,
+        fiscalHistory: snapshot.economy.fiscalHistory ? [...snapshot.economy.fiscalHistory] : undefined,
+      },
+      metrics: { ...snapshot.metrics },
+      districts: snapshot.districts ? snapshot.districts.map((district) => ({
+        ...district,
+        center: { ...district.center },
+        buildingIds: [...district.buildingIds],
+        visualHints: { ...district.visualHints },
+      })) : undefined,
+      worldDrops: snapshot.worldDrops.map((drop) => ({
+        ...drop,
+        position: { ...drop.position },
+      })),
+      rareRewards: {
+        ...snapshot.rareRewards,
+        processedEventIds: [...snapshot.rareRewards.processedEventIds],
+        inventory: { ...snapshot.rareRewards.inventory },
+      },
+    }
   }
 
   private applyDistrictProsperity(snapshot: SimulationSnapshot) {

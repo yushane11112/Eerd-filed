@@ -107,6 +107,19 @@ describe('SimulationEngine', () => {
     expect(engine.snapshot.tick).toBe(7)
   })
 
+  it('keeps public snapshots cloned while exposing a runtime-local mutable snapshot', () => {
+    const engine = createEngine()
+    const publicSnapshot = engine.snapshot
+    publicSnapshot.tick = 999
+
+    expect(engine.snapshot.tick).toBe(0)
+
+    const runtimeSnapshot = engine.getMutableSnapshotForRuntime()
+    runtimeSnapshot.tick = 7
+
+    expect(engine.snapshot.tick).toBe(7)
+  })
+
   it('migrates a household in and assigns workers to real job slots', () => {
     const engine = createEngine()
     const arrivalEvents = engine.step()

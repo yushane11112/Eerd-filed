@@ -2,6 +2,19 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百一十八轮 Runtime 快照克隆减压
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/simulation/core/SimulationEngine.ts` | 模拟引擎快照边界 | 保留公共深拷贝快照，同时提供运行时内部可变快照读取口 |
+| `src/integration/GameRuntime.ts` | 运行时快照发布策略 | `advance` 使用内部状态并发布轻量材料化快照，消除每 tick 深拷贝长尾 |
+| `src/simulation/core/SimulationEngine.test.ts` | 自动测试 | 固定公共快照隔离和 runtime-local mutable snapshot 语义 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录 snapshot clone P95 降至 0ms 及剩余性能红灯 |
+| `docs/project/integration-log.md` | 集成记录 | 记录运行时快照优化接入事实和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录定向测试、构建和目标规模浏览器样本 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `RUNTIME-SNAPSHOT-MATERIALIZE-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认诊断方向 |
+
 ## 2026-08-10：第二百一十七轮建筑 motion 更新节流
 
 | 文件 | 产物类型 | 用途 |

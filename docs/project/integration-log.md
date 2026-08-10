@@ -1,5 +1,13 @@
 # 集成记录
 
+## 2026-08-10 第二百一十八轮：Runtime 快照克隆减压
+
+- 启动并完成 `RUNTIME-SNAPSHOT-MATERIALIZE-01`：`SimulationEngine` 保留公共 `snapshot` 深拷贝，同时新增运行时内部可变快照读取口，供 `GameRuntime.advance` 避免每 tick 深复制整棵城市状态。
+- `GameRuntime.advance` 现在在内部快照上完成时间线、街区繁荣、建筑升级和掉落物同步，再发布轻量材料化快照给界面，保持订阅刷新所需的顶层对象更新。
+- `SimulationEngine` 新增契约测试，确认公共快照仍隔离外部写入，runtime-local 通道只用于运行时内部协作。
+- 目标规模单样本显示：`runtimeSnapshotCloneP95Ms=0ms`、`runtimeCacheEmitP95Ms=0.3ms`，snapshot clone 长尾已从当前瓶颈列表移除。
+- 客观限制：游戏页 rAF P95 仍为 183.3ms，商业性能门禁继续 RED；下一步转向建筑同步长尾、Pixi/browser ticker 调度和 WebGL GPU stall。
+
 ## 2026-08-10 第二百一十七轮：建筑 motion 更新节流
 
 - 启动并完成 `BUILDING-MOTION-THROTTLE-01`：full detail 建筑的动画图集帧更新与 procedural motion layer 改为每 2 个模拟 tick 刷新一次，状态变化仍立即刷新。

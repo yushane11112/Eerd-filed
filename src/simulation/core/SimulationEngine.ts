@@ -94,6 +94,11 @@ export class SimulationEngine {
     return structuredClone(this.state)
   }
 
+  /** Runtime-only fast path; external callers should use the cloned snapshot getter. */
+  getMutableSnapshotForRuntime(): SimulationSnapshot {
+    return this.state
+  }
+
   setSpeed(speed: 0 | 1 | 2 | 4): void {
     if (!VALID_SPEEDS.has(speed)) {
       throw new RangeError('speed must be 0, 1, 2, or 4')

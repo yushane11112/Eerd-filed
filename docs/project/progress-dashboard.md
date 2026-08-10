@@ -8,6 +8,14 @@
 
 当前判断：
 
+### 第二百一十八轮产出（2026-08-10）
+
+- 新增运行时内部快照通道：`SimulationEngine` 保留公共 `snapshot` 深拷贝语义，同时向 `GameRuntime` 暴露 runtime-local mutable snapshot，避免每次非零 tick 后整棵城市快照深复制。
+- `GameRuntime.advance` 改为在内部状态上追加时间线、区块繁荣度、升级和掉落物，再向界面发布轻量材料化快照；界面仍获得新的顶层快照对象，保证订阅刷新不丢。
+- 新增 `SimulationEngine` 契约测试，固定公共快照不会被外部写入污染，同时运行时内部通道能直接反映当前模拟状态。
+- 目标规模 `full` 单样本：空白页 rAF 16.64/16.7/16.8ms，游戏页 rAF 149.99/183.3/183.3ms；render sync P95 12.6ms，renderer P95 19.4ms，dirty sync 跳过率 0.727。
+- 同次应用层样本显示 `runtimeSnapshotCloneP95Ms` 已降至 0ms，`cacheEmitP95Ms` 0.3ms；性能门禁仍 RED，下一步应继续聚焦建筑同步长尾、Pixi/browser ticker 调度和 WebGL GPU stall，不再把 snapshot clone 当作当前主瓶颈。
+
 ### 第二百一十七轮产出（2026-08-10）
 
 - 新增近景建筑动态图层节流：`BuildingVisual` 对 full detail 建筑的动画图集驱动与 procedural artwork motion 采用每 2 个模拟 tick 更新一次；建筑主体、状态展示、占地/资产和状态变化仍即时同步。

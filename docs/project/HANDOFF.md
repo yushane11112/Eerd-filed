@@ -24,9 +24,9 @@ codex/commercial-launch-plan-docs
 
 真实游戏持续预览：`https://little-ear-island-game-preview.netlify.app`。该地址直接运行本仓库的 Vite/Pixi 游戏构建，并已绑定 GitHub 自动部署；推送当前开发分支后会自动更新。不要把该需求重新解释成独立宣传落地页。
 
-最近完成：第二百零五轮已将目标规模建筑细节 LOD 接入 Pixi 动态场景。300 栋真实浏览器压力场景中，近景 96 栋保留 full detail，远景 204 栋 reduced detail；浏览器 profile 已能回传 `detailedBuildings` / `reducedBuildings`。目标规模功能链路通过，但 rAF 平均/P95/最大仍为 135.41/183.4/183.4ms，商业性能门禁继续 RED。
+最近完成：第二百零六轮已把建筑 LOD 做成可复跑对照矩阵，并收敛 reduced 建筑更新开销。`qa:render-ablation` 现在支持 `no-building-lod`；默认目标规模场景仍观察到 96 detailed / 204 reduced，关闭 LOD 时观察到 300 detailed / 0 reduced。目标规模功能链路通过，但 renderer 长尾和 rAF 仍远高于商业 60fps 目标，性能门禁继续 RED。
 
-下一轮默认任务：继续做目标规模渲染专项，优先处理纹理上传节流、renderer 长尾、GPU 合成和 LOD 对照矩阵。不要把“能跑 300 栋”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
+下一轮默认任务：继续做目标规模渲染专项，优先处理 renderer/GPU 长尾、纹理上传节流、更高重复次数差分矩阵和合成层证据。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
 
 如果另一台电脑路径不同，不影响项目，只要 clone 同一个 GitHub 仓库并 checkout 同一个分支即可。
 

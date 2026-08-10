@@ -119,7 +119,10 @@ describe('browser E2E scenario contract', () => {
     expect(browserE2eScenarioById('civilization-scale')?.path).not.toContain('disableBuildingLod=1')
     expect(browserE2eScenarioById('civilization-scale')?.renderEntityMinimums).toMatchObject({
       detailedBuildings: 1,
-      reducedBuildings: 1,
+    })
+    expect(browserE2eScenarioById('civilization-scale')?.conditionalRenderEntityMinimums).toContainEqual({
+      when: { buildingLod: true },
+      minimums: { reducedBuildings: 1 },
     })
   })
 

@@ -8,6 +8,14 @@
 
 当前判断：
 
+### 第二百零六轮产出（2026-08-10）
+
+- 已把目标规模 LOD 从“单次生效样本”推进为可复跑的差分矩阵：`qa:render-ablation` 新增 `no-building-lod` 模式，目标规模场景可在同一工具里对比 `full` 与 `renderProfile=1&disableBuildingLod=1`。
+- 浏览器 E2E 场景契约新增按渲染配置生效的实体门禁：默认 `buildingLod=true` 时仍要求 reduced 建筑出现；关闭 LOD 做对照时不再被 reducedBuildings=0 误判失败，同时仍要求 300 栋、135 居民、15 运输和可见实体规模。
+- 修正 reduced 建筑更新路径：远景建筑从 full 切到 reduced 时清空高频动效层，后续 reduced 帧不再反复 `Graphics.clear()` 两个动效图形，避免把 LOD 本身变成重复提交开销。
+- 目标规模桌面 GPU 单次对照：`full` 为 96 detailed / 204 reduced，rAF 平均/P95/最大 149.99/183.3/183.3ms，renderer 19.633/46.2/345.7ms；`no-building-lod` 为 300 detailed / 0 reduced，rAF 159.51/200/200ms，renderer 17.156/45.7/309.6ms；两者应用层 `readPixels=0`，功能门禁通过。
+- 结论：LOD 的实体行为和 QA 对照已经稳定，但本机单样本只显示 rAF 有方向性改善、renderer 长尾仍未改善，不能宣称 LOD 解决目标规模性能。下一步继续进入 renderer/GPU 长尾、纹理上传节流和更高重复次数矩阵。
+
 ### 第二百零五轮产出（2026-08-10）
 
 - 已把目标规模渲染继续从“视口预裁剪”推进到“建筑细节 LOD”：当同屏可见建筑超过 120 栋时，`DynamicScene` 只让距离相机最近的 96 栋保留完整建筑动效、原画动态层和高频动画驱动，远景建筑保留静态主体/原画/状态层但关闭高频细节。

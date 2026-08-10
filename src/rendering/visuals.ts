@@ -360,8 +360,6 @@ export class BuildingVisual extends BaseVisual {
       this.drawBuildingArtworkMotion(building, width, height, phase)
     } else {
       this.artworkMotionLayer.visible = false
-      this.artworkMotionPrimary.clear()
-      this.artworkMotionSecondary.clear()
     }
     this.display.alpha = building.status === 'blocked' ? 0.72 : 1
   }

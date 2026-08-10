@@ -2,6 +2,7 @@
 
 | ID | 会话职责 | 写入范围 | 状态 | 集成条件 |
 | --- | --- | --- | --- | --- |
+| RENDER-BUILDING-LOD-ABLATION-01 | 建筑 LOD 目标规模对照矩阵 | `tools/qa/run-render-ablation.ts`, `tools/browser-e2e/**`, `src/qa/**`, `src/rendering/visuals.ts`, `docs/project/**` | 已完成 | `full` 与 `no-building-lod` 可在目标规模浏览器矩阵中复跑，且 reduced 更新不再重复清空动效图形 |
 | RENDER-BUILDING-LOD-01 | 目标规模建筑细节 LOD | `src/rendering/**`, `src/components/SimulationCanvas.tsx`, `src/qa/**`, `tools/browser-e2e/**`, `docs/project/**` | 已完成 | 300 栋目标规模场景中 96 栋近景保留 full detail，204 栋远景 reduced，并进入浏览器性能统计 |
 | PREVIEW-CONTINUOUS-DEPLOY-01 | 真实游戏持续预览站 | `netlify.toml`, `.gitignore`, `docs/project/**` | 已完成 | 公网地址直接运行当前 Vite/Pixi 游戏；GitHub 推送自动触发构建与发布 |
 | PM-LAUNCH-PLAN-01 | 商业级完整上线总计划 | `docs/project/commercial-launch-master-plan.md` | 已完成 | 明确最终上线目标、阶段产出、生产线、自动执行机制 |

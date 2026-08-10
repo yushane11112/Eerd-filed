@@ -267,7 +267,13 @@ async function runScenario(browser, scenario) {
         failures.push(`Render entity assertion ${field}: expected ${expected}, got ${actual ?? 'missing'}`)
       }
     }
-    for (const [field, minimum] of Object.entries(scenario.renderEntityMinimums || {})) {
+    const renderEntityMinimums = { ...(scenario.renderEntityMinimums || {}) }
+    for (const conditional of scenario.conditionalRenderEntityMinimums || []) {
+      if (renderConfigurationMatches(renderConfiguration, conditional.when || {})) {
+        Object.assign(renderEntityMinimums, conditional.minimums || {})
+      }
+    }
+    for (const [field, minimum] of Object.entries(renderEntityMinimums)) {
       const actual = renderProfile.entityRange?.[field]?.last
       if (typeof actual !== 'number' || actual < minimum) {
         failures.push(`Render entity minimum ${field}: expected >= ${minimum}, got ${actual ?? 'missing'}`)
@@ -319,6 +325,11 @@ async function runScenario(browser, scenario) {
   } finally {
     await page.close()
   }
+}
+
+function renderConfigurationMatches(configuration, expected) {
+  if (!configuration) return false
+  return Object.entries(expected).every(([field, value]) => configuration[field] === value)
 }
 
 async function sampleFrameMetrics(page) {

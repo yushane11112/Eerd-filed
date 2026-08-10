@@ -5,6 +5,7 @@ const profile = process.env.RENDER_ABLATION_PROFILE ?? 'desktop-gpu'
 const repeats = Math.max(1, Number.parseInt(process.env.RENDER_ABLATION_REPEATS ?? '3', 10) || 1)
 const allModes = [
   { id: 'full', query: 'renderProfile=1' },
+  { id: 'no-building-lod', query: 'renderProfile=1&disableBuildingLod=1' },
   { id: 'no-atlas', query: 'renderProfile=1&disableAtlas=1' },
   { id: 'no-artwork', query: 'renderProfile=1&disableArtwork=1' },
   { id: 'no-animation', query: 'renderProfile=1&disableAnimation=1' },
@@ -22,9 +23,17 @@ const timeoutMs = Number.parseInt(process.env.RENDER_ABLATION_TIMEOUT_MS ?? '900
 interface BrowserResult {
   ok: boolean
   frameMetrics?: { averageFrameMs?: number; p95FrameMs?: number; maxFrameMs?: number }
-  renderProfile?: { p95?: { totalMs?: number } }
+  renderProfile?: {
+    p95?: { totalMs?: number }
+    entityRange?: Record<string, { last?: number }>
+  }
   rendererProfile?: { averageMs?: number; p95Ms?: number; maxMs?: number }
-  renderConfiguration?: { authoredArtwork?: boolean; authoredAnimation?: boolean; terrain?: boolean }
+  renderConfiguration?: {
+    authoredArtwork?: boolean
+    authoredAnimation?: boolean
+    terrain?: boolean
+    buildingLod?: boolean
+  }
   readPixels?: { count?: number }
   failures?: string[]
 }
@@ -115,6 +124,8 @@ const main = async () => {
         rendererAverageMs: median(samples.map((sample) => sample.rendererProfile?.averageMs ?? Number.POSITIVE_INFINITY)),
         rendererP95Ms: median(samples.map((sample) => sample.rendererProfile?.p95Ms ?? Number.POSITIVE_INFINITY)),
         rendererMaxMs: median(samples.map((sample) => sample.rendererProfile?.maxMs ?? Number.POSITIVE_INFINITY)),
+        detailedBuildings: median(samples.map((sample) => sample.renderProfile?.entityRange?.detailedBuildings?.last ?? Number.POSITIVE_INFINITY)),
+        reducedBuildings: median(samples.map((sample) => sample.renderProfile?.entityRange?.reducedBuildings?.last ?? Number.POSITIVE_INFINITY)),
         readPixels: Math.max(...samples.map((sample) => sample.readPixels?.count ?? Number.POSITIVE_INFINITY)),
       },
       rawSamples: samples,

@@ -8,6 +8,10 @@ export interface BrowserE2eScenario {
   forbiddenConsoleLevels: BrowserConsoleLevel[]
   renderEntityAssertions?: Partial<Record<BrowserRenderEntityField, number>>
   renderEntityMinimums?: Partial<Record<BrowserRenderEntityField, number>>
+  conditionalRenderEntityMinimums?: Array<{
+    when: Partial<Record<BrowserRenderConfigurationField, boolean>>
+    minimums: Partial<Record<BrowserRenderEntityField, number>>
+  }>
   interaction?: {
     clickText: string
     expectToastText: string
@@ -23,6 +27,15 @@ export type BrowserRenderEntityField =
   | 'visible'
   | 'detailedBuildings'
   | 'reducedBuildings'
+
+export type BrowserRenderConfigurationField =
+  | 'authoredArtwork'
+  | 'authoredAnimation'
+  | 'terrain'
+  | 'antialias'
+  | 'staticBuildingCache'
+  | 'buildingAtlas'
+  | 'buildingLod'
 
 export const BROWSER_E2E_SCENARIOS: BrowserE2eScenario[] = [
   {
@@ -125,8 +138,15 @@ export const BROWSER_E2E_SCENARIOS: BrowserE2eScenario[] = [
       transport: 15,
       visible: 150,
       detailedBuildings: 1,
-      reducedBuildings: 1,
     },
+    conditionalRenderEntityMinimums: [
+      {
+        when: { buildingLod: true },
+        minimums: {
+          reducedBuildings: 1,
+        },
+      },
+    ],
   },
 ]
 
@@ -164,6 +184,14 @@ export function validateBrowserE2eScenarios(
       }
       if (scenario.interaction.expectVisibleText !== undefined && !scenario.interaction.expectVisibleText.trim()) {
         errors.push(`Scenario ${scenario.id} interaction expectVisibleText must not be empty`)
+      }
+    }
+    for (const conditional of scenario.conditionalRenderEntityMinimums ?? []) {
+      if (Object.keys(conditional.when).length === 0) {
+        errors.push(`Scenario ${scenario.id} conditional render minimum must declare a configuration`)
+      }
+      if (Object.keys(conditional.minimums).length === 0) {
+        errors.push(`Scenario ${scenario.id} conditional render minimum must declare entity minimums`)
       }
     }
   }

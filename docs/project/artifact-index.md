@@ -2,6 +2,21 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百零六轮 LOD 对照矩阵与 reduced 更新收敛
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `tools/qa/run-render-ablation.ts` | 渲染差分工具 | 新增 `no-building-lod` 模式，并在汇总中输出 detailed/reduced 建筑数量 |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 浏览器执行器 | 支持按渲染配置启用实体最小值门禁 |
+| `src/qa/browserE2eScenarios.ts` | 浏览器 QA 契约 | 新增 `conditionalRenderEntityMinimums`，让默认 LOD 门禁与关闭 LOD 对照共存 |
+| `src/qa/browserE2eScenarios.test.ts` | 自动测试 | 固定目标规模场景默认启用 LOD，并只在 `buildingLod=true` 时要求 reduced 建筑 |
+| `src/rendering/visuals.ts` | 建筑视觉更新 | reduced 建筑不再每帧重复清空 artwork motion graphics |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录第二百零六轮对照样本和性能红灯判断 |
+| `docs/project/integration-log.md` | 集成记录 | 记录 LOD 对照矩阵、条件门禁和实现限制 |
+| `docs/project/qa.md` | QA 记录 | 记录定向测试、构建、浏览器对照和差异检查 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `RENDER-BUILDING-LOD-ABLATION-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务与 LOD 结论 |
+
 ## 2026-08-10：第二百零五轮目标规模建筑细节 LOD
 
 | 文件 | 产物类型 | 用途 |

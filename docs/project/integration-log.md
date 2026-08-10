@@ -1,5 +1,13 @@
 # 集成记录
 
+## 2026-08-10 第二百零六轮：LOD 对照矩阵与 reduced 更新收敛
+
+- 启动并完成 `RENDER-BUILDING-LOD-ABLATION-01`：`qa:render-ablation` 新增 `no-building-lod` 模式，可直接复跑 `full` 与关闭建筑 LOD 的目标规模对照。
+- 浏览器 E2E runner 支持 `conditionalRenderEntityMinimums`：默认配置仍要求 `reducedBuildings >= 1`，但 `buildingLod=false` 对照不会因为 reduced 为 0 而失败。
+- `BuildingVisual` reduced 更新路径不再每帧清空两个 artwork motion graphics；清理动作只发生在 full/reduced 状态切换时，减少远景 LOD 自身的重复图形提交。
+- 真实浏览器目标规模对照均通过功能门禁与 `readPixels=0`：`full` 观察到 96 detailed / 204 reduced；`no-building-lod` 观察到 300 detailed / 0 reduced。
+- 客观限制：单次样本里 rAF 对 full 略有利，但 renderer 平均/P95/最大仍高且波动大；本轮结论是“对照矩阵可复跑且 LOD 开销收敛”，不是商业性能通过。
+
 ## 2026-08-10 第二百零五轮：目标规模建筑细节 LOD
 
 - 启动并完成 `RENDER-BUILDING-LOD-01`：目标规模场景中，当同屏可见建筑超过 120 栋时，仅距离相机最近的 96 栋保留完整建筑细节，其余远景建筑降为 reduced detail。

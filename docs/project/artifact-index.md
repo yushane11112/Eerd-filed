@@ -2,6 +2,20 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百二十四轮 WebGL 后端上下文诊断
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 浏览器执行器 | 新增 `graphicsContext`，采集 WebGL context attributes、debug renderer/vendor 和软件渲染判定 |
+| `tools/qa/run-render-ablation.ts` | 渲染差分工具 | 在每个 profile/mode 结果上输出 `graphicsContext` 摘要 |
+| `src/qa/performanceBaseline.ts` | 性能基线聚合 | 聚合并保留图形后端上下文，修正本地三环境解释边界 |
+| `src/qa/performanceBaseline.test.ts` | 自动测试 | 固定 `graphicsContext` 聚合契约 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录三环境实际均为 SwiftShader 的证据 |
+| `docs/project/integration-log.md` | 集成记录 | 记录 WebGL 后端诊断接入事实和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录定向测试、构建和目标规模三环境后端样本 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `RENDER-GRAPHICS-CONTEXT-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认任务和性能证据解释边界 |
+
 ## 2026-08-10：第二百二十三轮图形初始化压力矩阵
 
 | 文件 | 产物类型 | 用途 |

@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百二十四轮：WebGL 后端上下文诊断
+
+- 启动并完成 `RENDER-GRAPHICS-CONTEXT-01`：浏览器 E2E runner 输出 `graphicsContext`，包含 WebGL 版本、context attributes、debug vendor/renderer、ANGLE 后端、扩展数量和软件渲染判定。
+- `run-render-ablation` 在每个 mode/profile 结果上输出 `graphicsContext` 摘要；`performanceBaseline` 聚合同步保留该字段，并补测试固定聚合契约。
+- 目标规模 `civilization-scale` × `desktop-gpu/software-renderer/embedded-container` × `full` 单样本显示三者实际都是 `ANGLE ... SwiftShader driver`，本地 `desktop-gpu` 并非真实硬件 GPU 证据。
+- 客观限制：本轮不直接改善帧率，但修正了性能证据解释边界；下一轮优化和汇报必须同时引用 `graphicsContext` 与 `consoleSummary`。
+
 ## 2026-08-10 第二百二十三轮：图形初始化压力矩阵
 
 - 启动并完成 `RENDER-GRAPHICS-INIT-ABLATION-01`：`run-render-ablation` 新增 `no-antialias`、`resolution-1` 和 `no-antialias-resolution-1` 模式，复用已有渲染诊断参数，不改变生产默认。

@@ -59,6 +59,15 @@ describe('performance baseline contract', () => {
           },
         },
         readPixels: { count: 0 },
+        graphicsContext: {
+          canvasWidth: 1366,
+          canvasHeight: 768,
+          contextType: 'webgl2',
+          supportedExtensionCount: 32,
+          unmaskedRenderer: 'ANGLE (Apple, ANGLE Metal Renderer)',
+          angleBackend: 'apple',
+          softwareRenderer: false,
+        },
         consoleSummary: { counts: { total: 1, warning: 1, webgl: 1, gpuStall: 1 }, examples: { gpuStall: 'WebGL warning: GPU stall due to ReadPixels' } },
       },
       {
@@ -78,6 +87,15 @@ describe('performance baseline contract', () => {
           },
         },
         readPixels: { count: 2 },
+        graphicsContext: {
+          canvasWidth: 1366,
+          canvasHeight: 768,
+          contextType: 'webgl2',
+          supportedExtensionCount: 24,
+          unmaskedRenderer: 'ANGLE (Google, Vulkan SwiftShader)',
+          angleBackend: 'google',
+          softwareRenderer: true,
+        },
         consoleSummary: { counts: { total: 0, warning: 0, webgl: 0, gpuStall: 0 }, examples: {} },
       },
       {
@@ -118,6 +136,12 @@ describe('performance baseline contract', () => {
       }),
     })
     expect(aggregate.readPixels?.count).toBe(2)
+    expect(aggregate.graphicsContext).toEqual(expect.objectContaining({
+      contextType: 'webgl2',
+      supportedExtensionCount: 32,
+      softwareRenderer: true,
+      unmaskedRenderer: 'ANGLE (Google, Vulkan SwiftShader)',
+    }))
     expect(aggregate.consoleSummary?.counts).toEqual(expect.objectContaining({
       total: 2,
       warning: 2,

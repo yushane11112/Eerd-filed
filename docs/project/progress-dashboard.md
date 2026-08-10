@@ -8,6 +8,13 @@
 
 当前判断：
 
+### 第二百二十四轮产出（2026-08-10）
+
+- 浏览器 E2E runner、`qa:render-ablation` 和性能基线聚合新增 `graphicsContext` 诊断，输出 canvas 尺寸、WebGL 版本、context attributes、debug renderer/vendor、扩展数量、ANGLE 后端和软件渲染判定。
+- 目标规模三环境 `full` 单样本功能通过，且新诊断显示 `desktop-gpu`、`software-renderer`、`embedded-container` 三个本地代理全部实际运行在 `ANGLE ... SwiftShader driver`，`softwareRenderer=true`。
+- 同次样本：`desktop-gpu` rAF 308.35/400/400ms、`gpuStall=2`；`software-renderer` rAF 223.32/266.7/266.7ms、`gpuStall=4`；`embedded-container` rAF 236.66/266.6/266.6ms、`gpuStall=2`。三者 `readPixels=0`、`preserveDrawingBuffer=false`、`powerPreference=default`。
+- 结论：当前本地浏览器矩阵不是硬件 GPU 认证，更多是 headless Chromium/SwiftShader 下的代理压力样本；后续解释所有性能数据必须引用 `graphicsContext`，并把真实硬件/目标容器验证列为上线前门禁。
+
 ### 第二百二十三轮产出（2026-08-10）
 
 - `qa:render-ablation` 新增图形初始化压力对照模式：`no-antialias`、`resolution-1`、`no-antialias-resolution-1`，用于复跑 Pixi 初始化参数对目标规模 rAF、renderer 长尾和 `consoleSummary.gpuStall` 的影响。

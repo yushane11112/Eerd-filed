@@ -72,6 +72,19 @@ interface BrowserResult {
     resolutionOverride?: number
     buildingLod?: boolean
   }
+  graphicsContext?: {
+    canvasWidth?: number
+    canvasHeight?: number
+    contextType?: string
+    contextAttributes?: Record<string, unknown> | null
+    vendor?: string | null
+    renderer?: string | null
+    unmaskedVendor?: string | null
+    unmaskedRenderer?: string | null
+    supportedExtensionCount?: number
+    angleBackend?: string | null
+    softwareRenderer?: boolean
+  }
   readPixels?: { count?: number }
   consoleSummary?: {
     counts?: {
@@ -169,6 +182,7 @@ const main = async () => {
         query: mode.query,
         repeats,
         configuration: samples.at(-1)?.renderConfiguration ?? null,
+        graphicsContext: summarizeGraphicsContext(samples),
         profileWindow: samples.at(-1)?.profileWindow ?? null,
         sample: summarizeSamples(samples),
         rawSamples: samples,
@@ -217,6 +231,16 @@ const summarizeSamples = (samples: BrowserResult[]) => ({
   readPixels: Math.max(...samples.map((sample) => sample.readPixels?.count ?? Number.POSITIVE_INFINITY)),
   consoleSummary: summarizeConsoleSamples(samples),
 })
+
+const summarizeGraphicsContext = (samples: BrowserResult[]) => {
+  const latest = samples.findLast((sample) => sample.graphicsContext)?.graphicsContext
+  if (!latest) return null
+  return {
+    ...latest,
+    supportedExtensionCount: Math.max(...samples.map((sample) => sample.graphicsContext?.supportedExtensionCount ?? 0)),
+    softwareRenderer: samples.some((sample) => sample.graphicsContext?.softwareRenderer === true),
+  }
+}
 
 const maxConsoleCount = (
   samples: BrowserResult[],

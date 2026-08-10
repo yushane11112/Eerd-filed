@@ -342,6 +342,48 @@ async function runScenario(browser, scenario) {
       }
     })
     const renderConfiguration = await page.evaluate(() => window.__littleEarRenderConfiguration ?? null)
+    const graphicsContext = await page.evaluate(() => {
+      const canvas = document.querySelector('canvas')
+      const context =
+        canvas?.getContext('webgl2') ||
+        canvas?.getContext('webgl') ||
+        canvas?.getContext('experimental-webgl')
+      if (!canvas || !context) {
+        return {
+          canvasWidth: canvas?.width ?? 0,
+          canvasHeight: canvas?.height ?? 0,
+          contextType: 'none',
+          contextAttributes: null,
+          vendor: null,
+          renderer: null,
+          unmaskedVendor: null,
+          unmaskedRenderer: null,
+          supportedExtensionCount: 0,
+          angleBackend: null,
+          softwareRenderer: false,
+        }
+      }
+      const debugInfo = context.getExtension('WEBGL_debug_renderer_info')
+      const vendor = context.getParameter(context.VENDOR)
+      const renderer = context.getParameter(context.RENDERER)
+      const unmaskedVendor = debugInfo ? context.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : null
+      const unmaskedRenderer = debugInfo ? context.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : null
+      const rendererText = String(unmaskedRenderer || renderer || '').toLowerCase()
+      const backendMatch = rendererText.match(/angle \(([^,)]*)(?:,|\))/i)
+      return {
+        canvasWidth: canvas.width,
+        canvasHeight: canvas.height,
+        contextType: typeof WebGL2RenderingContext !== 'undefined' && context instanceof WebGL2RenderingContext ? 'webgl2' : 'webgl',
+        contextAttributes: context.getContextAttributes(),
+        vendor,
+        renderer,
+        unmaskedVendor,
+        unmaskedRenderer,
+        supportedExtensionCount: context.getSupportedExtensions()?.length ?? 0,
+        angleBackend: backendMatch?.[1]?.trim() || null,
+        softwareRenderer: rendererText.includes('swiftshader') || rendererText.includes('software'),
+      }
+    })
 
     for (const [field, expected] of Object.entries(scenario.renderEntityAssertions || {})) {
       const actual = renderProfile.entityRange?.[field]?.last
@@ -404,6 +446,7 @@ async function runScenario(browser, scenario) {
       appProfile,
       profileWindow: 'steady-state-after-assertions',
       renderConfiguration,
+      graphicsContext,
       readPixels: await page.evaluate(() => window.__littleEarReadPixels ?? { count: 0, samples: [] }),
       interaction: scenario.interaction || null,
       consoleSummary,

@@ -14,7 +14,7 @@ export const PERFORMANCE_ENVIRONMENTS: ReadonlyArray<PerformanceEnvironmentConfi
   {
     id: 'desktop-gpu',
     label: '桌面 GPU',
-    description: 'Chromium 默认图形路径，作为本机硬件加速参考基线。',
+    description: 'Chromium 默认图形路径；真实 GPU/软件后端以浏览器样本的 graphicsContext 为准。',
     chromiumArgs: [],
     viewport: { width: 1366, height: 768 },
     deviceScaleFactor: 1,
@@ -23,7 +23,7 @@ export const PERFORMANCE_ENVIRONMENTS: ReadonlyArray<PerformanceEnvironmentConfi
   {
     id: 'software-renderer',
     label: '软件渲染',
-    description: '禁用硬件 GPU 并使用 SwiftShader，模拟低图形能力环境。',
+    description: '显式禁用硬件 GPU 并使用 SwiftShader，模拟低图形能力环境。',
     chromiumArgs: ['--disable-gpu', '--use-angle=swiftshader'],
     viewport: { width: 1366, height: 768 },
     deviceScaleFactor: 1,
@@ -97,6 +97,19 @@ export interface PerformanceSample {
     }
   }
   readPixels?: { count?: number }
+  graphicsContext?: {
+    canvasWidth?: number
+    canvasHeight?: number
+    contextType?: string
+    contextAttributes?: Record<string, unknown> | null
+    vendor?: string | null
+    renderer?: string | null
+    unmaskedVendor?: string | null
+    unmaskedRenderer?: string | null
+    supportedExtensionCount?: number
+    angleBackend?: string | null
+    softwareRenderer?: boolean
+  }
   consoleSummary?: {
     counts?: {
       total?: number
@@ -206,6 +219,7 @@ export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSa
       },
     },
     readPixels: { count: Math.max(...samples.map((sample) => sample.readPixels?.count ?? Number.POSITIVE_INFINITY)) },
+    graphicsContext: aggregateGraphicsContext(samples),
     consoleSummary: {
       counts: Object.fromEntries(consoleFields.map((field) => [
         field,
@@ -213,6 +227,16 @@ export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSa
       ])),
       examples: consoleExamples,
     },
+  }
+}
+
+function aggregateGraphicsContext(samples: ReadonlyArray<PerformanceSample>): PerformanceSample['graphicsContext'] {
+  const latest = [...samples].reverse().find((sample) => sample.graphicsContext)?.graphicsContext
+  if (!latest) return undefined
+  return {
+    ...latest,
+    supportedExtensionCount: Math.max(...samples.map((sample) => sample.graphicsContext?.supportedExtensionCount ?? 0)),
+    softwareRenderer: samples.some((sample) => sample.graphicsContext?.softwareRenderer === true),
   }
 }
 

@@ -1,5 +1,17 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百二十四轮验证
+
+- 验证等级：Tier 3，浏览器 E2E 报告结构、渲染差分摘要、性能基线聚合和性能证据解释边界均有变更。
+- 定向测试：`npm test -- src/qa/performanceBaseline.test.ts src/qa/browserE2eScenarios.test.ts` 通过，2 个测试文件、9 项测试。
+- 生产构建：`npm run build` 通过，Vite 构建 2364 个模块；提交前最终构建同样通过。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模三环境 WebGL 后端样本：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_PROFILES=desktop-gpu,software-renderer,embedded-container RENDER_ABLATION_MODES=full RENDER_ABLATION_REPEATS=1 RENDER_ABLATION_TIMEOUT_MS=120000 npm run qa:render-ablation` 通过。
+- `graphicsContext` 结果：三个 profile 均为 `contextType=webgl2`、`unmaskedRenderer=ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)`、`softwareRenderer=true`、`powerPreference=default`、`preserveDrawingBuffer=false`。
+- 性能结果：`desktop-gpu/full` rAF 308.35/400/400ms、renderer P95 19.9ms、`gpuStall=2`；`software-renderer/full` rAF 223.32/266.7/266.7ms、renderer P95 16.3ms、`gpuStall=4`；`embedded-container/full` rAF 236.66/266.6/266.6ms、renderer P95 21.5ms、`gpuStall=2`。
+- 结论：当前本地三环境矩阵均是 SwiftShader 代理，不可直接宣称硬件 GPU 表现；下一轮仍应追 SwiftShader 下的 stall 触发链，同时把真实硬件/目标容器验证列为上线前门禁。
+- 完整测试：`npm test` 通过，58 个测试文件、365 项测试，耗时约 153 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百二十三轮验证
 
 - 验证等级：Tier 3，渲染差分模式、目标规模浏览器矩阵和性能方向判断均有变更。

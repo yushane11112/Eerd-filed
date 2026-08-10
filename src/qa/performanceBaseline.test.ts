@@ -43,13 +43,38 @@ describe('performance baseline contract', () => {
 
   it('uses median frame timing while keeping the worst readback count', () => {
     const aggregate = aggregatePerformanceSamples([
-      { ok: true, frameMetrics: { averageFrameMs: 15, p95FrameMs: 20, maxFrameMs: 30 }, renderProfile: { p95: { totalMs: 1 } }, rendererProfile: { p95Ms: 2, maxMs: 4 }, readPixels: { count: 0 } },
-      { ok: true, frameMetrics: { averageFrameMs: 80, p95FrameMs: 90, maxFrameMs: 100 }, renderProfile: { p95: { totalMs: 5 } }, rendererProfile: { p95Ms: 9, maxMs: 20 }, readPixels: { count: 2 } },
-      { ok: true, frameMetrics: { averageFrameMs: 16, p95FrameMs: 22, maxFrameMs: 40 }, renderProfile: { p95: { totalMs: 2 } }, rendererProfile: { p95Ms: 3, maxMs: 6 }, readPixels: { count: 0 } },
+      {
+        ok: true,
+        frameMetrics: { averageFrameMs: 15, p95FrameMs: 20, maxFrameMs: 30 },
+        renderProfile: { p95: { totalMs: 1 } },
+        rendererProfile: { p95Ms: 2, maxMs: 4 },
+        tickerProfile: { p95: { callbackMs: 1, sceneSyncMs: 1, tickerDeltaMs: 16, tickerElapsedMs: 20 }, max: { callbackMs: 2, tickerElapsedMs: 30 } },
+        readPixels: { count: 0 },
+      },
+      {
+        ok: true,
+        frameMetrics: { averageFrameMs: 80, p95FrameMs: 90, maxFrameMs: 100 },
+        renderProfile: { p95: { totalMs: 5 } },
+        rendererProfile: { p95Ms: 9, maxMs: 20 },
+        tickerProfile: { p95: { callbackMs: 5, sceneSyncMs: 4, tickerDeltaMs: 100, tickerElapsedMs: 90 }, max: { callbackMs: 7, tickerElapsedMs: 100 } },
+        readPixels: { count: 2 },
+      },
+      {
+        ok: true,
+        frameMetrics: { averageFrameMs: 16, p95FrameMs: 22, maxFrameMs: 40 },
+        renderProfile: { p95: { totalMs: 2 } },
+        rendererProfile: { p95Ms: 3, maxMs: 6 },
+        tickerProfile: { p95: { callbackMs: 2, sceneSyncMs: 2, tickerDeltaMs: 17, tickerElapsedMs: 22 }, max: { callbackMs: 3, tickerElapsedMs: 40 } },
+        readPixels: { count: 0 },
+      },
     ])
     expect(aggregate.frameMetrics).toEqual({ averageFrameMs: 16, p95FrameMs: 22, maxFrameMs: 40 })
     expect(aggregate.renderProfile?.p95?.totalMs).toBe(2)
     expect(aggregate.rendererProfile).toEqual({ p95Ms: 3, maxMs: 6 })
+    expect(aggregate.tickerProfile).toEqual({
+      p95: { callbackMs: 2, sceneSyncMs: 2, tickerDeltaMs: 17, tickerElapsedMs: 22 },
+      max: { callbackMs: 3, tickerElapsedMs: 40 },
+    })
     expect(aggregate.readPixels?.count).toBe(2)
   })
 })

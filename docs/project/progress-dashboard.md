@@ -8,6 +8,15 @@
 
 当前判断：
 
+### 第二百零九轮产出（2026-08-10）
+
+- 三环境性能基线聚合已接入 `tickerProfile`：`qa:performance-baseline` 现在会在桌面 GPU、软件渲染和嵌入容器代理中同时汇总 rAF、render sync、renderer、ticker callback、ticker delta/elapsed 和 readPixels。
+- 目标规模 `civilization-scale` 三环境单次矩阵通过功能门禁：三个环境均保持 300 栋建筑、135 名居民、15 个运输实体、96 detailed / 204 reduced，应用层 `readPixels=0`，无 console error。
+- 桌面 GPU：rAF 平均/P95/最大 150/183.3/183.3ms，render sync P95 11.3ms，renderer P95 17.3ms，ticker callback/elapsed P95 12/183.3ms。
+- 软件渲染：rAF 150/183.4/183.4ms，render sync P95 10.9ms，renderer P95 18.1ms，ticker callback/elapsed P95 10.9/183.4ms。
+- 嵌入容器代理：rAF 143.74/166.7/166.7ms，render sync P95 16.6ms，renderer P95 18.7ms，ticker callback/elapsed P95 16.6/166.7ms。
+- 结论：桌面 GPU 与软件渲染表现非常接近，说明当前本机红灯更像浏览器/ticker 调度或测试环境帧节奏问题，而不是单纯硬件 GPU 路径问题。下一步应审计 Pixi ticker 设置、目标 FPS、runner 采样机制和 GPU stall 警告来源。
+
 ### 第二百零八轮产出（2026-08-10）
 
 - 浏览器性能报告新增 `tickerProfile`：采集 Pixi ticker callback、camera、scene sync、`ticker.deltaMS` 和 `ticker.elapsedMS` 的平均/P95/最大值，并随 `qa:render-ablation` 汇总输出。

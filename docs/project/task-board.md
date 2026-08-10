@@ -2,6 +2,7 @@
 
 | ID | 会话职责 | 写入范围 | 状态 | 集成条件 |
 | --- | --- | --- | --- | --- |
+| PERF-TICKER-MATRIX-01 | 三环境目标规模 ticker 性能矩阵 | `src/qa/performanceBaseline.ts`, `src/qa/performanceBaseline.test.ts`, `docs/project/**` | 已完成 | `qa:performance-baseline` 在三环境目标规模样本中聚合 ticker 指标，并确认红灯更接近浏览器/ticker 调度层 |
 | RENDER-TICKER-PROFILE-01 | Pixi ticker 阶段计时诊断 | `src/components/SimulationCanvas.tsx`, `src/rendering/types.ts`, `tools/browser-e2e/**`, `tools/qa/run-render-ablation.ts`, `docs/project/**` | 已完成 | 目标规模浏览器报告同时输出 rAF、renderer、scene sync 和 ticker delta/elapsed，定位红灯不主要来自 `DynamicScene.sync` |
 | RENDER-STEADY-PROFILE-WINDOW-01 | 稳态渲染采样窗口 | `tools/browser-e2e/run-browser-e2e.cjs`, `tools/qa/run-render-ablation.ts`, `docs/project/**` | 已完成 | 浏览器断言稳定后重置 profile 样本并输出 `steady-state-after-assertions`，区分启动期与运行期长尾 |
 | RENDER-BUILDING-LOD-ABLATION-01 | 建筑 LOD 目标规模对照矩阵 | `tools/qa/run-render-ablation.ts`, `tools/browser-e2e/**`, `src/qa/**`, `src/rendering/visuals.ts`, `docs/project/**` | 已完成 | `full` 与 `no-building-lod` 可在目标规模浏览器矩阵中复跑，且 reduced 更新不再重复清空动效图形 |

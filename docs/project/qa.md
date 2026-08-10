@@ -1,5 +1,18 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百零九轮验证
+
+- 验证等级：Tier 3，性能基线聚合口径和三环境目标规模报告结构有变更。
+- 定向测试：`npm test -- src/qa/performanceBaseline.test.ts src/qa/browserE2eScenarios.test.ts` 通过，2 个测试文件、9 项测试。
+- 完整测试：`npm test` 通过，57 个测试文件、358 项测试。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码。
+- 生产构建：`npm run build` 通过，Vite 构建 2363 个模块。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 三环境目标规模矩阵：`PERF_BASELINE_SCENARIO=civilization-scale PERF_BASELINE_REPEATS=1 npm run qa:performance-baseline` 通过执行，报告 `ok=false`，因为商业帧率门禁仍 RED。
+- 桌面 GPU：300 buildings、135 residents、15 transport、96 detailed / 204 reduced；rAF 150/183.3/183.3ms，render sync P95 11.3ms，renderer P95 17.3ms，ticker callback/elapsed P95 12/183.3ms，readPixels=0。
+- 软件渲染：rAF 150/183.4/183.4ms，render sync P95 10.9ms，renderer P95 18.1ms，ticker callback/elapsed P95 10.9/183.4ms，readPixels=0。
+- 嵌入容器代理：rAF 143.74/166.7/166.7ms，render sync P95 16.6ms，renderer P95 18.7ms，ticker callback/elapsed P95 16.6/166.7ms，readPixels=0。
+- 结论：三环境均红灯，且桌面 GPU 与软件渲染接近；下一步优先排查 Pixi ticker 设置、浏览器调度、runner 采样和 GPU stall 警告，而不是继续只削减建筑视觉更新。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百零八轮验证
 
 - 验证等级：Tier 3，主画布 renderProfile 采集、浏览器 E2E 报告和渲染差分汇总结构均有变更。

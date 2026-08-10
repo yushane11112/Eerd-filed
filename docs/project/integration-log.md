@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百零九轮：三环境目标规模 Ticker 矩阵
+
+- 启动并完成 `PERF-TICKER-MATRIX-01`：性能基线聚合纳入 ticker 指标，三环境报告不再只看帧时间、render sync、renderer 和 readPixels。
+- `aggregatePerformanceSamples` 会保留 ticker callback、sceneSync、delta 和 elapsed 的中位数样本，readPixels 仍取最差值。
+- 目标规模三环境矩阵显示：桌面 GPU 与软件渲染的 rAF 和 ticker elapsed 几乎同级，嵌入容器代理略好但仍红灯；三个环境的 renderer P95 均约 17-19ms。
+- 客观限制：本轮是单次本机/代理矩阵，不等于真实用户设备认证；结论是优先排查 ticker/浏览器调度与 GPU stall，而不是宣布性能问题已解决。
+
 ## 2026-08-10 第二百零八轮：Ticker 阶段计时诊断
 
 - 启动并完成 `RENDER-TICKER-PROFILE-01`：renderProfile 模式下新增 Pixi ticker 阶段计时，记录 callback、camera、scene sync、`deltaMS` 和 `elapsedMS`。

@@ -59,6 +59,18 @@ export interface PerformanceSample {
     p95?: { totalMs?: number }
   }
   rendererProfile?: { p95Ms?: number; maxMs?: number }
+  tickerProfile?: {
+    p95?: {
+      callbackMs?: number
+      sceneSyncMs?: number
+      tickerDeltaMs?: number
+      tickerElapsedMs?: number
+    }
+    max?: {
+      callbackMs?: number
+      tickerElapsedMs?: number
+    }
+  }
   readPixels?: { count?: number }
 }
 
@@ -93,6 +105,18 @@ export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSa
     rendererProfile: {
       p95Ms: median(samples.map((sample) => sample.rendererProfile?.p95Ms ?? Number.POSITIVE_INFINITY)),
       maxMs: median(samples.map((sample) => sample.rendererProfile?.maxMs ?? Number.POSITIVE_INFINITY)),
+    },
+    tickerProfile: {
+      p95: {
+        callbackMs: median(samples.map((sample) => sample.tickerProfile?.p95?.callbackMs ?? Number.POSITIVE_INFINITY)),
+        sceneSyncMs: median(samples.map((sample) => sample.tickerProfile?.p95?.sceneSyncMs ?? Number.POSITIVE_INFINITY)),
+        tickerDeltaMs: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerDeltaMs ?? Number.POSITIVE_INFINITY)),
+        tickerElapsedMs: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerElapsedMs ?? Number.POSITIVE_INFINITY)),
+      },
+      max: {
+        callbackMs: median(samples.map((sample) => sample.tickerProfile?.max?.callbackMs ?? Number.POSITIVE_INFINITY)),
+        tickerElapsedMs: median(samples.map((sample) => sample.tickerProfile?.max?.tickerElapsedMs ?? Number.POSITIVE_INFINITY)),
+      },
     },
     readPixels: { count: Math.max(...samples.map((sample) => sample.readPixels?.count ?? Number.POSITIVE_INFINITY)) },
   }

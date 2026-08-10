@@ -7,6 +7,7 @@ export interface RenderDiagnosticsConfig {
   resolutionOverride?: number
   staticBuildingCache: boolean
   buildingAtlas: boolean
+  buildingLod: boolean
 }
 
 /**
@@ -26,5 +27,6 @@ export function parseRenderDiagnostics(search: string): RenderDiagnosticsConfig 
     // The shared atlas is now the production path. `disableAtlas=1` is kept
     // for controlled regression comparisons and emergency asset fallback.
     buildingAtlas: params.get('disableAtlas') !== '1',
+    buildingLod: params.get('disableBuildingLod') !== '1',
   }
 }

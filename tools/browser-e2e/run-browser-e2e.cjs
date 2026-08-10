@@ -224,7 +224,7 @@ async function runScenario(browser, scenario) {
       const profiles = window.__littleEarRenderProfiles ?? []
       if (profiles.length === 0) return { sampleCount: 0 }
       const timingFields = ['totalMs', 'districtsMs', 'buildingsMs', 'residentsMs', 'dropsMs', 'cleanupMs', 'sortMs']
-      const countFields = ['buildings', 'residents', 'transport', 'drops', 'visible', 'pooled']
+      const countFields = ['buildings', 'residents', 'transport', 'drops', 'visible', 'detailedBuildings', 'reducedBuildings', 'pooled']
       const percentile = (values, ratio) => {
         const sorted = [...values].sort((left, right) => left - right)
         return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * ratio))]

@@ -1,5 +1,17 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百零五轮验证
+
+- 验证等级：Tier 3，目标规模渲染策略、浏览器性能采集字段和 QA 场景契约均有变更。
+- 定向测试：`npm test -- src/rendering/DynamicScene.test.ts src/rendering/renderDiagnostics.test.ts src/qa/civilizationScale.test.ts src/qa/browserE2eScenarios.test.ts` 通过，4 个测试文件、25 项测试。已知 jsdom `HTMLCanvasElement.getContext` warning 不影响退出码。
+- 完整测试：`npm test` 通过，57 个测试文件、358 项测试。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码。
+- 生产构建：`npm run build` 通过，Vite 构建 2363 个模块。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 差异检查：`git diff --check` 通过。
+- 本机环境修复：家用电脑首次执行浏览器 E2E 时缺少 Playwright Chromium；已通过 `npx playwright install chromium` 安装本机浏览器运行时。
+- 真实浏览器目标规模 E2E：`BROWSER_E2E_SCENARIO=civilization-scale BROWSER_E2E_RENDER_QUERY='renderProfile=1' npm run qa:browser-e2e` 通过；300 buildings、135 residents、15 transport、visible 331-349、detailedBuildings 96、reducedBuildings 204、应用层 `readPixels=0`、无 console error。
+- 同次性能样本：render sync 平均/P95 6.481/36.1ms，建筑阶段平均/P95 5.565/33.4ms；rAF 平均/P95/最大 135.41/183.4/183.4ms；renderer 平均/P95/最大 14.297/39/293.5ms。
+- 限制：浏览器仍出现 WebGL GPU stall warning，且帧时间远高于 16.7ms 商业目标；本轮只证明 LOD 生效和可统计，性能门禁继续 RED。
+
 ## 功能链路
 
 - 道路未连接时，住宅不能获得可达岗位，生产建筑不能创建有效运输。

@@ -59,6 +59,8 @@ export interface SceneSyncStats {
   transport: number
   drops: number
   visible: number
+  detailedBuildings: number
+  reducedBuildings: number
   pooled: number
 }
 
@@ -75,5 +77,7 @@ export interface SceneSyncPerformanceProfile {
   transport: number
   drops: number
   visible: number
+  detailedBuildings: number
+  reducedBuildings: number
   pooled: number
 }

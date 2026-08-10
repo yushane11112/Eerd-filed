@@ -19,12 +19,14 @@ codex/commercial-launch-plan-docs
 当前项目目录：
 
 ```bash
-/Users/xmly/Documents/Codex/2026-06-23/ni
+/Users/yuzai/Documents/Eerd-filed
 ```
 
 真实游戏持续预览：`https://little-ear-island-game-preview.netlify.app`。该地址直接运行本仓库的 Vite/Pixi 游戏构建，并已绑定 GitHub 自动部署；推送当前开发分支后会自动更新。不要把该需求重新解释成独立宣传落地页。
 
-最近完成：第一百六十七轮已将建筑身份差异化动效接入 Pixi（施工、农业、水面、灯塔、水车、炊烟和营业活动），并保持 28 类×9 级 PNG 接入；全量 330 项测试、生产构建 2359 个模块通过，但商业美术覆盖门禁和浏览器像素/帧率验收仍待补。
+最近完成：第二百零五轮已将目标规模建筑细节 LOD 接入 Pixi 动态场景。300 栋真实浏览器压力场景中，近景 96 栋保留 full detail，远景 204 栋 reduced detail；浏览器 profile 已能回传 `detailedBuildings` / `reducedBuildings`。目标规模功能链路通过，但 rAF 平均/P95/最大仍为 135.41/183.4/183.4ms，商业性能门禁继续 RED。
+
+下一轮默认任务：继续做目标规模渲染专项，优先处理纹理上传节流、renderer 长尾、GPU 合成和 LOD 对照矩阵。不要把“能跑 300 栋”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
 
 如果另一台电脑路径不同，不影响项目，只要 clone 同一个 GitHub 仓库并 checkout 同一个分支即可。
 

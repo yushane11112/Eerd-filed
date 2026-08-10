@@ -6,14 +6,23 @@ export interface BrowserE2eScenario {
   path: string
   mustContainText: string[]
   forbiddenConsoleLevels: BrowserConsoleLevel[]
-  renderEntityAssertions?: Partial<Record<'buildings' | 'residents' | 'transport' | 'drops' | 'visible', number>>
-  renderEntityMinimums?: Partial<Record<'buildings' | 'residents' | 'transport' | 'drops' | 'visible', number>>
+  renderEntityAssertions?: Partial<Record<BrowserRenderEntityField, number>>
+  renderEntityMinimums?: Partial<Record<BrowserRenderEntityField, number>>
   interaction?: {
     clickText: string
     expectToastText: string
     expectVisibleText?: string
   }
 }
+
+export type BrowserRenderEntityField =
+  | 'buildings'
+  | 'residents'
+  | 'transport'
+  | 'drops'
+  | 'visible'
+  | 'detailedBuildings'
+  | 'reducedBuildings'
 
 export const BROWSER_E2E_SCENARIOS: BrowserE2eScenario[] = [
   {
@@ -115,6 +124,8 @@ export const BROWSER_E2E_SCENARIOS: BrowserE2eScenario[] = [
       residents: 135,
       transport: 15,
       visible: 150,
+      detailedBuildings: 1,
+      reducedBuildings: 1,
     },
   },
 ]

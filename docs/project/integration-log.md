@@ -1,5 +1,13 @@
 # 集成记录
 
+## 2026-08-10 第二百零五轮：目标规模建筑细节 LOD
+
+- 启动并完成 `RENDER-BUILDING-LOD-01`：目标规模场景中，当同屏可见建筑超过 120 栋时，仅距离相机最近的 96 栋保留完整建筑细节，其余远景建筑降为 reduced detail。
+- reduced detail 建筑仍保留静态主体、建筑原画和状态可见性，但关闭建筑原画动态层、施工/水面/农业等高频动效驱动，减少 300 栋同屏时的重复视觉更新。
+- 渲染诊断新增 `buildingLod`，生产默认开启，`?disableBuildingLod=1` 可关闭；浏览器 render profile 新增 `detailedBuildings` / `reducedBuildings` 统计，QA 契约要求目标规模场景同时观察到 full/reduced 两类建筑。
+- 真实浏览器目标规模样本：300 buildings、135 residents、15 transport、visible 331-349、detailedBuildings 96、reducedBuildings 204，应用层 `readPixels=0`，无 console error。
+- 客观限制：本轮 rAF 平均/P95/最大仍为 135.41/183.4/183.4ms，renderer 最大 293.5ms，商业性能门禁继续 RED；下一步必须继续处理纹理上传节流、renderer 长尾和 GPU 合成。
+
 ## 2026-07-14：真实游戏持续预览站
 
 - 完成 `PREVIEW-CONTINUOUS-DEPLOY-01`：建立 `https://little-ear-island-game-preview.netlify.app`，直接发布本仓库 `npm run build` 生成的 Vite/Pixi 游戏产物。

@@ -116,6 +116,11 @@ describe('browser E2E scenario contract', () => {
     expect(browserE2eScenarioById('civilization-scale')?.path).not.toContain('disableArtwork=1')
     expect(browserE2eScenarioById('civilization-scale')?.path).not.toContain('disableAnimation=1')
     expect(browserE2eScenarioById('civilization-scale')?.path).not.toContain('disableTerrain=1')
+    expect(browserE2eScenarioById('civilization-scale')?.path).not.toContain('disableBuildingLod=1')
+    expect(browserE2eScenarioById('civilization-scale')?.renderEntityMinimums).toMatchObject({
+      detailedBuildings: 1,
+      reducedBuildings: 1,
+    })
   })
 
   it('declares at least one real browser interaction instead of only page text checks', () => {

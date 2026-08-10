@@ -200,6 +200,7 @@ export function SimulationCanvas({
         buildingAnimationProvider,
         buildingAnimationOptions: renderConfig.authoredAnimation ? buildingAnimationOptions : undefined,
         staticBuildingCache: renderConfig.staticBuildingCache,
+        buildingLod: renderConfig.buildingLod,
         onSyncProfile: renderProfiles
           ? (profile) => {
               if (renderProfiles.length < 120) renderProfiles.push(profile)

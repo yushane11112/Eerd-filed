@@ -2,6 +2,26 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百零五轮目标规模建筑细节 LOD
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/DynamicScene.ts` | 目标规模渲染策略 | 可见建筑超过阈值时按相机距离选择 96 栋 full detail，其余降为 reduced detail，并输出统计 |
+| `src/rendering/visuals.ts` | 建筑视觉 LOD | reduced 建筑保留静态主体/原画/状态，但关闭高频建筑动效和原画动态层 |
+| `src/rendering/types.ts` | 性能统计契约 | `SceneSyncStats` / `SceneSyncPerformanceProfile` 增加 full/reduced 建筑计数 |
+| `src/rendering/renderDiagnostics.ts` | QA 诊断开关 | 新增 `buildingLod` 配置与 `disableBuildingLod=1` 回退参数 |
+| `src/components/SimulationCanvas.tsx` | 生产接入 | 将渲染诊断配置传入 `DynamicScene` |
+| `src/rendering/DynamicScene.test.ts` | 自动测试 | 覆盖 140 栋可见建筑时远景 reduced，以及关闭 LOD 后全量 full |
+| `src/rendering/renderDiagnostics.test.ts` | 自动测试 | 固定 LOD 默认开启和 URL 关闭契约 |
+| `src/qa/browserE2eScenarios.ts` | 浏览器 QA 契约 | 目标规模场景要求观察到 detailed/reduced 建筑统计 |
+| `src/qa/browserE2eScenarios.test.ts` | 自动测试 | 固定目标规模场景不会默认关闭 LOD，且包含 full/reduced 最小统计 |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 浏览器性能采集 | render profile 采集 detailedBuildings / reducedBuildings 区间 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录本轮目标规模 LOD 事实、浏览器样本和红灯结论 |
+| `docs/project/integration-log.md` | 集成记录 | 记录 LOD 接入、回退开关、统计证据和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录定向测试、构建、浏览器验收和完整门禁 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `RENDER-BUILDING-LOD-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新最新可信进度与下一步默认任务 |
+
 ## 2026-07-14：真实游戏持续预览站
 
 | 文件 | 产物类型 | 用途 |

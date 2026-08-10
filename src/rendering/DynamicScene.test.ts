@@ -173,6 +173,54 @@ describe('DynamicScene', () => {
     expect(scene.layers.buildings.children.filter((child) => child.visible)).toHaveLength(2)
   })
 
+  it('reduces far building detail when many buildings are visible at target scale', async () => {
+    const { DynamicScene } = await import('./DynamicScene')
+    const snapshot = createSnapshot()
+    snapshot.buildings = Object.fromEntries(
+      Array.from({ length: 140 }, (_, index) => {
+        const id = `building-${index.toString().padStart(3, '0')}`
+        return [id, createBuilding({
+          id,
+          origin: { x: index, y: 0 },
+          entrance: { x: index, y: 1 },
+          type: index % 2 === 0 ? 'house' : 'main-pier',
+          status: 'working',
+        })]
+      }),
+    )
+    snapshot.agents = {}
+    snapshot.worldDrops = []
+    const scaleCamera = {
+      x: 0,
+      y: 0,
+      zoom: 1,
+      viewportWidth: 20_000,
+      viewportHeight: 20_000,
+    }
+
+    const scene = new DynamicScene()
+    const lodStats = scene.sync(snapshot, scaleCamera)
+
+    expect(lodStats).toMatchObject({
+      buildings: 140,
+      visible: 140,
+      detailedBuildings: 96,
+      reducedBuildings: 44,
+    })
+    expect(scene.layers.buildings.children.filter((child) => child.label === 'building-visual:reduced')).toHaveLength(44)
+
+    const lodDisabledScene = new DynamicScene(undefined, { buildingLod: false })
+    const fullStats = lodDisabledScene.sync(snapshot, scaleCamera)
+
+    expect(fullStats).toMatchObject({
+      buildings: 140,
+      visible: 140,
+      detailedBuildings: 140,
+      reducedBuildings: 0,
+    })
+    expect(lodDisabledScene.layers.buildings.children.filter((child) => child.label === 'building-visual:reduced')).toHaveLength(0)
+  })
+
   it('renders a short-lived recovery pulse from the city timeline', async () => {
     const { DynamicScene } = await import('./DynamicScene')
     const snapshot = createSnapshot()

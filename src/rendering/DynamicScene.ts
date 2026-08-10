@@ -1,5 +1,5 @@
 import { Container } from 'pixi.js'
-import type { AgentEntity, EntityId, SimulationSnapshot } from '../simulation/contracts'
+import type { AgentEntity, EntityId, GridPoint, SimulationSnapshot } from '../simulation/contracts'
 import { applyCameraTransform, gridPointVisible } from './culling'
 import { DEFAULT_ISO_METRICS } from './isometric'
 import { createSceneLayers, type SceneLayers } from './layers'
@@ -24,14 +24,24 @@ function migrationCandidateVisualId(id: EntityId): EntityId {
   return `migration-candidate:${id}`
 }
 
+function distanceToCamera(point: GridPoint, camera: Readonly<SceneCamera>): number {
+  const dx = point.x - camera.x
+  const dy = point.y - camera.y
+  return dx * dx + dy * dy
+}
+
 export interface DynamicSceneOptions {
   prefabRegistry?: PrefabRuntimeRegistry
   buildingArtworkProvider?: BuildingArtworkProvider
   buildingAnimationProvider?: BuildingAnimationProvider
   buildingAnimationOptions?: BuildingAnimationDriverOptions
   staticBuildingCache?: boolean
+  buildingLod?: boolean
   onSyncProfile?: (profile: SceneSyncPerformanceProfile) => void
 }
+
+const BUILDING_LOD_TRIGGER_COUNT = 120
+const BUILDING_LOD_FULL_DETAIL_BUDGET = 96
 
 export class DynamicScene {
   readonly root = new Container({ label: 'dynamic-city-scene' })
@@ -46,6 +56,7 @@ export class DynamicScene {
   private readonly dropPool: ObjectPool<DropVisual>
   private readonly active = new Map<EntityId, EntityVisual>()
   private readonly onSyncProfile?: (profile: SceneSyncPerformanceProfile) => void
+  private readonly buildingLod: boolean
   private lastSnapshot: Readonly<SimulationSnapshot> | null = null
   private lastSnapshotTick: number | null = null
   private lastBuildings: Readonly<SimulationSnapshot['buildings']> | null = null
@@ -62,6 +73,7 @@ export class DynamicScene {
   ) {
     this.metrics = metrics
     this.onSyncProfile = options.onSyncProfile
+    this.buildingLod = options.buildingLod ?? true
     this.root.addChild(this.world)
     this.layers = createSceneLayers(this.world)
     this.buildingPool = new ObjectPool(
@@ -121,12 +133,14 @@ export class DynamicScene {
         transport: this.lastStats.transport,
         drops: this.lastStats.drops,
         visible: this.lastStats.visible,
+        detailedBuildings: this.lastStats.detailedBuildings,
+        reducedBuildings: this.lastStats.reducedBuildings,
         pooled: this.lastStats.pooled,
       })
       return this.lastStats
     }
 
-    if (snapshotVisualsUnchanged && this.lastStats) {
+    if (snapshotVisualsUnchanged && this.lastStats && !this.buildingLod) {
       let visible = 0
       for (const visual of this.active.values()) {
         const wasVisible = visual.display.visible
@@ -150,6 +164,8 @@ export class DynamicScene {
         transport: stats.transport,
         drops: stats.drops,
         visible: stats.visible,
+        detailedBuildings: stats.detailedBuildings,
+        reducedBuildings: stats.reducedBuildings,
         pooled: stats.pooled,
       })
       return stats
@@ -161,6 +177,9 @@ export class DynamicScene {
     let districts = 0
     let residents = 0
     let transport = 0
+    let detailedBuildings = 0
+    let reducedBuildings = 0
+    const detailedBuildingIds = this.resolveDetailedBuildingIds(snapshot, camera)
 
     for (const district of snapshot.districts ?? []) {
       expected.add(district.id)
@@ -176,8 +195,12 @@ export class DynamicScene {
     for (const building of Object.values(snapshot.buildings)) {
       expected.add(building.id)
       const visual = this.ensureBuilding(building.id)
+      const detailed = detailedBuildingIds === null || detailedBuildingIds.has(building.id)
+      visual.setDetailLevel(detailed ? 'full' : 'reduced')
       visible += this.syncVisual(visual, building.origin, snapshot, camera, interpolationAlpha)
       buildings += 1
+      if (detailed) detailedBuildings += 1
+      else reducedBuildings += 1
     }
     if (this.onSyncProfile) {
       buildingsMs = performance.now() - phaseStart
@@ -245,6 +268,8 @@ export class DynamicScene {
         transport,
         drops: snapshot.worldDrops.length,
         visible,
+        detailedBuildings,
+        reducedBuildings,
         pooled: this.buildingPool.pooledCount
           + this.districtPool.pooledCount
           + this.residentPool.pooledCount
@@ -259,6 +284,8 @@ export class DynamicScene {
       transport,
       drops: snapshot.worldDrops.length,
       visible,
+      detailedBuildings,
+      reducedBuildings,
       pooled: this.buildingPool.pooledCount
         + this.districtPool.pooledCount
         + this.residentPool.pooledCount
@@ -371,6 +398,26 @@ export class DynamicScene {
     }
     visual.update(snapshot, interpolationAlpha)
     return this.applyVisibility(visual, camera)
+  }
+
+  private resolveDetailedBuildingIds(
+    snapshot: Readonly<SimulationSnapshot>,
+    camera: Readonly<SceneCamera>,
+  ): ReadonlySet<EntityId> | null {
+    if (!this.buildingLod) return null
+    const visibleBuildings = Object.values(snapshot.buildings)
+      .filter((building) => gridPointVisible(building.origin, camera, this.metrics))
+    if (visibleBuildings.length <= BUILDING_LOD_TRIGGER_COUNT) return null
+
+    return new Set(
+      visibleBuildings
+        .sort((left, right) => (
+          distanceToCamera(left.origin, camera) - distanceToCamera(right.origin, camera)
+          || left.id.localeCompare(right.id)
+        ))
+        .slice(0, BUILDING_LOD_FULL_DETAIL_BUDGET)
+        .map((building) => building.id),
+    )
   }
 
   private release(id: EntityId, visual: EntityVisual): void {

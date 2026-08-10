@@ -12,6 +12,7 @@ describe('parseRenderDiagnostics', () => {
       resolutionOverride: undefined,
       staticBuildingCache: false,
       buildingAtlas: true,
+      buildingLod: true,
     })
   })
 
@@ -25,9 +26,11 @@ describe('parseRenderDiagnostics', () => {
       resolutionOverride: 1,
       staticBuildingCache: false,
       buildingAtlas: true,
+      buildingLod: true,
     })
     expect(parseRenderDiagnostics('?staticBuildingCache=1')).toMatchObject({ staticBuildingCache: true })
     expect(parseRenderDiagnostics('?disableAtlas=1')).toMatchObject({ buildingAtlas: false })
     expect(parseRenderDiagnostics('?disableTerrain=1')).toMatchObject({ terrain: false })
+    expect(parseRenderDiagnostics('?disableBuildingLod=1')).toMatchObject({ buildingLod: false })
   })
 })

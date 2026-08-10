@@ -208,6 +208,7 @@ export class BuildingVisual extends BaseVisual {
   private artworkSignature: string | null = null
   private prefabIdleSignature: string | null = null
   private staticCacheSignature: string | null = null
+  private detailLevel: 'full' | 'reduced' = 'full'
 
   constructor(
     metrics: Readonly<IsoMetrics>,
@@ -305,7 +306,20 @@ export class BuildingVisual extends BaseVisual {
     this.prefabIdleSignature = null
     if (this.staticCacheSignature !== null) this.staticLayer.cacheAsTexture?.(false)
     this.staticCacheSignature = null
+    this.detailLevel = 'full'
     this.animationDriver?.reset()
+  }
+
+  setDetailLevel(detailLevel: 'full' | 'reduced'): void {
+    if (this.detailLevel === detailLevel) return
+    this.detailLevel = detailLevel
+    this.display.label = `building-visual:${detailLevel}`
+    if (detailLevel === 'reduced') {
+      this.artworkMotionLayer.visible = false
+      this.artworkMotionPrimary.clear()
+      this.artworkMotionSecondary.clear()
+      if (this.animationDriver) this.animationDriver.display.visible = false
+    }
   }
 
   update(snapshot: Readonly<SimulationSnapshot>, _alpha: number): void {
@@ -337,12 +351,18 @@ export class BuildingVisual extends BaseVisual {
     this.drawPrefabPlaceholder(building, width, height, snapshot.tick)
     this.drawBuildingArtwork(building, width, height)
     this.updateStaticCache(building)
-    if (this.animationDriver && this.prefabAnimationPlan) {
+    if (this.detailLevel === 'full' && this.animationDriver && this.prefabAnimationPlan) {
       this.animationDriver.update(this.prefabAnimationPlan, width, height)
     } else if (this.animationDriver) {
       this.animationDriver.display.visible = false
     }
-    this.drawBuildingArtworkMotion(building, width, height, phase)
+    if (this.detailLevel === 'full') {
+      this.drawBuildingArtworkMotion(building, width, height, phase)
+    } else {
+      this.artworkMotionLayer.visible = false
+      this.artworkMotionPrimary.clear()
+      this.artworkMotionSecondary.clear()
+    }
     this.display.alpha = building.status === 'blocked' ? 0.72 : 1
   }
 

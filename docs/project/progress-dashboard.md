@@ -8,6 +8,14 @@
 
 当前判断：
 
+### 第二百一十五轮产出（2026-08-10）
+
+- 新增生产式 UI 快照节流：App 的 `useSyncExternalStore` 订阅通过 `createThrottledSubscription` 合并高频 runtime emit，默认 UI 面板最短 250ms 刷新一次，减少整页 React commit 压力。
+- Pixi `SimulationCanvas` 直接订阅 runtime 最新快照写入 `snapshotRef`，因此 UI 面板节流不会让主画布只能等待 React 慢快照；玩家操作路径仍保留正常 runtime emit。
+- 新增 `throttledSubscription` 单测，固定高频源通知会被合并、间隔到达后再通知 UI。
+- 目标规模单样本：`full` 空白页 rAF 16.38/16.7/16.8ms，游戏页 rAF 533.25/549.9/549.9ms；render sync P95 43.9ms，renderer P95 67.3ms，React commit interval P95 1171.6ms。
+- 同轮 `no-react-commit` 仍为 rAF 219.98/249.9/249.9ms、renderer P95 0.4ms。结论：UI 节流是正确的生产解耦方向，但单样本未改善目标规模 rAF；下一步不要继续只调 React，必须处理 Pixi 同步频率、WebGL stall 和浏览器帧调度。
+
 ### 第二百一十四轮产出（2026-08-10）
 
 - 新增 QA 诊断参数 `suppressReactCommit=1`：模拟仍按 `runtime.advance` 推进，App 仍记录 profile，但 `advance` 不再向 React 订阅者逐 tick 发出刷新通知；玩家操作路径默认不变。

@@ -2,6 +2,7 @@
 
 | ID | 会话职责 | 写入范围 | 状态 | 集成条件 |
 | --- | --- | --- | --- | --- |
+| UI-SNAPSHOT-THROTTLE-01 | UI 快照节流与画布解耦 | `src/App.tsx`, `src/components/SimulationCanvas.tsx`, `src/ui/**`, `docs/project/**` | 已完成 | React UI 快照按 250ms 合并刷新，Pixi 画布直接读取 runtime 最新快照；单样本未改善 rAF，下一步转向 Pixi 同步频率与 GPU stall |
 | REACT-COMMIT-ABLATION-01 | React tick 通知抑制对照 | `src/integration/GameRuntime.ts`, `src/ui/runtimeOptions.ts`, `src/App.tsx`, `tools/browser-e2e/**`, `tools/qa/run-render-ablation.ts`, `src/qa/**`, `docs/project/**` | 已完成 | `no-react-commit` 证明 React tick 刷新会增加 scene/renderer 开销，但不是目标规模 rAF 红灯唯一根因 |
 | RUNTIME-ADVANCE-PHASE-PROFILE-01 | Runtime advance 阶段性能采集 | `src/integration/GameRuntime.ts`, `src/App.tsx`, `tools/browser-e2e/**`, `tools/qa/run-render-ablation.ts`, `src/qa/**`, `docs/project/**` | 已完成 | 目标规模浏览器报告输出 `GameRuntime.advance` 内部阶段，排除运行时胶水层作为当前最大红灯 |
 | APP-RUNTIME-PROFILE-01 | 应用层推进性能采集 | `src/App.tsx`, `tools/browser-e2e/**`, `tools/qa/run-render-ablation.ts`, `src/qa/performanceBaseline.ts`, `docs/project/**` | 已完成 | 浏览器性能报告输出 `runtime.advance` 和 React commit interval，下一轮可拆解模拟系统长任务 |

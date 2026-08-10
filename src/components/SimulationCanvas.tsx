@@ -279,6 +279,15 @@ export function SimulationCanvas({
   }, [snapshot.cells])
 
   useEffect(() => {
+    const unsubscribe = runtime.subscribe(() => {
+      snapshotRef.current = runtime.getSnapshot()
+    })
+    return () => {
+      unsubscribe()
+    }
+  }, [runtime])
+
+  useEffect(() => {
     if (!cameraFocusRequest) return
     const focusPoint = resolveFocusPoint(cameraFocusRequest.target, snapshotRef.current)
     if (!focusPoint) return

@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百一十五轮：UI 快照节流与画布解耦
+
+- 启动并完成 `UI-SNAPSHOT-THROTTLE-01`：App UI 订阅通过 `createThrottledSubscription` 合并高频 runtime emit，避免每个模拟 tick 都触发整页 React 快照刷新。
+- `SimulationCanvas` 直接订阅 runtime 最新快照写入内部 ref，使画布仍可在 ticker 中读取最新模拟状态，不再完全依赖 React prop 刷新。
+- 目标规模单样本显示：默认 `full` 的 React commit interval 已被拉长，但 rAF P95 仍为 549.9ms；`no-react-commit` 仍明显降低 scene/renderer 工作但 rAF 保持红灯。
+- 客观限制：本轮是生产架构解耦，不是帧率修复完成；下一步应进入 Pixi 同步频率、WebGL stall 与浏览器帧调度专项。
+
 ## 2026-08-10 第二百一十四轮：React commit 抑制对照
 
 - 启动并完成 `REACT-COMMIT-ABLATION-01`：新增 `suppressReactCommit=1` QA 参数，让模拟推进继续运行但不把每个 `advance` tick 推给 React 订阅者。

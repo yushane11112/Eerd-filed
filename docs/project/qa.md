@@ -1,5 +1,17 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百一十五轮验证
+
+- 验证等级：Tier 3，App UI 快照订阅、SimulationCanvas runtime 快照读取和 UI 订阅工具均有变更。
+- 定向测试：`npm test -- src/ui/throttledSubscription.test.ts src/integration/GameRuntime.test.ts src/ui/runtimeOptions.test.ts src/qa/performanceBaseline.test.ts src/qa/browserE2eScenarios.test.ts` 通过，5 个测试文件、48 项测试。
+- 完整测试：`npm test` 通过，58 个测试文件、362 项测试，耗时约 209 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 生产构建：`npm run build` 通过，Vite 构建 2364 个模块。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模 UI 节流对照：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_MODES=full,no-react-commit RENDER_ABLATION_REPEATS=1 npm run qa:render-ablation` 通过。
+- `full`：空白页 rAF 16.38/16.7/16.8ms，游戏页 rAF 533.25/549.9/549.9ms；render sync P95 43.9ms，renderer P95 67.3ms，ticker elapsed P95 716.7ms，React commit interval P95 1171.6ms。
+- `no-react-commit`：空白页 rAF 16.49/16.7/16.8ms，游戏页 rAF 219.98/249.9/249.9ms；render sync P95 0.1ms，renderer P95 0.4ms，ticker elapsed P95 250ms。
+- 结论：UI 快照节流和画布解耦已落地，但单样本未改善商业帧率，性能门禁继续 RED。下一步应做 Pixi 同步频率/dirty snapshot 策略、GPU stall 与浏览器帧调度专项。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百一十四轮验证
 
 - 验证等级：Tier 3，运行时通知路径、URL 诊断参数、App profile、浏览器 E2E runner、渲染差分模式和性能基线聚合均有变更。

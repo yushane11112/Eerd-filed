@@ -58,6 +58,7 @@ import {
 import { auditUpgradeForBuilding } from './qa/upgradeEconomyAudit'
 import { formatCityTimelineRecord, formatCityTimelineResidentProfile, formatLogisticsInventoryPanelCopy, formatLogisticsStorageArchive, formatLogisticsStorageHistory, formatLogisticsStorageOutcome, formatLogisticsStorageTimelineRecord, formatRoadPlanSummary, formatServiceRecoveryRecord } from './ui/cityAdvisorUi'
 import { runtimeOptionsFromSearch } from './ui/runtimeOptions'
+import { createThrottledSubscription } from './ui/throttledSubscription'
 import './styles.css'
 
 interface AppRuntimePerformanceProfile {
@@ -75,9 +76,14 @@ const INITIAL_FULLSCREEN: FullscreenState = {
   error: null,
 }
 
+const UI_SNAPSHOT_MIN_INTERVAL_MS = 250
+
 export default function App() {
   const runtime = useMemo(() => new GameRuntime(runtimeOptionsFromSearch(window.location.search)), [])
-  const snapshot = useSyncExternalStore(runtime.subscribe, runtime.getSnapshot)
+  const subscribeUiSnapshot = useMemo(() => {
+    return (listener: () => void) => createThrottledSubscription(runtime.subscribe, listener, UI_SNAPSHOT_MIN_INTERVAL_MS)
+  }, [runtime])
+  const snapshot = useSyncExternalStore(subscribeUiSnapshot, runtime.getSnapshot)
   const renderProfileEnabled = new URLSearchParams(window.location.search).get('renderProfile') === '1'
   const [tool, setTool] = useState<BuildTool>({ kind: 'inspect' })
   const [toast, setToast] = useState('欢迎回到小耳镇：铺路、建房，让居民真正生活起来。')

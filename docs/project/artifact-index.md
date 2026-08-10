@@ -2,6 +2,20 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百一十五轮 UI 快照节流与画布解耦
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/ui/throttledSubscription.ts` | UI 订阅工具 | 合并高频 runtime 通知，按最短间隔触发 React UI 快照刷新 |
+| `src/ui/throttledSubscription.test.ts` | 自动测试 | 固定高频通知合并和清理行为 |
+| `src/App.tsx` | UI 刷新策略 | 使用 250ms 最短间隔订阅 runtime 快照，减少整页 React commit |
+| `src/components/SimulationCanvas.tsx` | 画布快照解耦 | 直接订阅 runtime 最新快照写入内部 ref，避免画布依赖 UI 慢刷新 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录 UI 节流与目标规模采样结果 |
+| `docs/project/integration-log.md` | 集成记录 | 记录生产式解耦事实和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录定向测试、构建、浏览器对照和完整测试 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `UI-SNAPSHOT-THROTTLE-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认诊断方向 |
+
 ## 2026-08-10：第二百一十四轮 React commit 抑制对照
 
 | 文件 | 产物类型 | 用途 |

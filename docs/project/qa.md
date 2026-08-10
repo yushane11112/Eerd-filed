@@ -1,5 +1,18 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百二十三轮验证
+
+- 验证等级：Tier 3，渲染差分模式、目标规模浏览器矩阵和性能方向判断均有变更。
+- 定向测试：`npm test -- src/rendering/renderDiagnostics.test.ts src/qa/performanceBaseline.test.ts` 通过，2 个测试文件、6 项测试。
+- 生产构建：`npm run build` 通过，Vite 构建 2364 个模块；提交前最终构建同样通过。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模桌面 GPU 图形初始化矩阵：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_PROFILES=desktop-gpu RENDER_ABLATION_MODES=full,no-antialias,resolution-1,no-antialias-resolution-1 RENDER_ABLATION_REPEATS=1 RENDER_ABLATION_TIMEOUT_MS=120000 npm run qa:render-ablation` 通过。
+- 桌面 GPU：`full` rAF 229.98/266.7/266.7ms，`no-antialias` 122.21/166.6/166.6ms，`resolution-1` 216.66/249.9/249.9ms，`no-antialias-resolution-1` 135.4/183.3/183.3ms；四者 `gpuStall=2`、`readPixels=0`。
+- 目标规模三环境抗锯齿矩阵：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_PROFILES=desktop-gpu,software-renderer,embedded-container RENDER_ABLATION_MODES=full,no-antialias RENDER_ABLATION_REPEATS=1 RENDER_ABLATION_TIMEOUT_MS=120000 npm run qa:render-ablation` 通过。
+- 三环境结果：桌面 GPU rAF P95 316.7→133.3ms 且 renderer P95 18.4→14.5ms；软件渲染 rAF P95 300→200ms 但 renderer P95 17.5→29.8ms、render sync P95 15.3→40.4ms；嵌入容器 rAF P95 233.4→183.4ms 但 renderer P95 16.8→25.7ms、render sync P95 13.6→32.7ms。
+- 结论：关闭抗锯齿是画质/性能档候选，但不能作为 WebGL/GPU stall 根因修复；生产默认暂不改。
+- 完整测试：`npm test` 通过，58 个测试文件、365 项测试，耗时约 156 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百二十二轮验证
 
 - 验证等级：Tier 3，浏览器 E2E 报告结构、渲染差分摘要、性能基线聚合和目标规模浏览器证据均有变更。

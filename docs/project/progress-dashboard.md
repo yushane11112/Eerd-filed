@@ -8,6 +8,13 @@
 
 当前判断：
 
+### 第二百二十三轮产出（2026-08-10）
+
+- `qa:render-ablation` 新增图形初始化压力对照模式：`no-antialias`、`resolution-1`、`no-antialias-resolution-1`，用于复跑 Pixi 初始化参数对目标规模 rAF、renderer 长尾和 `consoleSummary.gpuStall` 的影响。
+- 桌面 GPU 四模式单样本显示：`full` rAF 229.98/266.7/266.7ms，`no-antialias` 122.21/166.6/166.6ms，`resolution-1` 216.66/249.9/249.9ms，组合模式 135.4/183.3/183.3ms；四者 `gpuStall=2`。
+- 三环境 `full/no-antialias` 单样本矩阵显示关闭抗锯齿均降低 rAF P95：桌面 GPU 316.7→133.3ms，软件渲染 300→200ms，嵌入容器 233.4→183.4ms；但软件渲染和嵌入容器的 renderer/renderSync P95 变差，且 `gpuStall` 未下降。
+- 结论：抗锯齿是后续“画质/性能档位”的候选项，但不是 WebGL/ReadPixels stall 根因修复；生产默认暂不改，下一步继续追 `consoleSummary.gpuStall` 与 Pixi renderer 提交路径。
+
 ### 第二百二十二轮产出（2026-08-10）
 
 - 浏览器 E2E runner 新增 `consoleSummary`：按 `error/warning/webgl/gpuStall/pixi/assetFallback/pageError/other` 汇总 console 信号，并保留每类首个示例。

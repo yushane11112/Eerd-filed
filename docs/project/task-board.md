@@ -2,6 +2,7 @@
 
 | ID | 会话职责 | 写入范围 | 状态 | 集成条件 |
 | --- | --- | --- | --- | --- |
+| RENDER-GRAPHICS-INIT-ABLATION-01 | 图形初始化压力矩阵 | `tools/qa/run-render-ablation.ts`, `docs/project/**` | 已完成（候选档位，不改默认） | `no-antialias` 三环境降低 rAF P95 但不降低 `gpuStall`，且部分环境 renderer/renderSync 变差 |
 | RENDER-CONSOLE-SUMMARY-01 | WebGL/GPU console 分类诊断 | `tools/browser-e2e/run-browser-e2e.cjs`, `tools/qa/run-render-ablation.ts`, `src/qa/performanceBaseline.ts`, `src/qa/performanceBaseline.test.ts`, `docs/project/**` | 已完成 | 目标规模样本输出 `consoleSummary.gpuStall=2`，下一轮可直接追 ReadPixels/stall 来源 |
 | RENDER-TICKER-MAXFPS-MATRIX-01 | Ticker maxFPS 多环境矩阵 | `tools/qa/run-render-ablation.ts`, `docs/project/**` | 已完成（排除默认） | `desktop-gpu` / `software-renderer` / `embedded-container` 三环境矩阵显示 30FPS 上限不稳定，不能作为生产默认 |
 | RENDER-TICKER-MAXFPS-ABLATION-01 | Pixi ticker maxFPS 对照 | `src/rendering/renderDiagnostics.ts`, `src/components/SimulationCanvas.tsx`, `tools/qa/run-render-ablation.ts`, `src/qa/**`, `docs/project/**` | 已完成（候选，不改默认） | `tickerMaxFps=30` 单样本方向性改善但仍 RED，需多重复/多环境验证后才能考虑生产默认 |

@@ -24,9 +24,9 @@ codex/commercial-launch-plan-docs
 
 真实游戏持续预览：`https://little-ear-island-game-preview.netlify.app`。该地址直接运行本仓库的 Vite/Pixi 游戏构建，并已绑定 GitHub 自动部署；推送当前开发分支后会自动更新。不要把该需求重新解释成独立宣传落地页。
 
-最近完成：第二百二十二轮已完成 WebGL/GPU console 分类诊断。浏览器 E2E runner、`qa:render-ablation` 和性能基线聚合现在都会输出 `consoleSummary`，可按 `webgl`、`gpuStall`、`assetFallback`、`pageError` 等类别统计 console 信号。目标规模 `desktop-gpu/full` 单样本功能通过，但捕获 `webgl=2`、`gpuStall=2`，示例为 `GPU stall due to ReadPixels`。
+最近完成：第二百二十三轮已完成图形初始化压力矩阵。`qa:render-ablation` 新增 `no-antialias`、`resolution-1` 和 `no-antialias-resolution-1` 模式。目标规模三环境矩阵显示 `no-antialias` 能降低 rAF P95，但不能降低 `consoleSummary.gpuStall`，且在软件渲染与嵌入容器里 renderer/renderSync P95 变差。因此关闭抗锯齿只能作为后续画质/性能档候选，不进入生产默认。
 
-下一轮默认任务：继续做目标规模渲染专项，优先追 `consoleSummary.gpuStall` 的触发链，把 `GPU stall due to ReadPixels` 与 Pixi renderer 长尾、浏览器后端和可能的同步读回路径对齐；不要继续把 30FPS 上限作为默认优化方向，也不要再把 snapshot clone 或建筑局部同步当作当前主瓶颈。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
+下一轮默认任务：继续做目标规模渲染专项，优先追 `consoleSummary.gpuStall` 的触发链，把 `GPU stall due to ReadPixels` 与 Pixi renderer 提交路径、浏览器后端和可能的同步读回路径对齐；不要继续把 30FPS 上限或关闭抗锯齿作为默认优化方向，也不要再把 snapshot clone 或建筑局部同步当作当前主瓶颈。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
 
 如果另一台电脑路径不同，不影响项目，只要 clone 同一个 GitHub 仓库并 checkout 同一个分支即可。
 

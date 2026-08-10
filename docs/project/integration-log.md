@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百二十三轮：图形初始化压力矩阵
+
+- 启动并完成 `RENDER-GRAPHICS-INIT-ABLATION-01`：`run-render-ablation` 新增 `no-antialias`、`resolution-1` 和 `no-antialias-resolution-1` 模式，复用已有渲染诊断参数，不改变生产默认。
+- 完成桌面 GPU 四模式单样本，关闭抗锯齿显著降低 rAF P95，但所有模式 `consoleSummary.gpuStall=2`，说明 GPU stall warning 未被图形初始化参数消除。
+- 完成 `desktop-gpu/software-renderer/embedded-container` × `full/no-antialias` 单样本矩阵。`no-antialias` 在三环境均降低 rAF P95，但软件渲染与嵌入容器的 renderer/renderSync P95 变差。
+- 客观限制：本轮没有改变玩家可见生产默认；`no-antialias` 只能进入后续画质/性能档候选，下一轮仍应追 ReadPixels/stall 触发链。
+
 ## 2026-08-10 第二百二十二轮：WebGL/GPU console 分类诊断
 
 - 启动并完成 `RENDER-CONSOLE-SUMMARY-01`：浏览器 E2E runner 将 console/pageerror 消息结构化为 `consoleSummary`，按 error、warning、webgl、gpuStall、pixi、assetFallback、pageError 和 other 分类计数。

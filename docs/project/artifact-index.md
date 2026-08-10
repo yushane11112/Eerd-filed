@@ -2,6 +2,17 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百二十三轮图形初始化压力矩阵
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `tools/qa/run-render-ablation.ts` | 渲染差分工具 | 新增 `no-antialias`、`resolution-1` 和 `no-antialias-resolution-1` 模式 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录图形初始化矩阵结果和抗锯齿结论 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮矩阵范围、结果和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录目标规模桌面 GPU 四模式矩阵与三环境抗锯齿矩阵 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `RENDER-GRAPHICS-INIT-ABLATION-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新最近完成与下一轮默认任务 |
+
 ## 2026-08-10：第二百二十二轮 WebGL/GPU console 分类诊断
 
 | 文件 | 产物类型 | 用途 |

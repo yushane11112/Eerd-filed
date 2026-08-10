@@ -12,6 +12,9 @@ const allModes = [
   { id: 'no-react-commit', query: 'renderProfile=1&suppressReactCommit=1' },
   { id: 'no-ticker-min-fps', query: 'renderProfile=1&tickerMinFps=0' },
   { id: 'ticker-max-fps-30', query: 'renderProfile=1&tickerMaxFps=30' },
+  { id: 'no-antialias', query: 'renderProfile=1&disableAntialias=1' },
+  { id: 'resolution-1', query: 'renderProfile=1&resolution=1' },
+  { id: 'no-antialias-resolution-1', query: 'renderProfile=1&disableAntialias=1&resolution=1' },
   { id: 'no-building-lod', query: 'renderProfile=1&disableBuildingLod=1' },
   { id: 'no-atlas', query: 'renderProfile=1&disableAtlas=1' },
   { id: 'no-artwork', query: 'renderProfile=1&disableArtwork=1' },
@@ -65,6 +68,8 @@ interface BrowserResult {
     authoredArtwork?: boolean
     authoredAnimation?: boolean
     terrain?: boolean
+    antialias?: boolean
+    resolutionOverride?: number
     buildingLod?: boolean
   }
   readPixels?: { count?: number }

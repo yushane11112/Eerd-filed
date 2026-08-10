@@ -8,6 +8,14 @@
 
 当前判断：
 
+### 第二百一十九轮产出（2026-08-10）
+
+- 新增建筑视觉签名缓存：`DynamicScene` 为每栋建筑记录类型、位置、等级、状态、阻塞原因和生产进度签名，签名未变时复用上一轮视觉结果。
+- 近景 full detail 建筑继续遵守 2 tick motion 更新窗口；远景 reduced 建筑在签名和 LOD 不变时跳过完整 `BuildingVisual.update`，状态变化、LOD 切换和相机显隐仍会即时刷新。
+- `DynamicScene` 新增测试，固定“相邻 tick 不刷新未变建筑”与“建筑状态变更立刻刷新状态层”的契约。
+- 目标规模 `full` 单样本：空白页 rAF 16.49/16.8/16.8ms，游戏页 rAF 209.98/250/250ms；render sync P95 12.9ms，renderer P95 16.2ms，dirty sync 跳过率 0.778。
+- 结论：建筑视觉缓存进一步降低了 renderer 与同步层开销，但游戏页 rAF 仍明显 RED；下一步继续聚焦 Pixi/browser ticker 调度、WebGL GPU stall 和更细的帧循环控制，而不是把建筑层局部优化误判为商业性能完成。
+
 ### 第二百一十八轮产出（2026-08-10）
 
 - 新增运行时内部快照通道：`SimulationEngine` 保留公共 `snapshot` 深拷贝语义，同时向 `GameRuntime` 暴露 runtime-local mutable snapshot，避免每次非零 tick 后整棵城市快照深复制。

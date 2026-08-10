@@ -1,5 +1,13 @@
 # 集成记录
 
+## 2026-08-10 第二百一十九轮：建筑视觉签名缓存
+
+- 启动并完成 `BUILDING-VISUAL-SIGNATURE-CACHE-01`：`DynamicScene` 为建筑同步增加视觉签名缓存，签名、LOD 和刷新窗口未变化时复用上一轮视觉结果。
+- full detail 建筑继续按 2 tick motion 窗口刷新；reduced 建筑在静态签名不变时跳过完整 `BuildingVisual.update`，避免 204 栋远景建筑反复清理/重画。
+- `DynamicScene` 新增契约测试，确认未变建筑相邻 tick 不刷新，同时建筑从 working 变 blocked/missing-input 时状态层立即更新。
+- 目标规模单样本显示：renderer P95 16.2ms、render sync P95 12.9ms、scene sync 跳过率 0.778；建筑层负担继续下降。
+- 客观限制：游戏页 rAF P95 仍为 250ms，商业性能门禁继续 RED；下一步不应继续只做建筑局部缓存，而应进入 ticker 调度、WebGL stall 和帧循环控制。
+
 ## 2026-08-10 第二百一十八轮：Runtime 快照克隆减压
 
 - 启动并完成 `RUNTIME-SNAPSHOT-MATERIALIZE-01`：`SimulationEngine` 保留公共 `snapshot` 深拷贝，同时新增运行时内部可变快照读取口，供 `GameRuntime.advance` 避免每 tick 深复制整棵城市状态。

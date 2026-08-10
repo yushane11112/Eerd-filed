@@ -2,6 +2,18 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百一十九轮建筑视觉签名缓存
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/DynamicScene.ts` | 渲染同步策略 | 为建筑视觉增加签名缓存，跳过未变建筑的完整 visual update |
+| `src/rendering/DynamicScene.test.ts` | 自动测试 | 固定相邻 tick 跳过未变建筑与状态变化即时刷新 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录建筑视觉缓存目标规模证据和剩余红灯 |
+| `docs/project/integration-log.md` | 集成记录 | 记录建筑视觉缓存接入事实和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录定向测试、构建和目标规模浏览器样本 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `BUILDING-VISUAL-SIGNATURE-CACHE-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认诊断方向 |
+
 ## 2026-08-10：第二百一十八轮 Runtime 快照克隆减压
 
 | 文件 | 产物类型 | 用途 |

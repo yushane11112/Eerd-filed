@@ -1,5 +1,5 @@
 import { Container } from 'pixi.js'
-import type { AgentEntity, EntityId, GridPoint, SimulationSnapshot } from '../simulation/contracts'
+import type { AgentEntity, BuildingEntity, EntityId, GridPoint, SimulationSnapshot } from '../simulation/contracts'
 import { applyCameraTransform, gridPointVisible } from './culling'
 import { DEFAULT_ISO_METRICS } from './isometric'
 import { createSceneLayers, type SceneLayers } from './layers'
@@ -30,6 +30,18 @@ function distanceToCamera(point: GridPoint, camera: Readonly<SceneCamera>): numb
   return dx * dx + dy * dy
 }
 
+function buildingVisualSignature(building: Readonly<BuildingEntity>): string {
+  return [
+    building.type,
+    building.origin.x,
+    building.origin.y,
+    building.level,
+    building.status,
+    building.statusReason ?? '',
+    building.productionProgress ?? 0,
+  ].join('|')
+}
+
 export interface DynamicSceneOptions {
   prefabRegistry?: PrefabRuntimeRegistry
   buildingArtworkProvider?: BuildingArtworkProvider
@@ -42,6 +54,13 @@ export interface DynamicSceneOptions {
 
 const BUILDING_LOD_TRIGGER_COUNT = 120
 const BUILDING_LOD_FULL_DETAIL_BUDGET = 96
+type BuildingDetailLevel = 'full' | 'reduced'
+
+interface BuildingSyncState {
+  signature: string
+  detailLevel: BuildingDetailLevel
+  updatedTick: number
+}
 
 export class DynamicScene {
   readonly root = new Container({ label: 'dynamic-city-scene' })
@@ -66,6 +85,7 @@ export class DynamicScene {
   private lastMigrationCandidates: Readonly<SimulationSnapshot['migrationCandidates']> | null = null
   private lastCameraKey: string | null = null
   private lastStats: SceneSyncStats | null = null
+  private readonly buildingSyncState = new Map<EntityId, BuildingSyncState>()
 
   constructor(
     metrics: Readonly<IsoMetrics> = DEFAULT_ISO_METRICS,
@@ -196,8 +216,14 @@ export class DynamicScene {
       expected.add(building.id)
       const visual = this.ensureBuilding(building.id)
       const detailed = detailedBuildingIds === null || detailedBuildingIds.has(building.id)
-      visual.setDetailLevel(detailed ? 'full' : 'reduced')
-      visible += this.syncVisual(visual, building.origin, snapshot, camera, interpolationAlpha)
+      visible += this.syncBuildingVisual(
+        visual,
+        building,
+        detailed ? 'full' : 'reduced',
+        snapshot,
+        camera,
+        interpolationAlpha,
+      )
       buildings += 1
       if (detailed) detailedBuildings += 1
       else reducedBuildings += 1
@@ -315,6 +341,7 @@ export class DynamicScene {
     this.lastMigrationCandidates = null
     this.lastCameraKey = null
     this.lastStats = null
+    this.buildingSyncState.clear()
     this.root.destroy({ children: true })
   }
 
@@ -400,6 +427,46 @@ export class DynamicScene {
     return this.applyVisibility(visual, camera)
   }
 
+  private syncBuildingVisual(
+    visual: BuildingVisual,
+    building: Readonly<SimulationSnapshot['buildings'][EntityId]>,
+    detailLevel: BuildingDetailLevel,
+    snapshot: Readonly<SimulationSnapshot>,
+    camera: Readonly<SceneCamera>,
+    interpolationAlpha: number,
+  ): number {
+    const visible = gridPointVisible(building.origin, camera, this.metrics)
+    if (!visible) {
+      visual.worldPosition = building.origin
+      visual.display.visible = false
+      visual.display.renderable = false
+      return 0
+    }
+
+    const signature = buildingVisualSignature(building)
+    const previous = this.buildingSyncState.get(building.id)
+    const canReusePreviousVisual = previous
+      && previous.signature === signature
+      && previous.detailLevel === detailLevel
+      && (
+        detailLevel === 'reduced'
+        || snapshot.tick - previous.updatedTick < 2
+      )
+
+    if (canReusePreviousVisual) {
+      return this.applyVisibility(visual, camera)
+    }
+
+    visual.setDetailLevel(detailLevel)
+    visual.update(snapshot, interpolationAlpha)
+    this.buildingSyncState.set(building.id, {
+      signature,
+      detailLevel,
+      updatedTick: snapshot.tick,
+    })
+    return this.applyVisibility(visual, camera)
+  }
+
   private resolveDetailedBuildingIds(
     snapshot: Readonly<SimulationSnapshot>,
     camera: Readonly<SceneCamera>,
@@ -422,6 +489,7 @@ export class DynamicScene {
 
   private release(id: EntityId, visual: EntityVisual): void {
     this.active.delete(id)
+    if (visual instanceof BuildingVisual) this.buildingSyncState.delete(id)
     if (visual instanceof BuildingVisual) this.buildingPool.release(visual)
     else if (visual instanceof DistrictProsperityVisual) this.districtPool.release(visual)
     else if (visual instanceof DropVisual) this.dropPool.release(visual)

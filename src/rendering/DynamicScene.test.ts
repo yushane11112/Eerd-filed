@@ -680,6 +680,38 @@ describe('DynamicScene', () => {
     expect(motionLayer?.label).toContain('tick-12')
   })
 
+  it('skips unchanged building visual refreshes while preserving status changes', async () => {
+    const { DynamicScene } = await import('./DynamicScene')
+    const scene = new DynamicScene()
+    const snapshot = createSnapshot()
+    snapshot.agents = {}
+    snapshot.worldDrops = []
+
+    scene.sync(snapshot, camera)
+    const motionLayer = scene.layers.buildings.children[0]?.children.find((child) => (
+      typeof child.label === 'string' && child.label.startsWith('building-artwork-motion-layer:')
+    ))
+    const initialMotionLabel = motionLayer?.label
+    expect(initialMotionLabel).toContain('working')
+
+    snapshot.tick += 1
+    scene.sync(snapshot, camera)
+    expect(motionLayer?.label).toBe(initialMotionLabel)
+
+    snapshot.tick += 1
+    snapshot.buildings.kiln = {
+      ...snapshot.buildings.kiln,
+      status: 'blocked',
+      statusReason: 'missing-input:wood',
+    }
+    scene.sync(snapshot, camera)
+    expect(motionLayer?.label).toContain('blocked')
+    const statusLayer = scene.layers.buildings.children[0]?.children.find((child) => (
+      typeof child.label === 'string' && child.label.startsWith('building-status-layer:')
+    ))
+    expect(statusLayer?.label).toContain('blocked:missing-input')
+  })
+
   it('draws stable level-specific procedural main-pier placeholder detail layers', async () => {
     const { DynamicScene } = await import('./DynamicScene')
     const { parseRuntimePrefabDescriptor, PrefabRuntimeRegistry } = await import('./prefab')

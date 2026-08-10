@@ -24,9 +24,9 @@ codex/commercial-launch-plan-docs
 
 真实游戏持续预览：`https://little-ear-island-game-preview.netlify.app`。该地址直接运行本仓库的 Vite/Pixi 游戏构建，并已绑定 GitHub 自动部署；推送当前开发分支后会自动更新。不要把该需求重新解释成独立宣传落地页。
 
-最近完成：第二百一十八轮已完成 Runtime 快照克隆减压。`SimulationEngine` 保留公共 `snapshot` 深拷贝，同时向 `GameRuntime.advance` 提供运行时内部可变快照读取口；运行时在内部状态上完成本轮更新，再向界面发布轻量材料化快照。目标规模 `full` 样本中 `runtimeSnapshotCloneP95Ms=0ms`、`runtimeCacheEmitP95Ms=0.3ms`，snapshot clone 长尾已从当前瓶颈列表移除。
+最近完成：第二百一十九轮已完成建筑视觉签名缓存。`DynamicScene` 会按建筑类型、位置、等级、状态、阻塞原因和生产进度建立视觉签名；签名、LOD 和刷新窗口未变时复用上一轮视觉结果。full detail 仍遵守 2 tick motion 刷新，reduced 建筑在静态签名不变时跳过完整 `BuildingVisual.update`。目标规模 `full` 样本 renderer P95 16.2ms、render sync P95 12.9ms、scene sync 跳过率 0.778。
 
-下一轮默认任务：继续做目标规模渲染专项，优先聚焦建筑同步长尾、Pixi/browser ticker 调度和 WebGL GPU stall warning；不要再把 snapshot clone 当作当前主瓶颈，也不要继续只压缩 motion 频率。目标规模 `full` 最新单样本游戏页 rAF P95 仍约 183.3ms，性能门禁继续 RED。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
+下一轮默认任务：继续做目标规模渲染专项，优先聚焦 Pixi/browser ticker 调度、WebGL GPU stall warning 和帧循环控制；不要再把 snapshot clone 或建筑局部同步当作当前主瓶颈，也不要继续只压缩 motion 频率。目标规模 `full` 最新单样本游戏页 rAF P95 仍约 250ms，性能门禁继续 RED。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
 
 如果另一台电脑路径不同，不影响项目，只要 clone 同一个 GitHub 仓库并 checkout 同一个分支即可。
 

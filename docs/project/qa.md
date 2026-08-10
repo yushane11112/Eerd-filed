@@ -1,5 +1,17 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百一十九轮验证
+
+- 验证等级：Tier 3，建筑同步缓存、LOD/动画刷新窗口和目标规模浏览器性能样本均有变更。
+- 定向测试：`npm test -- src/rendering/DynamicScene.test.ts` 通过，1 个测试文件、18 项测试。
+- 生产构建：`npm run build` 通过，Vite 构建 2364 个模块；提交前最终构建同样通过。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模建筑视觉缓存样本：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_MODES=full RENDER_ABLATION_REPEATS=1 npm run qa:render-ablation` 通过，并隐含完成生产构建。
+- 完整测试：`npm test` 通过，58 个测试文件、365 项测试，耗时约 147 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- `full`：空白页 rAF 16.49/16.8/16.8ms，游戏页 rAF 209.98/250/250ms；render sync P95 12.9ms，renderer P95 16.2ms，ticker elapsed P95 266.7ms，scene sync 跳过率 0.778。
+- 应用层样本：`runtime.advance` P95/最大 10.1/10.1ms，engine advance P95 9.6ms，snapshot clone P95 0ms，cache/emit P95 0.4ms；WebGL GPU stall warning 仍出现。
+- 结论：建筑视觉签名缓存保持功能门禁并降低局部渲染负担，但商业帧率仍 RED；下一轮应转向 ticker 调度、WebGL stall 和帧循环控制。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百一十八轮验证
 
 - 验证等级：Tier 3，模拟引擎快照边界、运行时 advance 快照发布路径和目标规模浏览器性能样本均有变更。

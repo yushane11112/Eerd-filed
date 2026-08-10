@@ -1,5 +1,16 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百二十二轮验证
+
+- 验证等级：Tier 3，浏览器 E2E 报告结构、渲染差分摘要、性能基线聚合和目标规模浏览器证据均有变更。
+- 定向测试：`npm test -- src/qa/performanceBaseline.test.ts src/qa/browserE2eScenarios.test.ts` 通过，2 个测试文件、9 项测试。
+- 生产构建：`npm run build` 通过，Vite 构建 2364 个模块；提交前最终构建同样通过。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模 console 分类样本：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_PROFILES=desktop-gpu RENDER_ABLATION_MODES=full RENDER_ABLATION_REPEATS=1 RENDER_ABLATION_TIMEOUT_MS=120000 npm run qa:render-ablation` 通过。
+- 样本结果：`desktop-gpu/full` 功能通过，游戏页 rAF P95 383.3ms，renderer P95 17.8ms；`consoleSummary.counts` 为 `total=2`、`warning=2`、`webgl=2`、`gpuStall=2`、`error=0`、`readPixels=0`。
+- 结论：目标规模红灯继续与 WebGL/GPU stall warning 同时出现，且现在已经可被结构化统计；下一轮应追 `GPU stall due to ReadPixels` 的触发链和 renderer 长尾。
+- 完整测试：`npm test` 通过，58 个测试文件、365 项测试，耗时约 165 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百二十一轮验证
 
 - 验证等级：Tier 3，渲染差分执行器输出结构、目标规模多环境浏览器矩阵和性能结论均有变更。

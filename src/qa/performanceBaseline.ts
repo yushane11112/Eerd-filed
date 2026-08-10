@@ -97,6 +97,20 @@ export interface PerformanceSample {
     }
   }
   readPixels?: { count?: number }
+  consoleSummary?: {
+    counts?: {
+      total?: number
+      error?: number
+      warning?: number
+      webgl?: number
+      gpuStall?: number
+      pixi?: number
+      assetFallback?: number
+      pageError?: number
+      other?: number
+    }
+    examples?: Record<string, string>
+  }
 }
 
 export interface PerformanceCheck {
@@ -112,6 +126,8 @@ export interface PerformanceEvaluation {
 }
 
 type RuntimeAdvanceProfileField = keyof NonNullable<NonNullable<PerformanceSample['appProfile']>['runtimeAdvance']>
+type ConsoleSummaryCounts = NonNullable<NonNullable<PerformanceSample['consoleSummary']>['counts']>
+type ConsoleSummaryField = keyof ConsoleSummaryCounts
 
 export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSample>): PerformanceSample {
   if (samples.length === 0) return { ok: false }
@@ -125,6 +141,13 @@ export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSa
     p95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.[field]?.p95Ms ?? Number.POSITIVE_INFINITY)),
     maxMs: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.[field]?.maxMs ?? Number.POSITIVE_INFINITY)),
   })
+  const consoleFields: ConsoleSummaryField[] = ['total', 'error', 'warning', 'webgl', 'gpuStall', 'pixi', 'assetFallback', 'pageError', 'other']
+  const consoleExamples: Record<string, string> = {}
+  for (const sample of samples) {
+    for (const [category, example] of Object.entries(sample.consoleSummary?.examples ?? {})) {
+      if (!consoleExamples[category]) consoleExamples[category] = example
+    }
+  }
   return {
     ok: samples.every((sample) => sample.ok),
     browserFrameBaseline: {
@@ -183,6 +206,13 @@ export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSa
       },
     },
     readPixels: { count: Math.max(...samples.map((sample) => sample.readPixels?.count ?? Number.POSITIVE_INFINITY)) },
+    consoleSummary: {
+      counts: Object.fromEntries(consoleFields.map((field) => [
+        field,
+        Math.max(...samples.map((sample) => Number(sample.consoleSummary?.counts?.[field]) || 0)),
+      ])),
+      examples: consoleExamples,
+    },
   }
 }
 

@@ -2,6 +2,20 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百二十二轮 WebGL/GPU console 分类诊断
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 浏览器执行器 | 将 console/pageerror 消息分类汇总为 `consoleSummary` |
+| `tools/qa/run-render-ablation.ts` | 渲染差分工具 | 在样本摘要中输出 console 分类最坏计数和示例 |
+| `src/qa/performanceBaseline.ts` | 性能基线聚合 | 聚合多样本 console 分类，为后续三环境基线保留 GPU stall 证据 |
+| `src/qa/performanceBaseline.test.ts` | 自动测试 | 固定 console 分类聚合契约 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录 GPU stall 已结构化捕获和下一步定位方向 |
+| `docs/project/integration-log.md` | 集成记录 | 记录 console 分类接入事实和目标规模样本 |
+| `docs/project/qa.md` | QA 记录 | 记录定向测试、构建和目标规模 console 分类样本 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `RENDER-CONSOLE-SUMMARY-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新最近完成与下一轮默认任务 |
+
 ## 2026-08-10：第二百二十一轮 Ticker maxFPS 多环境矩阵
 
 | 文件 | 产物类型 | 用途 |

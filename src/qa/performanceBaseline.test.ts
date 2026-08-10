@@ -59,6 +59,7 @@ describe('performance baseline contract', () => {
           },
         },
         readPixels: { count: 0 },
+        consoleSummary: { counts: { total: 1, warning: 1, webgl: 1, gpuStall: 1 }, examples: { gpuStall: 'WebGL warning: GPU stall due to ReadPixels' } },
       },
       {
         ok: true,
@@ -77,6 +78,7 @@ describe('performance baseline contract', () => {
           },
         },
         readPixels: { count: 2 },
+        consoleSummary: { counts: { total: 0, warning: 0, webgl: 0, gpuStall: 0 }, examples: {} },
       },
       {
         ok: true,
@@ -94,6 +96,7 @@ describe('performance baseline contract', () => {
           },
         },
         readPixels: { count: 0 },
+        consoleSummary: { counts: { total: 2, warning: 2, webgl: 1, gpuStall: 0, assetFallback: 1 }, examples: { assetFallback: 'Building artwork preload failed; using procedural fallback.' } },
       },
     ])
     expect(aggregate.browserFrameBaseline).toEqual({ averageFrameMs: 17, p95FrameMs: 18, maxFrameMs: 20 })
@@ -115,5 +118,14 @@ describe('performance baseline contract', () => {
       }),
     })
     expect(aggregate.readPixels?.count).toBe(2)
+    expect(aggregate.consoleSummary?.counts).toEqual(expect.objectContaining({
+      total: 2,
+      warning: 2,
+      webgl: 1,
+      gpuStall: 1,
+      assetFallback: 1,
+    }))
+    expect(aggregate.consoleSummary?.examples?.gpuStall).toContain('GPU stall')
+    expect(aggregate.consoleSummary?.examples?.assetFallback).toContain('fallback')
   })
 })

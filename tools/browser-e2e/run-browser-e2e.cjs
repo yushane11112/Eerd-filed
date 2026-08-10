@@ -192,6 +192,7 @@ async function runScenario(browser, scenario) {
   page.on('pageerror', (error) => {
     consoleMessages.push({
       type: 'error',
+      source: 'pageerror',
       text: error.message,
     })
   })
@@ -387,6 +388,7 @@ async function runScenario(browser, scenario) {
         failures.push(`Forbidden console ${message.type}: ${message.text}`)
       }
     }
+    const consoleSummary = summarizeConsoleMessages(consoleMessages)
 
     return {
       id: scenario.id,
@@ -404,6 +406,7 @@ async function runScenario(browser, scenario) {
       renderConfiguration,
       readPixels: await page.evaluate(() => window.__littleEarReadPixels ?? { count: 0, samples: [] }),
       interaction: scenario.interaction || null,
+      consoleSummary,
       consoleMessages,
       failures,
     }
@@ -424,6 +427,74 @@ async function resetRenderProfileSamples(page) {
 function renderConfigurationMatches(configuration, expected) {
   if (!configuration) return false
   return Object.entries(expected).every(([field, value]) => configuration[field] === value)
+}
+
+function summarizeConsoleMessages(messages) {
+  const counts = {
+    total: messages.length,
+    error: 0,
+    warning: 0,
+    webgl: 0,
+    gpuStall: 0,
+    pixi: 0,
+    assetFallback: 0,
+    pageError: 0,
+    other: 0,
+  }
+  const examples = {}
+  for (const message of messages) {
+    const text = String(message.text || '')
+    const normalized = text.toLowerCase()
+    const type = String(message.type || '')
+    const categories = []
+    if (type === 'error') {
+      counts.error += 1
+      categories.push('error')
+    }
+    if (type === 'warning' || type === 'warn') {
+      counts.warning += 1
+      categories.push('warning')
+    }
+    if (type === 'error' && (message.source === 'pageerror' || normalized.includes('page'))) {
+      counts.pageError += 1
+      categories.push('pageError')
+    }
+    if (normalized.includes('webgl') || normalized.includes('gl_') || normalized.includes('gpu')) {
+      counts.webgl += 1
+      categories.push('webgl')
+    }
+    if (
+      normalized.includes('stall') ||
+      normalized.includes('readpixels') ||
+      normalized.includes('readback') ||
+      normalized.includes('gpu stall') ||
+      normalized.includes('synchronous')
+    ) {
+      counts.gpuStall += 1
+      categories.push('gpuStall')
+    }
+    if (normalized.includes('pixi')) {
+      counts.pixi += 1
+      categories.push('pixi')
+    }
+    if (
+      normalized.includes('fallback') ||
+      normalized.includes('could not be loaded') ||
+      normalized.includes('preload failed') ||
+      normalized.includes('not found in cache')
+    ) {
+      counts.assetFallback += 1
+      categories.push('assetFallback')
+    }
+    if (categories.length === 0) {
+      counts.other += 1
+      categories.push('other')
+    }
+    for (const category of categories) {
+      if (!examples[category]) examples[category] = text.slice(0, 240)
+    }
+  }
+  return { counts, examples }
 }
 
 async function sampleFrameMetrics(page) {

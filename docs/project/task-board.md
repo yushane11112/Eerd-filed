@@ -2,6 +2,7 @@
 
 | ID | 会话职责 | 写入范围 | 状态 | 集成条件 |
 | --- | --- | --- | --- | --- |
+| RENDER-CONSOLE-SUMMARY-01 | WebGL/GPU console 分类诊断 | `tools/browser-e2e/run-browser-e2e.cjs`, `tools/qa/run-render-ablation.ts`, `src/qa/performanceBaseline.ts`, `src/qa/performanceBaseline.test.ts`, `docs/project/**` | 已完成 | 目标规模样本输出 `consoleSummary.gpuStall=2`，下一轮可直接追 ReadPixels/stall 来源 |
 | RENDER-TICKER-MAXFPS-MATRIX-01 | Ticker maxFPS 多环境矩阵 | `tools/qa/run-render-ablation.ts`, `docs/project/**` | 已完成（排除默认） | `desktop-gpu` / `software-renderer` / `embedded-container` 三环境矩阵显示 30FPS 上限不稳定，不能作为生产默认 |
 | RENDER-TICKER-MAXFPS-ABLATION-01 | Pixi ticker maxFPS 对照 | `src/rendering/renderDiagnostics.ts`, `src/components/SimulationCanvas.tsx`, `tools/qa/run-render-ablation.ts`, `src/qa/**`, `docs/project/**` | 已完成（候选，不改默认） | `tickerMaxFps=30` 单样本方向性改善但仍 RED，需多重复/多环境验证后才能考虑生产默认 |
 | BUILDING-VISUAL-SIGNATURE-CACHE-01 | 建筑视觉签名缓存 | `src/rendering/DynamicScene.ts`, `src/rendering/DynamicScene.test.ts`, `docs/project/**` | 已完成 | 未变建筑复用上一轮视觉结果，状态变化即时刷新；目标规模样本 renderer P95 16.2ms、rAF 仍 RED |

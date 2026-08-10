@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百二十二轮：WebGL/GPU console 分类诊断
+
+- 启动并完成 `RENDER-CONSOLE-SUMMARY-01`：浏览器 E2E runner 将 console/pageerror 消息结构化为 `consoleSummary`，按 error、warning、webgl、gpuStall、pixi、assetFallback、pageError 和 other 分类计数。
+- `run-render-ablation` 输出样本摘要时保留 console 分类，重复样本使用最坏计数；`performanceBaseline` 聚合同步支持该字段，并补测试固定契约。
+- 目标规模 `civilization-scale` × `desktop-gpu` × `full` 单样本通过功能门禁，但 `consoleSummary` 捕获 `webgl=2`、`gpuStall=2`，示例为 `GPU stall due to ReadPixels`。
+- 客观限制：本轮仍是诊断增强，不直接改变玩家可见画面；下一轮应利用该分类继续定位 ReadPixels/stall 来源和 renderer 长尾。
+
 ## 2026-08-10 第二百二十一轮：Ticker maxFPS 多环境矩阵
 
 - 启动并完成 `RENDER-TICKER-MAXFPS-MATRIX-01`：`run-render-ablation` 支持 `RENDER_ABLATION_PROFILES` 逗号分隔多环境，输出每条结果的 `profile` 字段。

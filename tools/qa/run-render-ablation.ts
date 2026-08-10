@@ -68,6 +68,20 @@ interface BrowserResult {
     buildingLod?: boolean
   }
   readPixels?: { count?: number }
+  consoleSummary?: {
+    counts?: {
+      total?: number
+      error?: number
+      warning?: number
+      webgl?: number
+      gpuStall?: number
+      pixi?: number
+      assetFallback?: number
+      pageError?: number
+      other?: number
+    }
+    examples?: Record<string, string>
+  }
   failures?: string[]
 }
 
@@ -196,7 +210,29 @@ const summarizeSamples = (samples: BrowserResult[]) => ({
   detailedBuildings: median(samples.map((sample) => sample.renderProfile?.entityRange?.detailedBuildings?.last ?? Number.POSITIVE_INFINITY)),
   reducedBuildings: median(samples.map((sample) => sample.renderProfile?.entityRange?.reducedBuildings?.last ?? Number.POSITIVE_INFINITY)),
   readPixels: Math.max(...samples.map((sample) => sample.readPixels?.count ?? Number.POSITIVE_INFINITY)),
+  consoleSummary: summarizeConsoleSamples(samples),
 })
+
+const maxConsoleCount = (
+  samples: BrowserResult[],
+  field: NonNullable<NonNullable<BrowserResult['consoleSummary']>['counts']> extends infer Counts
+    ? Counts extends Record<string, unknown>
+      ? keyof Counts
+      : never
+    : never,
+) => Math.max(...samples.map((sample) => Number(sample.consoleSummary?.counts?.[field]) || 0))
+
+const summarizeConsoleSamples = (samples: BrowserResult[]) => {
+  const fields = ['total', 'error', 'warning', 'webgl', 'gpuStall', 'pixi', 'assetFallback', 'pageError', 'other'] as const
+  const counts = Object.fromEntries(fields.map((field) => [field, maxConsoleCount(samples, field)]))
+  const examples: Record<string, string> = {}
+  for (const sample of samples) {
+    for (const [category, example] of Object.entries(sample.consoleSummary?.examples ?? {})) {
+      if (!examples[category]) examples[category] = example
+    }
+  }
+  return { counts, examples }
+}
 
 main().catch((error) => {
   console.error(error instanceof Error ? error.stack : error)

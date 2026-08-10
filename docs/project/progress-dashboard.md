@@ -8,6 +8,13 @@
 
 当前判断：
 
+### 第二百二十二轮产出（2026-08-10）
+
+- 浏览器 E2E runner 新增 `consoleSummary`：按 `error/warning/webgl/gpuStall/pixi/assetFallback/pageError/other` 汇总 console 信号，并保留每类首个示例。
+- `qa:render-ablation` 和性能基线聚合会把 `consoleSummary` 带入样本摘要，重复样本取最坏计数，避免 WebGL/GPU 警告只散落在原始日志里。
+- 目标规模 `desktop-gpu/full` 单样本功能通过，游戏页 rAF P95 383.3ms、renderer P95 17.8ms；新摘要捕获 `warning=2`、`webgl=2`、`gpuStall=2`，示例为 `GPU stall due to ReadPixels`。
+- 结论：当前红灯仍不是一般功能失败，而是目标规模下浏览器图形栈持续报 GPU stall。下一步应沿 `consoleSummary.gpuStall` 追来源，把 ReadPixels/后端警告和 Pixi renderer 长尾对齐，而不是继续调 ticker maxFPS。
+
 ### 第二百二十一轮产出（2026-08-10）
 
 - `qa:render-ablation` 新增多环境矩阵能力：`RENDER_ABLATION_PROFILES=desktop-gpu,software-renderer,embedded-container` 可在同一命令内顺序跑多个浏览器代理环境，每条结果带 `profile` 字段。

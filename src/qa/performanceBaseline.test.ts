@@ -68,7 +68,11 @@ describe('performance baseline contract', () => {
           angleBackend: 'apple',
           softwareRenderer: false,
         },
-        consoleSummary: { counts: { total: 1, warning: 1, webgl: 1, gpuStall: 1 }, examples: { gpuStall: 'WebGL warning: GPU stall due to ReadPixels' } },
+        consoleSummary: {
+          counts: { total: 1, warning: 1, webgl: 1, gpuStall: 1 },
+          byPhase: { 'steady-sample': { total: 1, warning: 1, webgl: 1, gpuStall: 1 } },
+          examples: { gpuStall: 'WebGL warning: GPU stall due to ReadPixels' },
+        },
       },
       {
         ok: true,
@@ -96,7 +100,11 @@ describe('performance baseline contract', () => {
           angleBackend: 'google',
           softwareRenderer: true,
         },
-        consoleSummary: { counts: { total: 0, warning: 0, webgl: 0, gpuStall: 0 }, examples: {} },
+        consoleSummary: {
+          counts: { total: 0, warning: 0, webgl: 0, gpuStall: 0 },
+          byPhase: {},
+          examples: {},
+        },
       },
       {
         ok: true,
@@ -114,7 +122,11 @@ describe('performance baseline contract', () => {
           },
         },
         readPixels: { count: 0 },
-        consoleSummary: { counts: { total: 2, warning: 2, webgl: 1, gpuStall: 0, assetFallback: 1 }, examples: { assetFallback: 'Building artwork preload failed; using procedural fallback.' } },
+        consoleSummary: {
+          counts: { total: 2, warning: 2, webgl: 1, gpuStall: 0, assetFallback: 1 },
+          byPhase: { 'page-load': { total: 2, warning: 2, webgl: 1, assetFallback: 1 } },
+          examples: { assetFallback: 'Building artwork preload failed; using procedural fallback.' },
+        },
       },
     ])
     expect(aggregate.browserFrameBaseline).toEqual({ averageFrameMs: 17, p95FrameMs: 18, maxFrameMs: 20 })
@@ -149,6 +161,8 @@ describe('performance baseline contract', () => {
       gpuStall: 1,
       assetFallback: 1,
     }))
+    expect(aggregate.consoleSummary?.byPhase?.['steady-sample']).toEqual(expect.objectContaining({ gpuStall: 1 }))
+    expect(aggregate.consoleSummary?.byPhase?.['page-load']).toEqual(expect.objectContaining({ assetFallback: 1 }))
     expect(aggregate.consoleSummary?.examples?.gpuStall).toContain('GPU stall')
     expect(aggregate.consoleSummary?.examples?.assetFallback).toContain('fallback')
   })

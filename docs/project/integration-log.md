@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百二十五轮：Console 阶段归因
+
+- 启动并完成 `RENDER-CONSOLE-PHASE-ATTRIBUTION-01`：浏览器 E2E runner 为 console/pageerror 消息打上当前执行阶段，并在 `consoleSummary.byPhase` 输出分阶段计数。
+- `run-render-ablation` 与 `performanceBaseline` 聚合同步保留 by-phase console 摘要；重复样本按阶段取最坏计数，便于定位 warning 是加载期、稳态采样期还是 profile 读取期产生。
+- 目标规模 `civilization-scale` × `desktop-gpu` × `full` 单样本显示 `gpuStall=2` 且全部归因到 `page-load`。
+- 客观限制：本轮仍是诊断增强，不直接改善帧率；下一步应沿 page-load 阶段拆 Pixi 初始化、首帧同步、atlas/artwork/terrain 加载路径。
+
 ## 2026-08-10 第二百二十四轮：WebGL 后端上下文诊断
 
 - 启动并完成 `RENDER-GRAPHICS-CONTEXT-01`：浏览器 E2E runner 输出 `graphicsContext`，包含 WebGL 版本、context attributes、debug vendor/renderer、ANGLE 后端、扩展数量和软件渲染判定。

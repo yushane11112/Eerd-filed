@@ -122,6 +122,17 @@ export interface PerformanceSample {
       pageError?: number
       other?: number
     }
+    byPhase?: Record<string, {
+      total?: number
+      error?: number
+      warning?: number
+      webgl?: number
+      gpuStall?: number
+      pixi?: number
+      assetFallback?: number
+      pageError?: number
+      other?: number
+    }>
     examples?: Record<string, string>
   }
 }
@@ -156,6 +167,7 @@ export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSa
   })
   const consoleFields: ConsoleSummaryField[] = ['total', 'error', 'warning', 'webgl', 'gpuStall', 'pixi', 'assetFallback', 'pageError', 'other']
   const consoleExamples: Record<string, string> = {}
+  const consolePhases = [...new Set(samples.flatMap((sample) => Object.keys(sample.consoleSummary?.byPhase ?? {})))]
   for (const sample of samples) {
     for (const [category, example] of Object.entries(sample.consoleSummary?.examples ?? {})) {
       if (!consoleExamples[category]) consoleExamples[category] = example
@@ -224,6 +236,13 @@ export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSa
       counts: Object.fromEntries(consoleFields.map((field) => [
         field,
         Math.max(...samples.map((sample) => Number(sample.consoleSummary?.counts?.[field]) || 0)),
+      ])),
+      byPhase: Object.fromEntries(consolePhases.map((phase) => [
+        phase,
+        Object.fromEntries(consoleFields.map((field) => [
+          field,
+          Math.max(...samples.map((sample) => Number(sample.consoleSummary?.byPhase?.[phase]?.[field]) || 0)),
+        ])),
       ])),
       examples: consoleExamples,
     },

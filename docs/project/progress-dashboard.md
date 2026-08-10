@@ -8,6 +8,13 @@
 
 当前判断：
 
+### 第二百二十五轮产出（2026-08-10）
+
+- 浏览器 E2E runner 为每条 console/pageerror 消息增加 `phase`，并在 `consoleSummary.byPhase` 中按 `browser-baseline/page-load/assertions/steady-sample/profile-collect/interaction/final-check` 归因。
+- `qa:render-ablation` 和性能基线聚合保留 by-phase 最坏计数；重复样本可以直接看到 `gpuStall` 出现在哪个执行阶段，而不是只看总数。
+- 目标规模 `desktop-gpu/full` 单样本功能通过，rAF 274.95/316.6/316.6ms；`consoleSummary.gpuStall=2` 且全部集中在 `page-load`，`steady-sample` 和 `profile-collect` 没有新增 stall。
+- 结论：`GPU stall due to ReadPixels` 更像页面加载/Pixi 初始化期触发，而不是 QA 读取 profile 或稳态采样触发。下一轮应比较 `page-load` 阶段的艺术资源、atlas、terrain、首帧同步和 Pixi 初始化路径。
+
 ### 第二百二十四轮产出（2026-08-10）
 
 - 浏览器 E2E runner、`qa:render-ablation` 和性能基线聚合新增 `graphicsContext` 诊断，输出 canvas 尺寸、WebGL 版本、context attributes、debug renderer/vendor、扩展数量、ANGLE 后端和软件渲染判定。

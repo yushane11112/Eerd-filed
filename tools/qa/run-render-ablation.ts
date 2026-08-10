@@ -98,6 +98,17 @@ interface BrowserResult {
       pageError?: number
       other?: number
     }
+    byPhase?: Record<string, {
+      total?: number
+      error?: number
+      warning?: number
+      webgl?: number
+      gpuStall?: number
+      pixi?: number
+      assetFallback?: number
+      pageError?: number
+      other?: number
+    }>
     examples?: Record<string, string>
   }
   failures?: string[]
@@ -254,13 +265,21 @@ const maxConsoleCount = (
 const summarizeConsoleSamples = (samples: BrowserResult[]) => {
   const fields = ['total', 'error', 'warning', 'webgl', 'gpuStall', 'pixi', 'assetFallback', 'pageError', 'other'] as const
   const counts = Object.fromEntries(fields.map((field) => [field, maxConsoleCount(samples, field)]))
+  const phaseNames = [...new Set(samples.flatMap((sample) => Object.keys(sample.consoleSummary?.byPhase ?? {})))]
+  const byPhase = Object.fromEntries(phaseNames.map((phase) => [
+    phase,
+    Object.fromEntries(fields.map((field) => [
+      field,
+      Math.max(...samples.map((sample) => Number(sample.consoleSummary?.byPhase?.[phase]?.[field]) || 0)),
+    ])),
+  ]))
   const examples: Record<string, string> = {}
   for (const sample of samples) {
     for (const [category, example] of Object.entries(sample.consoleSummary?.examples ?? {})) {
       if (!examples[category]) examples[category] = example
     }
   }
-  return { counts, examples }
+  return { counts, byPhase, examples }
 }
 
 main().catch((error) => {

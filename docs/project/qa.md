@@ -1,5 +1,17 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百二十五轮验证
+
+- 验证等级：Tier 3，浏览器 E2E console 结构、渲染差分摘要、性能基线聚合和目标规模性能定位均有变更。
+- 定向测试：`npm test -- src/qa/performanceBaseline.test.ts src/qa/browserE2eScenarios.test.ts` 通过，2 个测试文件、9 项测试。
+- 生产构建：`npm run build` 通过，Vite 构建 2364 个模块；提交前最终构建同样通过。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模 console phase 样本：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_PROFILES=desktop-gpu RENDER_ABLATION_MODES=full RENDER_ABLATION_REPEATS=1 RENDER_ABLATION_TIMEOUT_MS=120000 npm run qa:render-ablation` 通过。
+- 样本结果：`desktop-gpu/full` 功能通过，rAF 274.95/316.6/316.6ms，`consoleSummary.counts.gpuStall=2`、`webgl=2`；`consoleSummary.byPhase.page-load.gpuStall=2`，其他阶段无 GPU stall。
+- 图形后端：同样本 `graphicsContext.unmaskedRenderer=ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)`。
+- 结论：GPU stall 发生在页面加载/Pixi 初始化期，不是稳态采样或 profile 读取阶段产生；下一轮应拆 page-load 阶段资源/首帧/atlas/terrain 路径。
+- 完整测试：`npm test` 通过，58 个测试文件、365 项测试，耗时约 149 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百二十四轮验证
 
 - 验证等级：Tier 3，浏览器 E2E 报告结构、渲染差分摘要、性能基线聚合和性能证据解释边界均有变更。

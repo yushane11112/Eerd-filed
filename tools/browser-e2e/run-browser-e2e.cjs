@@ -182,10 +182,12 @@ async function runScenario(browser, scenario) {
     install(window.WebGLRenderingContext?.prototype)
     install(window.WebGL2RenderingContext?.prototype)
   })
+  let consolePhase = 'setup'
   const consoleMessages = []
   page.on('console', (message) => {
     consoleMessages.push({
       type: message.type(),
+      phase: consolePhase,
       text: message.text(),
     })
   })
@@ -193,19 +195,23 @@ async function runScenario(browser, scenario) {
     consoleMessages.push({
       type: 'error',
       source: 'pageerror',
+      phase: consolePhase,
       text: error.message,
     })
   })
 
   const failures = []
   try {
+    consolePhase = 'browser-baseline'
     const browserFrameBaseline = await sampleFrameMetrics(page)
     const scenarioUrl = new URL(`${baseUrl}${scenario.path}`)
     if (renderQuery) {
       const query = new URLSearchParams(renderQuery.replace(/^\?/, ''))
       for (const [key, value] of query) scenarioUrl.searchParams.set(key, value)
     }
+    consolePhase = 'page-load'
     await page.goto(scenarioUrl.toString(), { waitUntil: 'networkidle', timeout: 20_000 })
+    consolePhase = 'assertions'
     const bottleneckButton = page.getByLabel('城市瓶颈管理').getByRole('button', { name: /瓶颈/ })
     if (await bottleneckButton.getAttribute('aria-expanded') !== 'true') {
       await bottleneckButton.scrollIntoViewIfNeeded()
@@ -222,7 +228,9 @@ async function runScenario(browser, scenario) {
     }
 
     await resetRenderProfileSamples(page)
+    consolePhase = 'steady-sample'
     const frameMetrics = await sampleFrameMetrics(page)
+    consolePhase = 'profile-collect'
     const renderProfile = await page.evaluate(() => {
       const profiles = window.__littleEarRenderProfiles ?? []
       if (profiles.length === 0) return { sampleCount: 0 }
@@ -405,6 +413,7 @@ async function runScenario(browser, scenario) {
     }
 
     if (scenario.interaction) {
+      consolePhase = 'interaction'
       await page.getByRole('button', { name: scenario.interaction.clickText }).click({ timeout: 5_000 })
       try {
         await page.getByText(scenario.interaction.expectToastText, { exact: false })
@@ -424,6 +433,7 @@ async function runScenario(browser, scenario) {
       }
     }
 
+    consolePhase = 'final-check'
     const forbidden = new Set(scenario.forbiddenConsoleLevels)
     for (const message of consoleMessages) {
       if (forbidden.has(message.type)) {
@@ -473,8 +483,8 @@ function renderConfigurationMatches(configuration, expected) {
 }
 
 function summarizeConsoleMessages(messages) {
-  const counts = {
-    total: messages.length,
+  const createCounts = () => ({
+    total: 0,
     error: 0,
     warning: 0,
     webgl: 0,
@@ -483,27 +493,37 @@ function summarizeConsoleMessages(messages) {
     assetFallback: 0,
     pageError: 0,
     other: 0,
-  }
+  })
+  const counts = createCounts()
+  const byPhase = {}
   const examples = {}
   for (const message of messages) {
     const text = String(message.text || '')
     const normalized = text.toLowerCase()
     const type = String(message.type || '')
+    const phase = String(message.phase || 'unknown')
+    const phaseCounts = byPhase[phase] ??= createCounts()
     const categories = []
+    counts.total += 1
+    phaseCounts.total += 1
     if (type === 'error') {
       counts.error += 1
+      phaseCounts.error += 1
       categories.push('error')
     }
     if (type === 'warning' || type === 'warn') {
       counts.warning += 1
+      phaseCounts.warning += 1
       categories.push('warning')
     }
     if (type === 'error' && (message.source === 'pageerror' || normalized.includes('page'))) {
       counts.pageError += 1
+      phaseCounts.pageError += 1
       categories.push('pageError')
     }
     if (normalized.includes('webgl') || normalized.includes('gl_') || normalized.includes('gpu')) {
       counts.webgl += 1
+      phaseCounts.webgl += 1
       categories.push('webgl')
     }
     if (
@@ -514,10 +534,12 @@ function summarizeConsoleMessages(messages) {
       normalized.includes('synchronous')
     ) {
       counts.gpuStall += 1
+      phaseCounts.gpuStall += 1
       categories.push('gpuStall')
     }
     if (normalized.includes('pixi')) {
       counts.pixi += 1
+      phaseCounts.pixi += 1
       categories.push('pixi')
     }
     if (
@@ -527,17 +549,19 @@ function summarizeConsoleMessages(messages) {
       normalized.includes('not found in cache')
     ) {
       counts.assetFallback += 1
+      phaseCounts.assetFallback += 1
       categories.push('assetFallback')
     }
     if (categories.length === 0) {
       counts.other += 1
+      phaseCounts.other += 1
       categories.push('other')
     }
     for (const category of categories) {
       if (!examples[category]) examples[category] = text.slice(0, 240)
     }
   }
-  return { counts, examples }
+  return { counts, byPhase, examples }
 }
 
 async function sampleFrameMetrics(page) {

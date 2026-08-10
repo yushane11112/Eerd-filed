@@ -2,6 +2,20 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百二十五轮 Console 阶段归因
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 浏览器执行器 | 为 console/pageerror 消息增加 phase，并输出 `consoleSummary.byPhase` |
+| `tools/qa/run-render-ablation.ts` | 渲染差分工具 | 聚合并输出分阶段 console 最坏计数 |
+| `src/qa/performanceBaseline.ts` | 性能基线聚合 | 保留多样本 by-phase console 归因 |
+| `src/qa/performanceBaseline.test.ts` | 自动测试 | 固定 console phase 聚合契约 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录 GPU stall 全部来自 page-load 阶段 |
+| `docs/project/integration-log.md` | 集成记录 | 记录阶段归因接入事实和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录目标规模 console phase 样本和验证结果 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `RENDER-CONSOLE-PHASE-ATTRIBUTION-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认排查方向 |
+
 ## 2026-08-10：第二百二十四轮 WebGL 后端上下文诊断
 
 | 文件 | 产物类型 | 用途 |

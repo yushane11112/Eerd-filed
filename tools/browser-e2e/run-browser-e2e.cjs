@@ -350,6 +350,7 @@ async function runScenario(browser, scenario) {
       }
     })
     const renderConfiguration = await page.evaluate(() => window.__littleEarRenderConfiguration ?? null)
+    const loadProfile = await page.evaluate(() => window.__littleEarLoadProfile ?? null)
     const graphicsContext = await page.evaluate(() => {
       const canvas = document.querySelector('canvas')
       const context =
@@ -456,6 +457,7 @@ async function runScenario(browser, scenario) {
       appProfile,
       profileWindow: 'steady-state-after-assertions',
       renderConfiguration,
+      loadProfile,
       graphicsContext,
       readPixels: await page.evaluate(() => window.__littleEarReadPixels ?? { count: 0, samples: [] }),
       interaction: scenario.interaction || null,

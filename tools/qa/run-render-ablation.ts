@@ -72,6 +72,15 @@ interface BrowserResult {
     resolutionOverride?: number
     buildingLod?: boolean
   }
+  loadProfile?: {
+    appInitMs?: number
+    animationAtlasMs?: number
+    artworkProviderMs?: number
+    sceneSetupMs?: number
+    terrainMs?: number
+    firstSyncMs?: number
+    totalMs?: number
+  }
   graphicsContext?: {
     canvasWidth?: number
     canvasHeight?: number
@@ -193,6 +202,7 @@ const main = async () => {
         query: mode.query,
         repeats,
         configuration: samples.at(-1)?.renderConfiguration ?? null,
+        loadProfile: summarizeLoadProfile(samples),
         graphicsContext: summarizeGraphicsContext(samples),
         profileWindow: samples.at(-1)?.profileWindow ?? null,
         sample: summarizeSamples(samples),
@@ -251,6 +261,14 @@ const summarizeGraphicsContext = (samples: BrowserResult[]) => {
     supportedExtensionCount: Math.max(...samples.map((sample) => sample.graphicsContext?.supportedExtensionCount ?? 0)),
     softwareRenderer: samples.some((sample) => sample.graphicsContext?.softwareRenderer === true),
   }
+}
+
+const summarizeLoadProfile = (samples: BrowserResult[]) => {
+  const fields = ['appInitMs', 'animationAtlasMs', 'artworkProviderMs', 'sceneSetupMs', 'terrainMs', 'firstSyncMs', 'totalMs'] as const
+  if (!samples.some((sample) => sample.loadProfile)) return null
+  return Object.fromEntries(fields
+    .map((field) => [field, median(samples.map((sample) => sample.loadProfile?.[field] ?? Number.POSITIVE_INFINITY))] as const)
+    .filter(([, value]) => Number.isFinite(value)))
 }
 
 const maxConsoleCount = (

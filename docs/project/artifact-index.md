@@ -2,6 +2,21 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百二十六轮加载期内部画像
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/components/SimulationCanvas.tsx` | 运行时诊断 | 输出 `__littleEarLoadProfile`，拆分加载期 app/artwork/terrain/首帧耗时 |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 浏览器执行器 | 读取并输出加载期 profile |
+| `tools/qa/run-render-ablation.ts` | 渲染差分工具 | 汇总加载期 profile，并省略缺失阶段 |
+| `src/qa/performanceBaseline.ts` | 性能基线聚合 | 聚合加载期 profile |
+| `src/qa/performanceBaseline.test.ts` | 自动测试 | 固定加载期 profile 聚合契约 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录 artwork/atlas 耗时与 GPU stall 排除结论 |
+| `docs/project/integration-log.md` | 集成记录 | 记录加载期画像接入事实和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录加载期画像样本、消融矩阵和验证结果 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `RENDER-LOAD-PHASE-PROFILE-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮 Pixi 初始化/首帧提交排查方向 |
+
 ## 2026-08-10：第二百二十五轮 Console 阶段归因
 
 | 文件 | 产物类型 | 用途 |

@@ -97,6 +97,15 @@ export interface PerformanceSample {
     }
   }
   readPixels?: { count?: number }
+  loadProfile?: {
+    appInitMs?: number
+    animationAtlasMs?: number
+    artworkProviderMs?: number
+    sceneSetupMs?: number
+    terrainMs?: number
+    firstSyncMs?: number
+    totalMs?: number
+  }
   graphicsContext?: {
     canvasWidth?: number
     canvasHeight?: number
@@ -152,6 +161,7 @@ export interface PerformanceEvaluation {
 type RuntimeAdvanceProfileField = keyof NonNullable<NonNullable<PerformanceSample['appProfile']>['runtimeAdvance']>
 type ConsoleSummaryCounts = NonNullable<NonNullable<PerformanceSample['consoleSummary']>['counts']>
 type ConsoleSummaryField = keyof ConsoleSummaryCounts
+type LoadProfileField = keyof NonNullable<PerformanceSample['loadProfile']>
 
 export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSample>): PerformanceSample {
   if (samples.length === 0) return { ok: false }
@@ -231,6 +241,7 @@ export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSa
       },
     },
     readPixels: { count: Math.max(...samples.map((sample) => sample.readPixels?.count ?? Number.POSITIVE_INFINITY)) },
+    loadProfile: aggregateLoadProfile(samples, median),
     graphicsContext: aggregateGraphicsContext(samples),
     consoleSummary: {
       counts: Object.fromEntries(consoleFields.map((field) => [
@@ -247,6 +258,17 @@ export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSa
       examples: consoleExamples,
     },
   }
+}
+
+function aggregateLoadProfile(
+  samples: ReadonlyArray<PerformanceSample>,
+  median: (values: number[]) => number,
+): PerformanceSample['loadProfile'] {
+  if (!samples.some((sample) => sample.loadProfile)) return undefined
+  const fields: LoadProfileField[] = ['appInitMs', 'animationAtlasMs', 'artworkProviderMs', 'sceneSetupMs', 'terrainMs', 'firstSyncMs', 'totalMs']
+  return Object.fromEntries(fields
+    .map((field) => [field, median(samples.map((sample) => sample.loadProfile?.[field] ?? Number.POSITIVE_INFINITY))] as const)
+    .filter(([, value]) => Number.isFinite(value)))
 }
 
 function aggregateGraphicsContext(samples: ReadonlyArray<PerformanceSample>): PerformanceSample['graphicsContext'] {

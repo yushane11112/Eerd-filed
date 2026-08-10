@@ -24,9 +24,9 @@ codex/commercial-launch-plan-docs
 
 真实游戏持续预览：`https://little-ear-island-game-preview.netlify.app`。该地址直接运行本仓库的 Vite/Pixi 游戏构建，并已绑定 GitHub 自动部署；推送当前开发分支后会自动更新。不要把该需求重新解释成独立宣传落地页。
 
-最近完成：第二百二十五轮已完成 console 阶段归因。浏览器 E2E runner 会给 console/pageerror 消息标注执行阶段，并在 `consoleSummary.byPhase` 中输出分阶段计数。目标规模 `desktop-gpu/full` 单样本显示 `gpuStall=2` 全部来自 `page-load`，不是 `steady-sample` 或 `profile-collect`。
+最近完成：第二百二十六轮已完成加载期内部画像。`SimulationCanvas` 在 `renderProfile=1` 时输出 `__littleEarLoadProfile`，浏览器 E2E、`qa:render-ablation` 和性能基线都会保留它。目标规模样本显示 artwork/atlas 加载约 605ms，是加载耗时大头；但 `full/no-atlas/no-artwork/no-terrain` 四种模式均保持 `pageLoadStall=2`，说明关闭单个艺术资源层不能消除 `GPU stall due to ReadPixels`。
 
-下一轮默认任务：继续做目标规模渲染专项，优先拆 `page-load` 阶段的 Pixi 初始化、首帧同步、atlas/artwork/terrain 加载路径，解释 `GPU stall due to ReadPixels` 为什么在加载期出现；仍需保留 `graphicsContext` 解释边界，不要把本地 `desktop-gpu` 样本宣称成真实硬件 GPU 表现。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
+下一轮默认任务：继续做目标规模渲染专项，优先拆 Pixi `app.init`、首个 renderer submit、首帧 `syncScene` 和自动 clear/present 行为；不要继续把 artwork/atlas 或 terrain 当作 `GPU stall` 单点根因。仍需保留 `graphicsContext` 解释边界，不要把本地 `desktop-gpu` 样本宣称成真实硬件 GPU 表现。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
 
 如果另一台电脑路径不同，不影响项目，只要 clone 同一个 GitHub 仓库并 checkout 同一个分支即可。
 

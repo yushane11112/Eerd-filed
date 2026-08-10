@@ -8,6 +8,13 @@
 
 当前判断：
 
+### 第二百二十六轮产出（2026-08-10）
+
+- `SimulationCanvas` 在 `renderProfile=1` 时新增 `__littleEarLoadProfile`，记录 `appInitMs`、`animationAtlasMs`、`artworkProviderMs`、`sceneSetupMs`、`terrainMs`、`firstSyncMs` 和 `totalMs`，并由浏览器 E2E、`qa:render-ablation`、性能基线聚合保留。
+- 目标规模 `desktop-gpu/full` 单样本功能通过，加载期画像显示 `appInitMs≈201.8ms`、`artworkProviderMs≈605.1ms`、`terrainMs≈6.2ms`、`firstSyncMs≈78.7ms`、`totalMs≈900.5ms`，`gpuStall=2` 仍全部来自 `page-load`。
+- 加载期消融矩阵 `full/no-atlas/no-artwork/no-terrain` 均功能通过，且四者 `pageLoadStall=2`：关闭 atlas、artwork 或 terrain 都不能消除 `GPU stall due to ReadPixels`。
+- 结论：artwork/atlas 是加载耗时大头，但不是 page-load GPU stall 的单独根因；下一轮应更直接比较 Pixi `app.init`、首个 renderer submit、首帧 `syncScene` 和可能的自动 clear/present 行为。
+
 ### 第二百二十五轮产出（2026-08-10）
 
 - 浏览器 E2E runner 为每条 console/pageerror 消息增加 `phase`，并在 `consoleSummary.byPhase` 中按 `browser-baseline/page-load/assertions/steady-sample/profile-collect/interaction/final-check` 归因。

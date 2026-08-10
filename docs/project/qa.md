@@ -1,5 +1,18 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百二十六轮验证
+
+- 验证等级：Tier 3，加载期 profile、浏览器 E2E 报告结构、渲染差分摘要和性能定位均有变更。
+- 定向测试：`npm test -- src/qa/performanceBaseline.test.ts src/qa/browserE2eScenarios.test.ts` 通过，2 个测试文件、9 项测试。
+- 生产构建：`npm run build` 通过，Vite 构建 2364 个模块；提交前最终构建同样通过。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模加载期画像样本：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_PROFILES=desktop-gpu RENDER_ABLATION_MODES=full RENDER_ABLATION_REPEATS=1 RENDER_ABLATION_TIMEOUT_MS=120000 npm run qa:render-ablation` 通过。
+- `full` 加载画像：rAF 226.66/250/250ms，`appInitMs≈201.8ms`、`artworkProviderMs≈605.1ms`、`sceneSetupMs≈8.3ms`、`terrainMs≈6.2ms`、`firstSyncMs≈78.7ms`、`totalMs≈900.5ms`；`gpuStall=2` 且全部在 `page-load`。
+- 目标规模加载消融矩阵：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_PROFILES=desktop-gpu RENDER_ABLATION_MODES=full,no-atlas,no-artwork,no-terrain RENDER_ABLATION_REPEATS=1 RENDER_ABLATION_TIMEOUT_MS=120000 npm run qa:render-ablation` 通过。
+- 消融结果：`full/no-atlas/no-artwork/no-terrain` 四者均 `pageLoadStall=2`；`no-artwork` 将加载总耗时降至约 308ms，但没有消除 GPU stall。
+- 结论：artwork/atlas 是加载耗时大头，但不是 ReadPixels stall 的单点根因；下一轮应拆 Pixi app 初始化和首个 renderer 提交。
+- 完整测试：`npm test` 通过，58 个测试文件、365 项测试，耗时约 164 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百二十五轮验证
 
 - 验证等级：Tier 3，浏览器 E2E console 结构、渲染差分摘要、性能基线聚合和目标规模性能定位均有变更。

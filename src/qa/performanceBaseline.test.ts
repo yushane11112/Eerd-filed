@@ -59,6 +59,7 @@ describe('performance baseline contract', () => {
           },
         },
         readPixels: { count: 0 },
+        loadProfile: { appInitMs: 10, artworkProviderMs: 40, sceneSetupMs: 5, terrainMs: 4, firstSyncMs: 8, totalMs: 75 },
         graphicsContext: {
           canvasWidth: 1366,
           canvasHeight: 768,
@@ -91,6 +92,7 @@ describe('performance baseline contract', () => {
           },
         },
         readPixels: { count: 2 },
+        loadProfile: { appInitMs: 20, artworkProviderMs: 120, sceneSetupMs: 9, terrainMs: 6, firstSyncMs: 16, totalMs: 180 },
         graphicsContext: {
           canvasWidth: 1366,
           canvasHeight: 768,
@@ -122,6 +124,7 @@ describe('performance baseline contract', () => {
           },
         },
         readPixels: { count: 0 },
+        loadProfile: { appInitMs: 12, artworkProviderMs: 60, sceneSetupMs: 7, terrainMs: 5, firstSyncMs: 10, totalMs: 90 },
         consoleSummary: {
           counts: { total: 2, warning: 2, webgl: 1, gpuStall: 0, assetFallback: 1 },
           byPhase: { 'page-load': { total: 2, warning: 2, webgl: 1, assetFallback: 1 } },
@@ -148,6 +151,12 @@ describe('performance baseline contract', () => {
       }),
     })
     expect(aggregate.readPixels?.count).toBe(2)
+    expect(aggregate.loadProfile).toEqual(expect.objectContaining({
+      appInitMs: 12,
+      artworkProviderMs: 60,
+      firstSyncMs: 10,
+      totalMs: 90,
+    }))
     expect(aggregate.graphicsContext).toEqual(expect.objectContaining({
       contextType: 'webgl2',
       supportedExtensionCount: 32,

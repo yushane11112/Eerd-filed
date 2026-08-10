@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百二十六轮：加载期内部画像
+
+- 启动并完成 `RENDER-LOAD-PHASE-PROFILE-01`：`SimulationCanvas` 在渲染诊断模式输出 `__littleEarLoadProfile`，拆出 Pixi app 初始化、动画 atlas、建筑 artwork/atlas、场景搭建、terrain 绘制和首帧同步耗时。
+- `run-render-ablation` 和 `performanceBaseline` 聚合同步保留加载期画像；缺失阶段不再在 JSON 摘要里显示为 `null`。
+- 目标规模 `full` 单样本显示 artwork/atlas 加载约 605ms，是加载期耗时大头；但 `no-atlas/no-artwork/no-terrain` 消融均不能消除 `page-load` 阶段的 `gpuStall=2`。
+- 客观限制：本轮仍是诊断增强，不直接改善帧率；下一轮应进入 Pixi app.init、首个 renderer submit 和首帧 sync 的直接对照。
+
 ## 2026-08-10 第二百二十五轮：Console 阶段归因
 
 - 启动并完成 `RENDER-CONSOLE-PHASE-ATTRIBUTION-01`：浏览器 E2E runner 为 console/pageerror 消息打上当前执行阶段，并在 `consoleSummary.byPhase` 输出分阶段计数。

@@ -15,6 +15,7 @@ import {
 import type {
   BuildingAnimationAtlasManifest,
   BuildingAnimationDriverOptions,
+  RenderDiagnosticsConfig,
   SceneSyncPerformanceProfile,
   SceneTickerPerformanceProfile,
 } from '../rendering'
@@ -49,6 +50,18 @@ interface SimulationCanvasProps {
   onToolChange(tool: BuildTool): void
   onToast(message: string): void
   onBuildingSelect(id: string | null): void
+}
+
+interface BrowserLoadPhaseProfile {
+  startedAt: number
+  appInitMs?: number
+  animationAtlasMs?: number
+  artworkProviderMs?: number
+  sceneSetupMs?: number
+  terrainMs?: number
+  firstSyncMs?: number
+  totalMs?: number
+  configuration?: RenderDiagnosticsConfig
 }
 
 const WORLD_BOUNDS = { x: -1120, y: -180, width: 2400, height: 1440 }
@@ -125,10 +138,17 @@ export function SimulationCanvas({
     const artworkAbortController = new AbortController()
     const terrain = new Graphics()
     const renderConfig = parseRenderDiagnostics(window.location.search)
+    const loadProfile: BrowserLoadPhaseProfile | undefined = renderConfig.enabled
+      ? ((window as Window & { __littleEarLoadProfile?: BrowserLoadPhaseProfile }).__littleEarLoadProfile = {
+          startedAt: performance.now(),
+          configuration: renderConfig,
+        })
+      : undefined
     appRef.current = app
     terrainRef.current = terrain
 
     const initialise = async () => {
+      const appInitStartedAt = performance.now()
       await app.init({
         resizeTo: host,
         antialias: renderConfig.antialias,
@@ -136,6 +156,7 @@ export function SimulationCanvas({
         resolution: renderConfig.resolutionOverride ?? Math.min(window.devicePixelRatio || 1, 2),
         backgroundColor: 0x74b8bc,
       })
+      if (loadProfile) loadProfile.appInitMs = performance.now() - appInitStartedAt
       if (renderConfig.tickerMinFpsOverride !== undefined) {
         app.ticker.minFPS = renderConfig.tickerMinFpsOverride
       }
@@ -149,7 +170,9 @@ export function SimulationCanvas({
       let buildingAnimationProvider
       if (renderConfig.authoredAnimation && buildingAnimationAtlasManifest?.length) {
         try {
+          const animationStartedAt = performance.now()
           const sheets = await loadBuildingAnimationAtlases(buildingAnimationAtlasManifest)
+          if (loadProfile) loadProfile.animationAtlasMs = performance.now() - animationStartedAt
           buildingAnimationProvider = createSpritesheetBuildingAnimationProvider(sheets)
         } catch (error) {
           console.warn('Building animation atlases could not be loaded; using procedural fallback.', error)
@@ -167,12 +190,14 @@ export function SimulationCanvas({
       let buildingArtworkProvider = undefined
       if (renderConfig.authoredArtwork) {
         try {
+          const artworkStartedAt = performance.now()
           buildingArtworkProvider = await (renderConfig.buildingAtlas ? loadDefaultBuildingArtworkAtlasProvider : loadDefaultBuildingArtworkProvider)(artworkAssetIds, {
           signal: artworkAbortController.signal,
           timeoutMs: 15_000,
           maxTextures: 512,
           preloadLevels: [...new Set(Object.values(snapshotRef.current.buildings).map((building) => building.level))],
         })
+          if (loadProfile) loadProfile.artworkProviderMs = performance.now() - artworkStartedAt
         } catch (error) {
           if (disposed) {
             app.destroy(true)
@@ -186,6 +211,7 @@ export function SimulationCanvas({
         app.destroy(true)
         return
       }
+      const sceneSetupStartedAt = performance.now()
       const renderProfileEnabled = renderConfig.enabled
       ;(window as Window & { __littleEarRenderConfiguration?: typeof renderConfig }).__littleEarRenderConfiguration = renderConfig
       const renderProfiles = renderProfileEnabled
@@ -225,8 +251,18 @@ export function SimulationCanvas({
       app.stage.addChild(scene.root)
       cameraRef.current.setViewport({ width: host.clientWidth, height: host.clientHeight })
       setCameraView({ ...cameraRef.current.getState() })
-      if (renderConfig.terrain) drawTerrain(terrain, snapshotRef.current)
+      if (loadProfile) loadProfile.sceneSetupMs = performance.now() - sceneSetupStartedAt
+      if (renderConfig.terrain) {
+        const terrainStartedAt = performance.now()
+        drawTerrain(terrain, snapshotRef.current)
+        if (loadProfile) loadProfile.terrainMs = performance.now() - terrainStartedAt
+      }
+      const firstSyncStartedAt = performance.now()
       syncScene()
+      if (loadProfile) {
+        loadProfile.firstSyncMs = performance.now() - firstSyncStartedAt
+        loadProfile.totalMs = performance.now() - loadProfile.startedAt
+      }
       app.ticker.add(syncScene)
     }
 

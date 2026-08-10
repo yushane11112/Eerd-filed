@@ -2,6 +2,7 @@
 
 | ID | 会话职责 | 写入范围 | 状态 | 集成条件 |
 | --- | --- | --- | --- | --- |
+| RENDER-LOAD-PHASE-PROFILE-01 | 加载期内部画像 | `src/components/SimulationCanvas.tsx`, `tools/browser-e2e/run-browser-e2e.cjs`, `tools/qa/run-render-ablation.ts`, `src/qa/performanceBaseline.ts`, `src/qa/performanceBaseline.test.ts`, `docs/project/**` | 已完成 | artwork/atlas 是加载耗时大头，但 no-artwork/no-atlas/no-terrain 均不消除 `page-load` GPU stall |
 | RENDER-CONSOLE-PHASE-ATTRIBUTION-01 | Console 阶段归因 | `tools/browser-e2e/run-browser-e2e.cjs`, `tools/qa/run-render-ablation.ts`, `src/qa/performanceBaseline.ts`, `src/qa/performanceBaseline.test.ts`, `docs/project/**` | 已完成 | 目标规模样本显示 `gpuStall=2` 全部来自 `page-load`，下一轮转向加载期/Pixi 初始化 |
 | RENDER-GRAPHICS-CONTEXT-01 | WebGL 后端上下文诊断 | `tools/browser-e2e/run-browser-e2e.cjs`, `tools/qa/run-render-ablation.ts`, `src/qa/performanceBaseline.ts`, `src/qa/performanceBaseline.test.ts`, `docs/project/**` | 已完成 | 三环境目标规模样本均显示 SwiftShader，性能报告必须带 `graphicsContext` 解释边界 |
 | RENDER-GRAPHICS-INIT-ABLATION-01 | 图形初始化压力矩阵 | `tools/qa/run-render-ablation.ts`, `docs/project/**` | 已完成（候选档位，不改默认） | `no-antialias` 三环境降低 rAF P95 但不降低 `gpuStall`，且部分环境 renderer/renderSync 变差 |

@@ -1,5 +1,18 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百二十一轮验证
+
+- 验证等级：Tier 3，渲染差分执行器输出结构、目标规模多环境浏览器矩阵和性能结论均有变更。
+- 定向测试：`npm test -- src/rendering/renderDiagnostics.test.ts src/qa/performanceBaseline.test.ts` 通过，2 个测试文件、6 项测试。
+- 生产构建：`npm run build` 通过，Vite 构建 2364 个模块；提交前最终构建同样通过。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模三环境 maxFPS 矩阵：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_PROFILES=desktop-gpu,software-renderer,embedded-container RENDER_ABLATION_MODES=full,ticker-max-fps-30 RENDER_ABLATION_REPEATS=1 RENDER_ABLATION_TIMEOUT_MS=120000 npm run qa:render-ablation` 通过。
+- 桌面 GPU：`full` rAF 279.15/300/300ms，render sync P95 36.6ms，renderer P95 20.4ms；`ticker-max-fps-30` rAF 213.32/249.9/249.9ms，render sync P95 11.7ms，renderer P95 23.5ms。
+- 软件渲染：`full` rAF 254.13/283.3/283.3ms，render sync P95 13.8ms，renderer P95 17ms；`ticker-max-fps-30` rAF 243.32/283.3/283.3ms，render sync P95 35.1ms，renderer P95 27ms。
+- 嵌入容器：`full` rAF 236.64/266.7/266.7ms，render sync P95 14.5ms，renderer P95 22.7ms；`ticker-max-fps-30` rAF 274.97/300/300ms，render sync P95 11.4ms，renderer P95 30.1ms。
+- 结论：30FPS ticker 上限跨环境不稳定，不能进入生产默认；所有样本仍 RED，下一轮应继续拆 WebGL GPU stall 和浏览器帧调度。
+- 完整测试：`npm test` 通过，58 个测试文件、365 项测试，耗时约 161 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百二十轮验证
 
 - 验证等级：Tier 3，渲染诊断参数、画布 ticker 设置、渲染差分模式和目标规模浏览器对照均有变更。

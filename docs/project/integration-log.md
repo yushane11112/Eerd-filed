@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百二十一轮：Ticker maxFPS 多环境矩阵
+
+- 启动并完成 `RENDER-TICKER-MAXFPS-MATRIX-01`：`run-render-ablation` 支持 `RENDER_ABLATION_PROFILES` 逗号分隔多环境，输出每条结果的 `profile` 字段。
+- 完成 `civilization-scale` × `desktop-gpu/software-renderer/embedded-container` × `full/ticker-max-fps-30` 单次矩阵，所有功能和实体门禁通过，readPixels=0。
+- 矩阵显示 30FPS 上限不稳定：桌面 GPU 改善，软件渲染基本持平，嵌入容器变差；不能作为生产默认。
+- 客观限制：本轮仍是每环境单次样本，且 WebGL GPU stall warning 继续出现；下一步应转向 stall/帧调度根因，而不是继续调 maxFPS。
+
 ## 2026-08-10 第二百二十轮：Ticker maxFPS 诊断对照
 
 - 启动并完成 `RENDER-TICKER-MAXFPS-ABLATION-01`：新增 `tickerMaxFps` 渲染诊断参数，QA 可设置 Pixi `app.ticker.maxFPS`，生产默认保持不变。

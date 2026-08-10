@@ -2,6 +2,10 @@ import { spawn } from 'node:child_process'
 
 const scenario = process.env.RENDER_ABLATION_SCENARIO ?? 'civilization-resident-timeline'
 const profile = process.env.RENDER_ABLATION_PROFILE ?? 'desktop-gpu'
+const profiles = (process.env.RENDER_ABLATION_PROFILES ?? profile)
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean)
 const repeats = Math.max(1, Number.parseInt(process.env.RENDER_ABLATION_REPEATS ?? '3', 10) || 1)
 const allModes = [
   { id: 'full', query: 'renderProfile=1' },
@@ -82,13 +86,13 @@ const terminateProcessTree = (child: ReturnType<typeof spawn>, signal: NodeJS.Si
   }
 }
 
-const run = (query: string) => new Promise<BrowserResult>((resolve, reject) => {
+const run = (query: string, browserProfile: string) => new Promise<BrowserResult>((resolve, reject) => {
   invocation += 1
   const child = spawn(process.execPath, ['tools/browser-e2e/run-browser-e2e.cjs'], {
     env: {
       ...process.env,
       BROWSER_E2E_SCENARIO: scenario,
-      BROWSER_E2E_PROFILE: profile,
+      BROWSER_E2E_PROFILE: browserProfile,
       BROWSER_E2E_RENDER_QUERY: query,
       BROWSER_E2E_PORT: String(Number.parseInt(process.env.BROWSER_E2E_PORT ?? '4173', 10) + invocation),
     },
@@ -122,72 +126,77 @@ const run = (query: string) => new Promise<BrowserResult>((resolve, reject) => {
     if (settled) return
     const jsonStart = stdout.indexOf('{')
     if (jsonStart < 0) {
-      settle(() => reject(new Error(`渲染差分没有输出 JSON（${query}, close ${code}, signal ${signal ?? 'none'}）：${stderr || stdout}`)))
+      settle(() => reject(new Error(`渲染差分没有输出 JSON（${browserProfile}, ${query}, close ${code}, signal ${signal ?? 'none'}）：${stderr || stdout}`)))
       return
     }
     try {
       const report = JSON.parse(stdout.slice(jsonStart))
       settle(() => resolve(report.results?.[0] ?? { ok: false, failures: ['missing scenario result'] }))
     } catch (error) {
-      settle(() => reject(new Error(`渲染差分 JSON 解析失败：${error instanceof Error ? error.message : String(error)}`)))
+      settle(() => reject(new Error(`渲染差分 JSON 解析失败（${browserProfile}）：${error instanceof Error ? error.message : String(error)}`)))
     }
   })
 })
 
 const main = async () => {
   const results = []
-  for (const mode of modes) {
-    const samples = []
-    for (let index = 0; index < repeats; index += 1) samples.push(await run(mode.query))
-    results.push({
-      mode: mode.id,
-      query: mode.query,
-      repeats,
-      configuration: samples.at(-1)?.renderConfiguration ?? null,
-      profileWindow: samples.at(-1)?.profileWindow ?? null,
-      sample: {
-        ok: samples.every((sample) => sample.ok),
-        browserBaselineAverageFrameMs: median(samples.map((sample) => sample.browserFrameBaseline?.averageFrameMs ?? Number.POSITIVE_INFINITY)),
-        browserBaselineP95FrameMs: median(samples.map((sample) => sample.browserFrameBaseline?.p95FrameMs ?? Number.POSITIVE_INFINITY)),
-        browserBaselineMaxFrameMs: median(samples.map((sample) => sample.browserFrameBaseline?.maxFrameMs ?? Number.POSITIVE_INFINITY)),
-        averageFrameMs: median(samples.map((sample) => sample.frameMetrics?.averageFrameMs ?? Number.POSITIVE_INFINITY)),
-        p95FrameMs: median(samples.map((sample) => sample.frameMetrics?.p95FrameMs ?? Number.POSITIVE_INFINITY)),
-        maxFrameMs: median(samples.map((sample) => sample.frameMetrics?.maxFrameMs ?? Number.POSITIVE_INFINITY)),
-        renderSyncP95Ms: median(samples.map((sample) => sample.renderProfile?.p95?.totalMs ?? Number.POSITIVE_INFINITY)),
-        rendererAverageMs: median(samples.map((sample) => sample.rendererProfile?.averageMs ?? Number.POSITIVE_INFINITY)),
-        rendererP95Ms: median(samples.map((sample) => sample.rendererProfile?.p95Ms ?? Number.POSITIVE_INFINITY)),
-        rendererMaxMs: median(samples.map((sample) => sample.rendererProfile?.maxMs ?? Number.POSITIVE_INFINITY)),
-        tickerCallbackP95Ms: median(samples.map((sample) => sample.tickerProfile?.p95?.callbackMs ?? Number.POSITIVE_INFINITY)),
-        tickerSceneSyncP95Ms: median(samples.map((sample) => sample.tickerProfile?.p95?.sceneSyncMs ?? Number.POSITIVE_INFINITY)),
-        tickerDeltaP95Ms: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerDeltaMs ?? Number.POSITIVE_INFINITY)),
-        tickerElapsedP95Ms: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerElapsedMs ?? Number.POSITIVE_INFINITY)),
-        tickerMinFps: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerMinFps ?? Number.POSITIVE_INFINITY)),
-        tickerMaxFps: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerMaxFps ?? Number.POSITIVE_INFINITY)),
-        tickerCallbackMaxMs: median(samples.map((sample) => sample.tickerProfile?.max?.callbackMs ?? Number.POSITIVE_INFINITY)),
-        tickerElapsedMaxMs: median(samples.map((sample) => sample.tickerProfile?.max?.tickerElapsedMs ?? Number.POSITIVE_INFINITY)),
-        tickerSceneSyncSkippedRatio: median(samples.map((sample) => sample.tickerProfile?.sceneSyncSkipped?.ratio ?? Number.POSITIVE_INFINITY)),
-        appAdvanceP95Ms: median(samples.map((sample) => sample.appProfile?.advance?.p95Ms ?? Number.POSITIVE_INFINITY)),
-        appAdvanceMaxMs: median(samples.map((sample) => sample.appProfile?.advance?.maxMs ?? Number.POSITIVE_INFINITY)),
-        appCommitIntervalP95Ms: median(samples.map((sample) => sample.appProfile?.commitInterval?.p95Ms ?? Number.POSITIVE_INFINITY)),
-        appCommitIntervalMaxMs: median(samples.map((sample) => sample.appProfile?.commitInterval?.maxMs ?? Number.POSITIVE_INFINITY)),
-        appAdvanceEmitSuppressed: samples.some((sample) => sample.appProfile?.advanceEmitSuppressed === true),
-        runtimeEngineAdvanceP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.engineAdvanceMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
-        runtimeSnapshotCloneP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.snapshotCloneMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
-        runtimeTimelineP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.timelineMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
-        runtimeDistrictP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.districtMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
-        runtimeUpgradesP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.upgradesMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
-        runtimeDropsP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.dropsMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
-        runtimeRebuildP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.rebuildMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
-        runtimeCacheEmitP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.cacheEmitMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
-        detailedBuildings: median(samples.map((sample) => sample.renderProfile?.entityRange?.detailedBuildings?.last ?? Number.POSITIVE_INFINITY)),
-        reducedBuildings: median(samples.map((sample) => sample.renderProfile?.entityRange?.reducedBuildings?.last ?? Number.POSITIVE_INFINITY)),
-        readPixels: Math.max(...samples.map((sample) => sample.readPixels?.count ?? Number.POSITIVE_INFINITY)),
-      },
-      rawSamples: samples,
-    })
+  for (const browserProfile of profiles) {
+    for (const mode of modes) {
+      const samples = []
+      for (let index = 0; index < repeats; index += 1) samples.push(await run(mode.query, browserProfile))
+      results.push({
+        profile: browserProfile,
+        mode: mode.id,
+        query: mode.query,
+        repeats,
+        configuration: samples.at(-1)?.renderConfiguration ?? null,
+        profileWindow: samples.at(-1)?.profileWindow ?? null,
+        sample: summarizeSamples(samples),
+        rawSamples: samples,
+      })
+    }
   }
-  console.log(JSON.stringify({ scenario, profile, repeats, results }, null, 2))
+  console.log(JSON.stringify({ scenario, profile: profiles.length === 1 ? profiles[0] : undefined, profiles, repeats, results }, null, 2))
 }
+
+const summarizeSamples = (samples: BrowserResult[]) => ({
+  ok: samples.every((sample) => sample.ok),
+  browserBaselineAverageFrameMs: median(samples.map((sample) => sample.browserFrameBaseline?.averageFrameMs ?? Number.POSITIVE_INFINITY)),
+  browserBaselineP95FrameMs: median(samples.map((sample) => sample.browserFrameBaseline?.p95FrameMs ?? Number.POSITIVE_INFINITY)),
+  browserBaselineMaxFrameMs: median(samples.map((sample) => sample.browserFrameBaseline?.maxFrameMs ?? Number.POSITIVE_INFINITY)),
+  averageFrameMs: median(samples.map((sample) => sample.frameMetrics?.averageFrameMs ?? Number.POSITIVE_INFINITY)),
+  p95FrameMs: median(samples.map((sample) => sample.frameMetrics?.p95FrameMs ?? Number.POSITIVE_INFINITY)),
+  maxFrameMs: median(samples.map((sample) => sample.frameMetrics?.maxFrameMs ?? Number.POSITIVE_INFINITY)),
+  renderSyncP95Ms: median(samples.map((sample) => sample.renderProfile?.p95?.totalMs ?? Number.POSITIVE_INFINITY)),
+  rendererAverageMs: median(samples.map((sample) => sample.rendererProfile?.averageMs ?? Number.POSITIVE_INFINITY)),
+  rendererP95Ms: median(samples.map((sample) => sample.rendererProfile?.p95Ms ?? Number.POSITIVE_INFINITY)),
+  rendererMaxMs: median(samples.map((sample) => sample.rendererProfile?.maxMs ?? Number.POSITIVE_INFINITY)),
+  tickerCallbackP95Ms: median(samples.map((sample) => sample.tickerProfile?.p95?.callbackMs ?? Number.POSITIVE_INFINITY)),
+  tickerSceneSyncP95Ms: median(samples.map((sample) => sample.tickerProfile?.p95?.sceneSyncMs ?? Number.POSITIVE_INFINITY)),
+  tickerDeltaP95Ms: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerDeltaMs ?? Number.POSITIVE_INFINITY)),
+  tickerElapsedP95Ms: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerElapsedMs ?? Number.POSITIVE_INFINITY)),
+  tickerMinFps: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerMinFps ?? Number.POSITIVE_INFINITY)),
+  tickerMaxFps: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerMaxFps ?? Number.POSITIVE_INFINITY)),
+  tickerCallbackMaxMs: median(samples.map((sample) => sample.tickerProfile?.max?.callbackMs ?? Number.POSITIVE_INFINITY)),
+  tickerElapsedMaxMs: median(samples.map((sample) => sample.tickerProfile?.max?.tickerElapsedMs ?? Number.POSITIVE_INFINITY)),
+  tickerSceneSyncSkippedRatio: median(samples.map((sample) => sample.tickerProfile?.sceneSyncSkipped?.ratio ?? Number.POSITIVE_INFINITY)),
+  appAdvanceP95Ms: median(samples.map((sample) => sample.appProfile?.advance?.p95Ms ?? Number.POSITIVE_INFINITY)),
+  appAdvanceMaxMs: median(samples.map((sample) => sample.appProfile?.advance?.maxMs ?? Number.POSITIVE_INFINITY)),
+  appCommitIntervalP95Ms: median(samples.map((sample) => sample.appProfile?.commitInterval?.p95Ms ?? Number.POSITIVE_INFINITY)),
+  appCommitIntervalMaxMs: median(samples.map((sample) => sample.appProfile?.commitInterval?.maxMs ?? Number.POSITIVE_INFINITY)),
+  appAdvanceEmitSuppressed: samples.some((sample) => sample.appProfile?.advanceEmitSuppressed === true),
+  runtimeEngineAdvanceP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.engineAdvanceMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
+  runtimeSnapshotCloneP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.snapshotCloneMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
+  runtimeTimelineP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.timelineMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
+  runtimeDistrictP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.districtMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
+  runtimeUpgradesP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.upgradesMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
+  runtimeDropsP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.dropsMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
+  runtimeRebuildP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.rebuildMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
+  runtimeCacheEmitP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.cacheEmitMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
+  detailedBuildings: median(samples.map((sample) => sample.renderProfile?.entityRange?.detailedBuildings?.last ?? Number.POSITIVE_INFINITY)),
+  reducedBuildings: median(samples.map((sample) => sample.renderProfile?.entityRange?.reducedBuildings?.last ?? Number.POSITIVE_INFINITY)),
+  readPixels: Math.max(...samples.map((sample) => sample.readPixels?.count ?? Number.POSITIVE_INFINITY)),
+})
 
 main().catch((error) => {
   console.error(error instanceof Error ? error.stack : error)

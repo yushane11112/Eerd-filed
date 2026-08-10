@@ -2,6 +2,17 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百二十一轮 Ticker maxFPS 多环境矩阵
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `tools/qa/run-render-ablation.ts` | 渲染差分工具 | 新增 `RENDER_ABLATION_PROFILES` 多环境矩阵执行，并在结果中记录具体浏览器 profile |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录三环境矩阵数据和 30FPS 上限不能转生产默认的结论 |
+| `docs/project/integration-log.md` | 集成记录 | 记录本轮矩阵验证、客观限制和下一步方向 |
+| `docs/project/qa.md` | QA 记录 | 记录目标规模三环境 `full` / `ticker-max-fps-30` 浏览器验证 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `RENDER-TICKER-MAXFPS-MATRIX-01` 已完成并排除默认化 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新最近完成与下一轮默认方向，避免后续误把 30FPS 上限当作主线 |
+
 ## 2026-08-10：第二百二十轮 Ticker maxFPS 诊断对照
 
 | 文件 | 产物类型 | 用途 |

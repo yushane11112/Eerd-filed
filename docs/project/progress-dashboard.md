@@ -8,6 +8,13 @@
 
 当前判断：
 
+### 第二百二十一轮产出（2026-08-10）
+
+- `qa:render-ablation` 新增多环境矩阵能力：`RENDER_ABLATION_PROFILES=desktop-gpu,software-renderer,embedded-container` 可在同一命令内顺序跑多个浏览器代理环境，每条结果带 `profile` 字段。
+- 完成目标规模三环境 `full` / `ticker-max-fps-30` 单次矩阵，所有场景功能门禁通过，300 栋/135 居民/15 运输保持，readPixels=0。
+- 桌面 GPU：`full` rAF 279.15/300/300ms，`ticker-max-fps-30` 为 213.32/249.9/249.9ms；软件渲染：254.13/283.3/283.3ms vs 243.32/283.3/283.3ms；嵌入容器：236.64/266.7/266.7ms vs 274.97/300/300ms。
+- 结论：30FPS ticker 上限不是稳定跨环境优化；它在桌面 GPU 单次有改善，在软件渲染基本持平，在嵌入容器变差，因此不能作为生产默认。下一步应继续拆 WebGL GPU stall、浏览器帧调度和可能的主线程阻塞来源。
+
 ### 第二百二十轮产出（2026-08-10）
 
 - 新增 Pixi ticker maxFPS 诊断参数：`tickerMaxFps=<number>` 可在 QA URL 中设置 `app.ticker.maxFPS`，生产默认保持 Pixi 原行为，不把 30FPS 上限直接落入正式路径。

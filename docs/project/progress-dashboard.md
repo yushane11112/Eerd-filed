@@ -8,6 +8,14 @@
 
 当前判断：
 
+### 第二百三十轮产出（2026-08-10）
+
+- 新增 atlas 加载 breakdown：`loadDefaultBuildingArtworkAtlasProvider` 记录 manifest、blocking atlas load、deferred dispatch、entry 数和 texture 数，并写入浏览器 `loadProfile`、`qa:render-ablation` 与性能基线聚合。
+- 将 runtime artwork atlas manifest 嵌入源码包：生产加载优先使用 `src/rendering/artwork/runtime-artwork-atlas-manifest.json`，不再在首帧 artwork 阶段等待 `/assets/.../runtime-artwork-atlas-manifest.json` fetch；公共 manifest 仍保留给资产审计。
+- 更新 atlas 生成脚本：`asset:runtime-artwork:atlas` 重新生成 public manifest 时会同步更新源码嵌入 manifest，避免两份 manifest 漂移。
+- 目标规模 `desktop-gpu/full` 三次重复样本全部功能通过，300 栋、96 detailed / 204 reduced 保持；中位 `artworkAtlasManifestMs=0ms`、`artworkAtlasBlockingLoadMs≈528.9ms`、`artworkAtlasDeferredDispatchMs≈0.3ms`、`artworkProviderMs≈529.5ms`。
+- 结论：本轮已把 manifest fetch 从首帧阻塞中移除，并把 artwork 阶段大头定位到 3 张 blocking atlas 的加载/解码；`pageLoadStall=2` 仍存在，下一轮应继续处理 blocking atlas 解码/cache/预热，而不是再猜 manifest 或 ticker。
+
 ### 第二百二十九轮产出（2026-08-10）
 
 - 新增首帧关键 artwork 预载计划：`createInitialBuildingArtworkPreloadPlan` 会根据首屏相机和建筑 LOD 预算，只让最近 detailed 建筑需要的前 3 类 authored atlas 阻塞首帧，其余 assetId 进入后台补载。

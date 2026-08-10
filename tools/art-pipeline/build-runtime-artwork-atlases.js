@@ -6,6 +6,7 @@ import { chromium } from 'playwright'
 
 const sourceRoot = resolve(process.env.ATLAS_SOURCE ?? 'public/assets/buildings-runtime-384')
 const outputRoot = resolve(process.env.ATLAS_OUT ?? 'public/assets/buildings-runtime-atlas-webp')
+const embeddedManifestPath = resolve(process.env.ATLAS_EMBEDDED_MANIFEST ?? 'src/rendering/artwork/runtime-artwork-atlas-manifest.json')
 const tileSize = Number.parseInt(process.env.ATLAS_TILE_SIZE ?? '384', 10)
 const format = process.env.ATLAS_FORMAT === 'png' ? 'png' : 'webp'
 const quality = Math.min(1, Math.max(0.5, Number.parseFloat(process.env.ATLAS_QUALITY ?? '0.9')))
@@ -69,7 +70,7 @@ try {
   await browser.close()
 }
 
-writeFileSync(join(outputRoot, 'runtime-artwork-atlas-manifest.json'), `${JSON.stringify({
+const manifest = {
   schemaVersion: 'runtime-artwork-atlas.v1',
   generatedBy: 'tools/art-pipeline/build-runtime-artwork-atlases.js',
   sourceRoot: 'public/assets/buildings-runtime-384',
@@ -82,5 +83,8 @@ writeFileSync(join(outputRoot, 'runtime-artwork-atlas-manifest.json'), `${JSON.s
   format,
   quality,
   entries,
-}, null, 2)}\n`)
+}
+const manifestJson = `${JSON.stringify(manifest, null, 2)}\n`
+writeFileSync(join(outputRoot, 'runtime-artwork-atlas-manifest.json'), manifestJson)
+if (process.env.ATLAS_EMBEDDED_MANIFEST !== '0') writeFileSync(embeddedManifestPath, manifestJson)
 console.log(`Runtime artwork atlases: ${entries.length} files, ${entries.length * 9} frames -> ${outputRoot}`)

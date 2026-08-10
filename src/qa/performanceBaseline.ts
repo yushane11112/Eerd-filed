@@ -101,6 +101,19 @@ export interface PerformanceSample {
     appInitMs?: number
     animationAtlasMs?: number
     artworkProviderMs?: number
+    artworkPreloadAssetCount?: number
+    artworkDeferredAssetCount?: number
+    artworkPreloadLevelCount?: number
+    artworkPreloadVisibleBuildings?: number
+    artworkPreloadDetailedBuildings?: number
+    artworkTotalAssetCount?: number
+    artworkAtlasManifestMs?: number
+    artworkAtlasBlockingLoadMs?: number
+    artworkAtlasDeferredDispatchMs?: number
+    artworkAtlasBlockingEntryCount?: number
+    artworkAtlasDeferredEntryCount?: number
+    artworkAtlasBlockingTextureCount?: number
+    artworkAtlasDeferredTextureCount?: number
     sceneSetupMs?: number
     terrainMs?: number
     firstSyncMs?: number
@@ -266,7 +279,7 @@ function aggregateLoadProfile(
   median: (values: number[]) => number,
 ): PerformanceSample['loadProfile'] {
   if (!samples.some((sample) => sample.loadProfile)) return undefined
-  const fields: LoadProfileField[] = ['appInitMs', 'animationAtlasMs', 'artworkProviderMs', 'sceneSetupMs', 'terrainMs', 'firstSyncMs', 'firstSyncDelayMs', 'totalMs']
+  const fields: LoadProfileField[] = ['appInitMs', 'animationAtlasMs', 'artworkProviderMs', 'artworkPreloadAssetCount', 'artworkDeferredAssetCount', 'artworkPreloadLevelCount', 'artworkPreloadVisibleBuildings', 'artworkPreloadDetailedBuildings', 'artworkTotalAssetCount', 'artworkAtlasManifestMs', 'artworkAtlasBlockingLoadMs', 'artworkAtlasDeferredDispatchMs', 'artworkAtlasBlockingEntryCount', 'artworkAtlasDeferredEntryCount', 'artworkAtlasBlockingTextureCount', 'artworkAtlasDeferredTextureCount', 'sceneSetupMs', 'terrainMs', 'firstSyncMs', 'firstSyncDelayMs', 'totalMs']
   return Object.fromEntries(fields
     .map((field) => [field, median(samples.map((sample) => sample.loadProfile?.[field] ?? Number.POSITIVE_INFINITY))] as const)
     .filter(([, value]) => Number.isFinite(value)))

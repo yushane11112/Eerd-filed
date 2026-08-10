@@ -1,5 +1,18 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百三十轮验证
+
+- 验证等级：Tier 3，atlas provider、manifest 来源、渲染差分汇总、性能基线聚合和目标规模浏览器证据均有变更。
+- 定向测试：`npm test -- src/rendering/artwork/buildingArtwork.test.ts src/qa/performanceBaseline.test.ts src/rendering/artwork/artworkPreloadPlan.test.ts` 通过，3 个测试文件、15 项测试。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码。
+- 生产构建：`npm run build` 通过，Vite 构建 2367 个模块；提交前最终构建同样通过。现有大 chunk warning 仍存在；主包增加嵌入 manifest 体积，属于本轮有意成本。
+- 目标规模 atlas breakdown 单样本：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_PROFILES=desktop-gpu RENDER_ABLATION_MODES=full RENDER_ABLATION_REPEATS=1 RENDER_ABLATION_TIMEOUT_MS=120000 npm run qa:render-ablation` 通过。
+- 单样本结果：`artworkAtlasManifestMs≈0.1ms`、`artworkAtlasBlockingLoadMs≈587.1ms`、`artworkAtlasDeferredDispatchMs≈0.3ms`、`artworkProviderMs≈587.9ms`、`pageLoadStall=2`。
+- 目标规模三次重复样本：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_PROFILES=desktop-gpu RENDER_ABLATION_MODES=full RENDER_ABLATION_REPEATS=3 RENDER_ABLATION_TIMEOUT_MS=120000 npm run qa:render-ablation` 通过。
+- 三次重复中位结果：`artworkAtlasManifestMs=0ms`、`artworkAtlasBlockingLoadMs≈528.9ms`、`artworkAtlasDeferredDispatchMs≈0.3ms`、`artworkAtlasBlockingEntryCount=3`、`artworkAtlasDeferredEntryCount=2`、`artworkAtlasBlockingTextureCount=24`、`artworkAtlasDeferredTextureCount=16`、`artworkProviderMs≈529.5ms`。
+- 性能边界：rAF P95 中位约 `283.3ms`，`gpuStall=2` 且 `pageLoadStall=2`。本轮证明 manifest fetch 已被移出首帧阻塞，但还不能宣称加载完成；下一轮应继续处理 blocking atlas 解码/cache。
+- 完整测试：`npm test` 通过，60 个测试文件、372 项测试，耗时约 133 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百二十九轮验证
 
 - 验证等级：Tier 3，画布 artwork 首帧预载策略、atlas provider 加载路径、reduced 建筑 artwork 行为、渲染差分汇总和目标规模浏览器证据均有变更。

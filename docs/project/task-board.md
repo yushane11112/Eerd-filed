@@ -2,6 +2,7 @@
 
 | ID | 会话职责 | 写入范围 | 状态 | 集成条件 |
 | --- | --- | --- | --- | --- |
+| RENDER-ATLAS-MANIFEST-EMBED-01 | 嵌入 atlas manifest 与加载 breakdown | `src/rendering/artwork/**`, `src/components/SimulationCanvas.tsx`, `src/qa/**`, `tools/**`, `docs/project/**` | 已完成（manifest 阻塞移除） | 目标规模三次样本 manifest 中位 0ms，blocking atlas load 成为下一轮大头 |
 | RENDER-CRITICAL-ARTWORK-PRELOAD-01 | 首帧关键 artwork 预载 | `src/rendering/artwork/**`, `src/components/SimulationCanvas.tsx`, `src/rendering/visuals.ts`, `tools/qa/run-render-ablation.ts`, `docs/project/**` | 已完成（阻塞范围收窄） | 目标规模三次样本 blocking 3 类、deferred 2 类；耗时未稳定下降，下一轮继续追 atlas 解码 |
 | CANVAS-LOADING-PHASE-GATE-01 | 画布加载体验与阶段门禁 | `src/components/SimulationCanvas.tsx`, `src/ui/loadingProgress.ts`, `tools/qa/run-render-ablation.ts`, `docs/project/**` | 已完成 | 玩家可见加载阶段，QA 报告输出 `phaseEvents`，目标规模样本到达 `ready` |
 | RENDER-FIRST-SUBMIT-ABLATION-01 | 首帧/ticker 提交对照 | `src/rendering/renderDiagnostics.ts`, `src/components/SimulationCanvas.tsx`, `tools/qa/run-render-ablation.ts`, `src/qa/**`, `docs/project/**` | 已完成（排除根因） | manual ticker 与 defer initial sync 均不降低 `pageLoadStall=2`，生产默认不改 |

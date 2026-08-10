@@ -71,6 +71,13 @@ interface BrowserLoadPhaseProfile {
   artworkPreloadVisibleBuildings?: number
   artworkPreloadDetailedBuildings?: number
   artworkTotalAssetCount?: number
+  artworkAtlasManifestMs?: number
+  artworkAtlasBlockingLoadMs?: number
+  artworkAtlasDeferredDispatchMs?: number
+  artworkAtlasBlockingEntryCount?: number
+  artworkAtlasDeferredEntryCount?: number
+  artworkAtlasBlockingTextureCount?: number
+  artworkAtlasDeferredTextureCount?: number
   sceneSetupMs?: number
   terrainMs?: number
   firstSyncMs?: number
@@ -231,6 +238,17 @@ export function SimulationCanvas({
             maxTextures: 512,
             preloadLevels: initialArtworkPlan.levels,
             deferredAssetIds: initialArtworkPlan.deferredAssetIds,
+            onAtlasLoadProfile: loadProfile
+              ? (profile) => {
+                  loadProfile.artworkAtlasManifestMs = profile.manifestMs
+                  loadProfile.artworkAtlasBlockingLoadMs = profile.blockingLoadMs
+                  loadProfile.artworkAtlasDeferredDispatchMs = profile.deferredDispatchMs
+                  loadProfile.artworkAtlasBlockingEntryCount = profile.blockingEntryCount
+                  loadProfile.artworkAtlasDeferredEntryCount = profile.deferredEntryCount
+                  loadProfile.artworkAtlasBlockingTextureCount = profile.blockingTextureCount
+                  loadProfile.artworkAtlasDeferredTextureCount = profile.deferredTextureCount
+                }
+              : undefined,
           })
           if (loadProfile) {
             loadProfile.artworkProviderMs = performance.now() - artworkStartedAt

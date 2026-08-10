@@ -92,6 +92,13 @@ interface BrowserResult {
     artworkPreloadVisibleBuildings?: number
     artworkPreloadDetailedBuildings?: number
     artworkTotalAssetCount?: number
+    artworkAtlasManifestMs?: number
+    artworkAtlasBlockingLoadMs?: number
+    artworkAtlasDeferredDispatchMs?: number
+    artworkAtlasBlockingEntryCount?: number
+    artworkAtlasDeferredEntryCount?: number
+    artworkAtlasBlockingTextureCount?: number
+    artworkAtlasDeferredTextureCount?: number
     sceneSetupMs?: number
     terrainMs?: number
     firstSyncMs?: number
@@ -281,7 +288,7 @@ const summarizeGraphicsContext = (samples: BrowserResult[]) => {
 }
 
 const summarizeLoadProfile = (samples: BrowserResult[]) => {
-  const fields = ['appInitMs', 'animationAtlasMs', 'artworkProviderMs', 'artworkPreloadAssetCount', 'artworkDeferredAssetCount', 'artworkPreloadLevelCount', 'artworkPreloadVisibleBuildings', 'artworkPreloadDetailedBuildings', 'artworkTotalAssetCount', 'sceneSetupMs', 'terrainMs', 'firstSyncMs', 'firstSyncDelayMs', 'totalMs'] as const
+  const fields = ['appInitMs', 'animationAtlasMs', 'artworkProviderMs', 'artworkPreloadAssetCount', 'artworkDeferredAssetCount', 'artworkPreloadLevelCount', 'artworkPreloadVisibleBuildings', 'artworkPreloadDetailedBuildings', 'artworkTotalAssetCount', 'artworkAtlasManifestMs', 'artworkAtlasBlockingLoadMs', 'artworkAtlasDeferredDispatchMs', 'artworkAtlasBlockingEntryCount', 'artworkAtlasDeferredEntryCount', 'artworkAtlasBlockingTextureCount', 'artworkAtlasDeferredTextureCount', 'sceneSetupMs', 'terrainMs', 'firstSyncMs', 'firstSyncDelayMs', 'totalMs'] as const
   if (!samples.some((sample) => sample.loadProfile)) return null
   const latestProfile = samples.findLast((sample) => sample.loadProfile)?.loadProfile
   return {

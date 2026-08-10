@@ -1,5 +1,13 @@
 # 集成记录
 
+## 2026-08-10 第二百三十轮：嵌入 atlas manifest 与加载 breakdown
+
+- 启动并完成 `RENDER-ATLAS-MANIFEST-EMBED-01`：runtime artwork atlas manifest 进入源码包，首帧 artwork 阶段不再等待 public JSON fetch。
+- `loadDefaultBuildingArtworkAtlasProvider` 新增 atlas load profile：记录 manifest、blocking load、deferred dispatch、blocking/deferred entry 和 texture 数。
+- `SimulationCanvas`、`run-render-ablation` 和 `performanceBaseline` 接入新 breakdown 字段，目标规模样本可直接解释 `artworkProviderMs` 构成。
+- `tools/art-pipeline/build-runtime-artwork-atlases.js` 同步写 public manifest 与源码嵌入 manifest，保持资产管线单一生成来源。
+- 目标规模三次重复样本显示 `artworkAtlasManifestMs=0ms`、`artworkAtlasBlockingLoadMs≈528.9ms`，下一轮性能切口应转向 blocking atlas 解码/cache，而不是 manifest fetch。
+
 ## 2026-08-10 第二百二十九轮：首帧关键 artwork 预载
 
 - 启动并完成 `RENDER-CRITICAL-ARTWORK-PRELOAD-01`：新增首屏 artwork 预载计划，按当前相机、可见建筑和 detailed 预算生成 blocking/deferred assetId。

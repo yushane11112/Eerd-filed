@@ -1,4 +1,5 @@
 import { Assets, Rectangle, Sprite, Texture } from 'pixi.js'
+import embeddedArtworkAtlasManifest from './runtime-artwork-atlas-manifest.json'
 
 export const BUILDING_ARTWORK_LEVELS = 9
 export const BUILDING_ARTWORK_RUNTIME_ROOT = '/assets/buildings-runtime-384'
@@ -20,6 +21,17 @@ export interface BuildingArtworkPreloadOptions {
   atlas?: boolean
   /** Asset ids that can be filled after the first rendered frame is unblocked. */
   deferredAssetIds?: readonly string[]
+  onAtlasLoadProfile?: (profile: BuildingArtworkAtlasLoadProfile) => void
+}
+
+export interface BuildingArtworkAtlasLoadProfile {
+  manifestMs: number
+  blockingLoadMs: number
+  deferredDispatchMs: number
+  blockingEntryCount: number
+  deferredEntryCount: number
+  blockingTextureCount: number
+  deferredTextureCount: number
 }
 
 export interface BuildingArtworkAtlasFrame { x: number; y: number; w: number; h: number }
@@ -113,10 +125,10 @@ export async function loadDefaultBuildingArtworkAtlasProvider(
   assetIds: readonly string[],
   options: BuildingArtworkPreloadOptions = {},
 ): Promise<BuildingArtworkProvider> {
-  const manifest = await loadWithGuard(fetch(BUILDING_ARTWORK_ATLAS_MANIFEST).then(async (response) => {
-    if (!response.ok) throw new Error(`Building artwork atlas manifest returned ${response.status}.`)
-    return response.json() as Promise<BuildingArtworkAtlasManifest>
-  }), options)
+  const manifestStartedAt = performance.now()
+  if (options.signal?.aborted) throw createAbortError('Building artwork preload was cancelled.')
+  const manifest = embeddedArtworkAtlasManifest as BuildingArtworkAtlasManifest
+  const manifestMs = performance.now() - manifestStartedAt
   if (manifest.schemaVersion !== 'runtime-artwork-atlas.v1') throw new Error('Unsupported building artwork atlas manifest.')
   const wanted = new Set([...assetIds, ...(options.deferredAssetIds ?? [])])
   const entries = manifest.entries.filter((entry) => wanted.has(entry.assetId))
@@ -126,13 +138,27 @@ export async function loadDefaultBuildingArtworkAtlasProvider(
     : Array.from({ length: BUILDING_ARTWORK_LEVELS }, (_, level) => level)
   const blockingEntries = entries.filter((entry) => assetIds.includes(entry.assetId))
   const deferredEntries = entries.filter((entry) => !assetIds.includes(entry.assetId))
-  await loadAtlasEntriesIntoTextures(blockingEntries, textures, levels, options)
+  const blockingStartedAt = performance.now()
+  const blockingTextureCount = await loadAtlasEntriesIntoTextures(blockingEntries, textures, levels, options)
+  const blockingLoadMs = performance.now() - blockingStartedAt
+  let deferredDispatchMs = 0
   if (deferredEntries.length > 0) {
+    const deferredStartedAt = performance.now()
     void loadAtlasEntriesIntoTextures(deferredEntries, textures, levels, options).catch((error) => {
       if (options.signal?.aborted) return
       console.warn('Deferred building artwork atlas preload failed.', error)
     })
+    deferredDispatchMs = performance.now() - deferredStartedAt
   }
+  options.onAtlasLoadProfile?.({
+    manifestMs,
+    blockingLoadMs,
+    deferredDispatchMs,
+    blockingEntryCount: blockingEntries.length,
+    deferredEntryCount: deferredEntries.length,
+    blockingTextureCount,
+    deferredTextureCount: deferredEntries.length * levels.length,
+  })
   return createBuildingArtworkAtlasProvider(textures)
 }
 
@@ -141,9 +167,10 @@ async function loadAtlasEntriesIntoTextures(
   textures: Map<string, Texture>,
   levels: readonly number[],
   options: BuildingArtworkPreloadOptions,
-): Promise<void> {
-  if (entries.length === 0) return
+): Promise<number> {
+  if (entries.length === 0) return 0
   const loaded = await loadWithGuard(Assets.load<Texture>(entries.map((entry) => entry.url), { strategy: 'throw' }), options)
+  let textureCount = 0
   for (const entry of entries) {
     const atlas = loaded[entry.url]
     if (!atlas) continue
@@ -154,8 +181,10 @@ async function loadAtlasEntriesIntoTextures(
         source: atlas.source,
         frame: new Rectangle(frame.x, frame.y, frame.w, frame.h),
       }))
+      textureCount += 1
     }
   }
+  return textureCount
 }
 
 export function resolveBuildingArtworkPath(assetId: string, level: number): string {

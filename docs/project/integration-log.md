@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百零七轮：稳态渲染采样窗口
+
+- 启动并完成 `RENDER-STEADY-PROFILE-WINDOW-01`：浏览器 runner 在页面和场景断言稳定后重置 render/renderer profile 数组，再采集帧时间、render sync 和 renderer 数据。
+- `run-render-ablation` 输出 `profileWindow`，明确当前差分样本来自 `steady-state-after-assertions`，避免把启动期纹理上传、首次 atlas 解码和运行期渲染混为一个指标。
+- 目标规模稳态对照显示：`full` renderer P95 19.2ms，`no-building-lod` renderer P95 22.5ms；二者 render sync P95 均约 13ms，说明初始化长尾被剥离后 renderer 本体不像上一轮样本那样出现 300ms 级最大值。
+- 客观限制：rAF 仍在 160-260ms 级别，且 WebGL GPU stall warning 仍存在；本轮完成的是“更可信的采样边界”，不是商业帧率通过。
+
 ## 2026-08-10 第二百零六轮：LOD 对照矩阵与 reduced 更新收敛
 
 - 启动并完成 `RENDER-BUILDING-LOD-ABLATION-01`：`qa:render-ablation` 新增 `no-building-lod` 模式，可直接复跑 `full` 与关闭建筑 LOD 的目标规模对照。

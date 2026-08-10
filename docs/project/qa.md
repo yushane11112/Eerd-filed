@@ -1,5 +1,16 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百零七轮验证
+
+- 验证等级：Tier 3，浏览器性能采样边界和渲染差分报告结构有变更。
+- 定向测试：`npm test -- src/qa/browserE2eScenarios.test.ts src/rendering/DynamicScene.test.ts src/rendering/renderDiagnostics.test.ts` 通过，3 个测试文件、23 项测试。
+- 完整测试：`npm test` 通过，57 个测试文件、358 项测试。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码。
+- 生产构建：`npm run build` 通过，Vite 构建 2363 个模块。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 稳态目标规模对照：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_MODES=full,no-building-lod RENDER_ABLATION_REPEATS=1 npm run qa:render-ablation` 通过，输出 `profileWindow: steady-state-after-assertions`。
+- 稳态样本：`full` 为 96 detailed / 204 reduced，render sync P95 13.2ms，renderer 6.211/19.2/19.2ms，rAF 175.02/216.8/216.8ms；`no-building-lod` 为 300 detailed / 0 reduced，render sync P95 13.1ms，renderer 6.05/22.5/22.5ms，rAF 164.27/266.6/266.6ms。
+- 两个模式应用层 `readPixels=0`，无 console error；浏览器仍出现 WebGL GPU stall warning。结论：稳态 renderer 长尾已可与初始化长尾分离，但商业帧率门禁继续 RED。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百零六轮验证
 
 - 验证等级：Tier 3，浏览器 E2E 契约、渲染差分工具和 reduced 建筑更新路径均有变更。

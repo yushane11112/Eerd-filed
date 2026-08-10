@@ -8,6 +8,14 @@
 
 当前判断：
 
+### 第二百零七轮产出（2026-08-10）
+
+- 浏览器 E2E runner 改为稳态采样：页面导航、关键文案断言和场景初始化完成后，先清空 `__littleEarRenderProfiles` / `__littleEarRendererProfiles`，再采集 1 秒帧时间与 renderer/render sync 样本。
+- `qa:render-ablation` 汇总新增 `profileWindow: steady-state-after-assertions`，后续报告能明确区分启动期纹理上传/初始化长尾和运行期稳态样本，不再把两类数据混在一起判断。
+- 目标规模桌面 GPU 稳态对照：`full` 仍为 96 detailed / 204 reduced，render sync P95 13.2ms，renderer 平均/P95/最大 6.211/19.2/19.2ms；`no-building-lod` 为 300 detailed / 0 reduced，render sync P95 13.1ms，renderer 6.05/22.5/22.5ms。
+- 同次 rAF 仍明显 RED：`full` 平均/P95/最大 175.02/216.8/216.8ms，`no-building-lod` 为 164.27/266.6/266.6ms；应用层 `readPixels=0`，但浏览器仍出现 WebGL GPU stall warning。
+- 结论：稳态 renderer/render sync 已能与启动期长尾分离，当前主要矛盾从“单纯 renderer.render 过慢”转向浏览器帧调度、主线程其它工作、ticker 节奏和外部 GPU/driver stall 的组合诊断。下一轮应把采样扩展到 ticker/sync/React 外围耗时或加入更细的主线程阶段计时。
+
 ### 第二百零六轮产出（2026-08-10）
 
 - 已把目标规模 LOD 从“单次生效样本”推进为可复跑的差分矩阵：`qa:render-ablation` 新增 `no-building-lod` 模式，目标规模场景可在同一工具里对比 `full` 与 `renderProfile=1&disableBuildingLod=1`。

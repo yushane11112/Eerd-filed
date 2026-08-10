@@ -219,6 +219,7 @@ async function runScenario(browser, scenario) {
       }
     }
 
+    await resetRenderProfileSamples(page)
     const frameMetrics = await sampleFrameMetrics(page)
     const renderProfile = await page.evaluate(() => {
       const profiles = window.__littleEarRenderProfiles ?? []
@@ -316,6 +317,7 @@ async function runScenario(browser, scenario) {
       frameMetrics,
       renderProfile,
       rendererProfile,
+      profileWindow: 'steady-state-after-assertions',
       renderConfiguration,
       readPixels: await page.evaluate(() => window.__littleEarReadPixels ?? { count: 0, samples: [] }),
       interaction: scenario.interaction || null,
@@ -325,6 +327,13 @@ async function runScenario(browser, scenario) {
   } finally {
     await page.close()
   }
+}
+
+async function resetRenderProfileSamples(page) {
+  await page.evaluate(() => {
+    if (Array.isArray(window.__littleEarRenderProfiles)) window.__littleEarRenderProfiles.length = 0
+    if (Array.isArray(window.__littleEarRendererProfiles)) window.__littleEarRendererProfiles.length = 0
+  })
 }
 
 function renderConfigurationMatches(configuration, expected) {

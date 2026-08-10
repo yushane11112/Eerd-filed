@@ -22,6 +22,7 @@ const timeoutMs = Number.parseInt(process.env.RENDER_ABLATION_TIMEOUT_MS ?? '900
 
 interface BrowserResult {
   ok: boolean
+  profileWindow?: string
   frameMetrics?: { averageFrameMs?: number; p95FrameMs?: number; maxFrameMs?: number }
   renderProfile?: {
     p95?: { totalMs?: number }
@@ -115,6 +116,7 @@ const main = async () => {
       query: mode.query,
       repeats,
       configuration: samples.at(-1)?.renderConfiguration ?? null,
+      profileWindow: samples.at(-1)?.profileWindow ?? null,
       sample: {
         ok: samples.every((sample) => sample.ok),
         averageFrameMs: median(samples.map((sample) => sample.frameMetrics?.averageFrameMs ?? Number.POSITIVE_INFINITY)),

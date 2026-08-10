@@ -8,6 +8,14 @@
 
 当前判断：
 
+### 第二百零八轮产出（2026-08-10）
+
+- 浏览器性能报告新增 `tickerProfile`：采集 Pixi ticker callback、camera、scene sync、`ticker.deltaMS` 和 `ticker.elapsedMS` 的平均/P95/最大值，并随 `qa:render-ablation` 汇总输出。
+- `SimulationCanvas` 在 renderProfile 模式下记录 ticker 阶段耗时，浏览器 runner 的稳态窗口会同步重置 render、renderer 和 ticker 三组样本，避免启动期数据污染。
+- 目标规模桌面 GPU 稳态对照：`full` 为 96 detailed / 204 reduced，render sync P95 10.9ms，renderer P95 17.4ms，ticker callback/sceneSync P95 10.9ms，但 ticker elapsed P95/最大 200/200ms、rAF 157.14/200/200ms。
+- `no-building-lod` 为 300 detailed / 0 reduced，render sync P95 11.6ms，renderer P95 23.6ms，ticker callback/sceneSync P95 11.7/11.6ms，但 ticker elapsed P95/最大 183.3/183.3ms、rAF 161.9/183.3/183.3ms。
+- 结论：本轮把“scene sync 慢”与“浏览器帧调度慢”拆开了。当前目标规模红灯主要不在 `DynamicScene.sync` callback 本身，而在 Pixi/browser 帧调度、GPU stall 或运行环境调度层；下一步应加入环境对照、ticker 设置审计和外部 stall 证据，而不是继续盲目削建筑 update。
+
 ### 第二百零七轮产出（2026-08-10）
 
 - 浏览器 E2E runner 改为稳态采样：页面导航、关键文案断言和场景初始化完成后，先清空 `__littleEarRenderProfiles` / `__littleEarRendererProfiles`，再采集 1 秒帧时间与 renderer/render sync 样本。

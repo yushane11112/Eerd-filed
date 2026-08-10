@@ -16,6 +16,7 @@ import type {
   BuildingAnimationAtlasManifest,
   BuildingAnimationDriverOptions,
   SceneSyncPerformanceProfile,
+  SceneTickerPerformanceProfile,
 } from '../rendering'
 import { roadVisualStyle } from '../rendering/roads'
 import type { CameraState, GridPoint, SimulationSnapshot } from '../simulation/contracts'
@@ -119,6 +120,7 @@ export function SimulationCanvas({
     let disposed = false
     const app = new Application()
     let scene: DynamicScene | null = null
+    let tickerProfiles: SceneTickerPerformanceProfile[] | undefined
     const artworkAbortController = new AbortController()
     const terrain = new Graphics()
     const renderConfig = parseRenderDiagnostics(window.location.search)
@@ -182,6 +184,9 @@ export function SimulationCanvas({
       const renderProfiles = renderProfileEnabled
         ? ((window as Window & { __littleEarRenderProfiles?: SceneSyncPerformanceProfile[] }).__littleEarRenderProfiles ??= [])
         : undefined
+      tickerProfiles = renderProfileEnabled
+        ? ((window as Window & { __littleEarTickerProfiles?: SceneTickerPerformanceProfile[] }).__littleEarTickerProfiles ??= [])
+        : undefined
       if (renderProfileEnabled) {
         const rendererProfiles = ((window as Window & { __littleEarRendererProfiles?: number[] }).__littleEarRendererProfiles ??= [])
         const originalRender = app.renderer.render.bind(app.renderer)
@@ -220,9 +225,23 @@ export function SimulationCanvas({
 
     const syncScene = () => {
       if (!app.ticker || !scene) return
+      const callbackStartedAt = performance.now()
+      const cameraStartedAt = callbackStartedAt
       const camera = cameraRef.current.getState()
+      const cameraMs = performance.now() - cameraStartedAt
       scene.root.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2)
+      const sceneStartedAt = performance.now()
       scene.sync(snapshotRef.current, camera, app.ticker.deltaMS / 200)
+      const sceneSyncMs = performance.now() - sceneStartedAt
+      if (tickerProfiles && tickerProfiles.length < 120) {
+        tickerProfiles.push({
+          callbackMs: performance.now() - callbackStartedAt,
+          cameraMs,
+          sceneSyncMs,
+          tickerDeltaMs: app.ticker.deltaMS,
+          tickerElapsedMs: app.ticker.elapsedMS,
+        })
+      }
     }
 
     void initialise()

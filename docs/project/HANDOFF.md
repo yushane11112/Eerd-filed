@@ -24,9 +24,9 @@ codex/commercial-launch-plan-docs
 
 真实游戏持续预览：`https://little-ear-island-game-preview.netlify.app`。该地址直接运行本仓库的 Vite/Pixi 游戏构建，并已绑定 GitHub 自动部署；推送当前开发分支后会自动更新。不要把该需求重新解释成独立宣传落地页。
 
-最近完成：第二百零七轮已把浏览器性能采样切到稳态窗口：页面断言稳定后重置 render/renderer profile，再采集 1 秒数据。目标规模稳态样本显示 render sync P95 约 13ms、renderer P95 约 19-22ms，但 rAF 仍在 160ms 以上，商业性能门禁继续 RED。
+最近完成：第二百零八轮已补 Pixi ticker 阶段计时。目标规模稳态样本显示 `DynamicScene.sync` / ticker callback P95 约 11ms、renderer P95 约 17-24ms，但 ticker elapsed 与 rAF 仍在 180-200ms 级别，商业性能门禁继续 RED。
 
-下一轮默认任务：继续做目标规模渲染专项，优先补主线程阶段计时和 ticker/sync/React 外围耗时诊断，解释为什么 renderer 稳态 P95 已接近 20ms 但 rAF 仍严重超预算。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
+下一轮默认任务：继续做目标规模渲染专项，优先做环境对照、Pixi ticker 设置审计、GPU stall 复现隔离和浏览器调度证据；当前不要继续盲目削建筑 update。不要把“能跑 300 栋”或“LOD 已生效”误判为商业级流畅；每轮仍必须保留测试、构建、QA 记录、文档更新、提交并推送。
 
 如果另一台电脑路径不同，不影响项目，只要 clone 同一个 GitHub 仓库并 checkout 同一个分支即可。
 

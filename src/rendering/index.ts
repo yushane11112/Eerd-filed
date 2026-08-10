@@ -94,6 +94,7 @@ export type {
   SceneLayerName,
   SceneSyncPerformanceProfile,
   SceneSyncStats,
+  SceneTickerPerformanceProfile,
   ScreenPoint,
   ScreenRect,
 } from './types'

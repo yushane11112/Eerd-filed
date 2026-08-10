@@ -29,6 +29,20 @@ interface BrowserResult {
     entityRange?: Record<string, { last?: number }>
   }
   rendererProfile?: { averageMs?: number; p95Ms?: number; maxMs?: number }
+  tickerProfile?: {
+    p95?: {
+      callbackMs?: number
+      sceneSyncMs?: number
+      tickerDeltaMs?: number
+      tickerElapsedMs?: number
+    }
+    max?: {
+      callbackMs?: number
+      sceneSyncMs?: number
+      tickerDeltaMs?: number
+      tickerElapsedMs?: number
+    }
+  }
   renderConfiguration?: {
     authoredArtwork?: boolean
     authoredAnimation?: boolean
@@ -126,6 +140,12 @@ const main = async () => {
         rendererAverageMs: median(samples.map((sample) => sample.rendererProfile?.averageMs ?? Number.POSITIVE_INFINITY)),
         rendererP95Ms: median(samples.map((sample) => sample.rendererProfile?.p95Ms ?? Number.POSITIVE_INFINITY)),
         rendererMaxMs: median(samples.map((sample) => sample.rendererProfile?.maxMs ?? Number.POSITIVE_INFINITY)),
+        tickerCallbackP95Ms: median(samples.map((sample) => sample.tickerProfile?.p95?.callbackMs ?? Number.POSITIVE_INFINITY)),
+        tickerSceneSyncP95Ms: median(samples.map((sample) => sample.tickerProfile?.p95?.sceneSyncMs ?? Number.POSITIVE_INFINITY)),
+        tickerDeltaP95Ms: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerDeltaMs ?? Number.POSITIVE_INFINITY)),
+        tickerElapsedP95Ms: median(samples.map((sample) => sample.tickerProfile?.p95?.tickerElapsedMs ?? Number.POSITIVE_INFINITY)),
+        tickerCallbackMaxMs: median(samples.map((sample) => sample.tickerProfile?.max?.callbackMs ?? Number.POSITIVE_INFINITY)),
+        tickerElapsedMaxMs: median(samples.map((sample) => sample.tickerProfile?.max?.tickerElapsedMs ?? Number.POSITIVE_INFINITY)),
         detailedBuildings: median(samples.map((sample) => sample.renderProfile?.entityRange?.detailedBuildings?.last ?? Number.POSITIVE_INFINITY)),
         reducedBuildings: median(samples.map((sample) => sample.renderProfile?.entityRange?.reducedBuildings?.last ?? Number.POSITIVE_INFINITY)),
         readPixels: Math.max(...samples.map((sample) => sample.readPixels?.count ?? Number.POSITIVE_INFINITY)),

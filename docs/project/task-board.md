@@ -2,6 +2,7 @@
 
 | ID | 会话职责 | 写入范围 | 状态 | 集成条件 |
 | --- | --- | --- | --- | --- |
+| RENDER-TICKER-PROFILE-01 | Pixi ticker 阶段计时诊断 | `src/components/SimulationCanvas.tsx`, `src/rendering/types.ts`, `tools/browser-e2e/**`, `tools/qa/run-render-ablation.ts`, `docs/project/**` | 已完成 | 目标规模浏览器报告同时输出 rAF、renderer、scene sync 和 ticker delta/elapsed，定位红灯不主要来自 `DynamicScene.sync` |
 | RENDER-STEADY-PROFILE-WINDOW-01 | 稳态渲染采样窗口 | `tools/browser-e2e/run-browser-e2e.cjs`, `tools/qa/run-render-ablation.ts`, `docs/project/**` | 已完成 | 浏览器断言稳定后重置 profile 样本并输出 `steady-state-after-assertions`，区分启动期与运行期长尾 |
 | RENDER-BUILDING-LOD-ABLATION-01 | 建筑 LOD 目标规模对照矩阵 | `tools/qa/run-render-ablation.ts`, `tools/browser-e2e/**`, `src/qa/**`, `src/rendering/visuals.ts`, `docs/project/**` | 已完成 | `full` 与 `no-building-lod` 可在目标规模浏览器矩阵中复跑，且 reduced 更新不再重复清空动效图形 |
 | RENDER-BUILDING-LOD-01 | 目标规模建筑细节 LOD | `src/rendering/**`, `src/components/SimulationCanvas.tsx`, `src/qa/**`, `tools/browser-e2e/**`, `docs/project/**` | 已完成 | 300 栋目标规模场景中 96 栋近景保留 full detail，204 栋远景 reduced，并进入浏览器性能统计 |

@@ -1,5 +1,17 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百零八轮验证
+
+- 验证等级：Tier 3，主画布 renderProfile 采集、浏览器 E2E 报告和渲染差分汇总结构均有变更。
+- 定向测试：`npm test -- src/qa/browserE2eScenarios.test.ts src/rendering/DynamicScene.test.ts src/rendering/renderDiagnostics.test.ts` 通过，3 个测试文件、23 项测试。
+- 完整测试：`npm test` 通过，57 个测试文件、358 项测试。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码。
+- 生产构建：`npm run build` 通过，Vite 构建 2363 个模块。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模 ticker 对照：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_MODES=full,no-building-lod RENDER_ABLATION_REPEATS=1 npm run qa:render-ablation` 通过。
+- `full` 样本：96 detailed / 204 reduced，render sync P95 10.9ms，renderer 6.96/17.4/17.4ms，ticker callback/sceneSync P95 10.9/10.9ms，ticker delta/elapsed P95 100/200ms，rAF 157.14/200/200ms。
+- `no-building-lod` 样本：300 detailed / 0 reduced，render sync P95 11.6ms，renderer 7.08/23.6/23.6ms，ticker callback/sceneSync P95 11.7/11.6ms，ticker delta/elapsed P95 100/183.3ms，rAF 161.9/183.3/183.3ms。
+- 两个模式应用层 `readPixels=0`，无 console error；浏览器仍出现 WebGL GPU stall warning。结论：主场景同步不是当前 160ms+ rAF 的主要来源，性能门禁继续 RED。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百零七轮验证
 
 - 验证等级：Tier 3，浏览器性能采样边界和渲染差分报告结构有变更。

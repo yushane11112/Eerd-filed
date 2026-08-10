@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百零八轮：Ticker 阶段计时诊断
+
+- 启动并完成 `RENDER-TICKER-PROFILE-01`：renderProfile 模式下新增 Pixi ticker 阶段计时，记录 callback、camera、scene sync、`deltaMS` 和 `elapsedMS`。
+- 浏览器 runner 同步重置并汇总 ticker 样本，`run-render-ablation` 输出 ticker callback/sceneSync/delta/elapsed 的 P95 与最大值。
+- 目标规模稳态样本显示：`full` 的 scene sync/ticker callback P95 为 10.9ms，renderer P95 为 17.4ms，但 ticker elapsed P95/最大为 200ms；关闭 LOD 时 scene sync P95 为 11.6ms、renderer P95 为 23.6ms、ticker elapsed P95/最大为 183.3ms。
+- 客观限制：本轮证明主场景同步不是 160ms+ rAF 的主要来源，但尚未定位浏览器调度、GPU stall、Pixi ticker 设置或测试环境的具体成因；性能门禁继续 RED。
+
 ## 2026-08-10 第二百零七轮：稳态渲染采样窗口
 
 - 启动并完成 `RENDER-STEADY-PROFILE-WINDOW-01`：浏览器 runner 在页面和场景断言稳定后重置 render/renderer profile 数组，再采集帧时间、render sync 和 renderer 数据。

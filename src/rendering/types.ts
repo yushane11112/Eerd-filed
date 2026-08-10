@@ -81,3 +81,11 @@ export interface SceneSyncPerformanceProfile {
   reducedBuildings: number
   pooled: number
 }
+
+export interface SceneTickerPerformanceProfile {
+  callbackMs: number
+  cameraMs: number
+  sceneSyncMs: number
+  tickerDeltaMs: number
+  tickerElapsedMs: number
+}

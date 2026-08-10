@@ -2,6 +2,21 @@
 
 本文件记录每轮真实新增或修改的项目产物。只有写入这里的文件，才能算“项目内可检查产出”。
 
+## 2026-08-10：第二百零八轮 Ticker 阶段计时诊断
+
+| 文件 | 产物类型 | 用途 |
+| --- | --- | --- |
+| `src/rendering/types.ts` | 性能统计契约 | 新增 `SceneTickerPerformanceProfile`，描述 ticker callback、scene sync 和 delta/elapsed 指标 |
+| `src/rendering/index.ts` | 类型导出 | 导出 ticker 性能统计类型 |
+| `src/components/SimulationCanvas.tsx` | 运行时采集 | renderProfile 模式下记录 Pixi ticker callback/camera/scene sync/delta/elapsed |
+| `tools/browser-e2e/run-browser-e2e.cjs` | 浏览器执行器 | 稳态窗口重置并汇总 `__littleEarTickerProfiles` |
+| `tools/qa/run-render-ablation.ts` | 渲染差分工具 | 汇总输出 ticker callback、sceneSync、delta 和 elapsed 指标 |
+| `docs/project/progress-dashboard.md` | 进度仪表盘 | 记录第二百零八轮 ticker 证据和性能红灯判断 |
+| `docs/project/integration-log.md` | 集成记录 | 记录 ticker 采集事实和限制 |
+| `docs/project/qa.md` | QA 记录 | 记录定向测试、构建和目标规模浏览器证据 |
+| `docs/project/task-board.md` | 任务看板 | 标记 `RENDER-TICKER-PROFILE-01` 已完成 |
+| `docs/project/HANDOFF.md` | 跨电脑接续 | 更新下一轮默认诊断方向 |
+
 ## 2026-08-10：第二百零七轮稳态渲染采样窗口
 
 | 文件 | 产物类型 | 用途 |

@@ -50,6 +50,7 @@ interface BrowserResult {
   appProfile?: {
     advance?: { p95Ms?: number; maxMs?: number }
     commitInterval?: { p95Ms?: number; maxMs?: number }
+    runtimeAdvance?: Record<string, { p95Ms?: number; maxMs?: number }>
     lastSnapshotTick?: number | null
   }
   renderConfiguration?: {
@@ -164,6 +165,14 @@ const main = async () => {
         appAdvanceMaxMs: median(samples.map((sample) => sample.appProfile?.advance?.maxMs ?? Number.POSITIVE_INFINITY)),
         appCommitIntervalP95Ms: median(samples.map((sample) => sample.appProfile?.commitInterval?.p95Ms ?? Number.POSITIVE_INFINITY)),
         appCommitIntervalMaxMs: median(samples.map((sample) => sample.appProfile?.commitInterval?.maxMs ?? Number.POSITIVE_INFINITY)),
+        runtimeEngineAdvanceP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.engineAdvanceMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
+        runtimeSnapshotCloneP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.snapshotCloneMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
+        runtimeTimelineP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.timelineMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
+        runtimeDistrictP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.districtMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
+        runtimeUpgradesP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.upgradesMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
+        runtimeDropsP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.dropsMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
+        runtimeRebuildP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.rebuildMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
+        runtimeCacheEmitP95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.cacheEmitMs?.p95Ms ?? Number.POSITIVE_INFINITY)),
         detailedBuildings: median(samples.map((sample) => sample.renderProfile?.entityRange?.detailedBuildings?.last ?? Number.POSITIVE_INFINITY)),
         reducedBuildings: median(samples.map((sample) => sample.renderProfile?.entityRange?.reducedBuildings?.last ?? Number.POSITIVE_INFINITY)),
         readPixels: Math.max(...samples.map((sample) => sample.readPixels?.count ?? Number.POSITIVE_INFINITY)),

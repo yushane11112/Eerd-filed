@@ -197,6 +197,20 @@ export interface GameRuntimeOptions {
   cityNoticeAnalyticsTransport?: CityNoticeAnalyticsTransport
 }
 
+export interface GameRuntimeAdvanceProfile {
+  ticks: number
+  totalMs: number
+  engineAdvanceMs: number
+  snapshotCloneMs: number
+  timelineMs: number
+  scenarioFixtureMs: number
+  districtMs: number
+  upgradesMs: number
+  dropsMs: number
+  rebuildMs: number
+  cacheEmitMs: number
+}
+
 export interface BuildingPlacementPreviewCell {
   position: GridPoint
   status: 'footprint' | 'entrance' | 'blocked'
@@ -262,6 +276,8 @@ const RESOURCE_NAMES: Record<ResourceKind, string> = {
   brick: '砖瓦', cloth: '布匹', salt: '盐', medicine: '药材',
 }
 
+const runtimeProfileNow = () => globalThis.performance?.now() ?? Date.now()
+
 export class GameRuntime {
   readonly grid: WorldGrid
   private engine: SimulationEngine
@@ -277,6 +293,7 @@ export class GameRuntime {
   private cityNoticeAnalyticsDispatcher: CityNoticeAnalyticsDispatcher
   private readonly debugUnlockedStage?: BuildingCityStage
   private readonly debugScenario?: RuntimeDebugScenario
+  private lastAdvanceProfile?: GameRuntimeAdvanceProfile
 
   constructor(options: GameRuntimeOptions = {}) {
     this.debugUnlockedStage = options.debugUnlockedStage
@@ -352,6 +369,8 @@ export class GameRuntime {
   }
 
   getSnapshot = (): SimulationSnapshot => this.snapshotCache
+
+  getLastAdvanceProfile = (): GameRuntimeAdvanceProfile | undefined => this.lastAdvanceProfile
 
   getCityNotices = (): CityNotice[] => deriveCityNotices(this.snapshotCache)
 
@@ -493,9 +512,30 @@ export class GameRuntime {
   }
 
   advance(elapsedMs: number) {
+    const startedAt = runtimeProfileNow()
+    let phaseStartedAt = startedAt
     const result = this.engine.advance(elapsedMs)
-    if (result.ticks === 0) return
+    const engineAdvanceMs = runtimeProfileNow() - phaseStartedAt
+    if (result.ticks === 0) {
+      this.lastAdvanceProfile = {
+        ticks: 0,
+        totalMs: runtimeProfileNow() - startedAt,
+        engineAdvanceMs,
+        snapshotCloneMs: 0,
+        timelineMs: 0,
+        scenarioFixtureMs: 0,
+        districtMs: 0,
+        upgradesMs: 0,
+        dropsMs: 0,
+        rebuildMs: 0,
+        cacheEmitMs: 0,
+      }
+      return
+    }
+    phaseStartedAt = runtimeProfileNow()
     let snapshot = this.engine.snapshot
+    const snapshotCloneMs = runtimeProfileNow() - phaseStartedAt
+    phaseStartedAt = runtimeProfileNow()
     snapshot.cityTimeline = appendCityTimelineEvents(
       snapshot.cityTimeline ?? [],
       result.events,
@@ -520,19 +560,30 @@ export class GameRuntime {
         },
       },
     )
+    const timelineMs = runtimeProfileNow() - phaseStartedAt
     // Keep the lifecycle fixture visible while the browser runner waits for
     // the panel. Production timelines remain append-only; this branch only
     // refreshes the explicit debug scenario's two resident records.
+    phaseStartedAt = runtimeProfileNow()
     if (this.debugScenario === 'civilization-resident-timeline') {
       this.applyCivilizationResidentTimelineScenario(snapshot)
     }
+    const scenarioFixtureMs = runtimeProfileNow() - phaseStartedAt
+    phaseStartedAt = runtimeProfileNow()
     this.applyDistrictProsperity(snapshot)
+    const districtMs = runtimeProfileNow() - phaseStartedAt
+    phaseStartedAt = runtimeProfileNow()
     const hasUpgradingBuildings = Object.values(snapshot.buildings)
       .some((building) => building.status === 'upgrading')
     if (hasUpgradingBuildings) {
       advanceBuildingUpgrades(snapshot.buildings, BUILDING_DEFINITIONS, result.ticks)
     }
+    const upgradesMs = runtimeProfileNow() - phaseStartedAt
+    let dropsMs = 0
+    let rebuildMs = 0
+    let cacheEmitMs = 0
     if (snapshot.tick - this.lastDropTick >= 40) {
+      phaseStartedAt = runtimeProfileNow()
       this.lastDropTick = snapshot.tick
       const spawned = spawnRandomOrdinaryDrop(
         this.dropState,
@@ -542,13 +593,33 @@ export class GameRuntime {
       )
       this.dropState = spawned.state
       snapshot.worldDrops = this.dropState.visible
+      dropsMs = runtimeProfileNow() - phaseStartedAt
+      phaseStartedAt = runtimeProfileNow()
       this.rebuild(snapshot)
+      rebuildMs = runtimeProfileNow() - phaseStartedAt
     } else if (hasUpgradingBuildings) {
+      phaseStartedAt = runtimeProfileNow()
       this.rebuild(snapshot)
+      rebuildMs = runtimeProfileNow() - phaseStartedAt
     } else {
+      phaseStartedAt = runtimeProfileNow()
       this.snapshotCache = this.withDistrictProsperity(snapshot)
       this.syncCityNoticeAnalytics()
       this.emit()
+      cacheEmitMs = runtimeProfileNow() - phaseStartedAt
+    }
+    this.lastAdvanceProfile = {
+      ticks: result.ticks,
+      totalMs: runtimeProfileNow() - startedAt,
+      engineAdvanceMs,
+      snapshotCloneMs,
+      timelineMs,
+      scenarioFixtureMs,
+      districtMs,
+      upgradesMs,
+      dropsMs,
+      rebuildMs,
+      cacheEmitMs,
     }
   }
 

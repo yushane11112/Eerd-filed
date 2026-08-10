@@ -32,6 +32,7 @@ import {
   getRuntimeBuildingMenuState,
   isRuntimeBuildingUnlocked,
   type BuildTool,
+  type GameRuntimeAdvanceProfile,
 } from './integration/GameRuntime'
 import {
   AmbientCityStoryTracker,
@@ -62,6 +63,7 @@ import './styles.css'
 interface AppRuntimePerformanceProfile {
   advanceMs?: number
   commitIntervalMs?: number
+  runtimeAdvance?: GameRuntimeAdvanceProfile
   snapshotTick: number
 }
 
@@ -107,6 +109,7 @@ export default function App() {
       if (profiles && profiles.length < 120) {
         profiles.push({
           advanceMs: performance.now() - startedAt,
+          runtimeAdvance: runtime.getLastAdvanceProfile(),
           snapshotTick: runtime.getSnapshot().tick,
         })
       }

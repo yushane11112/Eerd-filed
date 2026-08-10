@@ -1,5 +1,12 @@
 # 集成记录
 
+## 2026-08-10 第二百一十三轮：Runtime advance 阶段 Profile
+
+- 启动并完成 `RUNTIME-ADVANCE-PHASE-PROFILE-01`：`GameRuntime.advance` 暴露分阶段性能画像，浏览器报告输出 `runtimeAdvance`。
+- App profile 将 runtime 阶段与总 `advance` 耗时、React commit interval 一起采集，render ablation 与 performance baseline 保留关键阶段 P95/Max。
+- 目标规模单样本显示：engine advance P95 8.5ms、snapshot clone P95 4.2ms、cache/emit P95 0.4ms，而游戏页 rAF P95 仍为 233.2ms。
+- 客观限制：这是单次本机样本，不能作为最终性能结论；但它已经证明当前红灯不能优先归咎于 `GameRuntime.advance` 胶水层，下一步应聚焦 Pixi/browser 调度与 GPU stall。
+
 ## 2026-08-10 第二百一十二轮：应用层推进 Profile
 
 - 启动并完成 `APP-RUNTIME-PROFILE-01`：App 在 renderProfile 模式下记录 `runtime.advance` 耗时和 React commit 间隔，浏览器 runner 输出 `appProfile`。

@@ -81,6 +81,18 @@ export interface PerformanceSample {
   appProfile?: {
     advance?: { p95Ms?: number; maxMs?: number }
     commitInterval?: { p95Ms?: number; maxMs?: number }
+    runtimeAdvance?: {
+      totalMs?: { p95Ms?: number; maxMs?: number }
+      engineAdvanceMs?: { p95Ms?: number; maxMs?: number }
+      snapshotCloneMs?: { p95Ms?: number; maxMs?: number }
+      timelineMs?: { p95Ms?: number; maxMs?: number }
+      scenarioFixtureMs?: { p95Ms?: number; maxMs?: number }
+      districtMs?: { p95Ms?: number; maxMs?: number }
+      upgradesMs?: { p95Ms?: number; maxMs?: number }
+      dropsMs?: { p95Ms?: number; maxMs?: number }
+      rebuildMs?: { p95Ms?: number; maxMs?: number }
+      cacheEmitMs?: { p95Ms?: number; maxMs?: number }
+    }
   }
   readPixels?: { count?: number }
 }
@@ -97,6 +109,8 @@ export interface PerformanceEvaluation {
   checks: PerformanceCheck[]
 }
 
+type RuntimeAdvanceProfileField = keyof NonNullable<NonNullable<PerformanceSample['appProfile']>['runtimeAdvance']>
+
 export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSample>): PerformanceSample {
   if (samples.length === 0) return { ok: false }
   const median = (values: number[]) => {
@@ -105,6 +119,10 @@ export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSa
   }
   const frameValues = (field: 'averageFrameMs' | 'p95FrameMs' | 'maxFrameMs') =>
     samples.map((sample) => sample.frameMetrics?.[field] ?? Number.POSITIVE_INFINITY)
+  const runtimeAdvancePhase = (field: RuntimeAdvanceProfileField) => ({
+    p95Ms: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.[field]?.p95Ms ?? Number.POSITIVE_INFINITY)),
+    maxMs: median(samples.map((sample) => sample.appProfile?.runtimeAdvance?.[field]?.maxMs ?? Number.POSITIVE_INFINITY)),
+  })
   return {
     ok: samples.every((sample) => sample.ok),
     browserFrameBaseline: {
@@ -144,6 +162,18 @@ export function aggregatePerformanceSamples(samples: ReadonlyArray<PerformanceSa
       commitInterval: {
         p95Ms: median(samples.map((sample) => sample.appProfile?.commitInterval?.p95Ms ?? Number.POSITIVE_INFINITY)),
         maxMs: median(samples.map((sample) => sample.appProfile?.commitInterval?.maxMs ?? Number.POSITIVE_INFINITY)),
+      },
+      runtimeAdvance: {
+        totalMs: runtimeAdvancePhase('totalMs'),
+        engineAdvanceMs: runtimeAdvancePhase('engineAdvanceMs'),
+        snapshotCloneMs: runtimeAdvancePhase('snapshotCloneMs'),
+        timelineMs: runtimeAdvancePhase('timelineMs'),
+        scenarioFixtureMs: runtimeAdvancePhase('scenarioFixtureMs'),
+        districtMs: runtimeAdvancePhase('districtMs'),
+        upgradesMs: runtimeAdvancePhase('upgradesMs'),
+        dropsMs: runtimeAdvancePhase('dropsMs'),
+        rebuildMs: runtimeAdvancePhase('rebuildMs'),
+        cacheEmitMs: runtimeAdvancePhase('cacheEmitMs'),
       },
     },
     readPixels: { count: Math.max(...samples.map((sample) => sample.readPixels?.count ?? Number.POSITIVE_INFINITY)) },

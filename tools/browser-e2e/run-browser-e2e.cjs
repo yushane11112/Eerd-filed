@@ -289,6 +289,18 @@ async function runScenario(browser, scenario) {
       const commitValues = profiles
         .map((profile) => Number(profile.commitIntervalMs))
         .filter((value) => Number.isFinite(value) && value > 0)
+      const phaseFields = [
+        'totalMs',
+        'engineAdvanceMs',
+        'snapshotCloneMs',
+        'timelineMs',
+        'scenarioFixtureMs',
+        'districtMs',
+        'upgradesMs',
+        'dropsMs',
+        'rebuildMs',
+        'cacheEmitMs',
+      ]
       const percentile = (values, ratio) => {
         const sorted = [...values].sort((left, right) => left - right)
         return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * ratio))]
@@ -302,10 +314,18 @@ async function runScenario(browser, scenario) {
           maxMs: Number(Math.max(...values).toFixed(3)),
         }
       }
+      const runtimeAdvance = {}
+      for (const field of phaseFields) {
+        const values = profiles
+          .map((profile) => Number(profile.runtimeAdvance?.[field]))
+          .filter(Number.isFinite)
+        runtimeAdvance[field] = summarize(values)
+      }
       return {
         sampleCount: profiles.length,
         advance: summarize(advanceValues),
         commitInterval: summarize(commitValues),
+        runtimeAdvance,
         lastSnapshotTick: profiles.at(-1)?.snapshotTick ?? null,
       }
     })

@@ -2,6 +2,7 @@
 
 | ID | 会话职责 | 写入范围 | 状态 | 集成条件 |
 | --- | --- | --- | --- | --- |
+| RUNTIME-ADVANCE-PHASE-PROFILE-01 | Runtime advance 阶段性能采集 | `src/integration/GameRuntime.ts`, `src/App.tsx`, `tools/browser-e2e/**`, `tools/qa/run-render-ablation.ts`, `src/qa/**`, `docs/project/**` | 已完成 | 目标规模浏览器报告输出 `GameRuntime.advance` 内部阶段，排除运行时胶水层作为当前最大红灯 |
 | APP-RUNTIME-PROFILE-01 | 应用层推进性能采集 | `src/App.tsx`, `tools/browser-e2e/**`, `tools/qa/run-render-ablation.ts`, `src/qa/performanceBaseline.ts`, `docs/project/**` | 已完成 | 浏览器性能报告输出 `runtime.advance` 和 React commit interval，下一轮可拆解模拟系统长任务 |
 | BROWSER-RAF-BASELINE-01 | 浏览器空白页 rAF 基线 | `tools/browser-e2e/run-browser-e2e.cjs`, `tools/qa/run-render-ablation.ts`, `src/qa/performanceBaseline.ts`, `src/qa/performanceBaseline.test.ts`, `docs/project/**` | 已完成 | 同一 page 在加载游戏前证明空白页 rAF 约 16.7ms，排除 runner 全局节流 |
 | RENDER-TICKER-MINFPS-ABLATION-01 | Pixi ticker minFPS 对照 | `src/rendering/renderDiagnostics.ts`, `src/components/SimulationCanvas.tsx`, `tools/browser-e2e/**`, `tools/qa/run-render-ablation.ts`, `src/qa/**`, `docs/project/**` | 已完成 | `tickerMinFps=0` 证明 deltaMS 封顶来自 Pixi minFPS，但关闭 cap 不改善真实 rAF |

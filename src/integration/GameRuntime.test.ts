@@ -16,6 +16,25 @@ describe('GameRuntime integration', () => {
     expect(snapshot.districts?.some((district) => district.kind === 'market-street')).toBe(true)
   })
 
+  it('profiles runtime advance phases for browser performance diagnostics', () => {
+    const runtime = new GameRuntime()
+
+    runtime.advance(200)
+
+    expect(runtime.getLastAdvanceProfile()).toEqual(expect.objectContaining({
+      ticks: 1,
+      totalMs: expect.any(Number),
+      engineAdvanceMs: expect.any(Number),
+      snapshotCloneMs: expect.any(Number),
+      timelineMs: expect.any(Number),
+      districtMs: expect.any(Number),
+      upgradesMs: expect.any(Number),
+      dropsMs: expect.any(Number),
+      rebuildMs: expect.any(Number),
+      cacheEmitMs: expect.any(Number),
+    }))
+  })
+
   it('injects the resident lifecycle browser fixture into the live engine', () => {
     const runtime = new GameRuntime({ debugScenario: 'civilization-resident-timeline' })
     const timeline = runtime.getSnapshot().cityTimeline ?? []

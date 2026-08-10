@@ -1,5 +1,17 @@
 # 验收与性能基准
 
+## 2026-08-10 第二百一十三轮验证
+
+- 验证等级：Tier 3，`GameRuntime.advance` 阶段 profile、App 采集、浏览器 E2E runner、渲染差分报告和性能基线聚合结构均有变更。
+- 定向测试：`npm test -- src/integration/GameRuntime.test.ts src/qa/performanceBaseline.test.ts src/qa/browserE2eScenarios.test.ts` 通过，3 个测试文件、37 项测试。
+- 完整测试：`npm test` 通过，57 个测试文件、359 项测试，耗时约 161 秒。已知 jsdom `HTMLCanvasElement.getContext` warning 仍存在但不影响退出码；最慢项仍是多日文明压力场景。
+- 生产构建：`npm run build` 通过，Vite 构建 2363 个模块。现有大 chunk warning 仍存在，非本轮新增阻断。
+- 目标规模 runtime 阶段 profile：`RENDER_ABLATION_SCENARIO=civilization-scale RENDER_ABLATION_MODES=full RENDER_ABLATION_REPEATS=1 npm run qa:render-ablation` 通过。
+- 同一 Playwright page 空白页 rAF 为 16.45/16.7/16.8ms；游戏页 rAF 为 169.42/233.2/233.2ms，render sync P95 18.6ms，renderer P95 21.3ms，ticker elapsed P95 233.2ms。
+- 应用层阶段样本：`runtime.advance` P95/最大 13/13ms，engine advance P95 8.5ms，snapshot clone P95 4.2ms，timeline/drops/rebuild P95 0ms，cache/emit P95 0.4ms；React commit interval P95/最大 446.1/446.1ms。
+- 结论：`GameRuntime.advance` 阶段拆分已进入浏览器报告。当前样本显示运行时推进不是 200ms+ 帧间隔的主要来源，性能门禁继续 RED；下一步应聚焦 Pixi/browser 帧调度、WebGL GPU stall 和 React commit 节奏。
+- 差异检查：`git diff --check` 通过。
+
 ## 2026-08-10 第二百一十二轮验证
 
 - 验证等级：Tier 3，App renderProfile 采集、浏览器 E2E runner、渲染差分报告和性能基线聚合结构均有变更。

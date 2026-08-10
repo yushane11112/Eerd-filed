@@ -8,6 +8,14 @@
 
 当前判断：
 
+### 第二百一十三轮产出（2026-08-10）
+
+- `GameRuntime.advance` 新增分阶段 profile：记录 engine advance、snapshot clone、timeline、debug fixture、district、upgrade、drop、rebuild 和 cache/emit 阶段耗时，并通过 `getLastAdvanceProfile()` 暴露给 App。
+- App/browser runner/render ablation/performance baseline 已接入 `runtimeAdvance` 阶段汇总，目标规模报告不再只能看到 `runtime.advance` 总耗时。
+- 目标规模桌面 GPU 单样本：空白页 rAF 16.45/16.7/16.8ms，游戏页 rAF 169.42/233.2/233.2ms；render sync P95 18.6ms，renderer P95 21.3ms，ticker elapsed P95 233.2ms。
+- 同次应用层阶段：`runtime.advance` P95 13ms，其中 engine advance P95 8.5ms、snapshot clone P95 4.2ms、cache/emit P95 0.4ms，timeline/drops/rebuild 接近 0ms；React commit interval P95 446.1ms。
+- 结论：本轮把 `runtime.advance` 从黑盒拆成可报告阶段。当前样本显示运行时推进不是 200ms+ 帧间隔的主要来源，下一步应回到 Pixi/browser 帧调度、WebGL GPU stall warning 和 React commit 节奏，而不是继续盲目削模拟系统。
+
 ### 第二百一十二轮产出（2026-08-10）
 
 - 浏览器 E2E runner 新增 `appProfile`：renderProfile 模式下记录 `runtime.advance(100)` 耗时、React commit 间隔和最后快照 tick，并在稳态窗口与 render/renderer/ticker 样本一起重置和汇总。
